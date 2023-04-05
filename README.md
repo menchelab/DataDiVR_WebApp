@@ -2,6 +2,11 @@
 
 This is a flask server that provides the network data to the UnrealEngine VRNetzer VR Clients
 
+# VRNetzer VR-Module 
+
+Please find the build of the newest VRNetzer Module <a style="font-size:14px" target="_blank" href="https://ucloud.univie.ac.at/index.php/s/kUNbOhrn8Bsl50d">here<a> .
+To run the Module download the folder and execute the .exe file. 
+
 ## INSTALLATION
 
 1. run backend
@@ -28,7 +33,7 @@ This is a flask server that provides the network data to the UnrealEngine VRNetz
 
 3. use the WebGL preview to have a look at your project without having to use VR hardware
 
-   - go to [127.0.0.1:5000/preview](http://127.0.0.1:5000/preview) / [127.0.0.1:3000/upload](http://127.0.0.1:3000/upload)(mac)
+   - go to [127.0.0.1:5000/preview](http://127.0.0.1:5000/preview) / [127.0.0.1:3000/preview](http://127.0.0.1:3000/preview)(mac)
    - select your project from the dropdown
 
 4. run the VR
@@ -41,6 +46,8 @@ This is a flask server that provides the network data to the UnrealEngine VRNetz
    - run VRnetzer.exe
 
 ## DOCUMENTATION
+
+Once the flask server is running, go to [127.0.0.1:5000/doku](http://127.0.0.1:5000/doku) / [127.0.0.1:3000/doku](http://127.0.0.1:3000/doku)(mac)
 
 <details>
   <summary><h3> VRNetzer Dataformat</h3></summary>
@@ -100,7 +107,3 @@ go to [127.0.0.1:5000/doku](http://127.0.0.1:5000/doku) / [127.0.0.1:3000/doku](
 
 <br><br>
 
-# VRNetzer VR-Module 
-
-Please find the build of the newest VRNetzer Module <a style="font-size:14px" target="_blank" href="https://ucloud.univie.ac.at/index.php/s/kUNbOhrn8Bsl50d">here</a> .
-To run the Module download the folder and execute the .exe file. 
