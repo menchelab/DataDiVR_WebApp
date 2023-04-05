@@ -563,8 +563,7 @@ function displayHTML(project_selected) {
                 //mybool=false;
             } else {
                 console.log("C_DEBUG - displayHTML: HTML DOES NOT exist.");
-                //source = 'static/demo_project/autocore_new/legends/heatmap.html'; 
-                //mybool=true;
+
             }
             console.log('C_DEBUG: HTML after check exists:', source)
             document.getElementById("htmlplot").innerHTML=source;   
