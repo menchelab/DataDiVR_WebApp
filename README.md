@@ -43,11 +43,16 @@ To run the Module download the folder and execute the .exe file.
    - SteamVR installed
    - download the VRNetzer executable
    - open "VRNetzer/Colab/Content/data/config.txt and make sure it contains the adress the VRNetzer backend is running at
+   - run the backend
    - run VRnetzer.exe
+   - enter a username (optional)
+   - choose robot if you want to run in desktop mode (good idea for a dedicated server as it is more performant) OR VR to run in vr mode
+   - the first player is the host so choose "HOST SESSION"
+   - the following players choose "JOIN SESSION"
 
 ## DOCUMENTATION
 
-Once the flask server is running, go to [127.0.0.1:5000/doku](http://127.0.0.1:5000/doku) / [127.0.0.1:3000/doku](http://127.0.0.1:3000/doku)(mac)
+Once the flask server is running, go to [127.0.0.1:5000/doku](http://127.0.0.1:5000/doku) / [127.0.0.1:3000/doku](http://127.0.0.1:3000/doku)(mac) to learn more about the VRNetzer framework
 
 <details>
   <summary><h3> VRNetzer Dataformat</h3></summary>
