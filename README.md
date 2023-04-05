@@ -1,3 +1,5 @@
+![Alt text](static/css/images/splash.jpg?raw=true "Title")
+
 # VRNetzer Backend
 
 This is a flask server that provides the network data to the UnrealEngine VRNetzer VR Clients
