@@ -1,0 +1,30 @@
+{
+    "nodes": [
+        {
+            "id": 666,
+            
+            "n": "name",
+            "optionalUserKeys": "whaterver you want...",
+            "optionalAttr":["ABC","UVW"]
+        },
+        {},
+        {}
+    ]
+}
+
+{
+    "links": [
+        {
+            "id": 666,
+            "s": 123,
+            "e": 456,
+            
+            "optionalUserKeys": "whaterver you want..."
+        },
+        {},
+        {}
+    ]
+}
+
+//pfile
+{"name": "michis_crystal", "layouts": ["crystalXYZ"], "layoutsRGB": ["crystalRGB"], "links": ["crystalXYZ"], "linksRGB": ["crystalRGB"], "selections": []}

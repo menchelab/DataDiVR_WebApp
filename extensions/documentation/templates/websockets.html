@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}"></link>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/atelier-cave.min.css') }}"></link>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+	<script>hljs.highlightAll();</script>
+	<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	</head>
+
+<body>
+ 
+<div>
+    <h5>Websockets</h5>
+    <br>
+
+
+The VRNetzerWebApp is dynamic webpage but also a gameserver.<br> It keeps track of the gamestate and users, serves data and generates the user interfaces for multiple VRNetzer VRModules.
+<br>It needs to update changes made by a user to an UI to all other connected clients so they reflect the same state. <br>This is realized with <a href="https://socket.io/">SocketIO</a>. It uses websockets to establish a bidirectional connection between the server and the clients.<br>
+<br> 
+<img src="{{ url_for('static', filename='img/help/socketio.jpg') }}" style="max-width: 100%;"><br>
+This figure shows the steps involved for basic interactions, like a user changing a dropdown menu or clicking a button<br><br>
+
+
+
+
+<h5>Client side</h5>
+On the client side, the connection is established on pageload (1). The code responsible for this is in /static/js/connect_socketIO_doku.js<br><br>
+connect_socketIO_doku.js
+
+<pre><code class="javascript">var socket;
+
+    $(document).ready(function(){
+        ///set up and connect to socket
+        console.log('http://' + document.domain + ':' + location.port + '/main');
+        socket = io.connect('http://' + document.domain + ':' + location.port + '/main');
+        socket.io.opts.transports = ['websocket'];
+        
+        socket.on('connect', function() {
+            socket.emit('join', {});
+        });
+        socket.on('status', function(data) {
+        });
+        socket.on('ex', function(data) {
+            console.log("server returned: " + JSON.stringify(data));
+            switch(data.fn)
+            {
+                case 'mkB':
+                    makeButton(data.id, data.msg, data.msg);
+                    break;</code></pre>
+The switch function at the end again decides what happens depending on the incoming message (4).<br><br>
+In <a href="/static/js/mc_UI_Elements.js">/static/js/mc_UI_Elements.js</a> are functions to set up basic UI elements that communicate their states over SocketIO and update each other.<br>
+You can use them in Html to easily make multicasted User Interfaces.<br><br>
+mc_UI_Elements.js
+<pre><code class="javascript">function initDropdown(id, data, active) {
+
+    $('#' + id).selectmenu();
+  
+    for (let i = 0; i < data.length; i++) {
+    $('#' + id).append(new Option(data[i]));
+    }
+  
+    $('#' + id).val(active);
+    $('#' + id).selectmenu("refresh");
+  
+    $('#' + id).on('selectmenuselect', function() {
+      var name = $('#' + id).find(':selected').text();
+      socket.emit('ex', { id: id, opt: name, fn: "sel" });
+      ///logger($('#selectMode').val());
+    });
+  
+  }</code></pre>
+  <br><br>
+  <h5>Server side</h5>
+  This is the python part around line 450<br><br>
+  app.py
+  <pre><code class="language-python" >###SocketIO ROUTES###
+  
+  
+      @socketio.on("join", namespace="/main")
+      def join(message):
+          room = flask.session.get("room")
+          join_room(room)
+          print(
+              bcolors.WARNING
+              + flask.session.get("username")
+              + " has entered the room."
+              + bcolors.ENDC
+          )
+          emit(
+              "status",
+              {"msg": flask.session.get("username") + " has entered the room."},
+              room=room,
+          )
+      
+      
+      @socketio.on("ex", namespace="/main")
+      def ex(message):
+          room = flask.session.get("room")
+          print(
+              bcolors.WARNING
+              + flask.session.get("username")
+              + "ex: "
+              + json.dumps(message)
+              + bcolors.ENDC
+          )
+          message["usr"] = flask.session.get("username")
+      
+          if message["id"] == "projects":</code></pre>
+  It looks very similar to the flask routes with the difference that it misses the return and fires an emit function instead.<br>
+  This code sets up two endpoints on the serverside, the first for joining clients (1), and another called "ex" for all other data traffic.<br>
+  At the end, begining with the first if statment, starts the message routing code that decides what to do with each message (3) based on their"fn" and "id" fields.<br> Most of them will simply be relayed but some will create a different response.
+  <br><br>
+
+<h5>The message</h5>
+Here is the JSON message that is emited when a dropdown is changed:<br><br>
+<i>{"id":"projects","opt":"bunny","fn":"sel","usr":"2392"}</i><br><br>
+Two fields are mandatory:<br>
+- "fn" as in function, here what kind of UI element ("sel" for select, "btn" for button). It tells the server what to do with this message<br>
+- "usr" the name of the sender<br><br>
+The others change depending on "fn"<br>
+- "id" the id of the html object (should be unique across the whole project)<br>
+- "opt" the selected option<br><br>
+
+<h5>Your turn</h5>
+First, let's define an new route in app.py<br><br>
+app.py
+<pre><code class="language-python">@app.route("/websockets_tutorial")
+    def websockets_tutorial():
+        return render_template("websocket_tutorial.html")</code></pre><br>
+Now lets create a new Html file in /templates/ called<br><br>
+websockets_tutorial.html
+<pre><code class="html">&lt!DOCTYPE html&gt
+    &lthtml&gt
+        &lthead&gt
+            &ltlink rel="stylesheet" href="&#123&#123 url_for('static', filename='css/jquery-ui.css') &#125&#125"&gt
+            &ltlink rel="stylesheet" href="&#123&#123 url_for('static', filename='css/SwagStyle.css') &#125&#125"&gt
+    
+            &ltscript src="https://code.jquery.com/jquery-3.4.1.min.js"&gt&lt/script&gt
+            &ltscript src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"&gt&lt/script&gt
+            &ltscript type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"&gt&lt/script&gt
+    
+            &ltscript type="text/javascript" src="&#123&#123 url_for('static', filename='js/connect_socketIO_doku.js') &#125&#125"&gt&lt/script&gt
+            &ltscript type="text/javascript" src="&#123&#123 url_for('static', filename='js/mc_UI_Elements.js') &#125&#125"&gt&lt/script&gt
+        &lt/head&gt
+    
+        &ltbody&gt
+            &ltdiv style="width:200px"&gt
+                select your fruit&ltbr&gt
+                &ltselect id="myfruitdropdown" &gt&lt/select&gt&ltbr&gt&ltbr&gt
+                select your pet&ltbr&gt
+                &ltselect id="mypetdropdown"&gt&lt/select&gt&ltbr&gt
+            &lt/div&gt
+            &ltscript&gt
+                initDropdown("myfruitdropdown", ["apples","bananas","oranges"], "bananas");
+                initDropdown("mypetdropdown", ["lizard","bug","cat","mouse","pokemon"], "bug");
+            &lt/script&gt 
+        &lt/body&gt
+    &lt/html&gt</code></pre>
+
+As you can see, this needs a few imports.<br>
+- <i>JQuery</i> helps with handling html elements, <br>
+- <i>SocketIO</i> handles the websocket communication.<br>
+- <i>connect_socketIO_doku.js</i>  sets up the connection to the server.<br>
+- <i>mc_UI_Elements.js</i> contains the <i>initDropdown()</i> function.<br><br>
+
+To set up a multicasted input element we need to <br>
+- create a suitable html element (in case of the dropdown a &ltselect&gt) with an id attribute that is UNIQUE in the whole project so its smart to prefix it with the name of the page<br>
+- call the specific init() function<br><br>
+
+<i>initDropdown()</i> has 3 input arguments: <br> 
+- id of the html element (the select)<br> 
+- array of strings (the options)<br> 
+- string (the option thats selected by default)<br><br> 
+
+open <a href="/websockets_tutorial">http://127.0.0.1:5000/websockets_tutorial</a> if you added the code<br>
+or <a href="/doku/websockets_tutorial">http://127.0.0.1:5000/doku/websockets_tutorial</a> two times.<br>
+change the value of the dropdown on one page and observe what happens to it in the other window.<br>
+Inspect the page, look at the output of the console when u change the dropdown. Also have a look at the output of the python console in VSCode<br><br>
+
+Now, let's pass some data from the server to the template to populate the dropdowns with<br><br>
+app.py
+<pre><code class="language-python">@app.route("/websocket_tutorial")
+    def websockets_tutorial():
+        data = json.dumps({"fruits": ["apples","bananas","oranges"], "pets": ["lizard","bug","cat","mouse","pokemon"]})
+        return render_template("websockets_tutorial.html", data=data)</code></pre>
+
+
+websockets_tutorial.html
+<pre><code class="html">&lt!DOCTYPE html&gt
+    &lthtml&gt
+        &lthead&gt
+            &ltlink rel="stylesheet" href="&#123&#123 url_for('static', filename='css/jquery-ui.css') &#125&#125"&gt
+            &ltlink rel="stylesheet" href="&#123&#123 url_for('static', filename='css/SwagStyle.css') &#125&#125"&gt
+    
+            &ltscript src="https://code.jquery.com/jquery-3.4.1.min.js"&gt&lt/script&gt
+            &ltscript src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"&gt&lt/script&gt
+            &ltscript type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"&gt&lt/script&gt
+    
+            &ltscript type="text/javascript" src="&#123&#123 url_for('static', filename='js/connect_socketIO_doku.js') &#125&#125"&gt&lt/script&gt
+            &ltscript type="text/javascript" src="&#123&#123 url_for('static', filename='js/mc_UI_Elements.js') &#125&#125"&gt&lt/script&gt
+        &lt/head&gt
+    
+        &ltbody&gt
+            &ltdiv style="width:200px"&gt
+                select your fruit&ltbr&gt
+                &ltselect id="myfruitdropdown" &gt&lt/select&gt&ltbr&gt&ltbr&gt
+                select your pet&ltbr&gt
+                &ltselect id="mypetdropdown"&gt&lt/select&gt&ltbr&gt
+            &lt/div&gt
+            &ltscript&gt
+                var data = JSON.parse(&#123&#123data|tojson&#125&#125);
+                initDropdown("myfruitdropdown", data.fruits, data.fruits[0]);
+                initDropdown("mypetdropdown", data.pets, data.pets[0]);
+            &lt/script&gt 
+        &lt/body&gt
+    &lt/html&gt</code></pre>
+<br><br><a href="/doku/websockets_tutorial">http://127.0.0.1:5000/doku/websockets_tutorial<br></a>
+
+data-secondary-target="http://www2.some-server.example/file"
+<br>
+And here are some other readily available input elements.<br><br>
+websockets_tutorial.html
+<pre><code class="html">&lt!DOCTYPE html&gt
+&lthtml&gt
+    &lthead&gt
+        &ltlink rel="stylesheet" href="&#123&#123 url_for('static', filename='css/jquery-ui.css') &#125&#125"&gt
+        &ltlink rel="stylesheet" href="&#123&#123 url_for('static', filename='css/SwagStyle.css') &#125&#125"&gt
+
+        &ltscript src="https://code.jquery.com/jquery-3.4.1.min.js"&gt&lt/script&gt
+        &ltscript src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"&gt&lt/script&gt
+        &ltscript type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"&gt&lt/script&gt
+        &ltscript type="text/javascript" src="&#123&#123 url_for('static', filename='js/connect_socketIO_doku.js') &#125&#125"&gt&lt/script&gt
+        &ltscript type="text/javascript" src="&#123&#123 url_for('static', filename='js/mc_UI_Elements.js') &#125&#125"&gt&lt/script&gt
+    &lt/head&gt
+
+    &ltbody&gt
+
+
+    &ltdiv&gt
+        &lth5&gtWEBSocket Tutorial&lt/h5&gt
+
+        open this page two times.&ltbr&gt
+        change the value of the UI elements on one page and observe what happens to it in the other window.&ltbr&gt
+        Inspect the page, look at the output of the console when u change the dropdown. &ltbr&gt
+        Also have a look at the output of the python console in VSCode&ltbr&gt&ltbr&gt
+            
+        &ltdiv style="width:200px"&gt
+            select your fruit&ltbr&gt
+            &ltselect id="myfruitdropdown" &gt&lt/select&gt&ltbr&gt&ltbr&gt
+            select your pet&ltbr&gt
+            &ltselect id="mypetdropdown"&gt&lt/select&gt&ltbr&gt&ltbr&gt
+            
+            Slider
+            &ltdiv id="wst_slider"&gt&lt/div&gt
+            Checkbox&ltbr&gt
+            &ltinput type="checkbox" id = "wst_chkb"&gt&lt/input&gt
+            &ltbr&gt
+            &ltinput type="button" id = "wst_button" value="Button"&gt&lt/input&gt
+            &ltscript&gt
+                var data = JSON.parse(&#123&#123data|tojson&#125&#125);
+                initDropdown("myfruitdropdown", data.fruits, data.fruits[0]);
+                initDropdown("mypetdropdown", data.pets, data.pets[0]);
+                initSlider("wst_slider");
+                initCheckbox("wst_chkb");
+                initButton("wst_button");
+            &lt/script&gt 
+        &lt/div&gt
+    &lt/div&gt
+    &lt/body&gt
+&lt/html&gt
+
+
+</code></pre>
+A more advanced method to create UI elements is covered in the next chapter, <br><a href="/doku/CustomElements1">CUSTOM ELEMENTS</a><br>
+<br><br><a href="/doku/">DOKU</a><br>
+</div>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!-- PUT YOUR UI ELEMENTS IN HERE AND DEFINE MAPPINGS IN MyUi.js -->
+
+<!-- HTML STARTS HERE -->
+
+<!DOCTYPE html>
+<html>
+
+
+<style>
+  input[type='file'] {
+    outline: none;
+
+  }
+</style>
+
+<head>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
+  <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/NavBar.css') }}">
+
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/upload_UI_new.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/mc_UI_Elements.js') }}"></script>
+</head>
+
+<body>
+  <div id="tabsUL"><a href="upload.html" id="" title="upload"></a>
+    <!--upload-->
+    <ul id="uploadTabs">
+      <li>
+        <a href="#fragment-1">
+          <img draggable="false" onmousedown="return false" height='40' width='40'
+            src="{{ url_for('static', filename='css/images/upload.png') }}" />
+        </a>
+      </li>
+    </ul>
+    <div id="fragment-1">
+      <form id="upload_form" method=post enctype=multipart/form-data>
+        <div class="twelve columns">
+          <div class="eight columns">
+            <h2 class="lineglowslow" style="margin-top:30px">VRNetzer</h2>
+          </div>
+          <div class="four columns">
+            <div class="swagLogo"><br></br></div>
+          </div>
+        </div>
+        <div>Check out the new webGL preview!</div>
+        <input onclick="followLink('/preview')" style="height: 50px; width: 250px;min-width: fit-content;" type="button"
+          value="webGL PREVIEW"></input><br>
+        <div class="twelve columns">
+          <h3><span>UPLOAD NEW DATA</span></h3>
+          <p>For filestructure refer to the Example File Download Links below.</p>
+        </div>
+
+        <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                      Project + Namespace Dropdown
+        +++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+
+        <div class="twelve columns">
+           
+            <div class="frameBox" style="width: 420px">
+              <div class="two columns">
+                <input type="radio" name="namespace" value="existing" checked ><br>
+              </div>
+              <h5> ADD TO PROJECT</h5>
+              <br>
+              <div class="cornerBox">
+                <select name="namespaces" id="namespaces">
+                  {% for namespace in namespaces %}
+                  <option value="{{namespace}}">{{namespace}}</option>
+                  {% endfor %}
+                </select>
+                <br>
+
+              </div>
+
+            </div>
+          
+          <br>
+
+          <div class="frameBox"  style="width: 420px">
+            <div class="two columns">
+              <input type="radio" name="namespace" id="radio_new_namespace" value="New" ></input>
+            </div>
+            <h5>CREATE NEW PROJECT</h5>
+            <br>
+            <input type="text" id="new_namespace_name" name="new_name" class="swagBox"></input>
+            <p id="submit_warnings" style="display:inline"></p>
+
+          </div>
+
+           
+
+
+
+        </div>
+
+        <div class="frameBox" style="width:420px">
+          <div class="twelve columns">
+            <h5>NODE POSITIONS</h5>
+            <a style="font-size:14px" href="../static/examplefiles/Upload_examples_CSV/ZacharyGraph_CSV/ZacharysKarateClub0_nodepositions.csv" download>Download Example File here</a>
+            <input type=file name=nodesXYZ multiple></input><br><br>
+
+            <h5>NODE COLORS</h5>
+            <a style="font-size:14px" href="../static/examplefiles/Upload_examples_CSV/ZacharyGraph_CSV/ZacharysKarateClub0_nodecolors.csv" download>Download Example File here</a>
+            <input type=file name=nodesRGB multiple></input><br><br>
+
+            <h5 >NODE PROPERTIES</h5>
+            <a style="font-size:14px" href="../static/examplefiles/Upload_examples_CSV/ZacharyGraph_CSV/ZacharysKarateClub_nodeproperties.csv" download>Download Example File here</a>
+            <input type=file name=nprop single></input><br><br>
+             
+            <h5 >LINKS</h5>
+            <a style="font-size:14px" href="../static/examplefiles/Upload_examples_CSV/ZacharyGraph_CSV/ZacharysKarateClub_links.csv" download>Download Example File here</a>
+            <input type=file name=links multiple></input><br><br>
+
+            <h5>LINK COLORS</h5>
+            <a style="font-size:14px" href="../static/examplefiles/Upload_examples_CSV/ZacharyGraph_CSV/ZacharysKarateClub0_linkcolors.csv" download>Download Example File here</a>
+            <input type=file name=linksRGB multiple></input><br><br>
+              
+            <h5 >CLUSTER LABELS</h5>
+            <a style="font-size:14px" href="../static/examplefiles/Upload_examples_CSV/ZacharyGraph_CSV/ZacharysKarateClub_clusterlabels.csv" download>Download Example File here</a>
+            <input type=file name=labels single></input><br><br>
+            
+          </div>
+        </div>
+        <br>
+        <div class="frameBox" style="width:420px">
+          <div class="twelve columns">
+            <input type=submit value=Upload id=upload_button class="swagSubmit"></button>
+            <br><br>
+            <div id="upload_message"></div>
+            <br>
+
+
+          </div>
+        </div>
+        <!--<div class="twelve columns"> 
+            <div  class="lineglow" style="background-position: center;"><br></br></div>
+          </div>-->
+      </form>
+    </div>
+
+  </div>
+
+
+
+</body>

@@ -1,0 +1,1124 @@
+@font-face {
+    font-family: Future;
+    src: url('fonts/Roboto-Light.ttf');
+}
+
+@font-face {
+    font-family: Square;
+    src: url('fonts/square_sans_serif_7.ttf');
+}
+
+@font-face {
+    font-family: Venus;
+    src: url('fonts/venus.ttf');
+}
+
+@font-face {
+    font-family: Modular;
+    src: url('fonts/Modular Amplitude.otf');
+}
+
+@font-face {
+    font-family: Bal-ligital;
+    src: url('fonts/BaiJamjuree-LightItalic.ttf');
+}
+
+@font-face {
+    font-family: Bal-lig;
+    src: url('fonts/BaiJamjuree-Light.ttf');
+}
+
+@font-face {
+    font-family: Bal-boldital;
+    src: url('fonts/BaiJamjuree-BoldItalic.ttf');
+}
+
+@font-face {
+    font-family: Bal-semi;
+    src: url('fonts/BaiJamjuree-Semibold.ttf');
+}
+
+@font-face {
+    font-family: Bal-med;
+    src: url('fonts/BaiJamjuree-Medium.ttf');
+}
+
+@font-face {
+    font-family: Michr;
+    src: url('fonts/Michroma-Regular.ttf');
+}
+
+@font-face {
+    font-family: Jura;
+    src: url('fonts/Jura-VariableFont.ttf');
+}
+
+@font-face {
+    font-family: Jura-lig;
+    src: url('fonts/Jura-Light.ttf');
+}
+
+@font-face {
+    font-family: Jura-med;
+    src: url('fonts/Jura-Medium.ttf');
+}
+
+@font-face {
+    font-family: Aldi;
+    src: url('fonts/Aldrich-Regular.ttf');
+}
+
+@font-face {
+    font-family: Oxan-lig;
+    src: url('fonts/Oxanium-Light.ttf');
+}
+
+
+/* ######################################################
+#########################################################
+                  F O N T S
+#########################################################
+#######################################################*/
+
+
+.unselectable {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+
+
+h2 {
+    /*font-family: 'Future', sans-serif;*/
+    font-family: 'Square', sans-serif;
+    font-size: 96px;
+    font-weight: lighter;
+    color: rgba(42, 113, 148, 0.2);
+}
+
+h3 {
+    /*font-family: 'Modular', sans-serif;*/
+    font-family: 'Michr';
+    /*'Akshar-reg', sans-serif;*/
+    font-size: 22px;
+    color: #ffffff;
+    /*202020;*/
+    font-weight: normal;
+}
+
+h3 span {
+    font-size: 22px;
+    color: rgba(255, 255, 255, 0.75);
+}
+
+h3.border {
+    border: 0px;
+    margin-top: 45px;
+    margin-bottom: 15px;
+}
+
+h4 {
+    /*font-family: 'Venus', sans-serif;*/
+    font-family: 'Michr', sans-serif;
+    /*'Akshar-reg', sans-serif; */
+    font-size: 22px;
+    padding: 0%;
+    margin-bottom: 10px;
+    margin-top: 15px;
+    font-style: italic;
+    color: rgb(42, 113, 148);
+    font-weight: lighter;
+}
+
+h5 {
+    /* same as h4 but non italic and white*/
+    /*font-family: 'Venus', sans-serif;
+    font-family: 'Michr', sans-serif;*/
+    /*'Akshar-reg', sans-serif; */
+    font-size: 22px;
+    padding: 0%;
+    margin-bottom: 0px;
+    margin-top: 0px;
+    color: rgb(255, 255, 255);
+    font-weight: lighter;
+}
+
+h6 {
+    /*font-family: 'Venus', sans-serif;*/
+    font-size: 16px;
+    padding: 0%;
+    margin-bottom: 0px;
+    margin-top: 0px;
+    color: rgb(255, 255, 255);
+    font-weight: lighter;
+}
+
+div {
+    font-family: 'Bal-lig', sans-serif;
+    font-weight: 100;
+    font-size: 18px;
+    line-height: 1.6rem;
+    padding: 0%;
+    margin: 0%;
+    color: rgb(200, 200, 200);
+}
+
+i {
+    color: rgb(255, 255, 255);
+    font-size: 20px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+p {
+    font-family: 'Bal-lig', sans-serif;
+}
+
+
+/*p {
+  font-family: 'Future', sans-serif;
+  font-size: 18px;
+  line-height:1.2rem;
+  padding:0%;
+  margin:0%;
+} */
+
+.texthidden {
+    text-indent: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+
+/* ######################################################
+#########################################################
+              U I     E L E M E N T S 
+#########################################################
+#######################################################*/
+
+
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                  main body + columns 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+
+
+/* for debugging i make the background of body and ui widget contents transparent */
+
+html,
+body {
+    background: #000000;
+}
+
+.container {
+    height: fit-content;
+    width: 100%;
+}
+
+.column,
+.columns {
+    height: 100%;
+    width: 100%;
+    float: left;
+}
+
+
+/* For devices larger than 550px */
+
+@media (min-width: 450px) {
+    .container {
+        width: 100%;
+        height: fit-content;
+    }
+    .column,
+    .columns {
+        padding-left: 2px;
+        padding-right: 2px;
+        width: 100%;
+    }
+    .column:first-child,
+    .columns:first-child {
+        margin-left: 0;
+        padding-left: 0;
+    }
+    .column:last-child,
+    .columns:last-child {
+        margin-right: 0;
+        padding-right: 0;
+    }
+    .one.column,
+    .one.columns {
+        width: 4.66666666667%;
+    }
+    .onehalf.columns {
+        width: 8%;
+    }
+    .two.columns {
+        width: 13.3333333333%;
+    }
+    .twoandhalf.columns {
+        width: 16%;
+    }
+    .three.columns {
+        width: 20%;
+    }
+    .threeplus.columns {
+        width: 28%;
+    }
+    .four.columns {
+        width: 30.6666666667%;
+    }
+    .five.columns {
+        width: 39.3333333333%;
+    }
+    .six.columns {
+        width: 50%;
+    }
+    .seven.columns {
+        width: 59%;
+    }
+    .eight.columns {
+        width: 68%;
+    }
+    .nine.columns {
+        width: 74.0%;
+    }
+    .ten.columns {
+        width: 82.6666666667%;
+    }
+    .eleven.columns {
+        width: 91.3333333333%;
+    }
+    .twelve.columns {
+        width: 100%;
+        margin-right: 0;
+    }
+    .one-third.column {
+        width: 30.6666666667%;
+    }
+    .two-thirds.column {
+        width: 65.3333333333%;
+    }
+    .one-half.column {
+        width: 48%;
+    }
+}
+
+
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++
+              General Input Parent
+++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+
+input {
+    /*width: 100%;
+    height: 55px;*/
+    -moz-padding-start: calc(10px - 3px);
+    font-size: 20px;
+    color: rgb(255, 255, 255);
+    font-family: 'Bal-lig', sans-serif;
+    cursor: pointer;
+    background: rgba(66, 66, 66, 0);
+    border: 10px solid transparent;
+    padding: 2px;
+    border-image: url("images/frame1t.png") 10 stretch;
+}
+
+
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++
+              Input text
+++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+
+input[type="text"] {
+    height: 58px;
+    font-family: 'Bal-lig', sans-serif;
+}
+
+
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++
+              Input file window
+++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+
+input[type="file"] {
+    width: 100%;
+    height: 50px;
+    -moz-padding-start: calc(10px - 3px);
+    padding-left: 10px;
+    font-size: 20px;
+    font-weight: 10;
+    color: rgba(255, 255, 255, 0.925);
+    font-family: 'Bal-lig', sans-serif;
+    cursor: pointer;
+    border: 10px solid transparent;
+    padding: 2px;
+    border-image: url("images/frame1.png") 10 stretch;
+}
+
+:focus {
+    user-select: none;
+    outline: none !important;
+}
+
+::-webkit-file-upload-button {
+    background: rgba(92, 92, 92, 0.25);
+    padding: 5px;
+    font-size: 16px;
+    color: #757575;
+    font-weight: lighter;
+    text-transform: uppercase;
+    border: none;
+    font-family: 'Bal-lig', sans-serif;
+}
+
+
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                  Submit
+++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+
+input[type="submit"] {
+    /*
+      width: 50%;
+      height: 50px;
+      -moz-padding-start: calc(10px - 3px);
+      padding-left: 10px;
+      /*font-family: 'Square', sans-serif;*/
+    /* font-size: 40px;
+      font-weight: 10;
+      color: rgb(255, 255, 255);
+      cursor: pointer;
+      background:rgba(66, 66, 66, 0);
+      border: 10px solid transparent;
+      padding: 2px;
+      border-image: url("images/frame1.png") 10 stretch;*/
+    font-size: 16px;
+    font-family: 'Michr', sans-serif;
+    color: rgb(255, 255, 255);
+    cursor: pointer;
+    background: rgba(66, 66, 66, 0);
+    border: 10px solid transparent;
+    border-image: url("images/frame1.png") 10 stretch;
+    text-transform: uppercase;
+}
+
+.swagSubmit {
+    display: inline-block;
+    width: 120px !important;
+    height: 55px !important;
+    margin: 0;
+    padding: 0;
+}
+.mcButton{
+
+}
+
+.mcbutton:hover{
+    border: 1px solid #892222db
+}
+
+.swagSubmit:hover {
+    background-color: rgba(2, 77, 114, 0.45);
+}
+
+.swagSubmit:focus {
+    user-select: none;
+    outline: none !important;
+}
+
+.swagLogo {
+    background-image: url("images/MencheLab_Logo_uploader_network.png");
+    z-index: 1;
+    height: 90px;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position-y: center;
+    background-position-x: right;
+    filter: opacity(0.15);
+}
+
+
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                 Radio Button 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+
+input[type="radio"] {
+    height: 1rem;
+    padding: 0;
+    margin: 0;
+    margin-top: 20px;
+}
+
+
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                  Button 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+
+input[type="button"] {
+    /*-moz-padding-start: calc(10px - 3px);*/
+    width: 100%;
+    /* 40px;*/
+    height: 80px ;
+    font-size: 18px;
+    text-align: left;
+    font-family: 'Michr', sans-serif;
+    text-transform: uppercase;
+    cursor: pointer;
+    padding: 0px;
+    margin-top: 0px;
+    margin-left:0px;
+    /*background:rgba(66, 66, 66, 0);*/
+    border: 10px solid transparent;
+    border-image: url("images/frame1t.png") 10 stretch;
+}
+
+.swagTextButton {
+    min-width: max-content;
+    color: rgb(255, 255, 255);
+    
+   
+}
+
+
+.swagTextButton:hover {
+    background-color: rgba(58, 58, 58, 0.122); /*font-size: 20px;*/
+}
+
+.swagTextButton:focus {
+    user-select: none;
+    outline: none !important;
+}
+
+.swagPlayButton {
+    color: rgba(0, 0, 0, 0);
+    background-position: center;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-image: url("images/arrow_playpause-new.png");
+}
+
+.swagShowStructureButton {
+    color: rgba(0, 0, 0, 0);
+    background-position: center;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-image: url("/static/img/active_protein.png");
+}
+
+.swagForwardButton {
+    background-position: center;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-image: url("images/arrow_forward-new.png");
+}
+
+.swagBackwardButton {
+    background-position: center;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-image: url("images/arrow_backward-new.png");
+}
+
+.swagPlayButton:hover,
+.swagForwardButton:hover,
+.swagBackwardButton:hover {
+    background-color: rgba(2, 77, 114, 0.45);
+    color: rgba(0, 0, 0, 0);
+    z-index: -10;
+}
+
+.swagPlayButton:focus,
+.swagForwardButton:focus,
+.swagBackwardButton:focus {
+    user-select: none;
+    outline: none !important;
+    color: rgba(0, 0, 0, 0);
+    z-index: -2;
+}
+
+.swagPlayButton:checked,
+.swagPlayButton:before,
+.swagPlayButton:after {
+    color: rgba(0, 0, 0, 0);
+    z-index: -2;
+}
+
+
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++
+              Slider Checkbox (on/off)
+++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+
+
+/* ----------- O L D --------------- */
+input[type=checkbox].visibleCheckbox{
+      width: 1em;
+      height: 1em;
+      background: rgb(75, 114, 2);
+      /*-moz-padding-start: calc(10px - 3px);*/
+      font-family: 'Future', sans-serif;
+      font-size: 20px;
+      font-weight: 10;
+      color: rgb(255, 255, 255);
+      cursor: pointer;
+      background:rgb(255, 136, 136);
+      border: 0px solid transparent;
+      padding: 10px;
+      border-image: url("images/frame1.png") 10 stretch;
+      visibility: visible;
+    }
+
+/* .swagCheckbox {
+  background: rgba(2, 77, 114, 1.0);
+  }*/
+
+
+/* --------------- N E W --------------- 
+
+input[type=checkbox] {
+    visibility: hidden;
+}
+
+*/
+
+
+.slide-container {
+    width: 300px;
+  }
+  
+  .slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height:24px;
+    border-radius: 0px;
+    border: 20px;
+    background-image: linear-gradient(270deg,rgba(255, 255, 255, 0.3),rgba(255, 255, 255, 0.05),rgba(0,0,0,0));
+    outline: none;
+    opacity: 0.7;
+    -webkit-transition: .2s;
+    transition: opacity .2s;
+  }
+  
+.gradient{
+    
+    width:30%;
+    height:3px;
+    margin-top: 5px;
+    margin-left: 2px;
+    background-image: linear-gradient(90deg,rgba(255, 255, 255, 0.2),rgba(0,0,0,0));
+}
+
+  .slider:hover {
+    opacity: 1;
+  }
+  
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 30px;
+    height: 30px;
+    border: 0;
+   
+    background-image: url("images/triangle.png");
+    background-size: contain;
+    background-position: center center;
+    background-repeat: no-repeat;
+    cursor: pointer;
+  }
+  
+
+/* SLIDE TWO */
+
+
+/* slider background */
+
+.slideTwo {
+    height: 50px;
+    width: 90px;
+    background: rgba(0, 0, 0, 0);
+    margin-top: 4px;
+    margin-left: 10px;
+    -webkit-border-radius: 50px;
+    -moz-border-radius: 50px;
+    border-radius: 10px;
+    position: relative;
+    display: inline-block;
+}
+
+
+/* the grey slider background line */
+
+.slideTwo:after {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 14px;
+    width: 100%;
+    height: 10px;
+    -webkit-border-radius: 50px;
+    -moz-border-radius: 50px;
+    border-radius: 50px;
+    background: #2b2b2b;
+}
+
+
+/* the moving element of the slider */
+
+.slideTwo label {
+    width: 62px;
+    height: 36px;
+    -webkit-border-radius: 50px;
+    -moz-border-radius: 50px;
+    border-radius: 50px;
+    -webkit-transition: all .4s ease;
+    -moz-transition: all .4s ease;
+    -o-transition: all .4s ease;
+    -ms-transition: all .4s ease;
+    transition: all .4s ease;
+    cursor: pointer;
+    position: absolute;
+    top: 7px;
+    left: 4px;
+    z-index: 1;
+    background: rgb(41, 41, 41);
+}
+
+.slideTwo label:after {
+    content: '';
+    position: absolute;
+    width: 54px;
+    height: 28px;
+    -webkit-border-radius: 50px;
+    -moz-border-radius: 50px;
+    border-radius: 50px;
+    background: rgb(0, 0, 0);
+    left: 4px;
+    top: 4px;
+}
+
+.slideTwo input[type=checkbox]:checked+label {
+    left: 54px;
+    transform: translateX();
+}
+
+.slideTwo input[type=checkbox]:checked+label:after {
+    background: #0088cc;
+    -webkit-transform: translateX();
+    -ms-transform: translateX();
+    transform: translateX();
+}
+
+
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                text labels + frames
+++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+
+
+
+.swagLabelSmall {
+    padding-top: 15px;
+    color: rgb(255, 255, 255);
+    font-size: 25px;
+    /* font: 'Roboto'; */
+    /*font-family: 'Square', sans-serif;*/
+}
+
+.swagLabel {
+    color: white;
+    font-size: 40px;
+    /* font: 'Roboto'; */
+    /*font-family: 'Square', sans-serif;*/
+    /*font-weight: lighter;*/
+}
+
+.gradientBox {
+
+    background-image: linear-gradient(90deg,rgba(30, 30, 30,0.5), rgba(0,0,0,0.5),rgba(0,0,0,0.5));
+    margin-bottom: 5px;
+    
+}
+.gradientBox:hover{
+    background-image: linear-gradient(140deg,rgba(50, 50, 50, 0.5), rgba(0,0,0,0.5),rgba(0,0,0,0.5));
+ 
+}
+
+.swagBox {
+    border: 9px solid transparent;
+    padding: 0px;
+    border-image: url("images/frame1.png") 10 stretch;
+    background-color: rgba(20, 20, 20, 1);
+    
+    min-height: 58px;
+}
+
+.swagBoxT {
+    border: 9px solid transparent;
+    padding: 0px;
+    border-image: url("images/frame1t.png") 10 stretch;
+   
+    
+    min-height: 58px;
+}
+.swagButton {
+    border: 9px solid transparent;
+    padding: 0px;
+    border-image: url("images/frame1t.png") 10 stretch;
+    background-color: rgba(20, 20, 20, 0);
+    
+    text-align:left;
+    text-transform: uppercase;
+    font-family: 'Future', sans-serif;
+    font-size: 20px;
+    overflow: hidden;
+    white-space: nowrap; 
+    cursor: pointer;
+    min-height: 30px;
+    color: #e7e7e7;
+}
+.swagButton:hover {
+    background-color: rgba(58, 58, 58, 0.122);
+}
+
+.cornerBox {
+    /*--b:2px;  
+  --c:#688b9e;  
+  --w:10px; 
+  --h:10px;*/
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 3px;
+    padding-right: 8px;
+    border: solid 1.5px #222222;
+    background-origin: border-box;
+    background-repeat: no-repeat;
+}
+
+.frameBox {
+    display: inline-block;
+    box-sizing: border-box;
+    min-height: max-content;
+    width: 100%;
+    position: relative;
+    margin-top: 5px;
+    padding: 10px;
+    border: 8px solid transparent;
+    border-image: url("images/frame1_transparent.png") 10 stretch;
+}
+
+
+/* style for d3 board in tab random walk  */
+
+.links line {
+    stroke: #999;
+    stroke-opacity: 0.6;
+}
+
+.nodes circle {
+    stroke: #fff;
+    stroke-width: 1.5px;
+}
+
+
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++
+               Pop up warning message 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+
+
+/* Popup container - can be anything you want */
+
+.popup {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+
+/* The actual popup */
+
+.popup .popuptext {
+    visibility: hidden;
+    width: 160px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 8px 0;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -80px;
+}
+
+
+/* Popup arrow */
+
+.popup .popuptext::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #555 transparent transparent transparent;
+}
+
+
+/* Toggle this class - hide and show the popup */
+
+.popup .show {
+    visibility: visible;
+    -webkit-animation: fadeIn 1s;
+    animation: fadeIn 1s;
+}
+
+
+/* Add animation (fade in the popup) */
+
+@-webkit-keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++
+               Special effects + gifs
+++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+
+.backgroundglow {
+    background-color: #00abff;
+    border-radius: 0.15rem;
+    text-align: left;
+    padding-left: 4px;
+    width: 100%;
+    line-height: 2.3rem;
+    height: 2px;
+    /*100%;*/
+    box-shadow: 0px 0px 6px 4px #00aaffcb;
+}
+
+.backgroundflow {
+    background-image: url("images/background-flow.gif");
+    background-position: center;
+    height: 100%;
+    background-size: 100%;
+}
+
+.lineglow {
+    background-image: url("images/lineglow2_mod.gif");
+    height: 100%;
+    background-size: contain;
+    background-position: left;
+    background-repeat: no-repeat;
+    margin: 10px 0 0px;
+}
+
+.lineglowslow {
+    background-image: url("images/lineglow2_mod-slow.gif");
+    height: 30px;
+    background-size: contain;
+    background-position: left;
+    background-repeat: no-repeat;
+}
+
+.lineglow-particles {
+    background-image: url("images/lineglow4_mod.gif");
+    height: 100%;
+    background-size: 100%;
+    /* containt */
+    background-position: left;
+    background-repeat: no-repeat;
+    margin: 10px 0 0px;
+}
+
+.netgif-wave {
+    background-image: url("images/network9.gif");
+    /* or "images/network9-rev.gif" */
+    background-position: center;
+    height: 100%;
+    background-size: 100%;
+}
+
+.netgif-flash {
+    background-image: url("images/network8.gif");
+    background-position: center;
+    height: 100%;
+    background-size: 100%;
+}
+
+.netgif-planet {
+    background-image: url("images/network10.gif");
+    background-position: left;
+    height: 100%;
+    background-size: 100%;
+}
+
+a:link {
+    color: #00d5ff;
+  }
+  
+  /* visited link */
+  a:visited {
+    color: rgb(160, 78, 255);
+  }
+  
+  /* mouse over link */
+  a:hover {
+    color: hotpink;
+  }
+  
+  /* selected link */
+  a:active {
+    color: rgb(61, 61, 253);
+  }
+
+/*disable dragging on images */
+
+
+/* img{-webkit-user-drag: none;
+      
+} */
+
+
+/* NOT INS USE?? 
+
+.disable-select {     
+  -webkit-touch-callout: none; 
+    -webkit-user-select: none; 
+     -khtml-user-select: none;
+       -moz-user-select: none; 
+        -ms-user-select: none; 
+            user-select: none; 
+} 
+*/
+
+
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px
+}
+
+::-webkit-scrollbar-track {
+
+}
+ 
+::-webkit-scrollbar-thumb {
+  background: #666666; 
+ 
+   
+}
+
+::-webkit-scrollbar-thumb:hover {
+  
+}
+
+.bar {
+   fill: steelblue;
+}
+
+.bar:hover {
+  fill: #7500fa;
+}
+
+.axis {
+  font: 10px sans-serif;
+    fill: white;
+  stroke: white;
+}
+
+.axis path,
+.axis line {
+  fill: white;
+  stroke: white;
+  shape-rendering: crispEdges;
+}
+
+.x.axis path {
+  display: none;
+}
+
+.g tick{
+  fill: white;
+  stroke: white;
+}
+*/
+a.crosslinks {
+    font-size: 20px;
+    color:rgb(42, 113, 148);
+}
+
+a.crosslinks:visited {
+    font-size: 20px;
+    color:rgb(42, 113, 148);
+}
+/* width */
+::-webkit-scrollbar {
+    width: 2px;
+ 
+  }
+  
+  /* Track */
+  ::-webkit-scrollbar-track {
+    background: rgba(42, 113, 148,0);
+ 
+  }
+  
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    background: rgb(119, 119, 119);
+    border-radius: 5px;
+    opacity: 0.5;
+    height: 2px;
+  }
+  
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgb(202, 202, 202);
+    border-radius: 2px;
+    opacity: 0.5;
+  }
+
+.ui-selectmenu-menu.sixten-open{
+    max-height: 610px;
+    overflow:auto;
+}
+.ui-selectmenu-menu.twozerozero-open{
+    max-height: 200px;
+    overflow:auto;
+}
+.input.home_button{
+    margin: 10px;
+    min-width: 40%;
+    max-width: fit-content;
+}
+
+code {
+    font-family: "Sans Mono", "Consolas", "Courier", monospace;
+    font-size: 14pt;
+}
+.grid-container {
+    display: grid;
+    grid-template-columns: 400px 400px;
+}
+

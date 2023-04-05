@@ -1,0 +1,169 @@
+<!-- PUT YOUR UI ELEMENTS IN HERE AND DEFINE MAPPINGS IN MyUi.js -->
+
+<!-- HTML STARTS HERE -->
+
+<!DOCTYPE html>
+<html>
+
+
+<style>
+  input[type='file'] {
+    outline: none;
+
+  }
+</style>
+
+<head>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
+  <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/NavBar.css') }}">
+
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/upload_UI.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/mc_UI_Elements.js') }}"></script>
+</head>
+
+<body>
+  <div id="tabsUL"><a href="upload.html" id="" title="upload"></a>
+    <!--upload-->
+    <ul id="uploadTabs">
+      <li>
+        <a href="#fragment-1">
+          <img draggable="false" onmousedown="return false" height='40' width='40'
+            src="{{ url_for('static', filename='css/images/upload.png') }}" />
+        </a>
+      </li>
+    </ul>
+    <div id="fragment-1">
+      <form id="upload_form" method=post enctype=multipart/form-data>
+        <div class="twelve columns">
+          <div class="eight columns">
+            <h2 class="lineglowslow" style="margin-top:30px">VRNetzer</h2>
+          </div>
+          <div class="four columns">
+            <div class="swagLogo"><br></br></div>
+          </div>
+        </div>
+        <div>Check out the new webGL preview!</div>
+        <input onclick="followLink('/preview')" style="height: 50px; width: 250px;min-width: fit-content;" type="button"
+          value="webGL PREVIEW">
+        <div class="twelve columns">
+          <h3><span>UPLOAD NEW DATA</span></h3>
+          <p>For filestructure and csv-table composition refer to files in VRNetzer_Backend/static/examplefiles.</p>
+        </div>
+
+        <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                      Project + Namespace Dropdown
+        +++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+
+        <div class="twelve columns">
+
+          <div class="six columns">
+            <div class="frameBox">
+              <div class="two columns">
+                <input type="radio" name="namespace" id="radio_new_namespace" value="New">
+              </div>
+              <h6>CREATE NEW PROJECT</h6>
+              <br>
+
+              <input type="text" id="new_namespace_name" name="new_name" class="swagBox">
+              <p id="submit_warnings" style="display:inline"></p>
+
+              <!-- The Popup window warning :
+              <script>
+                function popupWarning() {
+                  var popup = document.getElementById("myPopup");
+                  popup.classList.toggle("show");
+                }
+              </script>
+              <div class="popup" onclick="popupWarning()">
+                <input type="text" id="new_namespace_name" name="new_name" class="swagBox">
+                <span class="popuptext" id="submit_warnings"></span>
+              </div>
+              -->
+
+            </div>
+          </div>
+
+          <div class="six columns">
+            <div class="frameBox">
+              <div class="two columns">
+                <input type="radio" name="namespace" value="existing" checked><br>
+              </div>
+              <h6> ADD TO PROJECT</h6>
+
+              <!--<h3 class="lineglowslow"><span>PROJECT</span></h3>-->
+              <br>
+
+              <div class="cornerBox">
+                <select name="namespaces" id="namespaces">
+                  {% for namespace in namespaces %}
+                  <option value="{{namespace}}">{{namespace}}</option>
+                  {% endfor %}
+                </select>
+                <br>
+
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+
+
+        <!-- original position before radio buttons <form id="upload_form" method=post enctype=multipart/form-data> -->
+
+        <div class="frameBox">
+          <div class="twelve columns">
+            <h4 class="nine columns">LAYOUTS</h4>
+            <br><br>
+            <a style="font-size:14px; text-align:left" href="../static/examplefiles/Upload_examples_CSV_previousversion/zachary_nodepositions.csv" download>Download Example File here</a>
+            <input type=file name=layouts multiple value="placeholder">
+
+            <!--
+              <label>N O D E S</label><br>
+              <input type=sfile name=nodes multiple><br><br>
+              -->
+
+            <h4 class="nine columns">LINKS</h4>
+            <br><br><br>
+            <a style="font-size:14px; text-align:left" href="../static/examplefiles/Upload_examples_CSV_previousversion/zachary_links.csv" download>Download Example File here</a>
+            <input type=file name=links multiple>
+
+            <!--
+              <label>A T T R I B U T E S (optional) </label><br>
+              <input type=file name=attributes multiple><br><br>
+              -->
+            <h4 class="nine columns">LABELS (optional)</h4>
+            <br><br><br>
+            <a style="font-size:14px; text-align:left" href="../static/examplefiles/Upload_examples_CSV_previousversion/zachary_labels.csv" download>Download Example File here</a>
+            
+            <input type=file name=labels multiple><br><br>
+            
+          </div>
+        </div>
+
+        <div class="frameBox">
+          <div class="twelve columns">
+            <div class="two columns"><input type=submit value=Upload id=upload_button class="swagSubmit"></button>
+            </div>
+            <div class="nine columns" id="upload_message"></div>
+            <br>
+
+
+          </div>
+        </div>
+        <!--<div class="twelve columns"> 
+            <div  class="lineglow" style="background-position: center;"><br></br></div>
+          </div>-->
+      </form>
+    </div>
+
+  </div>
+
+
+
+</body>

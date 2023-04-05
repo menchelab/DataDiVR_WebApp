@@ -1,0 +1,10 @@
+server {
+    auth_basic "Restricted Access!";
+    auth_basic_user_file /etc/nginx/conf.d/.htpasswd;
+    listen 5000;
+    server_name external_ip domain_name;
+location / {
+        proxy_pass http://unix:/home/vrn/VRNetzer_Backend/flaskapp.sock;
+
+    }
+}

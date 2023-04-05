@@ -1,0 +1,108 @@
+
+    <br>
+    <br>
+    Let's have a look at the last barchart example for the sake of simplicity.<br>
+    
+    in <i>extentions/documentation/templates/plotly.html</i> a socket.io signal is sent to the server on page load:<br>
+    <pre><code class="javascript">$(document).ready(function()&#123
+      socket.emit("ex",&#123'usr': uid, 'msg': 'Barchart', 'parent': 'chart', 'fn': 'Plotly2js'&#125);
+&#125); </code></pre>
+    This message is recieved in <i>extentions/documentation/src/app.py</i><br>
+    the function <i>PE.barGraph(data)</i> that creates the graph gets called with some dummy data.<br>
+    <pre><code class="language-python">@blueprint.on("ex", namespace="/doku")
+def ex(message): # receive socket.io
+  ...
+      if message["fn"] == "Plotly2js":
+          response = &#123&#125
+          response["fn"] = "plotly2js" 
+          response["parent"] = message["parent"] # target &ltdiv&gt
+  ...
+          elif message["msg"] == "Barchart":
+              data = [{"name":"aaron","val":200,"id":0},{"name":"erica","val":500,"id":1},{"name":"anton","val":250,"id":2},{"name":"emma","val":180,"id":3}]
+              response["val"] = PE.barGraph(data)
+    </code></pre>
+    This is <i>PE.barGraph(data)</i> in <i>plotlyExamples.py</i><br>
+
+
+
+<pre><code class="language-python">def barGraph(data):
+    names = []
+    val = []
+    ids =[]
+  
+    for i in data:
+        names.append(i["name"])
+        val.append(i["val"])
+        ids.append(i["id"])
+  
+    fig = go.Figure(go.Bar(
+                meta = ids, # the meta value is used to attatch a callback to the graphs nodes in .js when the graph is created
+                x=val,
+                y=names,
+                text=names,
+                textposition='inside',
+                name='SF Zoo',
+                orientation='h'))
+  
+    #fig.show()
+    fig.update_layout(height= len(names)*20, font_color = 'rgb(200,200,200)', paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=10, r=10, t=10, b=10))
+    fig.update_yaxes(showticklabels=False)
+    fig.update_layout(uniformtext_minsize=12, uniformtext_mode='show')
+    return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+</code></pre> 
+It parses the provided data into the expected dataformat and creates the <i>fig</i> object,<br>
+but instead of rendering it with <i>fig.show()</i>, it's returned to <i>extentions/documentation/src/app.py</i>
+where it is added to the response object under the key <i>["val"]</i> and sent back to the clients using socket.io.<br>Note that this is NOT a prerendered SVG file, but a dataframe which is much smaller.<br><br>
+
+Another important detail is the <i>meta</i> parameter.<br>
+It is an array of the same length as names[] that allows us to store additional data for each node of the graph.<br>
+If the meta parameter is assigned, a callback is automatically created when the graph is rendered later in plotly.js.<br>
+So when a user clicks on the graph, this data is sent back to the server which enables us to interact with these events.<br><br>
+Finally, here is <i>extentions/documentation/static/js/connect_socketIO_doku.js</i> that receives the message and renders the graph.
+<pre><code class="javascript">socket.on('ex', function(data) &#123
+    console.log("server returned: " + JSON.stringify(data));
+    switch(data.fn)
+    &#123
+    ...
+          case 'plotly2js':
+              if(document.getElementById(data["parent"]))&#123
+                  const config = &#123displayModeBar: false&#125; // this is the line that should hide the navbar.
+                  const layout = &#123&#125;
+                  var gdata = JSON.parse(data["val"])
+                  Plotly.newPlot(data["parent"], gdata, layout, config);
+                  var myPlot = document.getElementById(data["parent"]);
+                  // ADD ON CLICK EVENT
+                  myPlot.on('plotly_click', function(data)&#123
+                      if (data.points[0].hasOwnProperty("meta"))&#123  // add callback to nodebuttton automatically if provided
+                          console.log(data.points[0].meta);
+                          socket.emit('ex', &#123 msg: "none", id: "none",val: data.points[0].meta,  fn: 'node'&#125);
+                      &#125
+                      ...
+                  &#125);
+                &#125
+            &#125
+            break;
+    &#125
+&#125);
+</code></pre>
+
+<br><br>
+<h5>Bargraph</h5><div class="gradient"></div>
+<div id='chart6'></div><br>
+<br><br>
+Bring up the browser console and click on a bar and you will see something like <br>
+<i>server returned: {"msg":"none","id":"none","val":3,"fn":"node"}</i> where <i>"val"</i> is our meta data.
+In this case, the <i>"id"</i> provided when <i>PE.barGraph()</i> was called.
+<pre><code class="language-python">data = 
+  [&#123"name":"aaron","val":200,"id":0&#125,
+  &#123"name":"erica","val":500,"id":1&#125,
+  &#123"name":"anton","val":250,"id":2&#125,
+  &#123"name":"emma","val":180,"id":3&#125]</code></pre>
+
+ 
+
+    
+    
+    
+    
+    <br><br><a href="/doku/">DOKU<br>

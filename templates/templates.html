@@ -1,0 +1,572 @@
+
+
+<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+                TEMPLATES & THEIR JS CLASSES
+                                        
+    +++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+
+
+<script>
+        class mcButton extends HTMLElement {
+            constructor() {
+            super();
+            }
+            connectedCallback() {
+            let template = document.querySelector('#mcB-template').content;
+            this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
+            let name_button = this.shadowRoot.querySelector("#name");
+            name_button.textContent = this.getAttribute('name');
+            name_button.style.width = this.getAttribute('w') + "px";
+            name_button.style.background = this.getAttribute('color');
+            var fun = this.getAttribute('fn');
+
+            name_button.addEventListener('click', () => {
+                console.log('select '+ name_button.textContent);
+                socket.emit('ex', { usr:uid, msg: this.getAttribute('name'), id: this.getAttribute('parent'),val: this.getAttribute('val'),  fn: fun});
+            });
+    
+            }
+    
+        }
+        customElements.define('mc-button', mcButton);
+</script>
+
+
+<template id="mcB-template">
+<style>
+    button{
+    width: 380px;
+    height: 30px;
+    font-family: 'Future', sans-serif;
+    overflow: hidden;
+    white-space: nowrap; 
+    cursor: pointer;
+    box-sizing: border-box;
+    padding: 0px 6px;
+    text-align: left;
+    border-radius: 7px;
+     
+    border-bottom-left-radius: 0px;
+    font-size: 24px;
+
+    color: rgb(255, 255, 255);
+    cursor: pointer;
+    background: rgba(66, 66, 66, 0);
+    border: 2px solid transparent;
+    
+    text-transform: uppercase;
+    }
+
+    button:hover {
+        border: 2px solid rgb(124, 124, 124);
+        background: rgba(66, 66, 66, 1);
+        
+
+    }
+</style>
+    <div id="container" style="width: auto; height: 30p0x; display: inline-block; padding: 4px 2px">
+        <button id="name"></button>
+    </div>
+
+</template>
+        
+
+
+
+
+<script>
+    class mcButton1 extends HTMLElement {
+
+
+        constructor() {
+        super();
+        }
+
+        connectedCallback() {
+        let template = document.querySelector('#mcB1-template').content;
+        this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
+
+        let name_button = this.shadowRoot.querySelector("#name");
+
+        name_button.textContent = this.getAttribute('name');
+
+        var fun = this.getAttribute('fn');
+        //console.log('create: '+ this.getAttribute('data'));
+
+        name_button.addEventListener('click', () => {
+            console.log('select '+ uid);
+            socket.emit('ex', { usr:uid, msg: this.getAttribute('name'), id: this.getAttribute('id'), parent: this.getAttribute('parent'),val: this.getAttribute('val'), fn: fun});
+        });
+
+        }
+
+    }
+
+    customElements.define('mc-button1', mcButton1);
+</script>
+
+
+<template id="mcB1-template">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
+<div id="container" style="width: auto; height: 30p0x; display: inline-block;">
+
+    <button id="name" class="swagButton"></button>
+</div>
+
+</template>
+
+
+
+
+<script>
+    class mcRButton extends HTMLElement {
+
+
+        constructor() {
+        super();
+        }
+
+        connectedCallback() {
+        let template = document.querySelector('#mcRB-template').content;
+        this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
+
+        let name_button = this.shadowRoot.querySelector("#name");
+        let x_button = this.shadowRoot.querySelector("#x");
+
+        name_button.textContent = this.getAttribute('name');
+        name_button.style.background = this.getAttribute('color');//("background",);
+        console.log('create: '+ this.getAttribute('data'));
+
+        name_button.addEventListener('click', () => {
+            //console.log('select '+ this.shadowRoot.getAttribute('id'));
+            socket.emit('ex', { msg: this.getAttribute('name'), id: this.getAttribute('id'), fn: "rem_butt_clicked" });
+        });
+
+        x_button.addEventListener('click', () => {
+
+            console.log(name_button.parentElement);
+            var parent = this.getRootNode().host;
+            if (parent != null) { //is in shadowDom
+
+            socket.emit('ex', { id: this.getAttribute('id'), parent: parent.getAttribute('id'), fn: "rem_butt_del_sbox" });
+            } else {
+            socket.emit('ex', { id: this.getAttribute('id'), parent: this.parentElement.getAttribute('id'), fn: "rem_butt_del" });
+            }
+
+        });
+
+        }
+
+    }
+
+    customElements.define('mc-rbutton', mcRButton);
+</script>
+
+<template id="mcRB-template">
+    <style>
+        button {
+            width: 15%;
+            font-family: 'Future', sans-serif;
+            
+            cursor: pointer;
+            box-sizing: border-box;
+            padding: 5px 2px;
+            border-radius: 20px;
+            border-top: 2px solid;
+            border-bottom: 0px solid;
+            border-left: 0px solid;
+            border-right: 2px solid;
+            border-color: rgb(255, 255, 255);
+            color: rgb(255, 255, 255);
+            font-size: 20px;
+        }
+    </style>
+
+    <div id="container" style="width: 120px; height: 30p0x; display: inline-block; padding: 4px 2px">
+        <button id="name" style=" float: left; width: 90px; height: 30p0x; border-top-right-radius: 0px; border-bottom-right-radius: 0px; border-right: 0px"></button>
+        <button id="x" style="float: right; width: 30px; height: 30p0x;border-top-left-radius: 0px; border-bottom-left-radius: 0px; background-color: #3d3d3d;">X</button>
+    </div>
+</template>
+
+
+
+
+
+
+
+<script>
+    class mcTInput extends HTMLElement {
+
+
+        constructor() {
+        super();
+        }
+
+        connectedCallback() {
+        let template = document.querySelector('#mcTextInput-template').content;
+        this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
+
+        let text = this.shadowRoot.querySelector("#text");
+        let x_button = this.shadowRoot.querySelector("#x");
+
+        //name_button.textContent = this.getAttribute('name');
+        //name_button.style.background = this.getAttribute('color');//("background",);
+        console.log('create: '+ this.getAttribute('container'));
+        
+        x_button.addEventListener('click', () => {
+
+            console.log(text.value);
+
+
+            socket.emit('ex', { id: this.getAttribute('id'), parent: this.getAttribute('container'), fn: this.getAttribute('fn'), val: text.value});
+            
+
+        });
+        
+        }
+
+
+    }
+
+    customElements.define('mc-textinput', mcTInput);
+</script>
+
+<template id="mcTextInput-template">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
+    <div id="container" style="display: inline-block; width:100%; padding: 10px 0px;">
+        <input type="text" id="text" placeholder="Enter your message here" style="float:left; width:85%;"></input>
+        <input type="button" id="x" value="OK" class="swagTextButton" style="width: 12%; float:right; height:58px; text-align: center"></input>
+    </div>
+</template>
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+    class mcDropdown extends HTMLElement {
+
+
+        constructor() {
+        super();
+        }
+
+        connectedCallback() {
+        let template = document.querySelector('#mcdropdown-template').content;
+        this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
+        let select = this.shadowRoot.querySelector("#sel");
+        let content = this.shadowRoot.querySelector("#content");
+        
+        let label = this.shadowRoot.querySelector("#label");
+        label.innerHTML = this.getAttribute('name');
+
+        
+       // let newOption = new Option('Option Text','Option Value');
+       // select.add(newOption,undefined);
+       // select.add(new Option('Option2','Option2Value'));
+       // select.add(new Option('Option3'));
+       // select.value="Option3"
+        //name_button.textContent = this.getAttribute('name');
+        //name_button.style.background = this.getAttribute('color');//("background",);
+        //console.log( select.options[select.selectedIndex].text);
+       
+        select.addEventListener('click', () => {
+            //socket.emit('ex', { id: this.getAttribute('id'), fn: fn, val: select.selectedIndex});
+       
+            //console.log(this.getAttribute('opt'));
+            //console.log(select.value);
+            //console.log(select.options[select.selectedIndex].text);
+            if (content.style.display === "none") {
+                content.style.display = "block";
+            } else {
+                content.style.display = "none";
+            }
+            //ocket.emit('ex', { id: this.getAttribute('id'), parent: this.getAttribute('container'), fn: this.getAttribute('fn'), val: text.value});
+            
+
+        });
+        
+        }
+
+
+    }
+
+    customElements.define('mc-dropdown', mcDropdown);
+</script>
+
+<template id="mcdropdown-template">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
+    <div id="container" style="display: inline-block; width:auto;  padding: 3px 3px">
+        <h5 id = "label" style="float:left; font-size: 25px;  color: rgb(102, 102, 102); margin-top:5px; margin-bottom:5px;">PROJECT</h5><p id = "count"  style="font-size: 15px; color: rgb(255, 255, 255); margin-top:0px; padding-left:10px ; margin-bottom: 0px; text-indent: 10px;  "> </p>
+        
+        <div  class="gradient"></div>
+        <input type="button" id="sel" style="width:400px; height:50px; font-family: future; font-size: 25px; "/>
+        <div id = "content" class="swagBoxT" style="width:400px; max-height: 600px; height:auto; overflow-y: auto; overflow-x: hidden;">
+        </div>
+    </div>
+</template>
+
+
+
+
+
+
+
+
+<script>
+    class mcSlider extends HTMLElement {
+
+
+        constructor() {
+        super();
+        }
+
+        connectedCallback() {
+        let template = document.querySelector('#mcSlider-template').content;
+        this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
+
+        let slider = this.shadowRoot.querySelector("#myRange");
+        let label = this.shadowRoot.querySelector("#label");
+
+        label.textContent = this.getAttribute('name');
+        //name_button.style.background = this.getAttribute('color');//("background",);
+        console.log('create: '+ this.getAttribute('container'));
+        
+   
+
+        slider.addEventListener('input', () => {
+            console.log(slider.value);
+            //socket.emit('ex', { id: this.getAttribute('id'), parent: this.getAttribute('container'), fn: "submit_butt", val: text.value});
+        });
+        
+        slider.addEventListener('change', () => {
+            console.log(slider.value);
+            socket.emit('ex', { usr:uid, id: this.getAttribute('id'), fn: "sli", val: slider.value});
+        });
+
+        }
+
+
+    }
+
+    customElements.define('mc-slider', mcSlider);
+</script>
+
+<template id="mcSlider-template">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
+    <div id="container" style="position:relative; display: inline-block; width:100%; padding: 0px 0px">
+        
+        <input type="range" min="0" max="1000" value="500" class="slider" id="myRange" style="display: inline-block; width:100%; position:relative; ; Z-index: 1;"></input>
+        <h5 id="label" style="margin-top:2px; color: rgb(100, 100, 100); position:absolute; top: 0 ; Z-index: 0; text-align: right; font-size: 20px;"></h5>
+    </div>
+</template>
+
+
+
+
+
+<script>
+    class mcSresult extends HTMLElement {
+
+        constructor() {
+        super();
+        }
+
+        connectedCallback() {
+
+
+        let template = document.querySelector('#mcSresult-template').content;
+        this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
+
+        let name_button = this.shadowRoot.querySelector("#name");
+        let x_button = this.shadowRoot.querySelector("#x");
+
+        name_button.textContent = this.getAttribute('name');
+        name_button.style.background = this.getAttribute('color');//("background",);
+        //console.log('create: '+ this.getAttribute('id'));
+
+        name_button.addEventListener('click', () => {
+            //console.log('select '+ this.shadowRoot.getAttribute('id'));
+            socket.emit('ex', { usr:uid, msg: this.getAttribute('name'), id: this.getAttribute('id'), fn: "sres_butt_clicked" });
+        });
+
+
+
+        }
+    }
+
+    customElements.define('mc-sresult', mcSresult);
+
+</script>
+<template id="mcSresult-template">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
+
+
+    <button id='name' name='name'
+        style='width: 100%; height: auto; overflow:hidden; border-radius: 12px;  background-color: #adadad; display: inline-block; border-color: rgb(10, 24, 221); border-right: 2px solid ; border-top: 2px solid; border-left: 2px solid ; border-bottom: 2px solid'>
+
+    </button>
+</template>
+
+
+
+
+
+
+
+
+
+<script>
+    class mcScrollBox extends HTMLElement {
+
+        constructor() {
+        super();
+        }
+
+        connectedCallback() {
+        let template = document.querySelector('#mcScrollBox-template').content;
+        this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
+
+
+
+        let scrollbox = this.shadowRoot.querySelector("#box");
+        
+        var isScroll = true;
+        var lastscroll = 0;
+        scrollbox.addEventListener('mouseup', () => {
+            //console.log(scrollbox.value);
+            isScroll = false;
+            //socket.emit('ex', {id: this.getAttribute('id'), val: slider.value, fn: "sli"});
+        });
+
+        scrollbox.addEventListener('mousedown', () => {
+            isScroll = true;
+        });
+        
+        scrollbox.addEventListener('scroll', () => {
+            var out = [$(scrollbox).scrollTop(), $(scrollbox).scrollLeft()];
+            var thisscroll = out[0] + out[1];
+            if (isScroll && Math.abs(thisscroll - lastscroll) > 10) {
+            //socket.emit('ex', {usr:uid, msg: out, id: this.getAttribute('id'), fn: "scb" });
+            lastscroll = out[0] + out[1];
+           // console.log(out[0])
+
+            }
+        });
+
+        }
+    }
+
+    customElements.define('mc-scrollbox', mcScrollBox);
+</script>
+
+<template id="mcScrollBox-template">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
+
+    <!-- <div id = "label" class = "swagLabelSmall">TEXT</div> -->
+    <div id='box' name='box' class='swagBoxT' style="width:398px; max-height: 380px; height:auto; overflow-y: auto; overflow-x: hidden;">
+
+    </div>
+</template>
+
+
+
+
+
+
+
+
+
+<script>  
+
+    class mcTextBox extends HTMLElement {
+
+        constructor() {
+        super();
+        }
+
+        connectedCallback() {
+        let template = document.querySelector('#mcTextBox-template').content;
+        this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
+
+        let textbox = this.shadowRoot.querySelector("#text");
+        let label = this.shadowRoot.querySelector("#label");
+        label.innerHTML = this.getAttribute('id').toUpperCase();
+
+        textbox.addEventListener('keyup', () => {
+            console.log(textbox.value);
+            socket.emit('ex', {usr:uid, id: this.getAttribute('id'), val: textbox.value, fn: "tex" });
+        });
+
+        textbox.addEventListener('change', () => {
+            console.log(textbox.value);
+            //socket.emit('ex', {id: this.getAttribute('id'), val: slider.value, fn: "sli"});
+        });
+
+
+        }
+    }
+
+    customElements.define('mc-textbox', mcTextBox);
+
+
+</script>
+<template id="mcTextBox-template">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
+
+    <div id="label" class="swagLabelSmall">TEXT</div>
+    <input type="Text" id="text" autocomplete="off">
+</template>
+
+
+
+
+
+<script>
+    class mcColorBox extends HTMLElement {
+
+        constructor() {
+        super();
+        }
+
+        connectedCallback() {
+        let template = document.querySelector('#mcColorBox-template').content;
+        this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
+
+        let colorbox = this.shadowRoot.querySelector("#color");
+
+        
+
+        colorbox.addEventListener('change', () => {
+            console.log(colorbox.value);
+            socket.emit('ex', {usr:uid, id: this.getAttribute('id'), val: colorbox.value, fn: "col"});
+        });
+
+        }
+    }
+
+    customElements.define('mc-colorbox', mcColorBox);
+
+</script>
+
+<template id="mcColorBox-template">
+
+    <style>
+
+    </style>
+<div id="container" style="width: auto; height: 30px; display: inline-block; padding: 4px 2px">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
+    <input type="Color" id="color" class="swagButton" style="height:40px;"></input>
+</div>
+</template>
+
+

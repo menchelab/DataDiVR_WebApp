@@ -1,0 +1,24 @@
+<link rel = "stylesheet" href = "http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css"/>
+<script type="text/javascript" src="{{ url_for('static', filename='js/mc_UI_Elements.js') }}"></script>
+<body>
+<div class="gradientBox" id="mProtein_container" style="display:none">
+    <div class='swagBox' style="width:420px; background-color: rgba(16, 3, 0, 0.3);">
+
+        <h5 
+            style="  float:left; font-size: 25px;  color: rgb(102, 102, 102); margin-top:5px; margin-bottom:5px;">
+            PROTEIN</h5>
+        <div id="protcount"
+            style="font-size: 15px;max-width: 300px; position:relative; ; Z-index: 1; text-indent: 10px;  ">
+            [-]</div>
+        <div class="gradient"></div>
+        <br>
+        <select id="protnamedown"></select>
+        <select id="protstyle"></select>
+
+        <mc-button1 id="protLoad" parent="" val="" name="SHOW" fn="protLoad" ></mc-button1>
+        <mc-slider id="prot_size" name="SCALE" class="GD" type="slider"></mc-slider>
+        <!-- <iframe width="425" height="350" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="https://umap.openstreetmap.fr/de/map/dark-mode_297704#11/30.3791/-447.6764" style="border: 1px solid black"></iframe><br/><small><a href="https://www.openstreetmap.org/?mlat=47.4920&amp;mlon=9.7145#map=16/47.4920/9.7145">Größere Karte anzeigen</a></small> -->
+    </div>
+</div>
+
+</body>

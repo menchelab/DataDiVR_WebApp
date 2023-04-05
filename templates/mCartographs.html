@@ -1,0 +1,24 @@
+
+
+<div class="gradientBox">
+    <div class='swagBox' style="width:420px; background-color: rgba(16, 3, 0, 0.3);">
+         
+        <h5 style="  float:left; font-size: 25px;  color: rgb(102, 102, 102); margin-top:5px; margin-bottom:5px;">
+            NETWORK LAYOUTS</h5>
+        
+        <br>
+        <div class="gradient"></div><br>
+
+        <mc-dropdown id="CGlayouts" class="GD" type="dropdown" fn="dropdown"
+            name="Layout Type"></mc-dropdown>
+        <mc-dropdown id="CGvis" class="GD" type="dropdown" fn="dropdown"
+            name="Visualization Type"></mc-dropdown>
+        
+        <br>
+        <mc-button1 id="plotly2jsCGDRAW" parent="plotly2jsCG" val="" name="draw graph"
+                fn="Plotly2js"></mc-button1>
+
+        <div id="plotly2jsCG" style="max-height: 500px; overflow-y: auto; overflow-x: hidden;"></div>
+                     
+    </div>
+</div>

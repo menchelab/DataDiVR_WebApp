@@ -1,0 +1,51 @@
+ul.navbar {
+    margin-top: 0;
+    overflow: auto;
+    background:rgb(115, 164, 228);
+  }
+li.navbar{
+    display: inline;
+}
+.navbar-triangle {
+    visibility: hidden;
+}
+a.navbar {
+  font-size: 20px;
+  text-decoration: none;
+  border-image: url("images/frame1.png");
+}
+
+a.navbar:visited {
+  font-size: 20px;
+  text-decoration: none;
+}
+a.navbar:hover {
+  color:white;
+}
+button.navbar{
+  background:rgb(115, 164, 228);
+  color:black;
+  border: none;
+  font-size: 20px;
+  text-decoration: none;
+  border-image: url("images/frame1.png");
+  min-width: fit-content;
+  min-height: 2%;
+}
+button.navbar:hover{
+  color:white;
+}
+.navbar-dropdown-menu-active.ui-button{
+  background:rgb(42, 113, 148);
+}
+.navbar-dropdown-menu-button-closed{
+  max-width: fit-content;
+}
+.navbar-dropdown-menu-button-open{
+  max-width: fit-content;
+}
+.navbar-dropdown-text{
+  font-size: 25px;
+  font-family: Arial;
+  text-decoration: none;
+}

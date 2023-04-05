@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}"></link>
+
+
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/atelier-cave.min.css') }}"></link>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+	<script>hljs.highlightAll();</script>
+	<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	</head>
+
+<body>
+<div>
+
+<h5>Hello Flask - Basics</h5>
+<br>
+<a href="https://flask.palletsprojects.com/en/2.2.x/">Flask</a> is webserver for python. <br>This tutorial is intended for users that are new to flask. <br><br> 
+Open the folder VRNetzerWebApp in visual studio code<br>
+In VSCode, open a terminal and run .\buildandRUN.ps1 (for windows) in the VRNetzerWebApp directory. That should create a venv and install all requirements. If all went well the console will show something like "server is running"<br>There are also start scripts for mac and linux<br>
+<h5>Add a route</h5>
+A route is an endpoint on the server that clients can reach by an url.<br>
+Add the following code to app.py under ### HTML ROUTES ### Line 40<br><br>
+app.py
+<pre><code class="language-python">@app.route("/mynewroute")
+def mynewroute(): 
+    return "hello"
+</code></pre>
+The route and function name must be unique.<br>
+After saving this, the console should print that it restarted. This indicates that hotreloading works, meaning the server reflects the changes you make as soon as you safe a file in VSCode.<br><br>
+click me <a href="/mynewroute">http://127.0.0.1:5000/mynewroute</a><br>
+We created a http route that returns the string hello.<br><br>
+<h5>HTML template</h5>
+Now lets create a new html file in /templates/ <br><br>
+mynewroute.html
+
+<pre><code class="html">&lt!DOCTYPE html&gt
+&lthtml&gt
+&lthead&gt
+&ltmeta http-equiv="Content-Type" content="text/html; charset=UTF-8" /&gt
+&lt/head&gt
+&ltbody&gt
+ &ltdiv&gt
+  &lth1&gtHelloflask&lt/h1&gt
+ &lt/div&gt
+&lt/body&gt
+&lt/html&gt
+</code></pre>
+and return that instead.<br><br>
+app.py
+<pre><code class="language-python">@app.route("/mynewroute")
+def mynewroute(): 
+    return render_template("mynewroute.html")
+</code></pre>
+<a href="/mynewroute">http://127.0.0.1:5000/mynewroute</a><br>
+
+We created a http route that returns the html template we just made.<br><br>
+<h5>Pass data from server to template</h5>
+app.py<br>
+
+<pre><code class="language-python">@app.route("/mynewroute")
+def mynewroute():
+    return render_template("mynewroute.html", name="BERND")</code></pre>
+    mynewroute.html<br>
+<pre><code>&lt!DOCTYPE html&gt
+&lthtml&gt
+ &lthead&gt
+ &ltmeta http-equiv="Content-Type" content="text/html; charset=UTF-8" /&gt
+ &lt/head&gt
+ &ltbody&gt
+  &ltdiv&gt
+   &lth1 id = "label"&gtMY NAME IS "&#123&#123name&#125&#125"&lt/h1&gt
+  &lt/div&gt
+ &lt/body&gt
+&lt/html&gt</code></pre>
+
+this is JINJA<br>
+<a href="/mynewroute">http://127.0.0.1:5000/mynewroute</a><br>it will return MY NAME IS BERND<br><br>
+
+
+
+<h5>JSON</h5>
+This more realistic example passes a json object to the template<br>JSON is used as dataformat throughout the application, if it's new to you, it might be a good idea to <a href="https://www.w3schools.com/js/js_json_intro.asp">read up on it.</a><br>
+app.py<br>
+<pre><code class="language-python">@app.route("/mynewroute")
+def mynewroute():
+    data = json.dumps({"name": "BERND", "age":31})
+    return render_template("mynewroute.html",user=data)</code></pre>
+On the html side we use java script to retrieve the data and parse it to an object. Then we set the content of the div with the id "label".<br><br>
+mynewroute.html
+
+<pre><code class="html">&lt!DOCTYPE html&gt
+&lthtml&gt
+&lthead&gt
+&ltmeta http-equiv="Content-Type" content="text/html; charset=UTF-8" /&gt
+&lt/head&gt
+&ltbody&gt
+ &ltdiv&gt
+  &lth1 id="label"&gt&lt/h1&gt
+  &ltscript&gt
+   var user_data = JSON.parse(&#123&#123user|tojson&#125&#125); // get the input data called user
+   var labelstring = "My Name is " + user_data["name"] + ", I am " + user_data["age"] + " Years old";
+   document.getElementById("label").innerHTML = labelstring;
+  &lt/script&gt
+ &lt/div&gt
+&lt/body&gt
+&lt/html&gt</code></pre>
+<a href="/mynewroute">http://127.0.0.1:5000/mynewroute</a><br><br>
+
+<h5>URL Parameters</h5>
+can be used to input data from the client to the server when the page is loaded <br>by adding something like <i>?id=49&user=Julia</i> to the url of the route.<br> 
+
+On the flask side we extract the id and check if it is in the users array. If it is, return that entry. <br>Note that a route can return different templates within an if/else statement<br><br>
+app.py<br>
+<pre><code class="language-python">@app.route("/mynewroute")
+def mynewroute():
+    # retrieve the Url Parameter
+    userid = int(flask.request.args.get("id"))  
+    # an array of json objects - our "database" 
+    users = [json.dumps({"name": "BERND", "age":31}),json.dumps({"name": "KARL", "age":23}),json.dumps({"name": "ANNA", "age":56})] 
+    # check if userid exists
+    if userid &lt len(users):
+        return render_template("mynewroute.html", user=users[userid])
+    else:
+        return "no user with this id in database"</code></pre>
+<a href="/mynewroute?id=0">http://127.0.0.1:5000/mynewroute?id=0</a><br><br>
+<a href="/mynewroute?id=1">http://127.0.0.1:5000/mynewroute?id=1</a><br><br>
+<a href="/mynewroute?id=2">http://127.0.0.1:5000/mynewroute?id=2</a><br><br>
+<a href="/mynewroute?id=3">http://127.0.0.1:5000/mynewroute?id=3</a><br><br>
+
+We have a simple dynamic webpage. It's content changes depending on the supplied URL Parameter.<br>This method is used in the VRNetzerWebApp to pass a user id when a client connects to the server.<br>
+It's not the only way to communicate with the backend.<br>We will cover another method in the next chapter - <a href="/doku/websockets">websockets</a>.<br><br><a href="/doku/">DOKU<br>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}"></link>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/atelier-cave.min.css') }}"></link>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+	<script>hljs.highlightAll();</script>
+	<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	</head>
+
+<body>
+ 
+<div>
+
+<h5>VRNetzer Data Format</h5>
+<br>
+from the readme file:
+<pre><code class="html">The VRNetzer acts as a multiplayer gameserver for one or more VR clients.
+Its purpose is to serve the connected players with big network datasets
+ - as quickly as possible.
+That is the reason why most properties are stored (and transmitted over the network) as images.
+
+Every folder in "static/projects/ contains 3 JSON files 
+(check out the file dataframeTemplate.json in the folder static/examplefiles for the exact structure)
+as well as 5 subfolders containing textures
+
+- static/projects/projectname/
+  - nodes.json
+  - links.json
+  - pfile.json
+  - pdata.json
+  - layouts
+  - layoutsl
+  - layoutsRGB
+  - links
+  - linksRGB
+
+Node Positions are stored in two textures, one in 'layouts' and the other in 'layoutsl'
+
+this needs a little explaining:
+Think of a texture as a dataset of the following format: [[R,G,B],[R,G,B],[R,G,B],..] 
+where every [R,G,B] is a pixel.
+This can be used to store a location vector (X->R Y->G Z->B) per pixel.
+Now each pixel corresponds to the position of the node with the SAME INDEX.
+Because a .bmp only has 8 bit depth we need a second texture 
+to get a resolution of 65536 per axis. this is where "layoutsl" comes into play.
+NOTE: node positions need to be in a 0 - 1 range (!)
+
+Node colors are stored in 'layoutsRGB'.
+
+the Linklist is stored in 'links'.
+
+This texture stores the start and end nodes of each link as two pixels:
+  links.bmp[0] -> link1 start
+  links.bmp[1] -> link1 end
+  links.bmp[2] -> link2 start
+  links.bmp[3] -> link2 end
+  ...
+NOTE that these are NOT POSITIONS, but NODE INDEXES!
+This is done in <i>upload.py</i> in the <i>makeLinkTexNew()</i> function.
+
+Link colors are stored in 'linksRGB'.
+
+
+</code></pre>
+<br>
+When using the uploader, a new folder will be created in /static/projects/ that contains the above files.<br>
+Lets look at the .json files that are also created alongside with the textures:<br><br>
+
+<a href="/static/demo_project/autocore_new/pfile.json" target="_blank">pfile.json</a> contains lists of all the textures, labels, and some other general informations about the project 
+<br><br>
+<a href="/static/demo_project/autocore_new/pdata.json" target="_blank">pdata.json</a> is used by the user interfaces to store their states
+<br><br>
+<a href="/static/demo_project/autocore_new/nodes.json" target="_blank">nodes.json</a> contains a list of all the nodes and their attributes as json objects
+<br><br>
+<a href="/static/demo_project/autocore_new/links.json" target="_blank">links.json</a> contains the linklist
+<br><br>
+There is one more important .json file called <br><a href="/static/projects/GD.json" target="_blank">GD.json</a> in <i>"/static/projects/GD.json"</i> that stores the active project.
+<br><br><a href="/doku/">DOKU</a><br>
+</div>
+</body>
+</html>
