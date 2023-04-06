@@ -1,4 +1,6 @@
-def chat(textinput):
-    #print("C_DEBUG: in function chat.")
+def chatmessage(textinput, username):
 
-    return textinput
+    message = username + ": " + textinput
+    print("C_DEBUG: in function chatmessage.")
+
+    return message

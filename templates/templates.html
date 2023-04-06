@@ -219,7 +219,7 @@
             console.log(text.value);
 
 
-            socket.emit('ex', { id: this.getAttribute('id'), parent: this.getAttribute('container'), fn: this.getAttribute('fn'), val: text.value});
+            socket.emit('ex', { usr: uid, id: this.getAttribute('id'), parent: this.getAttribute('container'), fn: this.getAttribute('fn'), val: text.value});
             
 
         });

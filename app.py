@@ -273,9 +273,14 @@ def ex(message):
             emit("ex", results, room=room)
 
 
-    if message["id"] == "chat":
-        results["val"] = message["val"]
-        emit("ex", results, room=room)
+    # Chat text message
+    if message["fn"] == "chatmessage":
+
+        response = {}
+        response = message
+        print("C_DEBUG: in app if chatmessage", response)
+        
+        emit("ex", response, room=room)
 
 
     elif message["id"] == "nl":
@@ -287,7 +292,7 @@ def ex(message):
             message["names"].append(GD.nodes["nodes"][id]["n"])
 
         emit("ex", message, room=room)
-        print(message)
+        #print(message)
 
     # CLIPBOARD 
     # TODO: dont save the colors to file but retrieve them from selected color texture

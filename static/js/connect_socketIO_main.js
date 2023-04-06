@@ -77,7 +77,6 @@ function updateMcElements(){
             case 'dropdown':
                 socket.emit('ex', { usr:uid, id: dynelem[i].getAttribute('id'), fn: "dropdown", val:"init"});
                 break;
-        
         }
         //console.log(dynelem[i].getAttribute('container'));
     }
@@ -114,11 +113,11 @@ $(document).ready(function(){
     socket = io.connect('http://' + document.domain + ':' + location.port + '/main');
     socket.io.opts.transports = ['websocket'];
     
-
     socket.on('connect', function() {
         var msg = {usr:uid}
         socket.emit('join', msg);
     });
+
 
     socket.on('disconnect', function () {
         console.log("disconnected - trying to connect")
@@ -449,8 +448,9 @@ $(document).ready(function(){
                 ue4(data["fn"], data);    
                 break;
 
-            case "chat":
-                displayChatText(data["val"]);
+            case "chatmessage":
+                displayChatText(data);
+                console.log("C_DEBUG: print text message")
                 break;
     
         }
@@ -607,12 +607,11 @@ function displayGraphInfo(project_selected) {
 //-------------------------------------------------------
 // CHAT TEXT DISPLAY
 //-------------------------------------------------------
-function displayChatText(textinput) {
-    if(document.getElementById('chatinput')) {
-        document.getElementById("chatoutput").innerText = textinput;
-    }
+function displayChatText(data) {
+    const chatOutput = document.getElementById("chatoutput");
+    chatOutput.innerHTML += `<div>${data.usr}: ${data.val}</div>`;
+    console.log("C_DEBUG:", chatOutput.innerHTML);
 }
-
 
 
 //-------------------------------------------------------
