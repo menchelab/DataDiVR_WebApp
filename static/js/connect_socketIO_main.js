@@ -428,7 +428,7 @@ $(document).ready(function(){
 
                     // NODE + LINK info on legend panel 
                     displayNodeLegend(pfile.name);
-
+                    displayLinkLegend(pfile.name);
 
                     //--------------------------------
 
@@ -616,7 +616,7 @@ function displayChatText(data) {
 
 
 //-------------------------------------------------------
-// NODE/LINK DESCIPTION
+// NODE/LINK COLOR DESCRIPTION IN LEGEND PANEL
 //-------------------------------------------------------
 function displayNodeLegend(project_selected) {
     if (document.getElementById('legendpanel')) {
@@ -677,6 +677,70 @@ function displayNodeLegend(project_selected) {
         });
     }
 }
+
+
+function displayLinkLegend(project_selected) {
+    if (document.getElementById('legendpanel')) {
+        const p_file = 'static/projects/'+project_selected+'/pfile.json';
+
+        $.getJSON(p_file, (pfiledata) => {
+            const clusterlist = pfiledata["selections"];
+            //console.log("C_DEBUG: clusterlist in displayLinkLegend: ", clusterlist);
+
+            const linkdesc_Div = document.getElementById("legend_linkdescription");
+            const linkcol_Div = document.getElementById("legend_linkcolor");
+
+            linkdesc_Div.innerHTML = "";
+            linkcol_Div.innerHTML = "";
+
+            Promise.all(clusterlist.map((cluster) => {
+                const nodeID = cluster.nodes[0];
+                const img_name = "linkcolors0RGB";
+                const img = new Image();
+                img.src = 'static/projects/' + project_selected + '/linksRGB/'+ img_name+".png";
+
+                return new Promise((resolve, reject) => {
+                    img.onload = () => {
+                        const canvas = document.createElement("canvas");
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        const ctx = canvas.getContext("2d");
+                        ctx.drawImage(img, 0, 0);
+                        const imageData = ctx.getImageData(nodeID, 0, 1, 1); // x = nodeID, y = 0
+                        const colorData = imageData.data;
+                        const color = 'rgb(' + colorData[0] + ', ' + colorData[1] + ', ' + colorData[2] + ')';
+                        resolve({cluster: cluster, color: color});
+                    };
+                    img.onerror = reject;
+                });
+            }))
+            .then((results) => {
+                // sort the results by the order of clusterlist
+                const sortedResults = results.sort((a, b) => {
+                    return clusterlist.indexOf(a.cluster) - clusterlist.indexOf(b.cluster);
+                });
+                sortedResults.forEach((result) => {
+                    const textdiv = document.createElement("div");
+                    const text = document.createTextNode("Links of Group: " + result.cluster["name"]);
+                    textdiv.appendChild(text);
+                    linkdesc_Div.appendChild(textdiv);
+
+                    const colorImg = displayColorAsImage(result.color, 40, 3);
+                    linkcol_Div.appendChild(colorImg);
+                });
+            })
+            .catch((err) => {
+                console.log("Error: Could not load image: " + err);
+            });
+        })
+        .fail(function() {
+            console.log("Error: Could not load JSON file");
+        });
+    }
+}
+
+
+
 
 
 
