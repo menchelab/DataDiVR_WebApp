@@ -450,7 +450,8 @@ $(document).ready(function(){
 
             case "chatmessage":
                 displayChatText(data);
-                console.log("C_DEBUG: print text message")
+                // console.log("C_DEBUG: print text message")
+                // ue4(data["fn"], data); // NOT TESTED IF Username taken from ue4
                 break;
     
         }

@@ -275,11 +275,9 @@ def ex(message):
 
     # Chat text message
     if message["fn"] == "chatmessage":
-
         response = {}
         response = message
-        print("C_DEBUG: in app if chatmessage", response)
-        
+        #print("C_DEBUG: in app if chatmessage", response)
         emit("ex", response, room=room)
 
 
