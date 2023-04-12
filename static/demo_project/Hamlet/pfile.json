@@ -1,0 +1,1 @@
+{"name": "Hamlet", "layouts": ["nodepositions0XYZ"], "layoutsRGB": ["nodecolors0RGB"], "links": ["links0XYZ"], "linksRGB": ["linkcolors0RGB"], "selections": [{"name": 0, "nodes": ["0", "6"]}, {"name": 1, "nodes": ["5"]}, {"name": 2, "nodes": ["2", "3", "4", "7"]}, {"name": 3, "nodes": ["1", "8", "9", "10", "11"]}], "nodecount": 12, "labelcount": 4, "linkcount": 22}
