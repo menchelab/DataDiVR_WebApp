@@ -493,9 +493,13 @@ def upload_filesNew(request):
                 accPos = [0,0,0]
                 pos = [0,0,0]
                 for x in row:
-                    accPos[0] += float(layout["data"][int(x)][0])
-                    accPos[1] += float(layout["data"][int(x)][1])
-                    accPos[2] += float(layout["data"][int(x)][2])
+                    # filter out empty rows 
+                    if len(x) > 0: 
+                        accPos[0] += float(layout["data"][int(x)][0])
+                        accPos[1] += float(layout["data"][int(x)][1])
+                        accPos[2] += float(layout["data"][int(x)][2])
+                    else:
+                        pass
 
                 pos[0] = str(accPos[0] / len(row))
                 pos[1] = str(accPos[1] / len(row))
@@ -507,8 +511,6 @@ def upload_filesNew(request):
                 color["data"].append([255,0,0,255])
             i += 1
 
-       
-    
 
     for layout in nodepositions:
         if len(layout["data"])> 0:
