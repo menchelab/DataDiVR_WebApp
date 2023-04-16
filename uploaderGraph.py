@@ -253,10 +253,17 @@ def parseGraphJSON_linkcolors(files,target):
             name_of_file = "linkcolors"+str(idx)
             num_of_links = len(file["links"])
 
-            linkcolor_hex = []
+            linkcolor_pre = []
             for i in range(0,num_of_links):
-                linkcolor_hex.append(file["links"][i]["linkcolor"])
-            linkcolors = [(*hex_to_rgb(color),100) for color in linkcolor_hex]
+                linkcolor_pre.append(file["links"][i]["linkcolor"])
+
+            # linkcolors = [(*hex_to_rgb(color),100) for color in linkcolor_hex]
+            linkcolors = []
+            for linkcol in linkcolor_pre:
+                if '#' in linkcol:
+                    linkcolors.append((*hex_to_rgb(linkcol),100))
+                else:
+                    linkcolors.append(linkcol)
 
             vecList = {}
             vecList["data"] = linkcolors
@@ -353,7 +360,9 @@ def parseGraphJSON_graphdesc(files,target):
     if len(files) > 0: 
         for file in files:
             if "desc" in file["graph"].keys():
-                descr_of_graph = file["graph"]["desc"]
+                descr_of_graph = file["graph"]["desc"]            
+            elif "graphdesc" in file["graph"].keys():
+                descr_of_graph = file["graph"]["graphdesc"]
             else: 
                 descr_of_graph = "Graph description not specified."
             vecList = {}
