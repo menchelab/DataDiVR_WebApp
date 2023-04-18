@@ -720,7 +720,7 @@ function displayNodeLegend(project_selected) {
                             canvas.height = img.height;
                             const ctx = canvas.getContext("2d");
                             ctx.drawImage(img, 0, 0);
-                            const imageData = ctx.getImageData(nodeID, 0, 1, 1); // x = nodeID, y = 0
+                            const imageData = ctx.getImageData(nodeID, 0, canvas.width, canvas.height); // x = nodeID, y = 0
                             const colorData = imageData.data;
                             const color = 'rgb(' + colorData[0] + ', ' + colorData[1] + ', ' + colorData[2] + ')';
                             resolve({cluster: cluster, color: color});
@@ -755,6 +755,8 @@ function displayNodeLegend(project_selected) {
 }
 
 
+
+  
 function displayLinkLegend(project_selected) {
     if (document.getElementById('legendpanel')) {
         const p_file = 'static/projects/'+project_selected+'/pfile.json';
@@ -762,134 +764,83 @@ function displayLinkLegend(project_selected) {
         $.getJSON(p_file, (pfiledata) => {
 
             const clusterlist = pfiledata["selections"];
-
-            // W I T H O U T   D E F I N E D   C L U S T E R S (in pfiledata["selectiond"])
-            if (clusterlist.length === 0) {
-                //console.log("clusterlist is empty");
-            
-                console.log("C_DEBUG: clusterlist in displayLinkLegend: ", clusterlist);
-
-                const linkdesc_Div = document.getElementById("legend_linkdescription");
-                const linkcol_Div = document.getElementById("legend_linkcolor");
-                linkdesc_Div.innerHTML = "";
-                linkcol_Div.innerHTML = "";
-
-                const img_name =  pfiledata["linksRGB"][0]; //"nodecolors0RGB";
-                const img = new Image();
-                img.src = 'static/projects/' + project_selected + '/linksRGB/'+ img_name+".png";
         
-                const canvas = document.createElement('canvas');
-                img.onload = function() {
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0);
-                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                    const pixelData = imageData.data;
+            const linkdesc_Div = document.getElementById("legend_linkdescription");
+            const linkcol_Div = document.getElementById("legend_linkcolor");
+            linkdesc_Div.innerHTML = "";
+            linkcol_Div.innerHTML = "";
+
+            const img_name =  pfiledata["linksRGB"][0]; 
+            const img = new Image();
+            img.src = 'static/projects/' + project_selected + '/linksRGB/'+ img_name+".png";
+    
+            const canvas = document.createElement('canvas');
+            img.onload = function() {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const pixelData = imageData.data;
+                
+                // Loop through all the pixels in the image
+                const colorsDict = {};
+                const namesDict = {};
+                let index = 1;
+
+                for (let i = 0; i < pixelData.length; i += 4) {
+                    const r = pixelData[i];
+                    const g = pixelData[i + 1];
+                    const b = pixelData[i + 2];
+                    const a = pixelData[i + 3];
+                    const colorKey = `${r},${g},${b}`;
                     
-                    // Loop through all the pixels in the image
-                    const colorsDict = {};
-                    const namesDict = {};
-                    let index = 1;
-
-                    for (let i = 0; i < pixelData.length; i += 4) {
-                        const r = pixelData[i];
-                        const g = pixelData[i + 1];
-                        const b = pixelData[i + 2];
-                        const a = pixelData[i + 3];
-                        const colorKey = `${r},${g},${b}`;
-                       
-                        // If the color key doesn't exist in the dictionary yet, add it
-                        
-                        if (!colorsDict.hasOwnProperty(colorKey)) {
-                            const pixelIndex = i / 4; // Get the pixel index
-                            namesDict[pixelIndex] = {"name":"Linkgroup "+index, "nodes": []} //, "color" : []}; // Set the index as the key
-                            colorsDict[colorKey] = pixelIndex; // Map the color key to the pixel index
-                            index += 1;
-                        }
-                        const pixelIndex = colorsDict[colorKey]; // Retrieve the pixel index from the color key mapping
-                        namesDict[pixelIndex]["nodes"].push(i / 4); 
-                    }
-                    // Create a new dictionary with the colorKey as the key
-                    const newNamesDict = {};
-                    for (const pixelIndex in namesDict) {
-                            const colorKey = `${pixelData[pixelIndex * 4]},${pixelData[pixelIndex * 4 + 1]},${pixelData[pixelIndex * 4 + 2]}`;
-                            newNamesDict[colorKey] = namesDict[pixelIndex];
-                        }
-                    // console.log("C_DEBUG: newNamesDict: ", newNamesDict);
+                    // If the color key doesn't exist in the dictionary yet, add it
                     
-                    // Loop through the namesDict and create an element for each node
-                    for (const color in newNamesDict) {
-                        // Split the color string into R, G, B values
-                        const [r, g, b] = color.split(',');
-
-                        // Check if the color is non-black
-                        if (r !== '0' || g !== '0' || b !== '0') {
-                            const textdiv = document.createElement("div");
-                            const text = document.createTextNode(newNamesDict[color]["name"]);
-                            textdiv.appendChild(text);
-                            linkdesc_Div.appendChild(textdiv);
-
-                            const colorImg = displayColorAsImage(color, 40, 3); // 20px 20px square
-                            linkcol_Div.appendChild(colorImg);
-                        }
+                    if (!colorsDict.hasOwnProperty(colorKey)) {
+                        const pixelIndex = i / 4; // Get the pixel index
+                        namesDict[pixelIndex] = {"name":"Connections ", //+index, 
+                                                "nodes": []} //, "color" : []}; // Set the index as the key
+                        colorsDict[colorKey] = pixelIndex; // Map the color key to the pixel index
+                        index += 1;
                     }
-                };
-
-            // W I T H   D E F I N E D   C L U S T E R S 
-            } else {
-
-                const linkdesc_Div = document.getElementById("legend_linkdescription");
-                const linkcol_Div = document.getElementById("legend_linkcolor");
-                linkdesc_Div.innerHTML = "";
-                linkcol_Div.innerHTML = "";
-
-                Promise.all(clusterlist.map((cluster) => {
-                    const nodeID = cluster.nodes[0];
-                    const img_name = "linkcolors0RGB";
-                    const img = new Image();
-                    img.src = 'static/projects/' + project_selected + '/linksRGB/'+ img_name+".png";
-
-                    return new Promise((resolve, reject) => {
-                        img.onload = () => {
-                            const canvas = document.createElement("canvas");
-                            canvas.width = img.width;
-                            canvas.height = img.height;
-                            const ctx = canvas.getContext("2d");
-                            ctx.drawImage(img, 0, 0);
-                            const imageData = ctx.getImageData(nodeID, 0, 1, 1); // x = nodeID, y = 0
-                            const colorData = imageData.data;
-                            const color = 'rgb(' + colorData[0] + ', ' + colorData[1] + ', ' + colorData[2] + ')';
-                            resolve({cluster: cluster, color: color});
-                        };
-                        img.onerror = reject;
-                    });
-                }))
-                .then((results) => {
-                    // sort the results by the order of clusterlist
-                    const sortedResults = results.sort((a, b) => {
-                        return clusterlist.indexOf(a.cluster) - clusterlist.indexOf(b.cluster);
-                    });
-                    sortedResults.forEach((result) => {
+                    const pixelIndex = colorsDict[colorKey]; // Retrieve the pixel index from the color key mapping
+                    namesDict[pixelIndex]["nodes"].push(i / 4); 
+                }
+                // Create a new dictionary with the colorKey as the key
+                const newNamesDict = {};
+                for (const pixelIndex in namesDict) {
+                        const colorKey = `${pixelData[pixelIndex * 4]},${pixelData[pixelIndex * 4 + 1]},${pixelData[pixelIndex * 4 + 2]}`;
+                        newNamesDict[colorKey] = namesDict[pixelIndex];
+                    }
+                // console.log("C_DEBUG: newNamesDict: ", newNamesDict);
+                
+                // Loop through the namesDict and create an element for each node
+                for (const color in newNamesDict) {
+                    // Split the color string into R, G, B values
+                    const [r, g, b] = color.split(',');
+                    // Check if the color is non-black
+                    if (color !== '0,0,0') { // (r !== '0' && g !== '0' && b !== '0') {
                         const textdiv = document.createElement("div");
-                        const text = document.createTextNode(result.cluster["name"]);
+                        const text = document.createTextNode(newNamesDict[color]["name"]);
                         textdiv.appendChild(text);
                         linkdesc_Div.appendChild(textdiv);
 
-                        const colorImg = displayColorAsImage(result.color, 40, 3);
+                        const colorImg = displayColorAsImage(color, 40, 3); // 20px 20px square
                         linkcol_Div.appendChild(colorImg);
-                    });
-                })
-                .catch((err) => {
-                    console.log("Error: Could not load image: " + err);
-                });
-            }
+                    
+                    } 
+                }
+            };
+
         })
         .fail(function() {
             console.log("Error: Could not load JSON file");
         });
     }
 }
+
+
 
 
 //-------------------------------------------------------
