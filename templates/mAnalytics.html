@@ -1,0 +1,38 @@
+<!-- Analytics box -->
+
+
+<div class="gradientBox">
+    <div class='swagBox' style="width:420px; background-color: rgba(16, 3, 0, 0.3); margin-bottom: 2em;">
+         
+        <mc-dropdown id="analytics" class="GD" type="dropdown" fn="dropdown"
+        name="ANALYTICS">
+        </mc-dropdown>
+
+        <!-- Analytics modules -->
+        <div id="analyticsSelectedDegree" style="display: none;" class="analyticsOption"> 
+            <mc-button1 name="RUN" id="analyticsDegreeRun" fn="analytics"></mc-button1>
+        </div>
+
+        <div id="analyticsSelectedCloseness" style="display: none;" class="analyticsOption">
+            <mc-button1 name="RUN" id="analyticsClosenessRun" fn="analytics"></mc-button1>
+        </div>
+
+        <div id="analyticsSelectedPath" style="display: none;" class="analyticsOption">
+            <div id="analyticsPathNodeContainer" class="swagBoxT" style="width:398px; max-height: 380px; height:auto; overflow-y: auto; overflow-x: hidden; margin-bottom: 4px;">
+                <mc-button1 name="Select Node 1" id="analyticsPathNode1" fn="analytics" parent="analyticsPathNodeContainer" style="display:inline-block; width:49.5%;">test</mc-button1>
+                <mc-button1 name="Select Node 2" id="analyticsPathNode2" fn="analytics" parent="analyticsPathNodeContainer" style="display:inline-block; width:49.5;">test2</mc-button1>            
+                <script>
+                    // scale buttons
+                    $(document).ready(function(){
+                        document.getElementById("analyticsPathNode1").shadowRoot.getElementById("name").style.width = "186px";
+                        document.getElementById("analyticsPathNode2").shadowRoot.getElementById("name").style.width = "186px";
+                    });
+                </script>
+                
+            </div>
+            <mc-button1 name="RUN" id="analyticsPathRun" fn="analytics"></mc-button1>
+        </div>
+        
+
+    </div>
+</div>
