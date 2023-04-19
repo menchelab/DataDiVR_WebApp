@@ -13,8 +13,8 @@ To run the Module download the folder and execute the .exe file.
 
 1. run backend
 
-   - install python 3.9 plus
-   - windows: run `Buildandrun.ps` in console
+   - install python 3.9
+   - windows: run `Buildandrun.ps1` in console
    - linux: run `linux_buildandrun.sh` in console
    - mac: run `linux_buildandrun.sh` in console
 
