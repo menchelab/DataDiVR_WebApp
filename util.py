@@ -9,6 +9,9 @@ import GlobalData as GD
 import uploader
 import pandas as pd
 import numpy as np
+import networkx as nx
+import json
+
 
 
 def delete_project(request: flask.request):
@@ -126,3 +129,42 @@ def get_identifier_collection():
         "static", "examplefiles", "protein_structure_info", "uniprot_identifiers.tsv"
     )
     identifier_collection = pd.read_csv(tsv_file, sep="\t")
+
+
+def project_to_graph(project):
+    with open(f"./static/projects/{project}/links.json") as links_json:
+        links = json.load(links_json)
+    try:
+        with open(f"./static/projects/{project}/nodes.json") as nodes_json:
+            nodes = json.load(nodes_json)
+    except FileNotFoundError:
+        # here maybe names.json parsing (even if its deprecated)
+        raise FileNotFoundError("The selected Project does not support nodes.json file for storing nodes.")
+    
+    graph_dict = {}
+
+    for node in nodes["nodes"]:
+        graph_dict[str(node["id"])] = []
+    
+    for link in links["links"]:
+        graph_dict[str(link["s"])].append(str(link["e"]))
+        
+    graph = nx.from_dict_of_lists(graph_dict)
+    return graph
+
+
+def analytics_degree_distribution(graph):
+    # nx graph to degree distribution
+    degree_sequence = [d for n, d in graph.degree()] # index is node id, value is degree
+    print(degree_sequence)
+
+
+def analytics_closeness(graph):
+    # nx graph to closeness distribution
+    closeness_seq = [nx.closeness_centrality(graph, node) for node in graph.nodes()]
+    print(closeness_seq)
+
+
+def analytics_shortest_path(graph, node_1, node_2):
+    path = nx.shortest_path(graph, source=node_1, target=node_2, method="dijkstra")
+    return path

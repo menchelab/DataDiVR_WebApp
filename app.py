@@ -349,6 +349,34 @@ def ex(message):
         response["channel"] = "nodeRGB"
         response["path"] = "static/projects/"+ GD.data["actPro"]  + "/layoutsRGB/temp1.png"
         emit("ex", response, room=room)
+    
+    elif message['fn'] == "analytics":
+        project = GD.data["actPro"]
+        # add functionality here to analtics
+        if message['id'] == "analyticsDegreeRun":
+            graph = util.project_to_graph(project)
+            arr = util.analytics_degree_distribution(graph)
+            print(arr)
+        if message['id'] == "analyticsClosenessRun":
+            graph = util.project_to_graph(project)
+            arr = util.analytics_closeness(graph)
+            print(arr)
+        if message["id"] == "analyticsPathNode1":
+            message["color"] = "#AA0000"
+            emit("ex", message, room=room)
+        if message["id"] == "analyticsPathNode2":
+            message["color"] = "#AA0000"
+            emit("ex", message, room=room)
+        if message["id"] == "analyticsPathRun":
+            if message["val"] is None:
+                return
+            nodes = json.loads(message["val"])
+            if nodes["n1"] is None or nodes["n2"] is None:
+                print("[Fail] analytics shortest path run: 2 nodes have to be selected.")
+                return
+            graph = util.project_to_graph(project) 
+            path = util.analytics_shortest_path(graph, str(nodes["n1"]), str(nodes["n2"]))
+            print(path)
 
     elif message["fn"] == "dropdown":
         response = {}
@@ -368,6 +396,12 @@ def ex(message):
                 if message["id"] == "CGlayouts":  
                     response["opt"] = ["Local layout", "Global layout", "Importance layout"] 
                     response["sel"] = layout_selected
+                
+                # dropdown for fixed selections, might need a better solution to hardcode them in HTML / JS
+                if message["id"] == "analytics":
+                    response["opt"] = ["Degree Distribution", "Closeness", "Shortest Path"]
+                    response["sel"] = '0'
+
                 # dropdown for visualization type selection 
                 vis_selected = 0
                 if message["id"] == "CGvis":  
@@ -460,9 +494,11 @@ def ex(message):
                         response2["val"].append(node)
                     emit("ex", response2, room=room)
 
+
         emit("ex", response, room=room)
         print(response)
-    
+
+
     # EXPERIMENTAL dynamic svg creation with matplotlib 
     elif message["fn"] == "showSVG":
         emit("ex", PE.matplotsvg(message), room=room)
@@ -546,7 +582,7 @@ def ex(message):
 
             GD.savePD()
 
-        print(response)
+        # print(response)
         emit("ex", response, room=room)
     
     elif message["fn"] == "children":

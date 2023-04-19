@@ -5,6 +5,23 @@ var logAll = true;
 var isPreview = false;logjs
 var isMain = false;
 
+// global wrapper to manage data more comprehensive and avoid global pollution
+// might move this into a separate file/module because it will grow fast
+var vRNetzer = vRNetzer || {};
+
+// important globals variables
+vRNetzer.globalVar = vRNetzer.globalVar || {}; 
+vRNetzer.globalVar.selectedNode; // selected node as {id: <id>, n:<name of node>}
+
+// sub object handling analytics
+vRNetzer.analytics = vRNetzer.analytics || {};
+vRNetzer.analytics.shortestPathN1 = {id: null, n: null};
+vRNetzer.analytics.shortestPathN2 = {id: null, n: null};
+
+
+
+
+
 function makeid(length) {
     let result = '';
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -88,7 +105,6 @@ function reconnect(){
 }
 
 $(document).ready(function(){
-    
     if(document.getElementById("preview")){
         isPreview = true;
     }
@@ -107,12 +123,12 @@ $(document).ready(function(){
         document.getElementById("userid").innerHTML = uid;
     }
    
-    
+
     ///set up and connect to socket
     console.log('http://' + document.domain + ':' + location.port + '/main');
     socket = io.connect('http://' + document.domain + ':' + location.port + '/main');
     socket.io.opts.transports = ['websocket'];
-    
+
     socket.on('connect', function() {
         var msg = {usr:uid}
         socket.emit('join', msg);
@@ -145,7 +161,8 @@ $(document).ready(function(){
             }
             if(document.getElementById("outer")){
                 document.getElementById("outer").style.backgroundColor = "rgb(0 0 0 / 0%)"   
-            } 
+            }
+            socket.emit('ex', { usr:uid, id: "analytics", fn: "dropdown", val:"init"});
         }
         //CONNECTION Established - initialize the project (Ui elements initialize when project changes)
         
@@ -159,15 +176,11 @@ $(document).ready(function(){
             console.log("server returned: " + JSON.stringify(data));
 
         }
-
-
-
-
         switch(data.fn)
         {   
             case 'projectLoaded':
                 updateMcElements();
-  
+
                 if (data.usr == uid){
                     
                     if(isPreview){
@@ -246,13 +259,13 @@ $(document).ready(function(){
             // ------------------------------------------------------------------------
             // TO DO : fix error of "shadowRoot not open" (time delay did not work)
             // ------------------------------------------------------------------------
-            // case "cbaddNode":
-            //     var content = document.getElementById('cbscrollbox').shadowRoot.getElementById("box");
-            //     removeAllChildNodes(content);
-            //     for (let i = 0; i < data.val.length; i++) {
-            //         $(content).append("<mc-button id = 'button"+ i + " 'val= '"+ data.val[i].id + "' name = '"+ data.val[i].name +  "' w = '118' fn = 'node' color = '" + rgbToHex(data.val[i].color[0]*0.5,data.val[i].color[1]*0.5,data.val[i].color[2]*0.5) + "' ></mc-button>");
-            //     }
-            //     break;
+            case "cbaddNode":
+                var content = document.getElementById('cbscrollbox').shadowRoot.getElementById("box");
+                removeAllChildNodes(content);
+                for (let i = 0; i < data.val.length; i++) {
+                    $(content).append("<mc-button id = 'button"+ i + " 'val= '"+ data.val[i].id + "' name = '"+ data.val[i].name +  "' w = '118' fn = 'node' color = '" + rgbToHex(data.val[i].color[0]*0.5,data.val[i].color[1]*0.5,data.val[i].color[2]*0.5) + "' ></mc-button>");
+                }
+                break;
 
             case "updateTempTex":
                 if(preview){
@@ -272,6 +285,8 @@ $(document).ready(function(){
                 if(isPreview){setUserLabelPos(data["val"]["id"], data["val"]["n"]);}
                 //$("#piechart").append("<d3pie-widget data = '{a: " + Math.floor(Math.random()*100) + ", b: " + Math.floor(Math.random()*100) + ", c:" + Math.floor(Math.random()*100) + ", d:" + Math.floor(Math.random()*100) + ", e:" + Math.floor(Math.random()*100) + ", f:" + Math.floor(Math.random()*100) + ", g:" + Math.floor(Math.random()*100) + "}' color = '#" + Math.floor(Math.random()*16777215).toString(16) + "'></d3draw-widget>");
                 ue4(data["fn"], data);
+                vRNetzer.globalVar.selectedNode = {id: data["val"]["id"], n: data["val"]["n"]};
+                console.log("current node selected: ", vRNetzer.globalVar.selectedNode);
                 if(document.getElementById("mProtein_container")){
                     
                     
@@ -362,7 +377,6 @@ $(document).ready(function(){
 
 
             case 'dropdown':
-
                 if(document.getElementById(data.id)){
                     var select = document.getElementById(data.id).shadowRoot.getElementById("sel");
                     var count = document.getElementById(data.id).shadowRoot.querySelector("#count");
@@ -402,7 +416,22 @@ $(document).ready(function(){
                             actLinksRGB = data.sel;
                             makeNetwork();
                         }
-    
+                    }
+                    if (data.id == "analytics"){
+                        $('.analyticsOption').css('display', 'none');
+                        switch (data.name){
+                            case "Degree Distribution":
+                                $("#analyticsSelectedDegree").css('display', 'inline-block');
+                            break;
+                            case "Closeness":
+                                $("#analyticsSelectedCloseness").css('display', 'inline-block');
+                            break;
+                            case "Shortest Path":
+                                $("#analyticsSelectedPath").css('display', 'inline-block');
+                            break;
+                            // add bindings for options display here
+
+                        }
                     }
                 }
    
@@ -453,10 +482,32 @@ $(document).ready(function(){
                 // console.log("C_DEBUG: print text message")
                 // ue4(data["fn"], data); // NOT TESTED IF Username taken from ue4
                 break;
-    
-        }
-        
-        
+            case "analytics":
+                // ####################################################################
+                // TO-DO:
+                // ####################################################################
+                // - outsource saved nodes to backend (multiplayer!)
+                // - color buttons according to nodes (see below)
+                // - let run button request for selected nodes
+
+                if (data.id == "analyticsPathNode1"){
+                    if (vRNetzer.globalVar.selectedNode == undefined){return}
+                    vRNetzer.analytics.shortestPathN1 = vRNetzer.globalVar.selectedNode;
+                    let button = document.getElementById("analyticsPathNode1").shadowRoot.getElementById("name");
+                    button.innerHTML = vRNetzer.analytics.shortestPathN1.n;
+                    // button.style.backgroundColor = data.color;
+                    let runPackage = {n1: vRNetzer.analytics.shortestPathN1.id, n2: vRNetzer.analytics.shortestPathN2.id};
+                    document.getElementById("analyticsPathRun").setAttribute('val', JSON.stringify(runPackage));
+                }
+                if (data.id == "analyticsPathNode2"){
+                    if (vRNetzer.globalVar.selectedNode == undefined){return}
+                    vRNetzer.analytics.shortestPathN2 = vRNetzer.globalVar.selectedNode;
+                    document.getElementById("analyticsPathNode2").shadowRoot.getElementById("name").innerHTML = vRNetzer.analytics.shortestPathN2.n;
+                    document
+                    let runPackage = {n1: vRNetzer.analytics.shortestPathN1.id, n2: vRNetzer.analytics.shortestPathN2.id};
+                    document.getElementById("analyticsPathRun").setAttribute('val', JSON.stringify(runPackage));
+                }
+        }        
     });
 
 });
