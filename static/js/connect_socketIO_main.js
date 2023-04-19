@@ -246,13 +246,13 @@ $(document).ready(function(){
             // ------------------------------------------------------------------------
             // TO DO : fix error of "shadowRoot not open" (time delay did not work)
             // ------------------------------------------------------------------------
-            // case "cbaddNode":
-            //     var content = document.getElementById('cbscrollbox').shadowRoot.getElementById("box");
-            //     removeAllChildNodes(content);
-            //     for (let i = 0; i < data.val.length; i++) {
-            //         $(content).append("<mc-button id = 'button"+ i + " 'val= '"+ data.val[i].id + "' name = '"+ data.val[i].name +  "' w = '118' fn = 'node' color = '" + rgbToHex(data.val[i].color[0]*0.5,data.val[i].color[1]*0.5,data.val[i].color[2]*0.5) + "' ></mc-button>");
-            //     }
-            //     break;
+            case "cbaddNode":
+                var content = document.getElementById('cbscrollbox').shadowRoot.getElementById("box");
+                removeAllChildNodes(content);
+                for (let i = 0; i < data.val.length; i++) {
+                    $(content).append("<mc-button id = 'button"+ i + " 'val= '"+ data.val[i].id + "' name = '"+ data.val[i].name +  "' w = '118' fn = 'node' color = '" + rgbToHex(data.val[i].color[0]*0.5,data.val[i].color[1]*0.5,data.val[i].color[2]*0.5) + "' ></mc-button>");
+                }
+                break;
 
             case "updateTempTex":
                 if(preview){
