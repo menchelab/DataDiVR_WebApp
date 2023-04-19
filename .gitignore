@@ -7,3 +7,5 @@ venv/
 **/**.code-workspace
 projects/
 logs/*
+extensions/*
+!extensions/documentation
