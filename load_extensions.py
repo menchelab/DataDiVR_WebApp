@@ -1,4 +1,5 @@
 import os
+import platform
 import traceback
 from importlib import import_module
 
@@ -13,6 +14,17 @@ def import_blueprint(app: flask.Flask, ext: str, extensions_path: str) -> bool:
             raise ImportError(f"No app.py found in '/extension/{ext}/src'.")
 
         module = f"extensions.{ext}.src.app"
+
+        # Install requirements
+        requirements = os.path.join(extensions_path, ext, "requirements.txt")
+        if os.path.isfile(requirements):
+            if platform.system() != "Windows":
+                os.system(
+                    f"python3 -m pip install -r {requirements} | grep -v 'already satisfied'"
+                )
+            else:
+                os.system(f"python3 -m pip install -r {requirements}")
+
         module = import_module(module)
 
         if not hasattr(module, "blueprint") or not hasattr(module, "url_prefix"):
@@ -48,7 +60,13 @@ def load(main_app: flask.Flask) -> tuple[flask.Flask, dict]:
     ignore = []
     loaded_extensions = []
     list_of_ext = []
-    possible_tabs = ["main_tabs", "upload_tabs", "nodepanel_tabs", "nodepanelppi_tabs"]
+    possible_tabs = [
+        "column_1",
+        "column_2",
+        "column_3",
+        "column_4",
+        "upload_tabs",
+    ]
     # add_tab_to_nodepanel = []
     if os.path.exists(extensions):
         if os.path.isfile(os.path.join(extensions, "ignore.py")):
