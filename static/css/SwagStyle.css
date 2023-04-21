@@ -1122,3 +1122,25 @@ code {
     grid-template-columns: 400px 400px;
 }
 
+
+.rec {
+    display:none;
+}
+
+.rec + label{
+    background:url('images/NotRecording.png') no-repeat;
+    height: 50px;
+    width: 50px;
+    display:inline-block;
+    padding: 0 0 0 0px;
+}
+
+.rec:checked + label{
+    background:url('images/recording.png') no-repeat;
+    height: 50px;
+    width: 50px;
+    display:inline-block;
+    padding: 0 0 0 0px;
+}
+
+

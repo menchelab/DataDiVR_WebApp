@@ -78,6 +78,13 @@ ue.interface.nodelabelclicked = function (data) {
 
 };
 
+ue.interface.speechresponse = function (data) {
+    data["fn"] = "speechresponse"
+    console.log(data);
+    socket.emit('ex', data);
+
+};
+
 
 function updateMcElements(){
     dynelem = document.getElementsByClassName("GD");
