@@ -256,9 +256,6 @@ $(document).ready(function(){
                 }
                 break;
             
-            // ------------------------------------------------------------------------
-            // TO DO : fix error of "shadowRoot not open" (time delay did not work)
-            // ------------------------------------------------------------------------
             case "cbaddNode":
                 var content = document.getElementById('cbscrollbox').shadowRoot.getElementById("box");
                 removeAllChildNodes(content);
