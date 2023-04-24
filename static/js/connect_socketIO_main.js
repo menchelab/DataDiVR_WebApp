@@ -901,6 +901,7 @@ function displayLinkLegend(project_selected) {
 //-------------------------------------------------------
 // display color as image
 //-------------------------------------------------------
+// WHY NOT USE A DIV for the color field?
 function displayColorAsImage(color, width, height) {
     const canvas = document.createElement('canvas');
     canvas.width = width;
@@ -913,4 +914,6 @@ function displayColorAsImage(color, width, height) {
     const img = document.createElement('img');
     img.src = dataURL;
     return img;
-  }
+}
+
+
