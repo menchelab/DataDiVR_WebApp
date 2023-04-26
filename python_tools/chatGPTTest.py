@@ -1,9 +1,13 @@
 import os
 import openai
+from pathlib import Path
+
 openai.organization = "org-Gby8fc7oaeQpRJt8OuhAefwk"
 
 openai.api_key = "" # supply your API key however you choose
-with open('openAI_KEY_doNOTcommit.txt') as f:
+
+keyfile = str(Path(__file__).resolve().parents[1])+'\openAI_KEY_doNOTcommit.txt'
+with open(keyfile) as f:
     lines = f.readlines()
     openai.api_key = lines[0]
 
@@ -11,14 +15,14 @@ with open('openAI_KEY_doNOTcommit.txt') as f:
 
 # print the first model's id
 #print(models.data[0].id)
-promtCondition = "My penis is too small"
+promtCondition = "liver cancer"
 
 start_sequence = "\nAI:"
 restart_sequence = "\nHuman: "
 
 response = openai.Completion.create(
   model="text-davinci-003",
-  prompt="The following is a conversation with an AI assistant. The assistant is helpful, creative, clever, and very friendly and well versed in medicine, it answers by providing only a list of genes including entrez id formatted as json like this example: \n[{“entrezId”: “xxxx”, “GeneName”: “XXX1”},\n{“entrezId”: “xxx”, “GeneName”: “XXX2”},\n{“entrezId”: “xxx”, “GeneName”: “XXX2”} ]\nit provides the 20 most important genes and makes it a complete json list and is consistent with the output format and only outputs the json without any additional text or comments\n\n\nHuman: Hello, who are you?\nAI: I am an AI created by OpenAI. How can I help you today?\nHuman: \nAI: I can help provide information about genetic information. Please tell me the type of gene you would like to research.\nHuman: give me all genes associated to "+ promtCondition +" please ",
+  prompt="The following is a conversation with an AI assistant. The assistant is helpful, clever, and very friendly and well versed in medicine and biology, it answers by providing only a list of genes formatted as json like this example: \n[{“GeneName”: “XXX1”},\n{“GeneName”: “XXX2”},\n{“GeneName”: “XXX2”} ]\n\n\n\nHuman: Hello, who are you?\nAI: I am an AI created by OpenAI. How can I help you today?\nHuman: \nAI: I can help provide information about genetic information. Please tell me the type of condition you would like to research.\nHuman: give me all genes associated to "+ promtCondition +" please. only output the data.",
   temperature=0.8,
   max_tokens=2084,
   top_p=1,

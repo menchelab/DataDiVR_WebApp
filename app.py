@@ -31,8 +31,10 @@ from os import path
 
 import cartographs_func as CG
 import chat
+import base64
+from base64 import b64encode
 
-
+import wave
 # load audio and pad/trim it to fit 30 seconds
 
 
@@ -106,10 +108,21 @@ def main():
         return "error"
 
 
-
+@app.route('/uploadAudioUE4', methods=['POST'])
+def uploadAudioUE4():
+    if request.method == 'POST':
+        x = request.get_data()
+        with wave.open("myaudiofile.wav", "wb") as audiofile:
+             
+            audiofile.setsampwidth(2)
+            audiofile.setnchannels(2)
+            audiofile.setframerate(48000)
+            audiofile.writeframes(x)
+    return "ok"
 
 @app.route('/uploadAudio', methods=['POST'])
 def uploadAudio():
+    print("upload request received")
     if 'audio_file' in request.files:
         file = request.files['audio_file']
         # Get the file suffix based on the mime type.
