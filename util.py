@@ -203,7 +203,6 @@ def analytics_color_shortest_path(path):
         path_links = "static/projects/"+ GD.data["actPro"]  + "/linksRGB/temp.png"
         texture_nodes.save(path_nodes, "PNG")
         texture_links.save(path_links, "PNG")
-        print(">>>>>>>>>>>", path_nodes, path_links)
         return {"textures_created": True, "path_nodes": path_nodes, "path_links": path_links}
     except:
         return {"textures_created": False}
