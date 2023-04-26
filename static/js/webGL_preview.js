@@ -17,6 +17,7 @@
         var scale = 20;
         const nscale = .02;
         var nodemeshes = [];
+        var linkmeshes = []
         var indexsphere;
         var labels = [];
         var children = [];
@@ -75,6 +76,15 @@
                 var decColor = 0x1000000 + blue + 0x100 * green + 0x10000 * red;
                 return '#' + decColor.toString(16).substr(1);
         }
+
+        function RGBA2HTML(rgba) {
+            var r = rgba[0].toString(16).padStart(2, '0');
+            var g = rgba[1].toString(16).padStart(2, '0');
+            var b = rgba[2].toString(16).padStart(2, '0');
+            var a = Math.round(rgba[3] / 255 * 100) / 100;
+            a = Math.round(a * 255).toString(16).padStart(2, '0');
+            return "#" + r + g + b + a;
+          }
         
         function getPosition(index){
             var i = index * 4;
@@ -117,6 +127,16 @@
             }
             console.log("node colors updated")
         }
+
+        function updateLinkColors(data){
+            console.log(linkmeshes);
+            for (let i = 0; i < (linkmeshes.length); i++){
+                color = [data[i*4], data[i*4+1], data[i*4+2]];
+                linkmeshes[i].material.color.set(RGB2HTML(color[0], color[1], color[2]));
+            }
+            console.log(linkmeshes);
+            console.log("link colors updated")
+        }
         
         function makeNetwork(){
             if (initialized){
@@ -135,6 +155,7 @@
                 }
                 
                 nodemeshes=[];
+                linkmeshes = []
                 labels=[];
             
                 // MAKE NODES
@@ -195,11 +216,12 @@
                         line.linewidth
                         line.name = "line"
                         scene.add(line);
+                        linkmeshes.push(line)
                         count = l
                     //}
                 }
                
-
+                console.log(linkmeshes);
             }   
         }
 
@@ -419,9 +441,18 @@
         }
         
         async function downloadTempTexture(path, channel) {
-            nodesTempRGB = await DownloadImage(path);
-            console.log(nodesTempRGB[0],nodesTempRGB[1],nodesTempRGB[2])
-            updateNodeColors(nodesTempRGB);
+            switch (channel){
+                case "nodeRGB":
+                    nodesTempRGB = await DownloadImage(path);
+                    console.log(nodesTempRGB[0],nodesTempRGB[1],nodesTempRGB[2])
+                    updateNodeColors(nodesTempRGB);
+                    break;
+                case "linkRGB":
+                    linksTempRGB = await DownloadImage(path);
+                    console.log(linksTempRGB[0], linksTempRGB[1], linksTempRGB[2]);
+                    updateLinkColors(linksTempRGB);
+                    break;
+            }
         }
         
         document.addEventListener("DOMContentLoaded", function () {

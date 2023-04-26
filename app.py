@@ -362,10 +362,18 @@ def ex(message):
             arr = util.analytics_closeness(graph)
             print(arr)
         if message["id"] == "analyticsPathNode1":
-            message["color"] = "#AA0000"
+            message["color"] = None
+            try:
+                message["color"] = util.rgba_to_hex(GD.pixel_valuesc[int(GD.pdata["activeNode"])])
+            except:
+                print("Node ID invalid.")
             emit("ex", message, room=room)
         if message["id"] == "analyticsPathNode2":
-            message["color"] = "#AA0000"
+            message["color"] = None
+            try:
+                message["color"] = util.rgba_to_hex(GD.pixel_valuesc[int(GD.pdata["activeNode"])])
+            except:
+                print("Node ID invalid.")
             emit("ex", message, room=room)
         if message["id"] == "analyticsPathRun":
             if message["val"] is None:
@@ -376,7 +384,24 @@ def ex(message):
                 return
             graph = util.project_to_graph(project) 
             path = util.analytics_shortest_path(graph, str(nodes["n1"]), str(nodes["n2"]))
-            print(path)
+            textures = util.analytics_color_shortest_path(path)
+            if textures["textures_created"] is False:
+                print("Temp texture creation failed.")
+                return
+            
+            response_links = {}
+            response_links["usr"] = message["usr"]
+            response_links["fn"] = "updateTempTex"
+            response_links["channel"] = "linkRGB"
+            response_links["path"] = textures["path_links"]
+            emit("ex", response_links, room=room)
+
+            response_nodes = {}
+            response_nodes["usr"] = message["usr"]
+            response_nodes["fn"] = "updateTempTex"
+            response_nodes["channel"] = "nodeRGB"
+            response_nodes["path"] = textures["path_nodes"]
+            emit("ex", response_nodes, room=room)
 
     elif message["fn"] == "dropdown":
         response = {}
@@ -400,7 +425,7 @@ def ex(message):
                 # dropdown for fixed selections, might need a better solution to hardcode them in HTML / JS
                 if message["id"] == "analytics":
                     response["opt"] = ["Degree Distribution", "Closeness", "Shortest Path"]
-                    response["sel"] = '0'
+                    response["sel"] = 0
 
                 # dropdown for visualization type selection 
                 vis_selected = 0

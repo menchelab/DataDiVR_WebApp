@@ -268,8 +268,8 @@ $(document).ready(function(){
                 break;
 
             case "updateTempTex":
-                if(preview){
-                    downloadTempTexture(data["path"])
+                if(isPreview){
+                    downloadTempTexture(data["path"], data["channel"])
                 }else{
                     ue4(data["fn"], data);
                 }
@@ -495,17 +495,18 @@ $(document).ready(function(){
                     vRNetzer.analytics.shortestPathN1 = vRNetzer.globalVar.selectedNode;
                     let button = document.getElementById("analyticsPathNode1").shadowRoot.getElementById("name");
                     button.innerHTML = vRNetzer.analytics.shortestPathN1.n;
-                    // button.style.backgroundColor = data.color;
-                    let runPackage = {n1: vRNetzer.analytics.shortestPathN1.id, n2: vRNetzer.analytics.shortestPathN2.id};
-                    document.getElementById("analyticsPathRun").setAttribute('val', JSON.stringify(runPackage));
+                    button.style.color = data.color;
+                    let runPacket = {n1: vRNetzer.analytics.shortestPathN1.id, n2: vRNetzer.analytics.shortestPathN2.id};
+                    document.getElementById("analyticsPathRun").setAttribute('val', JSON.stringify(runPacket));
                 }
                 if (data.id == "analyticsPathNode2"){
                     if (vRNetzer.globalVar.selectedNode == undefined){return}
                     vRNetzer.analytics.shortestPathN2 = vRNetzer.globalVar.selectedNode;
-                    document.getElementById("analyticsPathNode2").shadowRoot.getElementById("name").innerHTML = vRNetzer.analytics.shortestPathN2.n;
-                    document
-                    let runPackage = {n1: vRNetzer.analytics.shortestPathN1.id, n2: vRNetzer.analytics.shortestPathN2.id};
-                    document.getElementById("analyticsPathRun").setAttribute('val', JSON.stringify(runPackage));
+                    let button = document.getElementById("analyticsPathNode2").shadowRoot.getElementById("name");
+                    button.innerHTML = vRNetzer.analytics.shortestPathN2.n;
+                    button.style.color = data.color;
+                    let runPacket = {n1: vRNetzer.analytics.shortestPathN1.id, n2: vRNetzer.analytics.shortestPathN2.id};
+                    document.getElementById("analyticsPathRun").setAttribute('val', JSON.stringify(runPacket));
                 }
         }        
     });
