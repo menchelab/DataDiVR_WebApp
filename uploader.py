@@ -492,19 +492,23 @@ def upload_filesNew(request):
             for layout in nodepositions:
                 accPos = [0,0,0]
                 pos = [0,0,0]
+                
                 for x in row:
-                    # filter out empty rows 
-                    if len(x) > 0: 
+
+                    # catch for 2D positions for labels and for empty rows
+                    if len(x) > 0 and len(layout["data"][int(x)]) == 3:
                         accPos[0] += float(layout["data"][int(x)][0])
                         accPos[1] += float(layout["data"][int(x)][1])
                         accPos[2] += float(layout["data"][int(x)][2])
-                    else:
-                        pass
+                    
+                    elif len(x) > 0 and len(layout["data"][int(x)]) == 2: 
+                        accPos[0] += float(layout["data"][int(x)][0])
+                        accPos[1] += float(layout["data"][int(x)][1])
+                        accPos[2] += 0.0
 
                 pos[0] = str(accPos[0] / len(row))
                 pos[1] = str(accPos[1] / len(row))
                 pos[2] = str(accPos[2] / len(row))
-                # add to nodepos
                 layout["data"].append(pos)
 
             for color in nodecolors:
@@ -514,6 +518,13 @@ def upload_filesNew(request):
 
     for layout in nodepositions:
         if len(layout["data"])> 0:
+            state =  state + makeXYZTexture(namespace, layout) + '<br>'
+            pfile["layouts"].append(layout["name"] + "XYZ")
+
+        # catch for 2D positions and for empty rows
+        elif len(layout["data"]) > 0 and len(layout["data"][int(x)]) == 2:
+            for i,xy in enumerate(layout["data"]):
+                layout["data"][i] = (xy[0],xy[1],0.0)
             state =  state + makeXYZTexture(namespace, layout) + '<br>'
             pfile["layouts"].append(layout["name"] + "XYZ")
 

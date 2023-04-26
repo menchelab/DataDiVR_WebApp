@@ -6,3 +6,4 @@ venv/
 **/**.vscode/
 **/**.code-workspace
 projects/
+openAI_KEY_doNOTcommit.txt

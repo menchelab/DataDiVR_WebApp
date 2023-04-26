@@ -8,7 +8,9 @@ import flask
 
 # from flask_session import Session
 from engineio.payload import Payload
-from flask import Flask, jsonify, redirect, render_template, request, session, url_for
+from flask import Flask, jsonify, redirect, render_template, request, session, url_for, abort, current_app, make_response, request
+from mimetypes import guess_extension
+from werkzeug.utils import secure_filename
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from PIL import Image, ImageColor
 
@@ -29,6 +31,24 @@ from os import path
 
 import cartographs_func as CG
 import chat
+
+
+# load audio and pad/trim it to fit 30 seconds
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 log = logging.getLogger("werkzeug")
 log.setLevel(logging.ERROR)
@@ -88,7 +108,32 @@ def main():
 
 
 
+@app.route('/uploadAudio', methods=['POST'])
+def uploadAudio():
+    if 'audio_file' in request.files:
+        file = request.files['audio_file']
+        # Get the file suffix based on the mime type.
+        extname = guess_extension(file.mimetype)
+        if not extname:
+            abort(400)
 
+        # Test here for allowed file extensions.
+
+        # Generate a unique file name with the help of consecutive numbering.
+        i = 1
+        while True:
+            dst = os.path.join(
+                current_app.instance_path,
+                current_app.config.get('UPLOAD_FOLDER', 'uploads'),
+                secure_filename(f'audio_record_{i}{extname}'))
+            if not os.path.exists(dst): break
+            i += 1
+
+        # Save the file to disk.
+        file.save("audio1.weba")
+        return make_response('', 200)
+    
+    abort(400)
 
 @app.route("/nodepanel", methods=["GET"])
 def nodepanel():

@@ -78,6 +78,13 @@ ue.interface.nodelabelclicked = function (data) {
 
 };
 
+ue.interface.speechresponse = function (data) {
+    data["fn"] = "speechresponse"
+    console.log(data);
+    socket.emit('ex', data);
+
+};
+
 
 function updateMcElements(){
     dynelem = document.getElementsByClassName("GD");
@@ -256,9 +263,6 @@ $(document).ready(function(){
                 }
                 break;
             
-            // ------------------------------------------------------------------------
-            // TO DO : fix error of "shadowRoot not open" (time delay did not work)
-            // ------------------------------------------------------------------------
             case "cbaddNode":
                 var content = document.getElementById('cbscrollbox').shadowRoot.getElementById("box");
                 removeAllChildNodes(content);
@@ -898,6 +902,7 @@ function displayLinkLegend(project_selected) {
 //-------------------------------------------------------
 // display color as image
 //-------------------------------------------------------
+// WHY NOT USE A DIV for the color field?
 function displayColorAsImage(color, width, height) {
     const canvas = document.createElement('canvas');
     canvas.width = width;
@@ -910,4 +915,6 @@ function displayColorAsImage(color, width, height) {
     const img = document.createElement('img');
     img.src = dataURL;
     return img;
-  }
+}
+
+
