@@ -100,7 +100,7 @@
 
 <script>
     // MAKE TRANSPARENT BACKGROUND WHEN USER AGENT == UE4
-    /*
+   
     const audioInputSelect = document.querySelector('select#audioSource');
     const selectors = [audioInputSelect];
     function gotDevices(deviceInfos) {
@@ -131,7 +131,6 @@
  // navigator.mediaDevices.getUserMedia(constraints).then(gotDevices).catch(handleError);
 
 
-*/
 
     document.getElementById("browser").innerHTML = String(navigator.userAgent)
     
@@ -149,9 +148,9 @@
       console.error("getUserMedia not supported.")
       return;
     }
-    //const audioSource = audioInputSelect.value;
-   // const constraints = {audio: {deviceId: audioSource ? {exact: audioSource} : undefined} };
-    const constraints = {audio:true};
+    const audioSource = audioInputSelect.value;
+    const constraints = {audio: {deviceId: audioSource ? {exact: audioSource} : undefined} };
+    //const constraints = {audio:true};
     navigator.mediaDevices.getUserMedia(constraints)
     .then(function(stream) {
         let chunks = []
@@ -178,7 +177,8 @@
             body: formData
           }).then(resp => {
             if (resp.status === 200) {
-              window.location.reload(true);
+             // window.location.reload(true);
+             console.log(resp);
             } else {
               console.error("Error:", resp)
             }
