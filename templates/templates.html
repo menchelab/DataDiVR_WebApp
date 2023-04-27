@@ -236,13 +236,14 @@
                 if (rec_button.checked){
                     console.log("Rec " + msg.id);
                     msg.val = 'rec';
-                    //ue4("rec",msg);
-                    record(true);
+                    if (isUE4){ue4("rec",msg);}
+                    else{record(true, msg.id);}
                 }else{
                     console.log("NoRec");
                     msg.val = 'stoprec';
-                    //ue4("rec",msg);
-                    record(false);
+                    if (isUE4){ue4("rec",msg);}
+                    else{record(false, msg.id);}
+                    
                 }
                 
 

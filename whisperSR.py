@@ -1,6 +1,7 @@
 import whisper
 import torch
-
+global model
+model = ''
 def dowhisper(filename):
     audio = whisper.load_audio(filename)
     audio = whisper.pad_or_trim(audio)
@@ -21,15 +22,15 @@ def dowhisper(filename):
 
     # print the recognized text
     print(result.text)
+    return(result.text)
 
-torch.cuda.empty_cache()
 
-model = whisper.load_model("small")
-print("model loaded")
+
+def loadModel(modename):
+    torch.cuda.empty_cache()
+    global model 
+    model = whisper.load_model(modename)
+    print("whisper: " + modename +" model loaded")
 # load audio and pad/trim it to fit 30 seconds
 #audio = whisper.load_audio("audio1.weba")
-dowhisper("audio.mp3")
-dowhisper("audio1.weba")
-dowhisper("autoimmune.mp3")
-dowhisper("ass1.mp3")
-dowhisper("alz.mp3")
+#dowhisper("audio.mp3")

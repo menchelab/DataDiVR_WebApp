@@ -9,12 +9,14 @@ import flask
 # from flask_session import Session
 from engineio.payload import Payload
 from flask import Flask, jsonify, redirect, render_template, request, session, url_for, abort, current_app, make_response, request
+import requests
 from mimetypes import guess_extension
 from werkzeug.utils import secure_filename
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from PIL import Image, ImageColor
 
 import GlobalData as GD
+import whisperSR as whispR
 import load_extensions
 import search
 import uploader
@@ -79,6 +81,7 @@ def execute_before_first_request():
     GD.loadColor()
     GD.loadLinks()
     GD.loadGraphinfoFile()
+    whispR.loadModel("small")
 
 @app.route("/")
 def index():
@@ -110,41 +113,34 @@ def main():
 
 @app.route('/uploadAudioUE4', methods=['POST'])
 def uploadAudioUE4():
+    result = {}
     if request.method == 'POST':
-        x = request.get_data()
+        raw = request.get_data()
         with wave.open("myaudiofile.wav", "wb") as audiofile:
-             
             audiofile.setsampwidth(2)
             audiofile.setnchannels(2)
             audiofile.setframerate(48000)
-            audiofile.writeframes(x)
-    return "ok"
+            audiofile.writeframes(raw)
+        audiofile.close()
+        result["text"] = whispR.dowhisper("myaudiofile.wav")
+    return result
 
 @app.route('/uploadAudio', methods=['POST'])
 def uploadAudio():
     print("upload request received")
+    result = {}
     if 'audio_file' in request.files:
         file = request.files['audio_file']
         # Get the file suffix based on the mime type.
         extname = guess_extension(file.mimetype)
         if not extname:
             abort(400)
-
-        # Test here for allowed file extensions.
-
-        # Generate a unique file name with the help of consecutive numbering.
-        i = 1
-        while True:
-            dst = os.path.join(
-                current_app.instance_path,
-                current_app.config.get('UPLOAD_FOLDER', 'uploads'),
-                secure_filename(f'audio_record_{i}{extname}'))
-            if not os.path.exists(dst): break
-            i += 1
-
         # Save the file to disk.
         file.save("audio1.weba")
-        return make_response('', 200)
+        result["text"] = whispR.dowhisper("audio1.weba")
+        print(result)
+
+    return result
     
     abort(400)
 
@@ -420,18 +416,10 @@ def ex(message):
             arr = util.analytics_closeness(graph)
             print(arr)
         if message["id"] == "analyticsPathNode1":
-            message["color"] = None
-            try:
-                message["color"] = util.rgba_to_hex(GD.pixel_valuesc[int(GD.pdata["activeNode"])])
-            except:
-                print("Node ID invalid.")
+            message["color"] = "#AA0000"
             emit("ex", message, room=room)
         if message["id"] == "analyticsPathNode2":
-            message["color"] = None
-            try:
-                message["color"] = util.rgba_to_hex(GD.pixel_valuesc[int(GD.pdata["activeNode"])])
-            except:
-                print("Node ID invalid.")
+            message["color"] = "#AA0000"
             emit("ex", message, room=room)
         if message["id"] == "analyticsPathRun":
             if message["val"] is None:
@@ -442,24 +430,7 @@ def ex(message):
                 return
             graph = util.project_to_graph(project) 
             path = util.analytics_shortest_path(graph, str(nodes["n1"]), str(nodes["n2"]))
-            textures = util.analytics_color_shortest_path(path)
-            if textures["textures_created"] is False:
-                print("Temp texture creation failed.")
-                return
-            
-            response_links = {}
-            response_links["usr"] = message["usr"]
-            response_links["fn"] = "updateTempTex"
-            response_links["channel"] = "linkRGB"
-            response_links["path"] = textures["path_links"]
-            emit("ex", response_links, room=room)
-
-            response_nodes = {}
-            response_nodes["usr"] = message["usr"]
-            response_nodes["fn"] = "updateTempTex"
-            response_nodes["channel"] = "nodeRGB"
-            response_nodes["path"] = textures["path_nodes"]
-            emit("ex", response_nodes, room=room)
+            print(path)
 
     elif message["fn"] == "dropdown":
         response = {}
@@ -483,7 +454,7 @@ def ex(message):
                 # dropdown for fixed selections, might need a better solution to hardcode them in HTML / JS
                 if message["id"] == "analytics":
                     response["opt"] = ["Degree Distribution", "Closeness", "Shortest Path"]
-                    response["sel"] = 0
+                    response["sel"] = '0'
 
                 # dropdown for visualization type selection 
                 vis_selected = 0

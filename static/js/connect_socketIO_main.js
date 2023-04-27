@@ -4,6 +4,7 @@ var newcon = true;
 var logAll = true;
 var isPreview = false;logjs
 var isMain = false;
+var isUE4 = false;
 
 // global wrapper to manage data more comprehensive and avoid global pollution
 // might move this into a separate file/module because it will grow fast
@@ -18,8 +19,13 @@ vRNetzer.analytics = vRNetzer.analytics || {};
 vRNetzer.analytics.shortestPathN1 = {id: null, n: null};
 vRNetzer.analytics.shortestPathN2 = {id: null, n: null};
 
-
-
+    
+if (String(navigator.userAgent).includes("UnrealEngine")){
+    isUE4 = true;
+       
+}else{
+    console.log("not ue4") 
+}
 
 
 function makeid(length) {
@@ -78,11 +84,15 @@ ue.interface.nodelabelclicked = function (data) {
 
 };
 
-ue.interface.speechresponse = function (data) {
-    data["fn"] = "speechresponse"
+ue.interface.spee = function (data) {
     console.log(data);
-    socket.emit('ex', data);
-
+    var text = '{"id":"node", "val": -1, "fn": "speechinput"}';
+    var out = JSON.parse(text);
+    x = JSON.parse(data)
+    out.id = x.id;
+    out.val = x.text;
+    socket.emit('ex', out);
+   
 };
 
 
@@ -479,6 +489,15 @@ $(document).ready(function(){
             
             case "ue4":
                 ue4(data["fn"], data);    
+                break;
+
+            case 'speechinput':
+                console.log(data.val + " --- " + data.id);
+                if(document.getElementById(data.id)){
+                    var content = document.getElementById(data.id).shadowRoot.getElementById("text");
+                    content.value = data.val;
+                }
+
                 break;
 
             case "chatmessage":
