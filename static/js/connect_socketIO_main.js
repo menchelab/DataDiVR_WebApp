@@ -6,19 +6,6 @@ var isPreview = false;logjs
 var isMain = false;
 var isUE4 = false;
 
-// global wrapper to manage data more comprehensive and avoid global pollution
-// might move this into a separate file/module because it will grow fast
-var vRNetzer = vRNetzer || {};
-
-// important globals variables
-vRNetzer.globalVar = vRNetzer.globalVar || {}; 
-vRNetzer.globalVar.selectedNode; // selected node as {id: <id>, n:<name of node>}
-
-// sub object handling analytics
-vRNetzer.analytics = vRNetzer.analytics || {};
-vRNetzer.analytics.shortestPathN1 = {id: null, n: null};
-vRNetzer.analytics.shortestPathN2 = {id: null, n: null};
-
     
 if (String(navigator.userAgent).includes("UnrealEngine")){
     isUE4 = true;
@@ -114,7 +101,10 @@ function updateMcElements(){
         }
         //console.log(dynelem[i].getAttribute('container'));
     }
+    // add here init values for new joined client
     socket.emit('ex', { usr:uid, id: "cbaddNode", fn: "addNode", val:"init"});
+    socket.emit('ex', { usr:uid, id: "analyticsPathNode1", fn:"analytics", val:"init"});
+    socket.emit('ex', { usr:uid, id: "analyticsPathNode2", fn: "analytics", val:"init"});
 }
 
 function reconnect(){
@@ -299,8 +289,6 @@ $(document).ready(function(){
                 if(isPreview){setUserLabelPos(data["val"]["id"], data["val"]["n"]);}
                 //$("#piechart").append("<d3pie-widget data = '{a: " + Math.floor(Math.random()*100) + ", b: " + Math.floor(Math.random()*100) + ", c:" + Math.floor(Math.random()*100) + ", d:" + Math.floor(Math.random()*100) + ", e:" + Math.floor(Math.random()*100) + ", f:" + Math.floor(Math.random()*100) + ", g:" + Math.floor(Math.random()*100) + "}' color = '#" + Math.floor(Math.random()*16777215).toString(16) + "'></d3draw-widget>");
                 ue4(data["fn"], data);
-                vRNetzer.globalVar.selectedNode = {id: data["val"]["id"], n: data["val"]["n"]};
-                console.log("current node selected: ", vRNetzer.globalVar.selectedNode);
                 if(document.getElementById("mProtein_container")){
                     
                     
@@ -514,22 +502,18 @@ $(document).ready(function(){
                 // - let run button request for selected nodes
 
                 if (data.id == "analyticsPathNode1"){
-                    if (vRNetzer.globalVar.selectedNode == undefined){return}
-                    vRNetzer.analytics.shortestPathN1 = vRNetzer.globalVar.selectedNode;
                     let button = document.getElementById("analyticsPathNode1").shadowRoot.getElementById("name");
-                    button.innerHTML = vRNetzer.analytics.shortestPathN1.n;
-                    button.style.color = data.color;
-                    let runPacket = {n1: vRNetzer.analytics.shortestPathN1.id, n2: vRNetzer.analytics.shortestPathN2.id};
-                    document.getElementById("analyticsPathRun").setAttribute('val', JSON.stringify(runPacket));
+                    if (data.val != "init"){
+                        button.innerHTML = data.val.name;
+                        button.style.color = data.val.color;
+                    }
                 }
                 if (data.id == "analyticsPathNode2"){
-                    if (vRNetzer.globalVar.selectedNode == undefined){return}
-                    vRNetzer.analytics.shortestPathN2 = vRNetzer.globalVar.selectedNode;
                     let button = document.getElementById("analyticsPathNode2").shadowRoot.getElementById("name");
-                    button.innerHTML = vRNetzer.analytics.shortestPathN2.n;
-                    button.style.color = data.color;
-                    let runPacket = {n1: vRNetzer.analytics.shortestPathN1.id, n2: vRNetzer.analytics.shortestPathN2.id};
-                    document.getElementById("analyticsPathRun").setAttribute('val', JSON.stringify(runPacket));
+                    if (data.val != "init"){
+                        button.innerHTML = data.val.name;
+                        button.style.color = data.val.color;
+                    }
                 }
         }        
     });

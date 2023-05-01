@@ -415,22 +415,88 @@ def ex(message):
             graph = util.project_to_graph(project)
             arr = util.analytics_closeness(graph)
             print(arr)
+
         if message["id"] == "analyticsPathNode1":
-            message["color"] = "#AA0000"
-            emit("ex", message, room=room)
+            # set server data: node +  hex color
+            if message["val"] != "init":
+                if "analyticsData" not in GD.pdata.keys():
+                    GD.pdata["analyticsData"] = {}
+                    print(GD.pdata)
+                if "shortestPathNode1" not in GD.pdata["analyticsData"].keys():
+                    GD.pdata["analyticsData"]["shortestPathNode1"] = {}
+                GD.pdata["analyticsData"]["shortestPathNode1"]["id"] = GD.pdata["activeNode"]
+                GD.pdata["analyticsData"]["shortestPathNode1"]["color"] = util.rgb_to_hex(GD.pixel_valuesc[int(GD.pdata["activeNode"])])
+                GD.pdata["analyticsData"]["shortestPathNode1"]["name"] = GD.nodes["nodes"][int(GD.pdata["activeNode"])]["n"]
+                GD.savePD()
+
+            # send to clients
+            response = {}
+            response["usr"] = message["usr"]
+            response["id"] = message["id"]
+            response["fn"] = "analytics"
+            response["val"] = "init"
+            if "shortestPathNode1" in GD.pdata["analyticsData"].keys():
+                response["val"] = GD.pdata["analyticsData"]["shortestPathNode1"]
+            emit("ex", response, room=room)
+
         if message["id"] == "analyticsPathNode2":
-            message["color"] = "#AA0000"
-            emit("ex", message, room=room)
+            # set server data: node +  hex color
+            if message["val"] != "init":
+                if "analyticsData" not in GD.pdata.keys():
+                    GD.pdata["analyticsData"] = {}
+                    print(GD.pdata)
+                if "shortestPathNode2" in GD.pdata["analyticsData"].keys():
+                    GD.pdata["analyticsData"]["shortestPathNode2"] = {}
+                GD.pdata["analyticsData"]["shortestPathNode2"]["id"] = GD.pdata["activeNode"]
+                GD.pdata["analyticsData"]["shortestPathNode2"]["color"] = util.rgb_to_hex(GD.pixel_valuesc[int(GD.pdata["activeNode"])])
+                GD.pdata["analyticsData"]["shortestPathNode2"]["name"] = GD.nodes["nodes"][int(GD.pdata["activeNode"])]["n"]
+                GD.savePD()
+
+            # send to clients
+            response = {}
+            response["usr"] = message["usr"]
+            response["id"] = message["id"]
+            response["fn"] = "analytics"
+            response["val"] = "init"
+            if "shortestPathNode2" in GD.pdata["analyticsData"].keys():
+                response["val"] = GD.pdata["analyticsData"]["shortestPathNode2"]
+            print(response)
+            emit("ex", response, room=room)
+
         if message["id"] == "analyticsPathRun":
-            if message["val"] is None:
-                return
-            nodes = json.loads(message["val"])
-            if nodes["n1"] is None or nodes["n2"] is None:
+            if "analyticsData" not in GD.pdata.keys():
                 print("[Fail] analytics shortest path run: 2 nodes have to be selected.")
                 return
+            if "shortestPathNode1" not in GD.pdata["analyticsData"].keys():
+                print("[Fail] analytics shortest path run: 2 nodes have to be selected.")
+                return
+            if "shortestPathNode1" not in GD.pdata["analyticsData"].keys():
+                print("[Fail] analytics shortest path run: 2 nodes have to be selected.")
+                return
+            
+            node_1 = GD.pdata["analyticsData"]["shortestPathNode1"]["id"]
+            node_2 = GD.pdata["analyticsData"]["shortestPathNode2"]["id"]
             graph = util.project_to_graph(project) 
-            path = util.analytics_shortest_path(graph, str(nodes["n1"]), str(nodes["n2"]))
-            print(path)
+            path = util.analytics_shortest_path(graph, node_1, node_2)
+            shortest_path_textures = util.analytics_color_shortest_path(path)
+
+            if shortest_path_textures["textures_created"] is False:
+                print("Failed to create textures for Analytics/Shortest Path.")
+                return
+            response_nodes = {}
+            response_nodes["usr"] = message["usr"]
+            response_nodes["fn"] = "updateTempTex"
+            response_nodes["channel"] = "nodeRGB"
+            response_nodes["path"] = shortest_path_textures["path_nodes"]
+            emit("ex", response_nodes, room=room)
+
+            response_links = {}
+            response_links["usr"] = message["usr"]
+            response_links["fn"] = "updateTempTex"
+            response_links["channel"] = "linkRGB"
+            response_links["path"] = shortest_path_textures["path_links"]
+            emit("ex", response_links, room=room)
+
 
     elif message["fn"] == "dropdown":
         response = {}
