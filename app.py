@@ -543,11 +543,23 @@ def ex(message):
             response["id"] = message["id"]
             response["fn"] = "annotation"
             response["val"] = GD.pdata["annotationOperationsActive"]
+            GD.savePD()
             emit("ex", response, room=room)
-            
+
         if message["id"] == "annotationRun":
-            print(">>> Run Annotation based on selected annotations and operation")
-            print(">>> submit new textures")
+            if message["val"] == "init":
+                return
+            if "annotation-1" not in GD.pdata.keys():
+                print("ERROR: Select Annotation 1 to perform set operation on annotations.")
+            if "annotation-Operations" not in GD.pdata.keys():
+                print("ERROR: Select operation to perform set operation on annotations.")
+            if "annotation-1" not in GD.pdata.keys():
+                print("ERROR: Select Annotation 1 to perform set operation on annotations.")
+            if "annotation-2" not in GD.pdata.keys():
+                print("ERROR: Select Annotation 2 to perform set operation on annotations.")
+            #####
+            # perform set operations here based on GD entries
+            #####
 
     elif message["fn"] == "dropdown":
         response = {}
@@ -617,13 +629,13 @@ def ex(message):
                 # dropdown for annotations
                 if message["id"] == "annotation-1":
                     response["opt"] = list(GD.annotations.keys())
-                    response["sel"] = "0"
+                    response["sel"] = 0 if "annotation-1" not in GD.pdata.keys() else GD.pdata["annotation-1"]
                 if message["id"] == "annotation-2":
                     response["opt"] = list(GD.annotations.keys())
-                    response["sel"] = "0"
+                    response["sel"] = 0 if "annotation-2" not in GD.pdata.keys() else GD.pdata["annotation-2"]
                 if message["id"] == "annotation-Operations":
                     response["opt"] = ["UNION", "INTERSECTION", "SUBTRACTION"]
-                    response["sel"] = "0"
+                    response["sel"] = 0 if "annotation-Operations" not in GD.pdata.keys() else GD.pdata["annotation-Operations"]
 
             else:# user input message
                 if message["id"] == "projDD": # PROJECT CHANGE
