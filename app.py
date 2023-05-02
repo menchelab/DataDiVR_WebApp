@@ -16,7 +16,7 @@ from flask_socketio import SocketIO, emit, join_room, leave_room
 from PIL import Image, ImageColor
 
 import GlobalData as GD
-import whisperSR as whispR
+
 import load_extensions
 import search
 import uploader
@@ -34,14 +34,16 @@ from os import path
 import cartographs_func as CG
 import chat
 import base64
-from base64 import b64encode
-
-import wave
-# load audio and pad/trim it to fit 30 seconds
-
-import TextToSpeech
 import chatGPTTest
 
+enableWhisper = True
+if enableWhisper:
+    import whisperSR as whispR
+# load audio and pad/trim it to fit 30 seconds
+import TextToSpeech
+
+from base64 import b64encode
+import wave
 
 
 
@@ -114,39 +116,44 @@ def main():
 
 
 @app.route('/uploadAudioUE4', methods=['POST'])
-def uploadAudioUE4():
+def uploadAudioUE4(enableWhisper):
     result = {}
-    path = 'static/WisperAudio/' #os.getenv('HOME') + '/python'
-    num_files = len([f for f in os.listdir(path)if os.path.isfile(os.path.join(path, f))])
-    thisfile = path+str(num_files + 1)
-    if request.method == 'POST':
-        raw = request.get_data()
-        with wave.open(thisfile+".wav", "wb") as audiofile:
-            audiofile.setsampwidth(2)
-            audiofile.setnchannels(2)
-            audiofile.setframerate(48000)
-            audiofile.writeframes(raw)
-        audiofile.close()
-        result["text"] = whispR.dowhisper(thisfile+".wav")
+    if enableWhisper:
+        
+        path = 'static/WisperAudio/' #os.getenv('HOME') + '/python'
+        num_files = len([f for f in os.listdir(path)if os.path.isfile(os.path.join(path, f))])
+        thisfile = path+str(num_files + 1)
+        if request.method == 'POST':
+            raw = request.get_data()
+            with wave.open(thisfile+".wav", "wb") as audiofile:
+                audiofile.setsampwidth(2)
+                audiofile.setnchannels(2)
+                audiofile.setframerate(48000)
+                audiofile.writeframes(raw)
+            audiofile.close()
+            result["text"] = whispR.dowhisper(thisfile+".wav")
     return result
+    
 
 @app.route('/uploadAudio', methods=['POST'])
-def uploadAudio():
-    #print("upload request received")
-    path = 'static/WisperAudio/' #os.getenv('HOME') + '/python'
-    num_files = len([f for f in os.listdir(path)if os.path.isfile(os.path.join(path, f))])
-    thisfile = path+str(num_files + 1)
+def uploadAudio(enableWhisper):
     result = {}
-    if 'audio_file' in request.files:
-        file = request.files['audio_file']
-        # Get the file suffix based on the mime type.
-        extname = guess_extension(file.mimetype)
-        if not extname:
-            abort(400)
-        # Save the file to disk.
-        file.save(thisfile+".weba")
-        result["text"] = whispR.dowhisper(thisfile+".weba")
-        print(result)
+    if enableWhisper:
+    #print("upload request received")
+        path = 'static/WisperAudio/' #os.getenv('HOME') + '/python'
+        num_files = len([f for f in os.listdir(path)if os.path.isfile(os.path.join(path, f))])
+        thisfile = path+str(num_files + 1)
+        
+        if 'audio_file' in request.files:
+            file = request.files['audio_file']
+            # Get the file suffix based on the mime type.
+            extname = guess_extension(file.mimetype)
+            if not extname:
+                abort(400)
+            # Save the file to disk.
+            file.save(thisfile+".weba")
+            result["text"] = whispR.dowhisper(thisfile+".weba")
+            print(result)
 
     return result
     
