@@ -57,7 +57,7 @@ import wave
 log = logging.getLogger("werkzeug")
 log.setLevel(logging.ERROR)
 
-# Payload.max_decode_packets = 50
+Payload.max_decode_packets = 50
 
 
 app = Flask(__name__)
@@ -81,6 +81,7 @@ def execute_before_first_request():
     GD.loadColor()
     GD.loadLinks()
     GD.loadGraphinfoFile()
+    GD.load_annotations()
     whispR.loadModel("small")
 
 @app.route("/")
@@ -435,8 +436,9 @@ def ex(message):
             response["id"] = message["id"]
             response["fn"] = "analytics"
             response["val"] = "init"
-            if "shortestPathNode1" in GD.pdata["analyticsData"].keys():
-                response["val"] = GD.pdata["analyticsData"]["shortestPathNode1"]
+            if "analyticsData" in GD.pdata.keys():
+                if "shortestPathNode1" in GD.pdata["analyticsData"].keys():
+                    response["val"] = GD.pdata["analyticsData"]["shortestPathNode1"]
             emit("ex", response, room=room)
 
         if message["id"] == "analyticsPathNode2":
@@ -458,9 +460,9 @@ def ex(message):
             response["id"] = message["id"]
             response["fn"] = "analytics"
             response["val"] = "init"
-            if "shortestPathNode2" in GD.pdata["analyticsData"].keys():
-                response["val"] = GD.pdata["analyticsData"]["shortestPathNode2"]
-            print(response)
+            if "analyticsData" in GD.pdata.keys():
+                if "shortestPathNode2" in GD.pdata["analyticsData"].keys():
+                    response["val"] = GD.pdata["analyticsData"]["shortestPathNode2"]
             emit("ex", response, room=room)
 
         if message["id"] == "analyticsPathRun":
@@ -497,6 +499,29 @@ def ex(message):
             response_links["path"] = shortest_path_textures["path_links"]
             emit("ex", response_links, room=room)
 
+    elif message["fn"] == "annotation":
+        if message["id"] == "annotationOperation":
+            if message["val"] == "init":
+                if "annotationOperationsActive" not in GD.pdata.keys():
+                    GD.pdata["annotationOperationsActive"] = False
+            else:
+                if "annotationOperationsActive" in GD.pdata.keys():
+                    if GD.pdata["annotationOperationsActive"] == True:
+                        GD.pdata["annotationOperationsActive"] = False
+                    elif GD.pdata["annotationOperationsActive"] == False:
+                        GD.pdata["annotationOperationsActive"] = True  
+                    if "annotationOperationsActive" not in GD.pdata.keys():
+                        GD.pdata["annotationOperationsActive"] = True
+            response = {}
+            response["usr"] = message["usr"]
+            response["id"] = message["id"]
+            response["fn"] = "annotation"
+            response["val"] = GD.pdata["annotationOperationsActive"]
+            emit("ex", response, room=room)
+            
+        if message["id"] == "annotationRun":
+            print(">>> Run Annotation based on selected annotations and operation")
+            print(">>> submit new textures")
 
     elif message["fn"] == "dropdown":
         response = {}
@@ -520,7 +545,7 @@ def ex(message):
                 # dropdown for fixed selections, might need a better solution to hardcode them in HTML / JS
                 if message["id"] == "analytics":
                     response["opt"] = ["Degree Distribution", "Closeness", "Shortest Path"]
-                    response["sel"] = '0'
+                    response["sel"] = 0
 
                 # dropdown for visualization type selection 
                 vis_selected = 0
@@ -563,6 +588,16 @@ def ex(message):
                         response["opt"] = options
                         print(options)
 
+                # dropdown for annotations
+                if message["id"] == "annotation-1":
+                    response["opt"] = list(GD.annotations.keys())
+                    response["sel"] = "0"
+                if message["id"] == "annotation-2":
+                    response["opt"] = list(GD.annotations.keys())
+                    response["sel"] = "0"
+                if message["id"] == "annotation-Operations":
+                    response["opt"] = ["UNION", "INTERSECTION", "SUBTRACTION"]
+                    response["sel"] = "0"
 
             else:# user input message
                 if message["id"] == "projDD": # PROJECT CHANGE
@@ -574,6 +609,7 @@ def ex(message):
                     GD.loadColor() 
                     GD.loadLinks()
                     GD.loadGraphinfoFile()
+                    GD.load_annotations()
                     
                     response["sel"] = message["val"]
                     response["name"] = message["msg"]
@@ -613,7 +649,6 @@ def ex(message):
                         node["id"] = d
                         response2["val"].append(node)
                     emit("ex", response2, room=room)
-
 
         emit("ex", response, room=room)
         print(response)

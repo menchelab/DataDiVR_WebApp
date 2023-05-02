@@ -23,6 +23,7 @@ pdata = {}
 nodes = {}
 links = {}
 names = {}
+annotations = {}
 # todo deal with multiple linklists
 nchildren = []
 
@@ -193,3 +194,16 @@ def loadGraphinfoFile():
         #print("C_DEBUG in Globaldata: loadGraphInfoFile - created.")
 
 #----------------------------------
+
+def load_annotations():
+    global annotations
+    annotations = {}
+    for node in nodes["nodes"]:
+        if "attrlist" not in node.keys():
+            continue
+        for annotation in node["attrlist"]:
+            if annotation not in annotations:
+                annotations[annotation] = []
+            annotations[annotation].append(node["id"])
+
+    

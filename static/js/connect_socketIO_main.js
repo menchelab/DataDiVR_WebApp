@@ -105,6 +105,8 @@ function updateMcElements(){
     socket.emit('ex', { usr:uid, id: "cbaddNode", fn: "addNode", val:"init"});
     socket.emit('ex', { usr:uid, id: "analyticsPathNode1", fn:"analytics", val:"init"});
     socket.emit('ex', { usr:uid, id: "analyticsPathNode2", fn: "analytics", val:"init"});
+    socket.emit('ex', { usr:uid, id: "annotationOperation", fn: "annotation", val:"init"});
+    socket.emit('ex', { usr:uid, id: "annotationRun", fn: "annotation", val:"init"});
 }
 
 function reconnect(){
@@ -513,6 +515,23 @@ $(document).ready(function(){
                     if (data.val != "init"){
                         button.innerHTML = data.val.name;
                         button.style.color = data.val.color;
+                    }
+                }
+            case "annotation":
+                if (data.id == "annotationOperation"){
+                    let value = data.val;
+                    if (value == "init"){return}
+                    // hide/view annotation containers
+                    let button = document.getElementById("annotationOperation").shadowRoot.getElementById("name");
+                    if (value == true){
+                        button.innerHTML = "[-]";
+                        document.getElementById("annotation-2").style.display = "inline-block";
+                        document.getElementById("annotation-Operations").style.display = "inline-block";
+                    }
+                    if (value == false){
+                        button.innerHTML = "OPERATION";
+                        document.getElementById("annotation-2").style.display = "none";
+                        document.getElementById("annotation-Operations").style.display = "none";
                     }
                 }
         }        
