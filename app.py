@@ -58,7 +58,7 @@ import chatGPTTest
 log = logging.getLogger("werkzeug")
 log.setLevel(logging.ERROR)
 
-# Payload.max_decode_packets = 50
+Payload.max_decode_packets = 50
 
 
 app = Flask(__name__)
@@ -82,6 +82,7 @@ def execute_before_first_request():
     GD.loadColor()
     GD.loadLinks()
     GD.loadGraphinfoFile()
+    GD.load_annotations()
     whispR.loadModel("small")
 
 @app.route("/")
@@ -437,22 +438,112 @@ def ex(message):
             graph = util.project_to_graph(project)
             arr = util.analytics_closeness(graph)
             print(arr)
+
         if message["id"] == "analyticsPathNode1":
-            message["color"] = "#AA0000"
-            emit("ex", message, room=room)
+            # set server data: node +  hex color
+            if message["val"] != "init":
+                if "analyticsData" not in GD.pdata.keys():
+                    GD.pdata["analyticsData"] = {}
+                    print(GD.pdata)
+                if "shortestPathNode1" not in GD.pdata["analyticsData"].keys():
+                    GD.pdata["analyticsData"]["shortestPathNode1"] = {}
+                GD.pdata["analyticsData"]["shortestPathNode1"]["id"] = GD.pdata["activeNode"]
+                GD.pdata["analyticsData"]["shortestPathNode1"]["color"] = util.rgb_to_hex(GD.pixel_valuesc[int(GD.pdata["activeNode"])])
+                GD.pdata["analyticsData"]["shortestPathNode1"]["name"] = GD.nodes["nodes"][int(GD.pdata["activeNode"])]["n"]
+                GD.savePD()
+
+            # send to clients
+            response = {}
+            response["usr"] = message["usr"]
+            response["id"] = message["id"]
+            response["fn"] = "analytics"
+            response["val"] = "init"
+            if "analyticsData" in GD.pdata.keys():
+                if "shortestPathNode1" in GD.pdata["analyticsData"].keys():
+                    response["val"] = GD.pdata["analyticsData"]["shortestPathNode1"]
+            emit("ex", response, room=room)
+
         if message["id"] == "analyticsPathNode2":
-            message["color"] = "#AA0000"
-            emit("ex", message, room=room)
+            # set server data: node +  hex color
+            if message["val"] != "init":
+                if "analyticsData" not in GD.pdata.keys():
+                    GD.pdata["analyticsData"] = {}
+                    print(GD.pdata)
+                if "shortestPathNode2" in GD.pdata["analyticsData"].keys():
+                    GD.pdata["analyticsData"]["shortestPathNode2"] = {}
+                GD.pdata["analyticsData"]["shortestPathNode2"]["id"] = GD.pdata["activeNode"]
+                GD.pdata["analyticsData"]["shortestPathNode2"]["color"] = util.rgb_to_hex(GD.pixel_valuesc[int(GD.pdata["activeNode"])])
+                GD.pdata["analyticsData"]["shortestPathNode2"]["name"] = GD.nodes["nodes"][int(GD.pdata["activeNode"])]["n"]
+                GD.savePD()
+
+            # send to clients
+            response = {}
+            response["usr"] = message["usr"]
+            response["id"] = message["id"]
+            response["fn"] = "analytics"
+            response["val"] = "init"
+            if "analyticsData" in GD.pdata.keys():
+                if "shortestPathNode2" in GD.pdata["analyticsData"].keys():
+                    response["val"] = GD.pdata["analyticsData"]["shortestPathNode2"]
+            emit("ex", response, room=room)
+
         if message["id"] == "analyticsPathRun":
-            if message["val"] is None:
-                return
-            nodes = json.loads(message["val"])
-            if nodes["n1"] is None or nodes["n2"] is None:
+            if "analyticsData" not in GD.pdata.keys():
                 print("[Fail] analytics shortest path run: 2 nodes have to be selected.")
                 return
+            if "shortestPathNode1" not in GD.pdata["analyticsData"].keys():
+                print("[Fail] analytics shortest path run: 2 nodes have to be selected.")
+                return
+            if "shortestPathNode1" not in GD.pdata["analyticsData"].keys():
+                print("[Fail] analytics shortest path run: 2 nodes have to be selected.")
+                return
+            
+            node_1 = GD.pdata["analyticsData"]["shortestPathNode1"]["id"]
+            node_2 = GD.pdata["analyticsData"]["shortestPathNode2"]["id"]
             graph = util.project_to_graph(project) 
-            path = util.analytics_shortest_path(graph, str(nodes["n1"]), str(nodes["n2"]))
-            print(path)
+            path = util.analytics_shortest_path(graph, node_1, node_2)
+            shortest_path_textures = util.analytics_color_shortest_path(path)
+
+            if shortest_path_textures["textures_created"] is False:
+                print("Failed to create textures for Analytics/Shortest Path.")
+                return
+            response_nodes = {}
+            response_nodes["usr"] = message["usr"]
+            response_nodes["fn"] = "updateTempTex"
+            response_nodes["channel"] = "nodeRGB"
+            response_nodes["path"] = shortest_path_textures["path_nodes"]
+            emit("ex", response_nodes, room=room)
+
+            response_links = {}
+            response_links["usr"] = message["usr"]
+            response_links["fn"] = "updateTempTex"
+            response_links["channel"] = "linkRGB"
+            response_links["path"] = shortest_path_textures["path_links"]
+            emit("ex", response_links, room=room)
+
+    elif message["fn"] == "annotation":
+        if message["id"] == "annotationOperation":
+            if message["val"] == "init":
+                if "annotationOperationsActive" not in GD.pdata.keys():
+                    GD.pdata["annotationOperationsActive"] = False
+            else:
+                if "annotationOperationsActive" in GD.pdata.keys():
+                    if GD.pdata["annotationOperationsActive"] == True:
+                        GD.pdata["annotationOperationsActive"] = False
+                    elif GD.pdata["annotationOperationsActive"] == False:
+                        GD.pdata["annotationOperationsActive"] = True  
+                    if "annotationOperationsActive" not in GD.pdata.keys():
+                        GD.pdata["annotationOperationsActive"] = True
+            response = {}
+            response["usr"] = message["usr"]
+            response["id"] = message["id"]
+            response["fn"] = "annotation"
+            response["val"] = GD.pdata["annotationOperationsActive"]
+            emit("ex", response, room=room)
+            
+        if message["id"] == "annotationRun":
+            print(">>> Run Annotation based on selected annotations and operation")
+            print(">>> submit new textures")
 
     elif message["fn"] == "dropdown":
         response = {}
@@ -476,7 +567,7 @@ def ex(message):
                 # dropdown for fixed selections, might need a better solution to hardcode them in HTML / JS
                 if message["id"] == "analytics":
                     response["opt"] = ["Degree Distribution", "Closeness", "Shortest Path"]
-                    response["sel"] = '0'
+                    response["sel"] = 0
 
                 # dropdown for visualization type selection 
                 vis_selected = 0
@@ -519,6 +610,16 @@ def ex(message):
                         response["opt"] = options
                         print(options)
 
+                # dropdown for annotations
+                if message["id"] == "annotation-1":
+                    response["opt"] = list(GD.annotations.keys())
+                    response["sel"] = "0"
+                if message["id"] == "annotation-2":
+                    response["opt"] = list(GD.annotations.keys())
+                    response["sel"] = "0"
+                if message["id"] == "annotation-Operations":
+                    response["opt"] = ["UNION", "INTERSECTION", "SUBTRACTION"]
+                    response["sel"] = "0"
 
             else:# user input message
                 if message["id"] == "projDD": # PROJECT CHANGE
@@ -530,6 +631,7 @@ def ex(message):
                     GD.loadColor() 
                     GD.loadLinks()
                     GD.loadGraphinfoFile()
+                    GD.load_annotations()
                     
                     response["sel"] = message["val"]
                     response["name"] = message["msg"]
@@ -569,7 +671,6 @@ def ex(message):
                         node["id"] = d
                         response2["val"].append(node)
                     emit("ex", response2, room=room)
-
 
         emit("ex", response, room=room)
         print(response)

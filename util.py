@@ -179,7 +179,6 @@ def analytics_color_shortest_path(path):
             node_colors.append((255, 166, 0, 100))
             continue
         node_colors.append((66, 66, 66, 100))
-    print(node_colors)
     # get links
     link_colors = []
     try:
@@ -208,6 +207,10 @@ def analytics_color_shortest_path(path):
         return {"textures_created": False}
 
 
-def rgba_to_hex(rgba):
-    r, g, b, a = rgba
+def rgb_to_hex(color):
+    print(color)
+    if len(color) == 3:
+        r, g, b = color
+    if len(color) == 4:
+        r, g, b, a = color
     return f"#{r:02x}{g:02x}{b:02x}"
