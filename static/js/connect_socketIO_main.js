@@ -86,7 +86,7 @@ ue.interface.nodelabelclicked = function (data) {
 
 ue.interface.spee = function (data) {
     console.log(data);
-    var text = '{"id":"node", "val": -1, "fn": "speechinput"}';
+    var text = '{"id":"node", "val": -1, "fn": "textinput"}';
     var out = JSON.parse(text);
     x = JSON.parse(data)
     out.id = x.id;
@@ -121,7 +121,28 @@ function reconnect(){
     location.reload()
 }
 
+function speakNow(text) {
+    if ('speechSynthesis' in window) {
+        // Speech Synthesis supported 🎉
+        const message = new SpeechSynthesisUtterance(text);
+        message.lang = "en-US";
+        
+        const voices = speechSynthesis.getVoices().filter(voice => voice.lang === "en-US");
+        console.log(voices)
+        message.voice = voices[1];
+      
+        speechSynthesis.speak(message);
+       }else{
+         // Speech Synthesis Not Supported 😣
+         console.log("Sorry, your browser doesn't support text to speech!");
+       }
+
+   }
+
 $(document).ready(function(){
+
+    speakNow("Hello Human! welcome tho the VRNetzer")
+
     if(document.getElementById("preview")){
         isPreview = true;
     }
@@ -491,7 +512,7 @@ $(document).ready(function(){
                 ue4(data["fn"], data);    
                 break;
 
-            case 'speechinput':
+            case "textinput":
                 console.log(data.val + " --- " + data.id);
                 if(document.getElementById(data.id)){
                     var content = document.getElementById(data.id).shadowRoot.getElementById("text");

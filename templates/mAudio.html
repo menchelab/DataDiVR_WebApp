@@ -4,12 +4,10 @@
          
         <h5 style="  float:left; font-size: 25px;  color: rgb(102, 102, 102); margin-top:5px; margin-bottom:5px;">
             AUDIO</h5>
-        
         <br>
         <div class="gradient"></div>
+        <br>
 
-            <input id="toggle-rec-btn" type="checkbox" ></input>
-                
             <div class="select" style="overflow-x: hidden;">
                 <label for="audioSource">Audio input source: </label><select id="audioSource"></select>
             </div>
@@ -23,14 +21,12 @@
 
 
 <script>
-    // MAKE TRANSPARENT BACKGROUND WHEN USER AGENT == UE4
    
     const audioInputSelect = document.querySelector('select#audioSource');
     const selectors = [audioInputSelect];
     let recorder;
     var isrecording = false;
     var htmlelement = "";
-
 
     function gotDevices(deviceInfos) {
 
@@ -45,8 +41,6 @@
             }
     }
 
-
-
     console.log(navigator.userAgent);
     navigator.mediaDevices.enumerateDevices().then(gotDevices);
 
@@ -55,15 +49,7 @@
     };
  // navigator.mediaDevices.getUserMedia(constraints).then(gotDevices).catch(handleError);
 
-
-
-
-
     const uploadURL = "{{ url_for('uploadAudio') }}";
-    const startButton = document.getElementById("toggle-rec-btn");
-    startButton.addEventListener("click", function() {
-        record(startButton.checked, "toggle-rec-btn");
-    });
 
     setuprecorder();
 
@@ -103,8 +89,9 @@
                     }).then(response => {
                         return response.json();
                     }).then(jsonResponse => {
+                        //RECEIVE TRANSSCRIPT FROM WHISPER
                         //console.log(jsonResponse);
-                        socket.emit('ex', { usr: uid, id: htmlelement, fn: "speechinput", val: jsonResponse.text});
+                        socket.emit('ex', { usr: uid, id: htmlelement, fn: "textinput", val: jsonResponse.text});
                 
                     }).catch(err => {
                         console.error(err);

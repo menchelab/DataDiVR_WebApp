@@ -20,11 +20,11 @@ def search(term):
                     match = re.search(term, attr, re.IGNORECASE)
                     #match = re.match(term, attr, re.IGNORECASE)
                     if match:
-                        res = {"id": node["id"], "name": node["n"]+ " - " + attr, "color": GD.pixel_valuesc[node["id"]] }
+                        res = {"id": node["id"], "name": node["n"], "color": GD.pixel_valuesc[node["id"]] }
                         results.append(res)
                         break
-            else:
-                print(str(node["id"]) + " does not have attributes")
+            #else:
+                #print(str(node["id"]) + " does not have attributes")
         i += 1
     
     

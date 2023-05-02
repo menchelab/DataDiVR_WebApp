@@ -39,7 +39,8 @@ from base64 import b64encode
 import wave
 # load audio and pad/trim it to fit 30 seconds
 
-
+import TextToSpeech
+import chatGPTTest
 
 
 
@@ -114,6 +115,8 @@ def main():
 @app.route('/uploadAudioUE4', methods=['POST'])
 def uploadAudioUE4():
     result = {}
+    path = 'static/WisperAudio/' #os.getenv('HOME') + '/python'
+    num_files = len([f for f in os.listdir(path)if os.path.isfile(os.path.join(path, f))])
     if request.method == 'POST':
         raw = request.get_data()
         with wave.open("myaudiofile.wav", "wb") as audiofile:
@@ -143,6 +146,25 @@ def uploadAudio():
     return result
     
     abort(400)
+
+@app.route('/GPT', methods=['POST','GET'])
+def GPT():
+    result = {}
+    if request.method == 'POST':
+        data = flask.request.get_json()
+        print(data.get("text"))
+         
+        answer, path = chatGPTTest.GPTrequest(data.get("text"))
+    return {"text": answer, "audiofile": path +".ogg"}
+
+@app.route('/TTS', methods=['POST','GET'])
+def TTS():
+    result = {}
+    if request.method == 'GET':
+        text = flask.request.args.get("text")
+        voice = int(flask.request.args.get("voice"))
+        result["text"] = TextToSpeech.makeogg(text,"myaudiofile.wav", voice)
+    return result
 
 @app.route("/nodepanel", methods=["GET"])
 def nodepanel():
