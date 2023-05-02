@@ -542,7 +542,6 @@ $(document).ready(function(){
                 if (data.id == "annotationOperation"){
                     let value = data.val;
                     if (value == "init"){return}
-                    // hide/view annotation containers
                     let button = document.getElementById("annotationOperation").shadowRoot.getElementById("name");
                     if (value == true){
                         button.innerHTML = "[-]";
