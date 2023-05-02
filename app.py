@@ -118,20 +118,24 @@ def uploadAudioUE4():
     result = {}
     path = 'static/WisperAudio/' #os.getenv('HOME') + '/python'
     num_files = len([f for f in os.listdir(path)if os.path.isfile(os.path.join(path, f))])
+    thisfile = path+str(num_files + 1)
     if request.method == 'POST':
         raw = request.get_data()
-        with wave.open("myaudiofile.wav", "wb") as audiofile:
+        with wave.open(thisfile+".wav", "wb") as audiofile:
             audiofile.setsampwidth(2)
             audiofile.setnchannels(2)
             audiofile.setframerate(48000)
             audiofile.writeframes(raw)
         audiofile.close()
-        result["text"] = whispR.dowhisper("myaudiofile.wav")
+        result["text"] = whispR.dowhisper(thisfile+".wav")
     return result
 
 @app.route('/uploadAudio', methods=['POST'])
 def uploadAudio():
-    print("upload request received")
+    #print("upload request received")
+    path = 'static/WisperAudio/' #os.getenv('HOME') + '/python'
+    num_files = len([f for f in os.listdir(path)if os.path.isfile(os.path.join(path, f))])
+    thisfile = path+str(num_files + 1)
     result = {}
     if 'audio_file' in request.files:
         file = request.files['audio_file']
@@ -140,8 +144,8 @@ def uploadAudio():
         if not extname:
             abort(400)
         # Save the file to disk.
-        file.save("audio1.weba")
-        result["text"] = whispR.dowhisper("audio1.weba")
+        file.save(thisfile+".weba")
+        result["text"] = whispR.dowhisper(thisfile+".weba")
         print(result)
 
     return result
