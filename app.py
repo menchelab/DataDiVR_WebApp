@@ -26,6 +26,8 @@ import websocket_functions as webfunc
 import numpy as np
 #import preview as pre
 import random
+import analytics
+import annotation
 
 import plotlyExamples as PE
 import os.path
@@ -436,11 +438,11 @@ def ex(message):
         # add functionality here to analtics
         if message['id'] == "analyticsDegreeRun":
             graph = util.project_to_graph(project)
-            arr = util.analytics_degree_distribution(graph)
+            arr = analytics.analytics_degree_distribution(graph)
             print(arr)
         if message['id'] == "analyticsClosenessRun":
             graph = util.project_to_graph(project)
-            arr = util.analytics_closeness(graph)
+            arr = analytics.analytics_closeness(graph)
             print(arr)
 
         if message["id"] == "analyticsPathNode1":
@@ -505,8 +507,8 @@ def ex(message):
             node_1 = GD.pdata["analyticsData"]["shortestPathNode1"]["id"]
             node_2 = GD.pdata["analyticsData"]["shortestPathNode2"]["id"]
             graph = util.project_to_graph(project) 
-            path = util.analytics_shortest_path(graph, node_1, node_2)
-            shortest_path_textures = util.analytics_color_shortest_path(path)
+            path = analytics.analytics_shortest_path(graph, node_1, node_2)
+            shortest_path_textures = analytics.analytics_color_shortest_path(path)
 
             if shortest_path_textures["textures_created"] is False:
                 print("Failed to create textures for Analytics/Shortest Path.")
