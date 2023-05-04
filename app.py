@@ -553,15 +553,51 @@ def ex(message):
                 return
             if "annotation-1" not in GD.pdata.keys():
                 print("ERROR: Select Annotation 1 to perform set operation on annotations.")
+                return
             if "annotation-Operations" not in GD.pdata.keys():
                 print("ERROR: Select operation to perform set operation on annotations.")
+                return
             if "annotation-1" not in GD.pdata.keys():
                 print("ERROR: Select Annotation 1 to perform set operation on annotations.")
+                return
             if "annotation-2" not in GD.pdata.keys():
                 print("ERROR: Select Annotation 2 to perform set operation on annotations.")
-            #####
-            # perform set operations here based on GD entries
-            #####
+                return
+            if int(GD.pdata["annotation-1"]) >= len(list(GD.annotations.keys())):
+                print("ERROR: No annotation available.")
+                return
+            if int(GD.pdata["annotation-1"]) >= len(list(GD.annotations.keys())):
+                print("ERROR: No annotation available.")
+                return
+            annotation_1 = list(GD.annotations.keys())[int(GD.pdata["annotation-1"])]
+            annotation_2 = list(GD.annotations.keys())[int(GD.pdata["annotation-2"])]
+            operations = ["union", "intersection", "subtraction"]
+            operation = operations[int(GD.pdata["annotation-Operations"])]
+            if "annotationOperationsActive" in GD.pdata.keys():
+                # color only one type of annotation
+                if GD.pdata["annotationOperationsActive"] is False: 
+                    operation = "single"
+
+            annotation_texture = annotation.AnnotationTextures(project=GD.data["actPro"], nodes=GD.nodes["nodes"], links=GD.links["links"], annotations=GD.annotations)
+            generated_annotation_textures = annotation_texture.gen_textures(annotation_1=annotation_1, annotation_2=annotation_2, operation=operation)
+
+            if generated_annotation_textures["generated_texture"] is False:
+                print("Failed to create textures for Analytics/Shortest Path.")
+                return
+            response_nodes = {}
+            response_nodes["usr"] = message["usr"]
+            response_nodes["fn"] = "updateTempTex"
+            response_nodes["channel"] = "nodeRGB"
+            response_nodes["path"] = generated_annotation_textures["path_nodes"]
+            emit("ex", response_nodes, room=room)
+
+            response_links = {}
+            response_links["usr"] = message["usr"]
+            response_links["fn"] = "updateTempTex"
+            response_links["channel"] = "linkRGB"
+            response_links["path"] = generated_annotation_textures["path_links"]
+            emit("ex", response_links, room=room)
+
 
     elif message["fn"] == "dropdown":
         response = {}
@@ -630,10 +666,10 @@ def ex(message):
 
                 # dropdown for annotations
                 if message["id"] == "annotation-1":
-                    response["opt"] = list(GD.annotations.keys())
+                    response["opt"] = list(GD.annotations.keys()) if len(list(GD.annotations.keys())) > 0 else ["-"]
                     response["sel"] = 0 if "annotation-1" not in GD.pdata.keys() else GD.pdata["annotation-1"]
                 if message["id"] == "annotation-2":
-                    response["opt"] = list(GD.annotations.keys())
+                    response["opt"] = list(GD.annotations.keys()) if len(list(GD.annotations.keys())) > 0 else ["-"]
                     response["sel"] = 0 if "annotation-2" not in GD.pdata.keys() else GD.pdata["annotation-2"]
                 if message["id"] == "annotation-Operations":
                     response["opt"] = ["UNION", "INTERSECTION", "SUBTRACTION"]

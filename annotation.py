@@ -32,7 +32,7 @@ class AnnotationTextures:
 
     def gen_textures(self, annotation_1=None, annotation_2=None, operation=None) -> dict:
         # error handling
-        if operation not in ("union", "intersection", "subtraction"):
+        if operation not in ("single", "union", "intersection", "subtraction"):
             return {"generated_texture": False}
         if annotation_1 is None:
             return {"generated_texture": False}
@@ -50,19 +50,22 @@ class AnnotationTextures:
             set_result = self.__set_intersection(set_a1, set_a2)
         elif operation == "subtraction":
             set_result = self.__set_subtraction(set_a1, set_a2)
+        elif operation == "single":
+            set_a2.clear()
+            set_result = set()
         else:
             return {"generated_texture": False}
             
         # generate node texture
         nodes_colors = []
         for node in self.nodes:
-            if node["n"] in set_result:
+            if node["id"] in set_result:
                 nodes_colors.append(self.colors["result"])
                 continue
-            if node["n"] in set_a1:
+            if node["id"] in set_a1:
                 nodes_colors.append(self.colors["a1"])
                 continue
-            if node["n"] in set_a2:
+            if node["id"] in set_a2:
                 nodes_colors.append(self.colors["a2"])
                 continue
             nodes_colors.append(self.colors["none"])
@@ -76,11 +79,12 @@ class AnnotationTextures:
         link_colors = []
         for link in self.links:
             color = self.colors["none"]
-            if link["s"] in set_a2 and link["e"] in set_a2:
+            start, end = int(link["s"]), int(link["e"])
+            if start in set_a2 and end in set_a2:
                 color = self.colors["a2"]
-            if link["s"] in set_a1 and link["e"] in set_a1:
+            if start in set_a1 and end in set_a1:
                 color = self.colors["a1"]
-            if link["s"] in set_result and link["e"] in set_result:
+            if start in set_result and end in set_result:
                 color = self.colors["result"]
             link_colors.append(color)
         
