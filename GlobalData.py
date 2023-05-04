@@ -201,7 +201,11 @@ def load_annotations():
     for node in nodes["nodes"]:
         if "attrlist" not in node.keys():
             continue
-        for annotation in node["attrlist"]:
+        
+        # efficient filtering of annotation which are not strings or name of node (i.e. json)
+        valid_annotations = [annotation for annotation in node["attrlist"] if not isinstance(annotation, str) and annotation != node["n"]]
+
+        for annotation in valid_annotations:
             if annotation not in annotations:
                 annotations[annotation] = []
             annotations[annotation].append(node["id"])
