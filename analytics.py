@@ -21,8 +21,19 @@ def analytics_closeness(graph):
 
 
 def analytics_shortest_path(graph, node_1, node_2):
-    path = nx.shortest_path(graph, source=node_1, target=node_2, method="dijkstra")
-    return path
+    node_1, node_2 = str(node_1), str(node_2)
+    if not graph.has_node(node_1):
+        print(f"ERROR: Node {GD.nodes['nodes'][int(node_1)]} not in network.")
+        return []
+    if not graph.has_node(node_2):
+        print(f"ERROR: Node {GD.nodes['nodes'][int(node_2)]} not in network.")
+        return []
+    try:
+        path = nx.shortest_path(graph, source=node_1, target=node_2, method="dijkstra")
+        return path
+    except nx.exception.NetworkXNoPath:
+        print(f"ERROR: Node {GD.nodes['nodes'][int(node_1)]} and node {GD.nodes['nodes'][int(node_2)]} are not connected.")
+        return []
 
 def analytics_color_shortest_path(path):
     # might include this into shortest_path function
