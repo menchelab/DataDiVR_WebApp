@@ -17,8 +17,8 @@
 <h5>Hello Flask - Basics</h5>
 <br>
 <a href="https://flask.palletsprojects.com/en/2.2.x/">Flask</a> is webserver for python. <br>This tutorial is intended for users that are new to flask. <br><br> 
-Open the folder VRNetzerWebApp in visual studio code<br>
-In VSCode, open a terminal and run .\buildandRUN.ps1 (for windows) in the VRNetzerWebApp directory. That should create a venv and install all requirements. If all went well the console will show something like "server is running"<br>There are also start scripts for mac and linux<br>
+Open the folder DataDiVR_WebApp in visual studio code<br>
+In VSCode, open a terminal and run .\buildandRUN.ps1 (for windows) in the DataDiVR_WebApp directory. That should create a venv and install all requirements. If all went well the console will show something like "server is running"<br>There are also start scripts for mac and linux<br>
 <h5>Add a route</h5>
 A route is an endpoint on the server that clients can reach by an url.<br>
 Add the following code to app.py under ### HTML ROUTES ### Line 40<br><br>
@@ -129,7 +129,7 @@ def mynewroute():
 <a href="/mynewroute?id=2">http://127.0.0.1:5000/mynewroute?id=2</a><br><br>
 <a href="/mynewroute?id=3">http://127.0.0.1:5000/mynewroute?id=3</a><br><br>
 
-We have a simple dynamic webpage. It's content changes depending on the supplied URL Parameter.<br>This method is used in the VRNetzerWebApp to pass a user id when a client connects to the server.<br>
+We have a simple dynamic webpage. It's content changes depending on the supplied URL Parameter.<br>This method is used in the DataDiVR_WebApp to pass a user id when a client connects to the server.<br>
 It's not the only way to communicate with the backend.<br>We will cover another method in the next chapter - <a href="/doku/websockets">websockets</a>.<br><br><a href="/doku/">DOKU<br>
 
 </div>

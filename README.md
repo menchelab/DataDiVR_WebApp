@@ -1,12 +1,12 @@
 ![Alt text](static/css/images/splash.jpg?raw=true "Title")
 
-# VRNetzer Backend
+# DataDiVR Backend
 
-This is a flask server that provides the network data to the UnrealEngine VRNetzer VR Clients
+This is a flask server that provides the network data to the UnrealEngine DataDiVR VR Clients
 
-# VRNetzer VR-Module 
+# DataDiVR VR-Module 
 
-Please find the build of the newest VRNetzer VR Module <a style="font-size:14px" href="https://ucloud.univie.ac.at/index.php/s/kUNbOhrn8Bsl50d" target="_blank">here</a>.
+Please find the build of the newest DataDiVR VR Module <a style="font-size:14px" href="https://ucloud.univie.ac.at/index.php/s/kUNbOhrn8Bsl50d" target="_blank">here</a>.
 To run the Module download the folder and execute the .exe file. 
 
 ## INSTALLATION
@@ -31,7 +31,7 @@ To run the Module download the folder and execute the .exe file.
    - pick a link file from "static/examplefiles" (same name as above) or use your own
    - click upload
 
-   After a success message was shown, the uploader has now created a new folder in "static/projects/yourprojectname" containing all the data in the VRNetzer format.
+   After a success message was shown, the uploader has now created a new folder in "static/projects/yourprojectname" containing all the data in the DataDiVR format.
 
 3. use the WebGL preview to have a look at your project without having to use VR hardware
 
@@ -43,10 +43,10 @@ To run the Module download the folder and execute the .exe file.
    - a VR ready windows computer
    - a SteamVR compatible headset
    - SteamVR installed
-   - download the VRNetzer executable
-   - open "VRNetzer/Colab/Content/data/config.txt and make sure it contains the adress the VRNetzer backend is running at
+   - download the DataDiVR executable
+   - open "DataDiVR/Colab/Content/data/config.txt and make sure it contains the adress the DataDiVR backend is running at
    - run the backend
-   - run VRnetzer.exe
+   - run DataDiVR.exe
    - enter a username (optional)
    - choose robot if you want to run in desktop mode (good idea for a dedicated server as it is more performant) OR VR to run in vr mode
    - the first player is the host so choose "HOST SESSION"
@@ -54,12 +54,12 @@ To run the Module download the folder and execute the .exe file.
 
 ## DOCUMENTATION
 
-Once the flask server is running, go to [127.0.0.1:5000/doku](http://127.0.0.1:5000/doku) / [127.0.0.1:3000/doku](http://127.0.0.1:3000/doku)(mac) to learn more about the VRNetzer framework
+Once the flask server is running, go to [127.0.0.1:5000/doku](http://127.0.0.1:5000/doku) / [127.0.0.1:3000/doku](http://127.0.0.1:3000/doku)(mac) to learn more about the DataDiVR framework
 
 <details>
-  <summary><h3> VRNetzer Dataformat</h3></summary>
+  <summary><h3> DataDiVR Dataformat</h3></summary>
     
-The VRNetzer acts as a multiplayer gameserver for one or more VR clients.
+The DataDiVR_WebApp acts as a multiplayer gameserver for one or more VR clients.
 Its purpose is to serve the connected players with big network datasets - as quickly as possible.
 That is the reason why most properties are stored (and transmitted over the network) as images.
 
@@ -103,7 +103,7 @@ This means, that the available space is not unlimited, so when nodes are closer 
 
 <details>
 <summary><h3>HOW TO MAKE YOUR OWN USER INTERFACE</h3></summary>
-The User Interfaces for the VRNetzer are realized with html and js and are rendered in the UnrealEngine in-game webbrowser, which is Chromium. Data is passed between the flask server and the html clients in JSON format. The html pages also act as a middleman between the UnrealEngine VR Module and the flask server.
+The User Interfaces for the DataDiVR are realized with html and js and are rendered in the UnrealEngine in-game webbrowser, which is Chromium. Data is passed between the flask server and the html clients in JSON format. The html pages also act as a middleman between the UnrealEngine VR Module and the flask server.
 Here is a series of examples that explain in detail how to create your own user interfaces.
 (you have to run the flask server locally to see those pages)
 

@@ -37,7 +37,7 @@ def upload_filesJSON(request):
     nodelist = {"nodes":[]}
 
     #------------------
-    # get G_json and fill in parts as required for VRNetzer 
+    # get G_json and fill in parts as required for DataDiVR 
     #------------------
     jsonfiles = []
     nodepositions = []

@@ -88,7 +88,8 @@ function reconnect(){
 }
 
 $(document).ready(function(){
-    
+
+
     if(document.getElementById("preview")){
         isPreview = true;
     }
