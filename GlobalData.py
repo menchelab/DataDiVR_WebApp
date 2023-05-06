@@ -203,7 +203,7 @@ def load_annotations():
         if "attrlist" not in node.keys():
             continue
         
-        # efficient filtering of annotation which are not strings or name of node (i.e. json)
+        # efficient filtering of annotation which are not strings (i.e. json) or name of node 
         valid_annotations = [annotation for annotation in node["attrlist"] if isinstance(annotation, str) and annotation != node["n"]]
 
         for annotation in valid_annotations:

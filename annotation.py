@@ -6,7 +6,7 @@ import math
 
 
 class AnnotationTextures:
-    def __init__(self, project=None, nodes=None, links=None, annotations=None) -> None:
+    def __init__(self, project=None, nodes=None, links=None, annotations=None):
         self.project = project
         self.nodes = nodes
         self.links = links
