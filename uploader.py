@@ -11,7 +11,7 @@ from io import StringIO
 from distutils.dir_util import copy_tree
 
 
-# functions to calculate lon/lat to xyz for the VRnetzer 2.0
+# functions to calculate lon/lat to xyz for the DataDiVR 
 import numpy as np 
 from math import cos, radians, sin, sqrt
 from scipy.spatial.transform import Rotation as rot

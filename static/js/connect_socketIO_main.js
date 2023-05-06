@@ -133,7 +133,7 @@ function speakNow(text) {
 
 $(document).ready(function(){
 
-    speakNow("Hello Human! welcome tho the VRNetzer")
+    speakNow("Hello Human! welcome tho the DataDiVR")
 
     if(document.getElementById("preview")){
         isPreview = true;

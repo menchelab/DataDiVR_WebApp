@@ -318,7 +318,7 @@ def writeHtml():
         #fig.show()
         script = '<script src="https://cdn.plot.ly/plotly-2.17.1.min.js"></script>'
         htmlstring = script + plotly.offline.plot(fig, include_plotlyjs=False, output_type='div')
-        text_file = open("C:/Users/spirch/Documents/VRNetzer_Backend/templates/plotly/TEST111.html", "w", encoding="utf-8")
+        text_file = open("C:/Users/spirch/Documents/DataDiVR_WebApp/templates/plotly/TEST111.html", "w", encoding="utf-8")
         text_file.write(htmlstring)
         text_file.close()
         response = {}
