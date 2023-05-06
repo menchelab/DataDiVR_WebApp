@@ -3,6 +3,7 @@ from PIL import Image
 import os.path
 from os import path
 import util
+from collections import OrderedDict
 
 # idata = {'mes': 'dfhdfhfh', 'usr': 'NaS7QA89nxLg9nKQAAAn', 'tag': 'flask'}
 
@@ -197,13 +198,18 @@ def loadGraphinfoFile():
 
 def load_annotations():
     global annotations
-    annotations = {}
+    temp_annotations = {}
     for node in nodes["nodes"]:
         if "attrlist" not in node.keys():
             continue
-        for annotation in node["attrlist"]:
-            if annotation not in annotations:
-                annotations[annotation] = []
-            annotations[annotation].append(node["id"])
+        
+        # efficient filtering of annotation which are not strings or name of node (i.e. json)
+        valid_annotations = [annotation for annotation in node["attrlist"] if isinstance(annotation, str) and annotation != node["n"]]
+
+        for annotation in valid_annotations:
+            if annotation not in temp_annotations:
+                temp_annotations[annotation] = []
+            temp_annotations[annotation].append(node["id"])
+    annotations = OrderedDict(sorted(temp_annotations.items(), key=lambda x: x[0].lower()))  # annotations initilized increasing alphabetically
 
     

@@ -23,3 +23,7 @@ cartoGRAPHs
 torch
 whisper
 openai-whisper
+playsound
+PyDub 
+pyttsx3
+openai
