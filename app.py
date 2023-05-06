@@ -39,7 +39,7 @@ import base64
 import chatGPTTest
 
 global enableWhisper
-enableWhisper = True
+enableWhisper = False
 if enableWhisper:
     import whisperSR as whispR
 # load audio and pad/trim it to fit 30 seconds
@@ -88,7 +88,8 @@ def execute_before_first_request():
     GD.loadLinks()
     GD.loadGraphinfoFile()
     GD.load_annotations()
-    whispR.loadModel("small")
+    if enableWhisper:
+        whispR.loadModel("small")
 
 @app.route("/")
 def index():
