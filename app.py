@@ -36,6 +36,7 @@ import chat
 import base64
 import chatGPTTest
 
+global enableWhisper
 enableWhisper = True
 if enableWhisper:
     import whisperSR as whispR
@@ -116,8 +117,9 @@ def main():
 
 
 @app.route('/uploadAudioUE4', methods=['POST'])
-def uploadAudioUE4(enableWhisper):
+def uploadAudioUE4():
     result = {}
+    global enableWhisper
     if enableWhisper:
         
         path = 'static/WisperAudio/' #os.getenv('HOME') + '/python'
@@ -136,8 +138,9 @@ def uploadAudioUE4(enableWhisper):
     
 
 @app.route('/uploadAudio', methods=['POST'])
-def uploadAudio(enableWhisper):
+def uploadAudio():
     result = {}
+    global enableWhisper
     if enableWhisper:
     #print("upload request received")
         path = 'static/WisperAudio/' #os.getenv('HOME') + '/python'
@@ -166,8 +169,13 @@ def GPT():
         data = flask.request.get_json()
         print(data.get("text"))
          
-        answer, path = chatGPTTest.GPTrequest(data.get("text"))
-    return {"text": answer, "audiofile": path +".ogg"}
+        answer = chatGPTTest.GPTrequest(data.get("text"))
+        path = 'static/TTSaudio/' #os.getenv('HOME') + '/python'
+        num_files = len([f for f in os.listdir(path)if os.path.isfile(os.path.join(path, f))])
+        
+        TextToSpeech.makeogg(answer, str(num_files+1),1)
+        print(answer)
+        return {"text": answer, "audiofile": str(num_files+1)+".ogg"}
 
 @app.route('/TTS', methods=['POST','GET'])
 def TTS():

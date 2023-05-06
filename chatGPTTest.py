@@ -42,21 +42,8 @@ def GPTrequest(gptprompt):
     stop=[" Human:", " AI:"]
   )
 
+  return response.choices[0].text
 
-
-  import os, os.path
-
-# simple version for working with CWD
-  print (len([name for name in os.listdir('.') if os.path.isfile(name)]))
-
-# path joining version for other paths
-  
-  path = 'static/TTSaudio/' #os.getenv('HOME') + '/python'
-  num_files = len([f for f in os.listdir(path)if os.path.isfile(os.path.join(path, f))])
-  out = response.choices[0].text
-  TextToSpeech.makeogg(out, str(num_files+1),1)
-  print(out)
-  return out, str(num_files+1)
 #print(out.replace('\\', ''))
 # create a completion
 #completion = openai.Completion.create(model="ada", prompt="please tell me risc factors for cancer?")
