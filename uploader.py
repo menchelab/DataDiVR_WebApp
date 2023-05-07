@@ -298,8 +298,9 @@ def makeNodeRGBTexture(project, pixeldata):
 
 
 def makeLinkTexNew(project, links): 
-
-    hight = 512 #int(elem / 512)+1
+    hight = 64 * (int((len(links["data"])) / 32768) + 1)
+    print("image hight = " + str(hight))
+    #hight = 512 #int(elem / 512)+1
     path = 'static/projects/' + project 
 
     texl = [(0,0,0)] * 1024 * hight
@@ -356,7 +357,7 @@ def makeLinkTexNew(project, links):
 def makeLinkRGBTex(project, linksRGB):
     
 
-    hight = 512 #int(elem / 512)+1
+    hight = 64 * (int((len(linksRGB["data"])) / 32768) + 1)
     path = 'static/projects/' + project 
 
     # check if data is rgba or hex string
