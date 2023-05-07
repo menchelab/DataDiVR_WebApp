@@ -329,10 +329,10 @@ def makeLinkTexNew(project, links):
             pixell1 = (sx,syl,syh)
             pixell2 = (ex,eyl,eyh)
 
-            if i < 262144:
+            #if i < 262144:
 
-                texl[i*2] = pixell1
-                texl[i*2+1] = pixell2
+            texl[i*2] = pixell1
+            texl[i*2+1] = pixell2
 
             i += 1
 
@@ -379,8 +379,8 @@ def makeLinkRGBTex(project, linksRGB):
     linklist["links"] = []
     try:
         for row in rgba_colors: #linksRGB["data"]:
-            if i < 262144:
-                texc[i]  = (int(row[0]),int(row[1]),int(row[2]),int(row[3]))
+            #if i < 262144:
+            texc[i]  = (int(row[0]),int(row[1]),int(row[2]),int(row[3]))
             i += 1
 
     except (IndexError, ValueError):
@@ -821,11 +821,11 @@ def makeLinkTex(project, name, file):
             pixell2 = (ex,eyl,eyh)
             pixelc = (r,g,b,a)
 
-            if i < 262144:
+            #if i < 262144:
 
-                texl[i*2] = pixell1
-                texl[i*2+1] = pixell2
-                texc[i] = pixelc
+            texl[i*2] = pixell1
+            texl[i*2+1] = pixell2
+            texc[i] = pixelc
 
             i += 1
 
