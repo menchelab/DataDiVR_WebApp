@@ -1,4 +1,4 @@
-![Alt text](static/css/images/splash.jpg?raw=true "Title")
+![Alt text](static/css/images/splash.png?raw=true "Title")
 
 # DataDiVR Backend
 
