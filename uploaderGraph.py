@@ -96,7 +96,7 @@ def upload_filesJSON(request):
 
         if len(nodeinfo[0]["data"]) == len(nodepositions[0]["data"]):
             thisnode["attrlist"] = nodeinfo[0]["data"][i]
-            thisnode["n"] = str(nodeinfo[0]["data"][i][0])
+            thisnode["n"] = str(nodeinfo[0]["data"][i]) #str(nodeinfo[0]["data"][i][0])
 
         else:
             thisnode["attrlist"] = ["node" + str(i)]

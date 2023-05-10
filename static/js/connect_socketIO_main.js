@@ -470,13 +470,7 @@ $(document).ready(function(){
 
                     //--------------------------------
                     // L E G E N D P A N E L 
-                    
-                    // IMAGE on legend panel
-                    displayImage(pfile.name);
-                    
-                    //HTMLPLOT on legend panel
-                    displayHTML(pfile.name);
-                    
+                      
                     // GRAPHINFO on legend panel
                     displayGraphInfo(pfile.name);
 
@@ -484,6 +478,12 @@ $(document).ready(function(){
                     displayNodeLegend(pfile.name);
                     displayLinkLegend(pfile.name);
 
+                    // IMAGE on legend panel
+                    displayImage(pfile.name);
+
+                    //HTMLPLOT on legend panel
+                    displayHTML(pfile.name);
+                    
                     //--------------------------------
 
                     if (isPreview){
@@ -601,7 +601,6 @@ function removeOptions(selectElement) {
 //-------------------------------------------------------
 // I M A G E L O A D I N G functions
 //-------------------------------------------------------
-// function for checking if imagepath/image exists 
 function checkImageExists(imgpath, callback) {
     const img = new Image();
     img.src = imgpath; 
@@ -618,11 +617,10 @@ function checkImageExists(imgpath, callback) {
     return callback;
 }
 
-// function for displaying an image 
 function displayImage(project_selected) {
-    if(document.getElementById('legendpanel')) {
+    if(document.getElementById('legend_image')) {
         legend_source = 'static/projects/'+project_selected+'/legends/legend.png';
-        checkImageExists(legend_source, (exists) => {
+        checkFileExists(legend_source, (exists) => { //checkImageExists
             if (exists) {
                 console.log('C_DEBUG - displayImage: Image exists.');
                 legend_source = 'static/projects/'+project_selected+'/legends/legend.png';
@@ -630,9 +628,8 @@ function displayImage(project_selected) {
                 console.log('C_DEBUG - displayImage: Image DOES NOT exist.');
                 legend_source = '';
             } 
-            console.log('C_DEBUG: Image after check exists:', legend_source)
-            document.getElementById('legendpanel').src=legend_source;
-        })
+            document.getElementById('legend_image').src=legend_source;
+        })        
     }
 }
 
@@ -640,36 +637,63 @@ function displayImage(project_selected) {
 //-------------------------------------------------------
 // H T M L  L O A D I N G functions
 //-------------------------------------------------------
-// Check File exists
-function checkFileExists(mypath, callback) {
-    console.log("C_DEBUG: in checkFileExists: mypath", mypath);
-    if (mypath) {   
-        callback(true)
-    } else {
-        callback(false)
-    }
+function checkFileExists(filepath, callback) {
+    fetch(filepath)
+      .then(response => {
+        if (response.ok) {
+          callback(true);
+        } else {
+          callback(false);
+        }
+      })
+      .catch(error => {
+        callback(false);
+      });
     return callback;
+  }
+
+
+function displayHTML(project_selected) {
+    htmlPath = 'static/projects/' + project_selected + '/legends/legend_htmlplot.html';
+    plotlyFrame = document.getElementById('legend_htmlplot');   
+    
+    
+    checkFileExists(htmlPath, function(exists) {  
+      if (exists) {
+        fetch(htmlPath)
+          .then(response => response.text())
+          .then(html => {
+            plotlyFrame = document.getElementById('legend_htmlplot');
+            plotlyFrame.srcdoc = html;
+
+            plotlyFrame.style.display = 'block'; // show the iframe
+            plotlyFrame.style.width = plotlyFrame.parentElement.offsetWidth-18 + 'px'; // set width to match parent
+            
+            childBody = plotlyFrame.contentDocument.body;
+            plotlyFrame.style.height = childBody.scrollHeight+20 + 'px';
+            })
+
+          .catch(error => console.log(error));
+      } else {
+        plotlyFrame.style.display = 'none'; // hide the iframe
+        console.log('Error: HTML file not found.');
+      }
+    });
 }
 
-// function for displaying a html file
-function displayHTML(project_selected) {
-    if(document.getElementById('htmlplot')) {
-        //var mybool = false;
-        source = 'static/projects/'+project_selected+'/legends/my_plot.html';
-        checkFileExists(source, (exists) => {
-            if (exists) {
-                console.log("C_DEBUG - displayHTML: HTML exists.");
-                //mybool=false;
-            } else {
-                console.log("C_DEBUG - displayHTML: HTML DOES NOT exist.");
 
-            }
-            console.log('C_DEBUG: HTML after check exists:', source)
-            document.getElementById("htmlplot").innerHTML=source;   
-            //document.getElementById("htmlplot").hidden=mybool;   
-        })
-    }
-}   
+// function getFilesInDirectory(directory) {
+//     return fetch(directory)
+//       .then(response => response.text())
+//       .then(text => {
+//         const parser = new DOMParser();
+//         const html = parser.parseFromString(text, 'text/html');
+//         const files = Array.from(html.querySelectorAll('a')).map(a => a.href).filter(href => href.endsWith('.html'));
+//         return files;
+//       })
+//       .catch(error => console.log(error));
+// }
+
 
 
 //-------------------------------------------------------
@@ -702,7 +726,6 @@ function displayGraphInfo(project_selected) {
 }
 
 
-
 //-------------------------------------------------------
 // CHAT TEXT DISPLAY
 //-------------------------------------------------------
@@ -724,9 +747,11 @@ function displayNodeLegend(project_selected) {
             
             const clusterlist = pfiledata["selections"];
 
-            // W I T H O U T   D E F I N E D   C L U S T E R S (in pfiledata["selectiond"])
             if (clusterlist.length === 0) {
-                //console.log("clusterlist is empty");
+                // W I T H O U T   D E F I N E D   C L U S T E R S (in pfiledata["selectiond"])
+                //console.log("C_DEBUG: in clusterlist length is 0");
+
+                const allnode_Div = document.getElementById("legend_node_all");
 
                 const nodedesc_Div = document.getElementById("legend_nodedescription");
                 const nodecol_Div = document.getElementById("legend_nodecolor");
@@ -759,7 +784,6 @@ function displayNodeLegend(project_selected) {
                         const colorKey = `${r},${g},${b}`;
                        
                         // If the color key doesn't exist in the dictionary yet, add it
-                        
                         if (!colorsDict.hasOwnProperty(colorKey)) {
                             const pixelIndex = i / 4; // Get the pixel index
                             namesDict[pixelIndex] = {"name":"Nodegroup "+index, "nodes": []} //, "color" : []}; // Set the index as the key
@@ -775,32 +799,40 @@ function displayNodeLegend(project_selected) {
                             const colorKey = `${pixelData[pixelIndex * 4]},${pixelData[pixelIndex * 4 + 1]},${pixelData[pixelIndex * 4 + 2]}`;
                             newNamesDict[colorKey] = namesDict[pixelIndex];
                         }
-                    // console.log("C_DEBUG: newNamesDict: ", newNamesDict);
+                    console.log("C_DEBUG: newNamesDict: ", newNamesDict);
                     
                     // Loop through the namesDict and create an element for each node
                     for (const color in newNamesDict) {
-                        // Split the color string into R, G, B values
-                        const [r, g, b] = color.split(',');
-
+                        //const [r, g, b] = color.split(',');
+                    
                         // Check if the color is non-black
-                        if (r !== '0' || g !== '0' || b !== '0') {
+                        if (color != "0,0,0") {
+                            console.log("C_DEBUG: color not black: ", color);
+                            const color_reformated = 'rgb(' + color + ')';                            
                             const textdiv = document.createElement("div");
                             const text = document.createTextNode(newNamesDict[color]["name"]);
+                            textdiv.style.fontSize="14px";
+                            textdiv.style.lineHeight="24px"; // this should be same as colorImg.height+colorImg.marginBottom
                             textdiv.appendChild(text);
                             nodedesc_Div.appendChild(textdiv);
-
-                            const colorImg = displayColorAsImage(color, 18.5, 18.5); // 20px 20px square
+                            const colorImg = displayColorAsImage(color_reformated, 18.5, 18.5, 5.5, 0); 
                             nodecol_Div.appendChild(colorImg);
-                        }
-                    }
+                        } 
+                    } 
+                    allnode_Div.appendChild(nodecol_Div);
+                    allnode_Div.appendChild(nodedesc_Div);  
+                    
                 };
-                
-            // W I T H   D E F I N E D   C L U S T E R S 
+  
             } else {
-                //console.log("C_DEBUG: clusterlist = ", clusterlist);
+                // W I T H   D E F I N E D   C L U S T E R S 
+                //console.log("C_DEBUG: in clusterlist length is: ", clusterlist.length);
+
+                const allnode_Div = document.getElementById("legend_node_all");
 
                 const nodedesc_Div = document.getElementById("legend_nodedescription");
                 const nodecol_Div = document.getElementById("legend_nodecolor");
+
                 nodedesc_Div.innerHTML = "";
                 nodecol_Div.innerHTML = "";
 
@@ -833,13 +865,18 @@ function displayNodeLegend(project_selected) {
                     });
                     sortedResults.forEach((result) => {
                         const textdiv = document.createElement("div");
+                        textdiv.style.fontSize="14px";
+                        textdiv.style.lineHeight="24px"; 
                         const text = document.createTextNode(result.cluster["name"]);
                         textdiv.appendChild(text);
                         nodedesc_Div.appendChild(textdiv);
 
-                        const colorImg = displayColorAsImage(result.color, 18.5,18.5); // 20px 20px square
+                        const colorImg = displayColorAsImage(result.color, 18.5,18.5, 5.5, 0);
                         nodecol_Div.appendChild(colorImg);
+
                     });
+                    allnode_Div.appendChild(nodecol_Div);
+                    allnode_Div.appendChild(nodedesc_Div);
                 })
                 .catch((err) => {
                     console.log("Error: Could not load image: " + err);
@@ -859,10 +896,11 @@ function displayLinkLegend(project_selected) {
     if (document.getElementById('legendpanel')) {
         const p_file = 'static/projects/'+project_selected+'/pfile.json';
 
+        const alllink_Div = document.getElementById("legend_link_all");
+
         $.getJSON(p_file, (pfiledata) => {
 
             const clusterlist = pfiledata["selections"];
-        
             const linkdesc_Div = document.getElementById("legend_linkdescription");
             const linkcol_Div = document.getElementById("legend_linkcolor");
             linkdesc_Div.innerHTML = "";
@@ -915,19 +953,21 @@ function displayLinkLegend(project_selected) {
                 
                 // Loop through the namesDict and create an element for each node
                 for (const color in newNamesDict) {
-                    // Split the color string into R, G, B values
-                    const [r, g, b] = color.split(',');
-                    // Check if the color is non-black
-                    if (color !== '0,0,0') { // (r !== '0' && g !== '0' && b !== '0') {
+                       if (color != '0,0,0') {
+                        const color_reformated = 'rgb(' + color + ')';    
+
+                        const colorImg = displayColorAsImage(color_reformated,  18.5,18.5, 5.5, 0);//30, 5, 0, 0); // 20px 20px square
+                        linkcol_Div.appendChild(colorImg);
+                    
                         const textdiv = document.createElement("div");
+                        textdiv.style.fontSize="14px";
+                        textdiv.style.lineHeight="24px"; // this should be same as colorImg.height+colorImg.marginBottom
                         const text = document.createTextNode(newNamesDict[color]["name"]);
                         textdiv.appendChild(text);
                         linkdesc_Div.appendChild(textdiv);
-
-                        const colorImg = displayColorAsImage(color, 40, 3); // 20px 20px square
-                        linkcol_Div.appendChild(colorImg);
-                    
                     } 
+                    alllink_Div.appendChild(linkcol_Div);
+                    alllink_Div.appendChild(linkdesc_Div);
                 }
             };
 
@@ -944,19 +984,18 @@ function displayLinkLegend(project_selected) {
 //-------------------------------------------------------
 // display color as image
 //-------------------------------------------------------
-// WHY NOT USE A DIV for the color field?
-function displayColorAsImage(color, width, height) {
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext('2d');
-    const colorArr = color.match(/\d+/g).map(Number);
-    ctx.fillStyle = `rgb(${colorArr[0]}, ${colorArr[1]}, ${colorArr[2]})`;
-    ctx.fillRect(0, 0, width, height);
-    const dataURL = canvas.toDataURL();
-    const img = document.createElement('img');
-    img.src = dataURL;
-    return img;
-}
+function displayColorAsImage(color, width, height, marginbottom, margintop) {
+    const div = document.createElement('div');
+    div.style.width = `${width}px`;
+    div.style.height = `${height}px`;
+    div.style.backgroundColor = color;
 
+    div.style.marginBottom =`${marginbottom}px`;
+    div.style.marginTop =`${margintop}px`;
 
+    div.style.marginRight =`10px`;
+    div.style.marginLeft =`10px`;
+    div.style.border = '1.5px solid grey';
+    return div;
+
+  }
