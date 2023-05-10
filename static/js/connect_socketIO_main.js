@@ -417,13 +417,7 @@ $(document).ready(function(){
 
                     //--------------------------------
                     // L E G E N D P A N E L 
-                    
-                    // IMAGE on legend panel
-                    displayImage(pfile.name);
-                    
-                    //HTMLPLOT on legend panel
-                    displayHTML(pfile.name);
-                    
+                      
                     // GRAPHINFO on legend panel
                     displayGraphInfo(pfile.name);
 
@@ -431,6 +425,12 @@ $(document).ready(function(){
                     displayNodeLegend(pfile.name);
                     displayLinkLegend(pfile.name);
 
+                    // IMAGE on legend panel
+                    displayImage(pfile.name);
+
+                    //HTMLPLOT on legend panel
+                    displayHTML(pfile.name);
+                    
                     //--------------------------------
 
                     if (isPreview){
@@ -504,7 +504,6 @@ function removeOptions(selectElement) {
 //-------------------------------------------------------
 // I M A G E L O A D I N G functions
 //-------------------------------------------------------
-// function for checking if imagepath/image exists 
 function checkImageExists(imgpath, callback) {
     const img = new Image();
     img.src = imgpath; 
@@ -521,11 +520,10 @@ function checkImageExists(imgpath, callback) {
     return callback;
 }
 
-// function for displaying an image 
 function displayImage(project_selected) {
-    if(document.getElementById('legendpanel')) {
+    if(document.getElementById('legend_image')) {
         legend_source = 'static/projects/'+project_selected+'/legends/legend.png';
-        checkImageExists(legend_source, (exists) => {
+        checkFileExists(legend_source, (exists) => { //checkImageExists
             if (exists) {
                 console.log('C_DEBUG - displayImage: Image exists.');
                 legend_source = 'static/projects/'+project_selected+'/legends/legend.png';
@@ -533,9 +531,8 @@ function displayImage(project_selected) {
                 console.log('C_DEBUG - displayImage: Image DOES NOT exist.');
                 legend_source = '';
             } 
-            console.log('C_DEBUG: Image after check exists:', legend_source)
-            document.getElementById('legendpanel').src=legend_source;
-        })
+            document.getElementById('legend_image').src=legend_source;
+        })        
     }
 }
 
@@ -543,36 +540,61 @@ function displayImage(project_selected) {
 //-------------------------------------------------------
 // H T M L  L O A D I N G functions
 //-------------------------------------------------------
-// Check File exists
-function checkFileExists(mypath, callback) {
-    console.log("C_DEBUG: in checkFileExists: mypath", mypath);
-    if (mypath) {   
-        callback(true)
-    } else {
-        callback(false)
-    }
+function checkFileExists(filepath, callback) {
+    fetch(filepath)
+      .then(response => {
+        if (response.ok) {
+          callback(true);
+        } else {
+          callback(false);
+        }
+      })
+      .catch(error => {
+        callback(false);
+      });
     return callback;
+  }
+
+
+function displayHTML(project_selected) {
+    htmlPath = 'static/projects/' + project_selected + '/legends/legend_htmlplot.html';
+    checkFileExists(htmlPath, function(exists) {
+  
+      if (exists) {
+        fetch(htmlPath)
+          .then(response => response.text())
+          .then(html => {
+            plotlyFrame = document.getElementById('legend_htmlplot');
+            plotlyFrame.srcdoc = html;
+
+            plotlyFrame.style.display = 'block'; // show the iframe
+            plotlyFrame.style.width = plotlyFrame.parentElement.offsetWidth-18 + 'px'; // set width to match parent
+            
+            childBody = plotlyFrame.contentDocument.body;
+            plotlyFrame.style.height = childBody.scrollHeight+20 + 'px';
+            })
+
+          .catch(error => console.log(error));
+      } else {
+        plotlyFrame.style.display = 'none'; // hide the iframe
+        console.log('Error: HTML file not found.');
+      }
+    });
 }
 
-// function for displaying a html file
-function displayHTML(project_selected) {
-    if(document.getElementById('htmlplot')) {
-        //var mybool = false;
-        source = 'static/projects/'+project_selected+'/legends/my_plot.html';
-        checkFileExists(source, (exists) => {
-            if (exists) {
-                console.log("C_DEBUG - displayHTML: HTML exists.");
-                //mybool=false;
-            } else {
-                console.log("C_DEBUG - displayHTML: HTML DOES NOT exist.");
 
-            }
-            console.log('C_DEBUG: HTML after check exists:', source)
-            document.getElementById("htmlplot").innerHTML=source;   
-            //document.getElementById("htmlplot").hidden=mybool;   
-        })
-    }
-}   
+// function getFilesInDirectory(directory) {
+//     return fetch(directory)
+//       .then(response => response.text())
+//       .then(text => {
+//         const parser = new DOMParser();
+//         const html = parser.parseFromString(text, 'text/html');
+//         const files = Array.from(html.querySelectorAll('a')).map(a => a.href).filter(href => href.endsWith('.html'));
+//         return files;
+//       })
+//       .catch(error => console.log(error));
+// }
+
 
 
 //-------------------------------------------------------
@@ -605,7 +627,6 @@ function displayGraphInfo(project_selected) {
 }
 
 
-
 //-------------------------------------------------------
 // CHAT TEXT DISPLAY
 //-------------------------------------------------------
@@ -629,11 +650,9 @@ function displayNodeLegend(project_selected) {
 
             if (clusterlist.length === 0) {
                 // W I T H O U T   D E F I N E D   C L U S T E R S (in pfiledata["selectiond"])
-                console.log("C_DEBUG: in clusterlist length is 0");
-
+                //console.log("C_DEBUG: in clusterlist length is 0");
 
                 const allnode_Div = document.getElementById("legend_node_all");
-
 
                 const nodedesc_Div = document.getElementById("legend_nodedescription");
                 const nodecol_Div = document.getElementById("legend_nodecolor");
@@ -708,11 +727,9 @@ function displayNodeLegend(project_selected) {
   
             } else {
                 // W I T H   D E F I N E D   C L U S T E R S 
-                console.log("C_DEBUG: in clusterlist length is: ", clusterlist.length);
-
+                //console.log("C_DEBUG: in clusterlist length is: ", clusterlist.length);
 
                 const allnode_Div = document.getElementById("legend_node_all");
-
 
                 const nodedesc_Div = document.getElementById("legend_nodedescription");
                 const nodecol_Div = document.getElementById("legend_nodecolor");
