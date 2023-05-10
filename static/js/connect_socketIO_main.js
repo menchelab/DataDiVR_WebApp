@@ -558,8 +558,10 @@ function checkFileExists(filepath, callback) {
 
 function displayHTML(project_selected) {
     htmlPath = 'static/projects/' + project_selected + '/legends/legend_htmlplot.html';
-    checkFileExists(htmlPath, function(exists) {
-  
+    plotlyFrame = document.getElementById('legend_htmlplot');   
+    
+    
+    checkFileExists(htmlPath, function(exists) {  
       if (exists) {
         fetch(htmlPath)
           .then(response => response.text())
