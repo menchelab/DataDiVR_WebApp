@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
+
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+        <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
+         
+        <script type="text/javascript" src="{{ url_for('doku.static', filename='js/connect_socketIO_doku.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/mc_UI_Elements.js') }}"></script>
+    </head>
+
+    <body>
+
+
+    <div>
+        <h5>WEBSocket Tutorial</h5>
+
+        open this page two times.<br>
+        change the value of the UI elements on one page and observe what happens to it in the other window.<br>
+        Inspect the page, look at the output of the console when u change the dropdown. <br>
+        Also have a look at the output of the python console in VSCode<br><br>
+            
+        <div style="width:200px">
+            select your fruit<br>
+            <select id="myfruitdropdown" ></select><br><br>
+            select your pet<br>
+            <select id="mypetdropdown"></select><br><br>
+            
+            Slider
+            <div id="wst_slider"></div>
+            Checkbox<br>
+            <input type="checkbox" id = "wst_chkb"></input>
+            <br>
+            <input type="button" id = "wst_button" value="Button"></input>
+            <script>
+                var data = JSON.parse({{data|tojson}});
+                initDropdown("myfruitdropdown", data.fruits, data.fruits[0]);
+                initDropdown("mypetdropdown", data.pets, data.pets[0]);
+                initSlider("wst_slider");
+                initCheckbox("wst_chkb");
+                initButton("wst_button");
+            </script> 
+        </div>
+    </div>
+    </body>
+</html>
+
+
