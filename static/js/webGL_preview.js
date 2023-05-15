@@ -129,12 +129,12 @@
         }
 
         function updateLinkColors(data){
-            console.log(linkmeshes);
+            //console.log(linkmeshes);
             for (let i = 0; i < (linkmeshes.length); i++){
                 color = [data[i*4], data[i*4+1], data[i*4+2]];
                 linkmeshes[i].material.color.set(RGB2HTML(color[0], color[1], color[2]));
             }
-            console.log(linkmeshes);
+            //console.log(linkmeshes);
             console.log("link colors updated")
         }
         
@@ -221,7 +221,7 @@
                     //}
                 }
                
-                console.log(linkmeshes);
+                //console.log(linkmeshes);
             }   
         }
 
