@@ -86,7 +86,6 @@ def execute_before_first_request():
     GD.loadPD()
     GD.loadColor()
     GD.loadLinks()
-    GD.loadGraphinfoFile()
     GD.load_annotations()
     if enableWhisper:
         whispR.loadModel("small")
@@ -700,7 +699,6 @@ def ex(message):
                     GD.loadPD()
                     GD.loadColor() 
                     GD.loadLinks()
-                    GD.loadGraphinfoFile()
                     GD.load_annotations()
                     
                     response["sel"] = message["val"]

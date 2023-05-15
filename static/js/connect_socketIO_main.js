@@ -482,7 +482,10 @@ $(document).ready(function(){
                     displayImage(pfile.name);
 
                     //HTMLPLOT on legend panel
-                    displayHTML(pfile.name);
+
+                    //call function here for arrow pressed and get index of image to pass on to displayHTMLbyindex function
+                    displayHTMLbyindex(pfile.name, 2);
+                    // C work in progress : getHTMLsequence(pfile.name);
                     
                     //--------------------------------
 
@@ -554,6 +557,11 @@ $(document).ready(function(){
                         document.getElementById("annotation-Operations").style.display = "none";
                     }
                 }
+
+            case "legendimage":
+                ;    
+                break;
+
         }        
     });
 
@@ -620,13 +628,19 @@ function checkImageExists(imgpath, callback) {
 function displayImage(project_selected) {
     if(document.getElementById('legend_image')) {
         legend_source = 'static/projects/'+project_selected+'/legends/legend.png';
+        legendButtons = document.getElementById('legend_buttons');   
+
         checkFileExists(legend_source, (exists) => { //checkImageExists
             if (exists) {
                 console.log('C_DEBUG - displayImage: Image exists.');
                 legend_source = 'static/projects/'+project_selected+'/legends/legend.png';
+                legendButtons.style.display = 'flex';
+
             } else {
                 console.log('C_DEBUG - displayImage: Image DOES NOT exist.');
                 legend_source = '';
+                legendButtons.style.display = 'none';
+
             } 
             document.getElementById('legend_image').src=legend_source;
         })        
@@ -653,11 +667,15 @@ function checkFileExists(filepath, callback) {
   }
 
 
-function displayHTML(project_selected) {
-    htmlPath = 'static/projects/' + project_selected + '/legends/legend_htmlplot.html';
+
+function displayHTMLbyindex(project_selected, indexofimage) {
+    //TO DO : get indexofimage from files in legends folder after upload
+    htmlPath = 'static/projects/' + project_selected + '/legends/legend_'+ indexofimage + '.html';
+    console.log("C_DEBUG: htmlpath = ", htmlPath);
+
     plotlyFrame = document.getElementById('legend_htmlplot');   
-    
-    
+    legendButtons = document.getElementById('legend_buttons');   
+
     checkFileExists(htmlPath, function(exists) {  
       if (exists) {
         fetch(htmlPath)
@@ -667,32 +685,73 @@ function displayHTML(project_selected) {
             plotlyFrame.srcdoc = html;
 
             plotlyFrame.style.display = 'block'; // show the iframe
-            plotlyFrame.style.width = plotlyFrame.parentElement.offsetWidth-18 + 'px'; // set width to match parent
-            
             childBody = plotlyFrame.contentDocument.body;
+            plotlyFrame.style.width = plotlyFrame.parentElement.offsetWidth-18 + 'px'; // set width to match parent
             plotlyFrame.style.height = childBody.scrollHeight+20 + 'px';
+
+            legendButtons.style.display = 'flex';
+        
             })
 
           .catch(error => console.log(error));
       } else {
         plotlyFrame.style.display = 'none'; // hide the iframe
-        console.log('Error: HTML file not found.');
+        legendButtons.style.display = 'none';
+        console.log('C_DEBUG: HTML file not found.');
       }
     });
 }
 
 
-// function getFilesInDirectory(directory) {
-//     return fetch(directory)
-//       .then(response => response.text())
-//       .then(text => {
-//         const parser = new DOMParser();
-//         const html = parser.parseFromString(text, 'text/html');
-//         const files = Array.from(html.querySelectorAll('a')).map(a => a.href).filter(href => href.endsWith('.html'));
-//         return files;
-//       })
-//       .catch(error => console.log(error));
+// function getHTMLsequence(project_selected) {
+//     let imagePaths = [];
+//     const max=3;
+//     for (let i = 1; i <= max; i++) {
+//       let htmlPath = 'static/projects/' + project_selected + '/legends/legend_' + i + '.html';
+//       checkFileExists(htmlPath, function(exists) {
+//         if (exists) {
+//           imagePaths.push(htmlPath);
+//         }
+//         if (i === max) {
+//         console.log('C_DEBUG: Existing images: ' + imagePaths);
+//         }
+//       });    
+//     }
 // }
+  
+  
+
+// function displayHTMLfromsequence() {
+//     htmlPath = 'static/projects/' + project_selected + '/legends/legend.html';
+//     plotlyFrame = document.getElementById('legend_htmlplot');   
+//     legendButtons = document.getElementById('legend_buttons');   
+
+//     checkFileExists(htmlPath, function(exists) {  
+//       if (exists) {
+//         fetch(htmlPath)
+//           .then(response => response.text())
+//           .then(html => {
+//             plotlyFrame = document.getElementById('legend_htmlplot');
+//             plotlyFrame.srcdoc = html;
+
+//             plotlyFrame.style.display = 'block'; // show the iframe
+//             childBody = plotlyFrame.contentDocument.body;
+//             plotlyFrame.style.width = plotlyFrame.parentElement.offsetWidth-18 + 'px'; // set width to match parent
+//             plotlyFrame.style.height = childBody.scrollHeight+20 + 'px';
+
+//             legendButtons.style.display = 'flex';
+        
+//             })
+
+//           .catch(error => console.log(error));
+//       } else {
+//         plotlyFrame.style.display = 'none'; // hide the iframe
+//         legendButtons.style.display = 'none';
+//         console.log('C_DEBUG: HTML file not found.');
+//       }
+//     });
+// } 
+
 
 
 
@@ -701,11 +760,11 @@ function displayHTML(project_selected) {
 //-------------------------------------------------------
 function displayGraphInfo(project_selected) {
     if (document.getElementById('graphinfo')) {
-        const graphname_file = 'static/projects/' + project_selected + '/graphinfofile.json';
+        const graphname_file = 'static/projects/' + project_selected + '/pfile.json';
         $.getJSON(graphname_file)
             .done(function(data) {
-                let graphtitle = "Graph title not specified.";
-                let graphdescription = "Graph description not specified.";
+                let graphtitle = project_selected;
+                let graphdescription = "";
 
                 if (data.hasOwnProperty('graphtitle')) {
                     graphtitle = data.graphtitle;
@@ -716,11 +775,11 @@ function displayGraphInfo(project_selected) {
                 }
 
                 const myDiv = document.getElementById("graphinfo");
-                myDiv.innerHTML = "<span style='font-size:20px; font-weight:bold'>" + graphtitle +"</span>" + "<br>" + graphdescription;
+                myDiv.innerHTML = "<span style='font-size:18px; font-weight:bold'>" + graphtitle +"</span>" + "<br>" + graphdescription;
             })
             .fail(function() {
                 const myDiv = document.getElementById("graphinfo");
-                myDiv.innerHTML = "<span style='font-size:20px; font-weight:bold'>Graph title not specified</span>" + "<br>" + "Graph description not specified.";
+                myDiv.innerHTML = "<span style='font-size:18px; font-weight:bold'>Graph title not specified</span>" + "<br>" + "Graph description not specified.";
             });
     }
 }
@@ -799,7 +858,7 @@ function displayNodeLegend(project_selected) {
                             const colorKey = `${pixelData[pixelIndex * 4]},${pixelData[pixelIndex * 4 + 1]},${pixelData[pixelIndex * 4 + 2]}`;
                             newNamesDict[colorKey] = namesDict[pixelIndex];
                         }
-                    console.log("C_DEBUG: newNamesDict: ", newNamesDict);
+                    //console.log("C_DEBUG: newNamesDict: ", newNamesDict);
                     
                     // Loop through the namesDict and create an element for each node
                     for (const color in newNamesDict) {
@@ -807,7 +866,7 @@ function displayNodeLegend(project_selected) {
                     
                         // Check if the color is non-black
                         if (color != "0,0,0") {
-                            console.log("C_DEBUG: color not black: ", color);
+                            //console.log("C_DEBUG: color not black: ", color);
                             const color_reformated = 'rgb(' + color + ')';                            
                             const textdiv = document.createElement("div");
                             const text = document.createTextNode(newNamesDict[color]["name"]);
@@ -888,7 +947,6 @@ function displayNodeLegend(project_selected) {
         });
     }
 }
-
 
 
   
@@ -977,8 +1035,6 @@ function displayLinkLegend(project_selected) {
         });
     }
 }
-
-
 
 
 //-------------------------------------------------------

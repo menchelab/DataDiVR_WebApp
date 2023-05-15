@@ -33,22 +33,18 @@ $(document).ready(function () {
 
 
     $("#upload_buttonJSON").button();
-
-    $("input:radio[name='namespaceJSON']").change( function() {
-        if ($(this).val() == "New") {
-            $("#new_namespace_nameJSON").show();
-        } else {
-            $("#new_namespace_nameJSON").show();
-    
-        }
-    });
+    $("#new_namespace_nameJSON").show();
+    // $("input:radio[name='namespace']").change( function() {
+    //     if ($(this).val() == "New") {
+    //         $("#new_namespace_nameJSON").show();
+    //     } else {
+    //         $("#new_namespace_nameJSON").show();
+    //     }
+    // });
     
     $('#upload_form').on('change input', function() {
         console.log("changed!");
         var formData = new FormData(document.getElementById('upload_form'));
-
-
-
         for (var pair of formData.entries()) {
         console.log(pair[0]+ ', ' + pair[1]); 
         } 
@@ -61,7 +57,7 @@ $(document).ready(function () {
       
         var form = $(this);
         var formData = new FormData(this);
-        if (formData.get("namespace") == 'existing') {
+        if (formData.get("namespaceJSON") == 'existing') {
           formData.append('existing_namespace', $('#namespaces').val());
         }
         let it = formData.keys();

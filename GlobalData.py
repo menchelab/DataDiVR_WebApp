@@ -178,24 +178,6 @@ def loadLinks():
     # print(nchildren)
 
 
-
-#----------------------------------
-# GRAPH TITLE + DESCRIPTION 
-
-# loaded at start / page refresh 
-def loadGraphinfoFile(): 
-    if path.exists("static/projects/" + data["actPro"] + "/graphinfofile.json"):
-        with open("static/projects/" + data["actPro"] + "/graphinfofile.json", "r") as json_file:
-            global graphinfofile
-            graphinfofile = json.load(json_file)
-            #print("C_DEBUG in Globaldata: loadGraphInfoFile - loaded.")
-            json_file.close()
-    else:
-        graphinfofile = {"graphtitle":"Graph title not specified.", "graphdesc": "Graph description not specified."}
-        #print("C_DEBUG in Globaldata: loadGraphInfoFile - created.")
-
-#----------------------------------
-
 def load_annotations():
     global annotations
     temp_annotations = {}

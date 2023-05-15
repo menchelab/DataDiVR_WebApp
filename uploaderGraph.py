@@ -3,6 +3,8 @@
 from matplotlib.colors import hex2color
 from uploader import *
 
+
+
 def hex_to_rgb(hx):
     hx = hx.lstrip('#')
     hlen = len(hx)
@@ -13,9 +15,9 @@ def upload_filesJSON(request):
     form = request.form.to_dict()
     prolist = GD.plist
 
-    namespace = ''
-    if form["namespace"]:
-        namespace = form["namespace"]
+    namespace = form["namespaceJSON"]
+    #if form["namespaceJSON"]:
+    #    namespace = form["namespaceJSON"]
     #else:
     #    namespace = form["existing_namespace"]
     if not namespace:
@@ -57,13 +59,7 @@ def upload_filesJSON(request):
 
     #----------------------------------
     # FOR GRAPH TITLE + DESCRIPTION 
-    # parse Graph.name and store it 
-    # parse Graph.description (check if exists) and store it 
-    graphinfofile = {}
-    with open(folder + 'graphinfofile.json', 'r') as json_file:
-        graphinfofile = json.load(json_file)
-    json_file.close()
-
+    #----------------------------------
     graphtitle = []
     parseGraphJSON_graphtitle(jsonfiles,graphtitle)
     if len(graphtitle) > 0:
@@ -78,9 +74,7 @@ def upload_filesJSON(request):
     else:
         descr_of_graph = "Graph decription not specified."
 
-    d_graphtitle = {"graphtitle":title_of_graph, "graphdesc":descr_of_graph}
-    with open(folder + '/graphinfofile.json', 'w') as outfile:
-        json.dump(d_graphtitle, outfile)
+
 
     numnodes = len(nodepositions[0]["data"])
     #print("C_DEBUG for node info: ", nodeinfo)
@@ -96,7 +90,7 @@ def upload_filesJSON(request):
 
         if len(nodeinfo[0]["data"]) == len(nodepositions[0]["data"]):
             thisnode["attrlist"] = nodeinfo[0]["data"][i]
-            thisnode["n"] = str(nodeinfo[0]["data"][i]) #str(nodeinfo[0]["data"][i][0])
+            thisnode["n"] = str(nodeinfo[0]["data"][i][0]) #show first element in node annotation for node label
 
         else:
             thisnode["attrlist"] = ["node" + str(i)]
@@ -183,12 +177,25 @@ def upload_filesJSON(request):
         pfile["linksRGB"].append(lcolors["name"]+ "RGB")
 
     pfile["nodecount"] = numnodes
-
-    #print("C_DEBUG: labels:", labels)
-
-
     pfile["labelcount"] = len(labels[0]["data"])
     pfile["linkcount"] = len(links[0]["data"]) 
+
+    #----------------------------------
+    # adding graph info to pfile 
+    #----------------------------------
+    pfile["graphtitle"] = title_of_graph
+    pfile["graphdesc"] = descr_of_graph
+
+    #----------------------------------
+    # uploading and storing Legends files in folder
+    # and adding filenames to pfile 
+    #----------------------------------
+    legendfiles = []
+    loadLegendFiles(request.files.getlist("legendFiles"), folder+'legends/', legendfiles)
+    pfile["legendfiles"] = legendfiles
+
+
+
 
     with open(folder + '/pfile.json', 'w') as outfile:
         json.dump(pfile, outfile)
@@ -384,3 +391,4 @@ def parseGraphJSON_graphdesc(files,target):
             vecList = {}
             vecList["graphdesc"] = descr_of_graph 
             target.append(vecList)
+
