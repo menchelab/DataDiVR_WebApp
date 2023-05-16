@@ -280,7 +280,7 @@ def parseGraphJSON_nodepositions(files,target):
             #print("C_DEBUG: NODEPOS:", vecList)
 
 
-def parseGraphJSON_links(files, target):
+def parseGraphJSON_links_old(files, target):
     if len(files) > 0: 
         #for file in files:
 
@@ -306,6 +306,23 @@ def parseGraphJSON_links(files, target):
         target.append(longest_list)
         #print("C_DEBUG: all_lists", target)
 
+
+def parseGraphJSON_links(files, target):
+    if len(files) > 0: 
+
+        for idx,file in enumerate(files):
+
+            name_of_file = "links"+str(idx)
+            num_of_links = len(file["links"])
+
+            links = []
+            for i in range(0,num_of_links):
+                links.append([str(file["links"][i]["source"]),str(file["links"][i]["target"])])
+            vecList = {}
+            vecList["data"] = links
+            vecList["name"] = name_of_file
+
+            target.append(vecList)
 
 
 def parseGraphJSON_linkcolors(files,target):
