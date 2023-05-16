@@ -56,7 +56,7 @@ def upload_filesJSON(request):
     parseGraphJSON_links(jsonfiles, links)
     parseGraphJSON_linkcolors(jsonfiles, linkcolors)
     parseGraphJSON_labels(jsonfiles, labels)
-    names = parseGraphJSON_textureNames(jsonfiles)
+    names = parseGraphJSON_textureNames(jsonfiles)  # list, containing names for textures defined in uploaded json as "textureName"
 
 
     #----------------------------------
@@ -280,7 +280,7 @@ def parseGraphJSON_nodepositions(files,target):
             #print("C_DEBUG: NODEPOS:", vecList)
 
 
-def parseGraphJSON_links_old(files, target):
+def parseGraphJSON_links(files, target):
     if len(files) > 0: 
         #for file in files:
 
@@ -307,7 +307,7 @@ def parseGraphJSON_links_old(files, target):
         #print("C_DEBUG: all_lists", target)
 
 
-def parseGraphJSON_links(files, target):
+def parseGraphJSON_links_wip(files, target):
     if len(files) > 0: 
 
         for idx,file in enumerate(files):
