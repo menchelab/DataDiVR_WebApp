@@ -135,7 +135,7 @@ def loadAnnotations(name):
 
 
 
-def makeXYZTexture(project, pixeldata): 
+def makeXYZTexture(project, pixeldata, name=None): 
 
     hight = 128 * (int((len(pixeldata["data"])) / 16384) + 1)
 
@@ -250,7 +250,11 @@ def makeXYZTexture(project, pixeldata):
 
     pathXYZ = path + '/layouts/' +  pixeldata["name"] + 'XYZ.bmp'
     pathXYZl = path + '/layoutsl/' +  pixeldata["name"]  + 'XYZl.bmp' 
+    if name is not None:
+        pathXYZ = path + '/layouts/' +  name + '.bmp'
+        pathXYZl = path + '/layoutsl/' +  name  + 'l.bmp' 
 
+    ### integrate name 
     if os.path.exists(pathXYZ):
         return '<a style="color:red;">ERROR </a>' + pixeldata["name"]  + " Nodelist already in project"
     else:
@@ -258,7 +262,7 @@ def makeXYZTexture(project, pixeldata):
         new_imgl.save(pathXYZl)
         return '<a style="color:green;">SUCCESS </a>' + pixeldata["name"]  + " Node Textures Created"
 
-def makeNodeRGBTexture(project, pixeldata): 
+def makeNodeRGBTexture(project, pixeldata, name=None): 
 
     # check if data is rgba or hex string
     for i in (pixeldata["data"]):
@@ -284,6 +288,8 @@ def makeNodeRGBTexture(project, pixeldata):
     new_img = Image.new('RGB', (128, hight))
     new_img.putdata(tex)
     pathXYZ = path + '/layoutsRGB/' +  pixeldata["name"] + 'RGB.png'
+    if name is not None:
+        pathXYZ = path + '/layoutsRGB/' +  name +  '.png'
 
     if os.path.exists(pathXYZ):
         return '<a style="color:red;">ERROR </a>' + pixeldata["name"]  + " colors already in project"
@@ -293,7 +299,7 @@ def makeNodeRGBTexture(project, pixeldata):
     
 
 
-def makeLinkTexNew(project, links): 
+def makeLinkTexNew(project, links, name=None): 
     hight = 64 * (int((len(links["data"])) / 32768) + 1)
     print("image hight = " + str(hight))
     #hight = 512 #int(elem / 512)+1
@@ -340,6 +346,8 @@ def makeLinkTexNew(project, links):
 
     new_imgl.putdata(texl)
     pathl = path + '/links/' +  links["name"] + 'XYZ.bmp'
+    if name is not None:
+        pathl = path + '/links/' +  name +  '.bmp'
 
     if os.path.exists(pathl):
         return '<a style="color:red;">ERROR </a>' +  links["name"]  + " linklist already in project"
@@ -350,7 +358,7 @@ def makeLinkTexNew(project, links):
 
 
 
-def makeLinkRGBTex(project, linksRGB):
+def makeLinkRGBTex(project, linksRGB, name=None):
     
 
     hight = 64 * (int((len(linksRGB["data"])) / 32768) + 1)
@@ -387,6 +395,8 @@ def makeLinkRGBTex(project, linksRGB):
 
     new_imgc.putdata(texc)
     pathRGB = path + '/linksRGB/' +  linksRGB["name"] +  'RGB.png'
+    if name is not None:
+        pathRGB = path + '/linksRGB/' +  name +  '.png'
 
     if os.path.exists(pathRGB):
         return '<a style="color:red;">ERROR </a>' +  linksRGB["name"]  + " linklist already in project"
