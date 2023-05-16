@@ -1,6 +1,6 @@
 from os import link
 
-name = "teapot64x2"
+name = "teapot64x2x2"
 f = open("python_tools/" +name + ".obj", "r")
 lines = f.readlines()
 verticis = []
