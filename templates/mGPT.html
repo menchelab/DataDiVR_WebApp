@@ -41,7 +41,13 @@ function gptQuery(){
                 // SET CHAT DIV
                 chatwin.innerHTML += '<br>HUMAN: ' + text + "</font>"; 
                 chatwin.innerHTML += "<br>AI: " + json.text;
-                chatwin.scrollTop =  chatwin.scrollHeight;
+                chatwin.scrollTop =  chatwin.scrollHeight;  
+                
+                if (json.text.indexOf('[') > -1) {
+                    json.text = json.text.substring(json.text.indexOf("["));
+                    console.log("is a list! sending it to server");
+                    console.log(json.text);
+                }
                 //var source = document.getElementById('GPTAudioS');
                 // load and play texttospeech audio
                 var audio = document.getElementById("GPTAudio");
@@ -49,6 +55,7 @@ function gptQuery(){
                 audio.src = path;
                 audio.load();
                 audio.play();
+
             });
     }
 </script>

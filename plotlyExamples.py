@@ -220,13 +220,19 @@ def barGraph(data):
                 meta = ids, # the meta value is used to attatch a callback to the graphs nodes in .js when the graph is created
                 x=val,
                 y=names,
+                marker=dict(color='midnightblue'),
                 text=names,
                 textposition='inside',
                 name='SF Zoo',
-                orientation='h'))
+                orientation='h'
+                ))
+    
+    bar_height = 20*len(names)+500
+    print("C_DEBUG: bar height = ", bar_height)
 
     #fig.show()
-    fig.update_layout(height= len(names)*20, font_color = 'rgb(200,200,200)', paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=10, r=10, t=40, b=10))
+    fig.update_layout(height = bar_height,
+        	font_color = 'rgb(200,200,200)', paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=10, r=10, t=40, b=10))
     fig.update_yaxes(showticklabels=False)
     fig.update_layout(uniformtext_minsize=12, uniformtext_mode='show')
     return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)

@@ -86,7 +86,6 @@ def execute_before_first_request():
     GD.loadPD()
     GD.loadColor()
     GD.loadLinks()
-    GD.loadGraphinfoFile()
     GD.load_annotations()
     if enableWhisper:
         whispR.loadModel("small")
@@ -137,7 +136,10 @@ def uploadAudioUE4():
                 audiofile.writeframes(raw)
             audiofile.close()
             result["text"] = whispR.dowhisper(thisfile+".wav")
+    else:  
+        result["text"] = "Whisper is not enabled on this server"
     return result
+    
     
 
 @app.route('/uploadAudio', methods=['POST'])
@@ -160,10 +162,9 @@ def uploadAudio():
             file.save(thisfile+".weba")
             result["text"] = whispR.dowhisper(thisfile+".weba")
             print(result)
-
+    else:  
+        result["text"] = "Whisper is not enabled on this server"
     return result
-    
-    abort(400)
 
 @app.route('/GPT', methods=['POST','GET'])
 def GPT():
@@ -700,7 +701,6 @@ def ex(message):
                     GD.loadPD()
                     GD.loadColor() 
                     GD.loadLinks()
-                    GD.loadGraphinfoFile()
                     GD.load_annotations()
                     
                     response["sel"] = message["val"]

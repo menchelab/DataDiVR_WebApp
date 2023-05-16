@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}"></link>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/atelier-cave.min.css') }}"></link>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+
+<script type="text/javascript" src="{{ url_for('doku.static', filename='js/connect_socketIO_doku.js') }}"></script>
+<script src="{{ url_for('static', filename='js/mc_UI_Elements.js') }}"></script>
+
+
+{% include 'templates.html' %}
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+</head>
+
+<body>
+
+
+
+    <div id="outer">
+
+        <h5>CUSTOM-ELEMENTS</h5> <br>
+        <a href="https://www.w3schools.com/tags/tag_template.asp">HTML TEMPLATES</a> provide a way
+        to group different UI elements together <br>to create reusable building blocks with inbuilt logic.
+        <br>The Goal is to create UI elements that share their state across multiple clients<br>
+        <br>
+        Here is a special button that transmits click events to the server via SocketIO <br>
+        and can be removed by clicking X.<br><br>
+        <mc-rbutton id='666' name='name' color='#550022'></mc-rbutton><br>
+
+        Open this page 2 times, open the Console and click on the buttons name,<br>
+        then press 'X' and observe the output and the behaviour of the other window - it should disappear there aswell.<br><br>
+
+        It is defined in <i>static/templates/templates.html </i> <br>
+        and can be used in html like this:
+
+        <pre><code class="html" >&lthtml&gt
+    &#123% include 'templates.html' %&#125
+    &ltbody&gt
+        &ltmc-rbutton id = '666' name = 'name' color = '#550022'&gt&lt/mc-rbutton&gt</code></pre>
+
+        <br>
+        or like this in JQuery:
+
+        <pre><code class="javascript">&ltscript&gt
+    for (let i = 0; i &lt 50; i++) &#123
+        $("#geneBox").append("&ltmc-rbutton id = '"+ i + "' name = '"+ makeid(Math.floor(Math.random() * 3) + 4) + "' color = '#" + Math.floor(Math.random()*16777215).toString(16) + "'&gt&lt/mc-rbutton&gt");&#125
+&lt/script&gt</code></pre>
+
+        <br>
+        <div id='geneBox' style='width: 300px; height: 120px; overflow:auto; border-radius: 12px;  background-color: #adadad; display: inline-block; border-color: rgb(10, 24, 221); border-right: 2px solid ; border-top: 2px solid; border-left: 2px solid ; border-bottom: 2px solid'>
+            <script>
+                for (let i = 0; i < 50; i++) {
+                    $("#geneBox").append("<mc-rbutton id = '" + i + "' name = '" + makeid(Math.floor(Math.random() * 3) + 4) + "' color = '#" + Math.floor(Math.random() * 16777215).toString(16) + "'></mc-rbutton>");
+                }
+            </script>
+
+
+        </div><br> <br>
+        lets look at the definition in <i>static/templates/templates.html </i><br>
+        It consists of a Html and a JQuery part.<br><br>HTML
+        <pre><code class="html">&lttemplate id="mcRB-template"&gt
+    &ltstyle&gt
+        button &#123
+            width: 15%;
+            font-family: 'Future', sans-serif;
+            cursor: pointer;
+            box-sizing: border-box;
+            padding: 5px 2px;
+            border-radius: 20px;
+            border-top: 2px solid;
+            border-bottom: 0px solid;
+            border-left: 0px solid;
+            border-right: 2px solid;
+            border-color: rgb(255, 255, 255);
+            color: rgb(255, 255, 255);
+            font-size: 20px;
+        &#125
+    &lt/style&gt
+    &ltdiv id="container" style="width: 120px; height: 30p0x; display: inline-block; padding: 4px 2px"&gt
+        &ltbutton id="name" style="width: 90px; height: 30p0x; border-top-right-radius: 0px; border-bottom-right-radius: 0px; border-right: 0px"&gt&lt/button&gt
+        &ltbutton id="x" style="width: 30px; height: 30p0x;border-top-left-radius: 0px; border-bottom-left-radius: 0px; background-color: #3d3d3d;"&gtX&lt/button&gt
+    &lt/div&gt
+&lt/template&gt</code></pre>
+        Ignoring the style part, this template consists of two buttons (with the id's "name" and "x") wraped in a div.
+        <br><br>
+        JQuery<br>
+        <pre><code class="javascript">class mcRButton extends HTMLElement &#123
+    constructor() &#123super();&#125
+    connectedCallback() &#123
+        // This must match the &lttemplate&gt id and end with "-template"
+        let template = document.querySelector('#mcRB-template').content; 
+        this.attachShadow(&#123 mode: 'open' &#125).appendChild(template.cloneNode(true));
+        // Select the html Buttons by their id's and set as variables
+        let name_button = this.shadowRoot.querySelector("#name");
+        let x_button = this.shadowRoot.querySelector("#x");
+        // Set name and color - this.getAttribute() is used to retrieve the html attributes
+        name_button.textContent = this.getAttribute('name');
+        name_button.style.background = this.getAttribute('color');
+        // Bind click events
+        name_button.addEventListener('click', () =&gt &#123
+        // Send ID to server using socketIO
+            socket.emit('ex', &#123 msg: this.getAttribute('name'), id: this.getAttribute('id'), fn: "rem_butt_clicked" &#125);
+        &#125);
+        x_button.addEventListener('click', () =&gt &#123
+            console.log(name_button.parentElement);
+        // find parent &ltdiv&gt
+            var parent = this.getRootNode().host;
+        // Send delete message to server
+            if (parent != null) &#123 //is in shadowDom
+            socket.emit('ex', &#123 id: this.getAttribute('id'), parent: parent.getAttribute('id'), fn: "rem_butt_del_sbox" &#125);
+            &#125 else &#123
+            socket.emit('ex', &#123 id: this.getAttribute('id'), parent: this.parentElement.getAttribute('id'), fn: "rem_butt_del" &#125);
+            &#125
+        &#125);
+    &#125
+&#125
+//This is needed so it can be used. The first argument is the name in html, here &ltmc-rbutton&gt, the second the JS class name above
+customElements.define('mc-rbutton', mcRButton);</code></pre>
+        Note that the button is removed in <i>connect_socketIO_doku.js</i><br><br>
+        Check out <i>static/templates/templates.html </i>for more examples <br> like this colorpicker<br><br>
+        <mc-colorbox id="ColorInput">></mc-colorbox>
+        <br><br>
+        Or this text box
+        <mc-textbox id="TextInput">></mc-textbox><br><br>
+
+        <br><br><a href="/doku/">DOKU<br>
+    </div>
+
+</body>
+
+</html>
