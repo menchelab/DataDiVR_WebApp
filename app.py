@@ -397,7 +397,18 @@ def ex(message):
         if message['id'] == "analyticsDegreeRun":
             graph = util.project_to_graph(project)
             arr = analytics.analytics_degree_distribution(graph)
-            print(arr)
+            print(arr, type(arr))
+            plot_data = analytics.plotly_degree_distribution(arr)
+
+            response = {}
+            response["fn"] = message["fn"]
+            response["id"] = "analyticsDegreePlot"
+            response["target"] = "analyticsIFrame"   # i frame to render plot in
+            response["val"] = plot_data
+
+
+
+
         if message['id'] == "analyticsClosenessRun":
             graph = util.project_to_graph(project)
             arr = analytics.analytics_closeness(graph)
@@ -433,7 +444,7 @@ def ex(message):
                 if "analyticsData" not in GD.pdata.keys():
                     GD.pdata["analyticsData"] = {}
                     print(GD.pdata)
-                if "shortestPathNode2" in GD.pdata["analyticsData"].keys():
+                if "shortestPathNode2" not in GD.pdata["analyticsData"].keys():
                     GD.pdata["analyticsData"]["shortestPathNode2"] = {}
                 GD.pdata["analyticsData"]["shortestPathNode2"]["id"] = GD.pdata["activeNode"]
                 GD.pdata["analyticsData"]["shortestPathNode2"]["color"] = util.rgb_to_hex(GD.pixel_valuesc[int(GD.pdata["activeNode"])])
