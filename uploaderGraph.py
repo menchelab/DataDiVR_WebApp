@@ -139,7 +139,7 @@ def upload_filesJSON(request):
                 layout["data"].append(pos)
 
             for color in nodecolors:
-                color["data"].append([255,0,0,255])
+                color["data"].append([255,0,0,100])
             i += 1
     
     
