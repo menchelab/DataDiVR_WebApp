@@ -519,12 +519,38 @@ $(document).ready(function(){
                 // ue4(data["fn"], data); // NOT TESTED IF Username taken from ue4
                 break;
             case "analytics":
-                // ####################################################################
-                // TO-DO:
-                // ####################################################################
-                // - outsource saved nodes to backend (multiplayer!)
-                // - color buttons according to nodes (see below)
-                // - let run button request for selected nodes
+
+                if (data.id == "analyticsDegreePlot") {
+                    const config = {displayModeBar: false};
+                    const layout = {};
+                    let plot_data = JSON.parse(data["val"]);
+    
+                    Plotly.newPlot(data["parent"], gdata, layout, config);
+                    let plotIFrame = document.getElementById("analyticsIFrame");
+                    plotIFrame.on('plotly_click', function(data){
+                        if (data.points[0].hasOwnProperty("meta")){  // add callback to nodebuttton automatically if provided
+                            console.log(data.points[0].meta);
+                            socket.emit('ex', { msg: "none", id: "none",val: data.points[0].meta,  fn: 'node'});
+                        }
+                        else if (data.points[0].hasOwnProperty("label")){
+                            console.log(data.points[0].label);
+                        }
+                        else if(data.points[0].hasOwnProperty("text")){
+                            console.log(data.points[0].text);
+                        }else {
+                            console.log(data.points[0]);
+                        }
+                    });
+                    
+                    plotIFrame.style.display = "inline-block";
+
+                    // this is the line that hides the bar for real
+                    const NavBar = document.getElementsByClassName("modebar-container");
+                    for (let i = 0; i < NavBar.length; i++) {
+                    NavBar[i].style.visibility = "hidden";
+                    }
+                }
+
 
                 if (data.id == "analyticsPathNode1"){
                     let button = document.getElementById("analyticsPathNode1").shadowRoot.getElementById("name");

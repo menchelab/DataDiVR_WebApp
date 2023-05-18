@@ -89,12 +89,7 @@ def loadModel(modename):
 
 #aTest.doTest()
 
-loadModel("tiny")
-
-
-@blueprint.route("/")
-def helloflask(): 
-    return render_template('helloflask.html')
+loadModel("small")
 
 
 @blueprint.route('/uploadAudio', methods=['POST'])
@@ -118,8 +113,8 @@ def uploadAudio():
         result["text"] = dowhisper(thisfile+".weba")
         print(result)
     return result
-    
-    abort(400)
+
+
 
 @blueprint.route('/uploadAudioUE4', methods=['POST'])
 def uploadAudioUE4():

@@ -6,12 +6,41 @@ import networkx as nx
 from PIL import Image
 import math
 import json
+import plotly.graph_objs as go
+import plotly.utils as pu
 
 
 def analytics_degree_distribution(graph):
     # nx graph to degree distribution
     degree_sequence = [d for n, d in graph.degree()] # index is node id, value is degree
     print(degree_sequence)
+
+
+def plotly_degree_distribution(degrees):
+    # Create a bar chart
+    data = [
+        go.Bar(
+            x=list(range(len(degrees))),
+            y=degrees,
+            marker=dict(color='rgb(26, 118, 255)')
+        )
+    ]
+
+    # Set chart layout
+    layout = go.Layout(
+        title='Degree Distribution',
+        xaxis=dict(title='Degree'),
+        yaxis=dict(title='Number of Nodes'),
+        bargap=0.1
+    )
+
+    # Create a Figure object
+    fig = go.Figure(data=data, layout=layout)
+
+    # Generate JSON representation of the plotly figure
+    plotly_json = json.dumps(fig, cls=pu.PlotlyJSONEncoder)
+
+    return plotly_json
 
 
 def analytics_closeness(graph):

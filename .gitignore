@@ -8,4 +8,4 @@ venv/
 projects/
 openAI_KEY_doNOTcommit.txt
 static/TTSaudio/
-static/WisperAudio/
+static/extensions/whisperSpeechRecognition/static/WisperAudio/

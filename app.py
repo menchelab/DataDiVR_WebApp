@@ -38,10 +38,6 @@ import chat
 import base64
 import chatGPTTest
 
-global enableWhisper
-enableWhisper = False
-if enableWhisper:
-    import whisperSR as whispR
 # load audio and pad/trim it to fit 30 seconds
 import TextToSpeech
 
@@ -87,8 +83,6 @@ def execute_before_first_request():
     GD.loadColor()
     GD.loadLinks()
     GD.load_annotations()
-    if enableWhisper:
-        whispR.loadModel("small")
 
 @app.route("/")
 def index():
@@ -118,68 +112,15 @@ def main():
         return "error"
 
 
-@app.route('/uploadAudioUE4', methods=['POST'])
-def uploadAudioUE4():
-    result = {}
-    global enableWhisper
-    if enableWhisper:
-        
-        path = 'static/WisperAudio/' #os.getenv('HOME') + '/python'
-        num_files = len([f for f in os.listdir(path)if os.path.isfile(os.path.join(path, f))])
-        thisfile = path+str(num_files + 1)
-        if request.method == 'POST':
-            raw = request.get_data()
-            with wave.open(thisfile+".wav", "wb") as audiofile:
-                audiofile.setsampwidth(2)
-                audiofile.setnchannels(2)
-                audiofile.setframerate(48000)
-                audiofile.writeframes(raw)
-            audiofile.close()
-            result["text"] = whispR.dowhisper(thisfile+".wav")
-    else:  
-        result["text"] = "Whisper is not enabled on this server"
-    return result
-    
-    
-
-@app.route('/uploadAudio', methods=['POST'])
-def uploadAudio():
-    result = {}
-    global enableWhisper
-    if enableWhisper:
-    #print("upload request received")
-        path = 'static/WisperAudio/' #os.getenv('HOME') + '/python'
-        num_files = len([f for f in os.listdir(path)if os.path.isfile(os.path.join(path, f))])
-        thisfile = path+str(num_files + 1)
-        
-        if 'audio_file' in request.files:
-            file = request.files['audio_file']
-            # Get the file suffix based on the mime type.
-            extname = guess_extension(file.mimetype)
-            if not extname:
-                abort(400)
-            # Save the file to disk.
-            file.save(thisfile+".weba")
-            result["text"] = whispR.dowhisper(thisfile+".weba")
-            print(result)
-    else:  
-        result["text"] = "Whisper is not enabled on this server"
-    return result
-
-@app.route('/GPT', methods=['POST','GET'])
+@app.route('/GPT', methods=['POST'])
 def GPT():
     result = {}
     if request.method == 'POST':
-        data = flask.request.get_json()
-        print(data.get("text"))
-         
+        data = flask.request.get_json() 
         answer = chatGPTTest.GPTrequest(data.get("text"))
-        path = 'static/TTSaudio/' #os.getenv('HOME') + '/python'
-        num_files = len([f for f in os.listdir(path)if os.path.isfile(os.path.join(path, f))])
-        
-        TextToSpeech.makeogg(answer, str(num_files+1),1)
+        fname = TextToSpeech.makeogg(answer,0)
         print(answer)
-        return {"text": answer, "audiofile": str(num_files+1)+".ogg"}
+        return {"text": answer, "audiofile": fname + ".ogg"}
 
 @app.route('/TTS', methods=['POST','GET'])
 def TTS():
@@ -187,7 +128,7 @@ def TTS():
     if request.method == 'GET':
         text = flask.request.args.get("text")
         voice = int(flask.request.args.get("voice"))
-        result["text"] = TextToSpeech.makeogg(text,"myaudiofile.wav", voice)
+        result["text"] = TextToSpeech.makeogg(text, voice)
     return result
 
 @app.route("/nodepanel", methods=["GET"])
@@ -456,7 +397,18 @@ def ex(message):
         if message['id'] == "analyticsDegreeRun":
             graph = util.project_to_graph(project)
             arr = analytics.analytics_degree_distribution(graph)
-            print(arr)
+            print(arr, type(arr))
+            plot_data = analytics.plotly_degree_distribution(arr)
+
+            response = {}
+            response["fn"] = message["fn"]
+            response["id"] = "analyticsDegreePlot"
+            response["target"] = "analyticsIFrame"   # i frame to render plot in
+            response["val"] = plot_data
+
+
+
+
         if message['id'] == "analyticsClosenessRun":
             graph = util.project_to_graph(project)
             arr = analytics.analytics_closeness(graph)
@@ -492,7 +444,7 @@ def ex(message):
                 if "analyticsData" not in GD.pdata.keys():
                     GD.pdata["analyticsData"] = {}
                     print(GD.pdata)
-                if "shortestPathNode2" in GD.pdata["analyticsData"].keys():
+                if "shortestPathNode2" not in GD.pdata["analyticsData"].keys():
                     GD.pdata["analyticsData"]["shortestPathNode2"] = {}
                 GD.pdata["analyticsData"]["shortestPathNode2"]["id"] = GD.pdata["activeNode"]
                 GD.pdata["analyticsData"]["shortestPathNode2"]["color"] = util.rgb_to_hex(GD.pixel_valuesc[int(GD.pdata["activeNode"])])
