@@ -133,7 +133,7 @@ function speakNow(text) {
 
 $(document).ready(function(){
 
-    speakNow("Hello Human! welcome tho the DataDiVR")
+    speakNow("Hello Human! Welcome to the data diver.")
 
     if(document.getElementById("preview")){
         isPreview = true;
@@ -206,10 +206,12 @@ $(document).ready(function(){
             console.log("server returned: " + JSON.stringify(data));
 
         }
+
         switch(data.fn)
         {   
             case 'projectLoaded':
-                updateMcElements();
+
+               updateMcElements();
 
                 if (data.usr == uid){
                     
@@ -220,8 +222,9 @@ $(document).ready(function(){
                             makeNetwork();
                           }, 1000);   
                     }
-                }
 
+                }
+ 
                 break;
 
             case 'mkB':
@@ -464,10 +467,12 @@ $(document).ready(function(){
                 break;
             
             case "project":
+
                 //clearProject();
                 //if (data["usr"]==uid){
                     pfile = data["val"];
-
+                    let legendcount=0;
+                    
                     //--------------------------------
                     // L E G E N D P A N E L 
                       
@@ -478,14 +483,8 @@ $(document).ready(function(){
                     displayNodeLegend(pfile.name);
                     displayLinkLegend(pfile.name);
 
-                    // IMAGE on legend panel
-                    displayImage(pfile.name);
-
-                    //HTMLPLOT on legend panel
-
-                    //call function here for arrow pressed and get index of image to pass on to displayHTMLbyindex function
-                    displayHTMLbyindex(pfile.name, 2);
-                    // C work in progress : getHTMLsequence(pfile.name);
+                    // initial display of image file if new project 
+                    displayfirstFile(pfile.name);
                     
                     //--------------------------------
 
@@ -557,12 +556,16 @@ $(document).ready(function(){
                         document.getElementById("annotation-Operations").style.display = "none";
                     }
                 }
+                
+                
+            case "func_legend_file":
+                if (data.id == "legend_forward") {
+                    switchingFiles_forward(pfile.name);
+                } else if (data.id == "legend_backward") {
+                    switchingFiles_backward(pfile.name);
+                }
 
-            case "legendimage":
-                ;    
-                break;
-
-        }        
+        } 
     });
 
 });
@@ -607,49 +610,7 @@ function removeOptions(selectElement) {
 
  
 //-------------------------------------------------------
-// I M A G E L O A D I N G functions
-//-------------------------------------------------------
-function checkImageExists(imgpath, callback) {
-    const img = new Image();
-    img.src = imgpath; 
-    if (img.complete) {   
-        callback(true);
-    } else {
-        img.onload = () => {
-            callback(true);
-        };
-        img.onerror = () => {
-            callback(false);
-        };
-    }
-    return callback;
-}
-
-function displayImage(project_selected) {
-    if(document.getElementById('legend_image')) {
-        legend_source = 'static/projects/'+project_selected+'/legends/legend.png';
-        legendButtons = document.getElementById('legend_buttons');   
-
-        checkFileExists(legend_source, (exists) => { //checkImageExists
-            if (exists) {
-                console.log('C_DEBUG - displayImage: Image exists.');
-                legend_source = 'static/projects/'+project_selected+'/legends/legend.png';
-                legendButtons.style.display = 'flex';
-
-            } else {
-                console.log('C_DEBUG - displayImage: Image DOES NOT exist.');
-                legend_source = '';
-                legendButtons.style.display = 'none';
-
-            } 
-            document.getElementById('legend_image').src=legend_source;
-        })        
-    }
-}
-
-
-//-------------------------------------------------------
-// H T M L  L O A D I N G functions
+// L E G E N D F I L E loading + displaying functions
 //-------------------------------------------------------
 function checkFileExists(filepath, callback) {
     fetch(filepath)
@@ -664,93 +625,217 @@ function checkFileExists(filepath, callback) {
         callback(false);
       });
     return callback;
-  }
-
-
-
-function displayHTMLbyindex(project_selected, indexofimage) {
-    //TO DO : get indexofimage from files in legends folder after upload
-    htmlPath = 'static/projects/' + project_selected + '/legends/legend_'+ indexofimage + '.html';
-    console.log("C_DEBUG: htmlpath = ", htmlPath);
-
-    plotlyFrame = document.getElementById('legend_htmlplot');   
-    legendButtons = document.getElementById('legend_buttons');   
-
-    checkFileExists(htmlPath, function(exists) {  
-      if (exists) {
-        fetch(htmlPath)
-          .then(response => response.text())
-          .then(html => {
-            plotlyFrame = document.getElementById('legend_htmlplot');
-            plotlyFrame.srcdoc = html;
-
-            plotlyFrame.style.display = 'block'; // show the iframe
-            childBody = plotlyFrame.contentDocument.body;
-            plotlyFrame.style.width = plotlyFrame.parentElement.offsetWidth-18 + 'px'; // set width to match parent
-            plotlyFrame.style.height = childBody.scrollHeight+20 + 'px';
-
-            legendButtons.style.display = 'flex';
-        
-            })
-
-          .catch(error => console.log(error));
-      } else {
-        plotlyFrame.style.display = 'none'; // hide the iframe
-        legendButtons.style.display = 'none';
-        console.log('C_DEBUG: HTML file not found.');
-      }
-    });
 }
 
 
-// function getHTMLsequence(project_selected) {
-//     let imagePaths = [];
-//     const max=3;
-//     for (let i = 1; i <= max; i++) {
-//       let htmlPath = 'static/projects/' + project_selected + '/legends/legend_' + i + '.html';
-//       checkFileExists(htmlPath, function(exists) {
-//         if (exists) {
-//           imagePaths.push(htmlPath);
-//         }
-//         if (i === max) {
-//         console.log('C_DEBUG: Existing images: ' + imagePaths);
-//         }
-//       });    
-//     }
-// }
+function checkFileType(fileName) {
+    const fileExtension = fileName.split('.').pop().toLowerCase();
+    const imageExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+    const htmlExtensions = ['html', 'htm'];
+
+    if (imageExtensions.includes(fileExtension)) {
+        return 'image';
+    }
+    if (htmlExtensions.includes(fileExtension)) {
+        return 'html';
+    }
+    return 'unknown';
+}
+
+
+function changeImage(project_selected, currentIndex, imageSources) {
   
+    console.log("C_DEBUG: IN changeImage - pfile :", project_selected);
+
+    const imageElement = document.getElementById('legend_image');
+    const htmlElement = document.getElementById('legend_html');
+    const fileType = checkFileType('static/projects/' + project_selected + '/legends/' + imageSources[currentIndex]);
   
+    if (fileType === "image") {
+        //console.log("C_DEBUG: changeImage -> in image; currentIndex=", currentIndex);
 
-// function displayHTMLfromsequence() {
-//     htmlPath = 'static/projects/' + project_selected + '/legends/legend.html';
-//     plotlyFrame = document.getElementById('legend_htmlplot');   
-//     legendButtons = document.getElementById('legend_buttons');   
+        imageElement.src = 'static/projects/' + project_selected + '/legends/' + imageSources[currentIndex];
+        imageElement.style.display = 'block';
+        htmlElement.style.display = 'none';
+      
+    } else if (fileType === "html") {
+        //console.log("C_DEBUG: changeImage -> in html; currentIndex=", currentIndex);
 
-//     checkFileExists(htmlPath, function(exists) {  
-//       if (exists) {
-//         fetch(htmlPath)
-//           .then(response => response.text())
-//           .then(html => {
-//             plotlyFrame = document.getElementById('legend_htmlplot');
-//             plotlyFrame.srcdoc = html;
+        fetch('static/projects/' + project_selected + '/legends/' + imageSources[currentIndex])
+            .then(response => response.text())
+            .then(html => {
+                htmlElement.srcdoc = html;
+                htmlElement.style.display = 'block';
 
-//             plotlyFrame.style.display = 'block'; // show the iframe
-//             childBody = plotlyFrame.contentDocument.body;
-//             plotlyFrame.style.width = plotlyFrame.parentElement.offsetWidth-18 + 'px'; // set width to match parent
-//             plotlyFrame.style.height = childBody.scrollHeight+20 + 'px';
+                htmlElement.style.width = htmlElement.parentElement.offsetWidth - 18 + 'px';
+                htmlElement.style.height = htmlElement.contentDocument.body.scrollHeight + 20 + 'px';
+                imageElement.style.display = 'none';
+        });
+    }
+}
 
-//             legendButtons.style.display = 'flex';
+
+function switchforward(responseData){
+    const legendButtons = document.getElementById('legend_buttons');
+    const nextButton = document.getElementById('legend_forward');
+    const backButton = document.getElementById('legend_backward');
+
+    let currentIndex = parseInt(nextButton.getAttribute('val'));
+    console.log("C_DEBUG: in switchforward - currentIndex BEFORE add = ", currentIndex);
+    currentIndex = (currentIndex + 1) % responseData.legendfiles.length;
+    changeImage(responseData.name, currentIndex, responseData.legendfiles);
+    legendButtons.style.display = 'flex';
+
+    nextButton.setAttribute('val',currentIndex);
+    // also set backButton to have same val : 
+    backButton.setAttribute('val',currentIndex);
+
+    console.log("C_DEBUG: in switchforward - currentIndex AFTER add = ", currentIndex);
+}
+
+
+function switchbackward(responseData) {
+    const legendButtons = document.getElementById('legend_buttons');
+    const backButton = document.getElementById('legend_backward');
+    const nextButton = document.getElementById('legend_forward');
+
+    let currentIndex = parseInt(backButton.getAttribute('val'));
+    console.log("C_DEBUG: in switchbackward - currentIndex BEFORE add = ", currentIndex);
+    currentIndex =  (currentIndex - 1 + responseData.legendfiles.length) % responseData.legendfiles.length; 
+    changeImage(responseData.name, currentIndex, responseData.legendfiles);
+    legendButtons.style.display = 'flex';
+
+    backButton.setAttribute('val',currentIndex);
+    // also set nextButton to have same val : 
+    nextButton.setAttribute('val',currentIndex);
+    
+    console.log("C_DEBUG: in switchbackward - currentIndex AFTER add = ", currentIndex);
+}
+
+
+
+function switchingFiles_forward(project_selected) {
+    if (document.getElementById('legend_image') && document.getElementById('legend_html')) {
+
+        const legendButtons = document.getElementById('legend_buttons');
+        const imageElement = document.getElementById('legend_image');
+        const htmlElement = document.getElementById('legend_html');
         
-//             })
+        $.getJSON('static/projects/' + project_selected + '/pfile.json')
+            .done(function(responseData) {
+                
+                if (responseData.legendfiles.length > 0) {
 
-//           .catch(error => console.log(error));
-//       } else {
-//         plotlyFrame.style.display = 'none'; // hide the iframe
-//         legendButtons.style.display = 'none';
-//         console.log('C_DEBUG: HTML file not found.');
-//       }
-//     });
-// } 
+                    document.getElementById('legend_forward').addEventListener("click",switchforward(responseData));
+                
+                } else {
+                    legendButtons.style.display = 'none';
+                    imageElement.style.display = 'none';
+                    htmlElement.style.display = 'none';
+                }   
+            })
+            .fail(function() {
+                console.log("Failed to retrieve JSON data");
+            });
+    }
+}
+
+
+function switchingFiles_backward(project_selected) {
+    if (document.getElementById('legend_image') && document.getElementById('legend_html')) {
+
+        const legendButtons = document.getElementById('legend_buttons');
+        const imageElement = document.getElementById('legend_image');
+        const htmlElement = document.getElementById('legend_html');
+        
+        $.getJSON('static/projects/' + project_selected + '/pfile.json')
+            .done(function(responseData) {
+                
+                if (responseData.legendfiles.length > 0) {
+
+                    document.getElementById('legend_backward').addEventListener("click", switchbackward(responseData));
+                
+                } else {
+                    legendButtons.style.display = 'none';
+                    imageElement.style.display = 'none';
+                    htmlElement.style.display = 'none';
+                }   
+            })
+            .fail(function() {
+                console.log("Failed to retrieve JSON data");
+            });
+    }
+}
+
+
+
+
+function displayfirstFile(project_selected) {
+    //console.log("C_DEBUG: in displayfirstFile - project_selected :", project_selected);
+    
+    if (document.getElementById('legend_image') && document.getElementById('legend_html')) {
+
+        const p_file = 'static/projects/' + project_selected + '/pfile.json';
+        const imageElement = document.getElementById('legend_image');
+        const htmlElement = document.getElementById('legend_html');
+        
+        const legendButtons = document.getElementById('legend_buttons');
+        const nextButton = document.getElementById('legend_forward');
+        const backButton = document.getElementById('legend_backward');
+
+        $.getJSON(p_file)
+            .done(function(data) {
+                if (data.hasOwnProperty('legendfiles') && data.legendfiles.length > 0) {
+
+                    const zeroIndex = data.legendfiles[0]
+                    const fileType = checkFileType(zeroIndex);
+
+                    // at new project loaded - set val of both Buttons back to zero
+                    backButton.setAttribute('val',0);
+                    nextButton.setAttribute('val',0);
+
+                    if (fileType == "image") {
+                        
+                        console.log("C_DEBUG: display FIRST image - in image");
+
+                        imageElement.src = 'static/projects/' + project_selected + '/legends/' + zeroIndex;
+                        imageElement.style.display = 'block';
+                        legendButtons.style.display = 'flex';
+
+                        htmlElement.style.display = 'none';
+
+                    } 
+
+                    else if (fileType == "html") {
+                        
+                        //console.log("C_DEBUG: display FIRST image - in html");
+                        
+                        fetch('static/projects/' + project_selected + '/legends/' + zeroIndex)
+                            .then(response => response.text())
+                            .then(html => {
+                                htmlElement.srcdoc = html; 
+                                htmlElement.style.display = 'block';
+                                htmlElement.style.width = htmlElement.parentElement.offsetWidth - 18 + 'px';
+                                htmlElement.style.height = htmlElement.contentDocument.body.scrollHeight + 20 + 'px';
+                                                        
+                                legendButtons.style.display = 'flex';
+                                imageElement.style.display = 'none';
+                            })
+                    }
+                    
+                } else {
+                    //console.log("C_DEBUG: in else / hide all");
+
+                    legendButtons.style.display = 'none';
+                    imageElement.style.display = 'none';
+                    htmlElement.style.display = 'none';
+
+                }
+            });
+    }
+}
+
+
 
 
 
