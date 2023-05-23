@@ -103,49 +103,54 @@ def upload_filesJSON(request):
     for labellist in labels:   
         name = ""
         i = 0
-        for row in labellist["data"]:
-            name = row[0]
-            row.pop(0)
-            # add to nodes.json
-            thisnode = {}
-            thisnode["id"] = i + numnodes
-            thisnode["group"] = row
-            thisnode["n"] = str(name)
-            nodelist["nodes"].append(thisnode)
-            #add to pfile
-            pfile["selections"].append({"name":name, "nodes":row})
-            
-            # get average pos for Each layout            
-            for layout in nodepositions:
-                accPos = [0,0,0]
-                pos = [0,0,0]
 
-                for x in row:
+        if "data" in labellist:
 
-                    # catch for 2D positions for labels and for empty rows
-                    if len(x) > 0 and len(layout["data"][int(x)]) == 3:
-                        accPos[0] += float(layout["data"][int(x)][0])
-                        accPos[1] += float(layout["data"][int(x)][1])
-                        accPos[2] += float(layout["data"][int(x)][2])
-                    
-                    elif len(x) > 0 and len(layout["data"][int(x)]) == 2: 
-                        accPos[0] += float(layout["data"][int(x)][0])
-                        accPos[1] += float(layout["data"][int(x)][1])
-                        accPos[2] += 0.0
+            for row in labellist["data"]:
+                name = row[0]
+                row.pop(0)
+                # add to nodes.json
+                thisnode = {}
+                thisnode["id"] = i + numnodes
+                thisnode["group"] = row
+                thisnode["n"] = str(name)
+                nodelist["nodes"].append(thisnode)
+                #add to pfile
+                pfile["selections"].append({"name":name, "nodes":row})
+                
+                # get average pos for Each layout            
+                for layout in nodepositions:
+                    accPos = [0,0,0]
+                    pos = [0,0,0]
 
-                pos[0] = str(accPos[0] / len(row))
-                pos[1] = str(accPos[1] / len(row))
-                pos[2] = str(accPos[2] / len(row))
-                layout["data"].append(pos)
+                    for x in row:
 
-            for color in nodecolors:
-                color["data"].append([255,0,0,100])
-            i += 1
-    
+                        # catch for 2D positions for labels and for empty rows
+                        if len(x) > 0 and len(layout["data"][int(x)]) == 3:
+                            accPos[0] += float(layout["data"][int(x)][0])
+                            accPos[1] += float(layout["data"][int(x)][1])
+                            accPos[2] += float(layout["data"][int(x)][2])
+                        
+                        elif len(x) > 0 and len(layout["data"][int(x)]) == 2: 
+                            accPos[0] += float(layout["data"][int(x)][0])
+                            accPos[1] += float(layout["data"][int(x)][1])
+                            accPos[2] += 0.0
+
+                    pos[0] = str(accPos[0] / len(row))
+                    pos[1] = str(accPos[1] / len(row))
+                    pos[2] = str(accPos[2] / len(row))
+                    layout["data"].append(pos)
+
+                for color in nodecolors:
+                    color["data"].append([60,60,60,60])
+                i += 1
+        else: 
+            pass
+        
     
     for file_index in range(len(nodepositions)):  # for layout in nodepositions:
         layout = nodepositions[file_index]
-        if len(layout["data"]) > 0 and len(layout["data"][int(x)]) == 3:
+        if len(layout["data"]) > 0 and len(layout["data"][int(0)]) == 3:
 
             if names[file_index] is not None:
                 # if texture name specified
@@ -405,25 +410,37 @@ def parseGraphJSON_labels(files,target):
 
             nodeclus = []
             nodeids = []
-            for i in range(0,num_of_nodes):
-                nodeclus.append(one_file["nodes"][i]["cluster"])
-                nodeids.append(one_file["nodes"][i]["id"])
-            set_nodeclus = list(set(nodeclus))
+            # catch if "cluster" key:
+            if "cluster" in one_file:
+                for i in range(0,num_of_nodes):
+                    nodeclus.append(one_file["nodes"][i]["cluster"])
+                    nodeids.append(one_file["nodes"][i]["id"])
+                set_nodeclus = list(set(nodeclus))
 
-            labels = []
-            for cluster in set_nodeclus:
-                sublist = [] 
-                for k,v in zip(nodeids,nodeclus):
-                    if cluster == v:
-                        sublist.append(str(k))
-                sublist.insert(0,cluster)
-                labels.append(sublist)
+                labels = []
+                for cluster in set_nodeclus:
+                    sublist = [] 
+                    for k,v in zip(nodeids,nodeclus):
+                        if cluster == v:
+                            sublist.append(str(k))
+                    sublist.insert(0,cluster)
+                    labels.append(sublist)
 
+            else: 
+                for i in range(0,num_of_nodes):
+                    nodeids.append(one_file["nodes"][i]["id"])
+                labels = None
+            
             vecList = {}
-            vecList["data"] = labels
+
+            if labels is not None:
+                vecList["data"] = labels
+            else:
+                vecList["data"] = []
             vecList["name"] = name_of_file
             target.append(vecList)
             target = list(target[0])# use only one file (i.e.layout) to create labels from / not per layout yet
+
 
 # FOR GRAPH NAME 
 def parseGraphJSON_graphtitle(files,target):
