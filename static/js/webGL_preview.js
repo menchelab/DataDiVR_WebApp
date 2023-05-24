@@ -10,13 +10,14 @@ var linksRGB = [];
 var linksRGBTemp = [];
 var actLinksRGB = 0;
 //var pfile = {"val":{"name":"AUToCOre","layouts":["01-Autocore_globalXYZ","02-Autocore_mix_globalclusterXYZ","03-Autocore_clusterfeaturesXYZ"],"layoutsRGB":["01-Autocore_globalRGB","02-Autocore_mix_globalclusterRGB","03-Autocore_clusterfeaturesRGB"],"links":["Autocore_linksXYZ"],"linksRGB":["Autocore_linksRGB"]},"fn":"project"};
-// var pfile = {};
+var pfile = {};
 var mesh, renderer, scene, camera, controls;
 //var data = JSON.parse('{"nodes":[{"p":[0.5,0.5,0.5],"c":[128,128,128,128],"n":"TEST1"},{"p":[0.7,0.7,0.7],"c":[ 0,128,128,128],"n":"TEST2"},{"p":[0.2,0.2,0.2],"c":[128,0,128,128],"n":"TEST3"}],"links":[{"id":0,"s":0,"e":1,"c":[0,128,128,128]},{"id":1,"s":1,"e":2,"c":[0,128,128,128]},{"id":2,"s":2,"e":1,"c":[0,128,128,128]}]}');
 var data = {};
 var scale = 20;
 const nscale = 0.02;
 var nodemeshes = [];
+var linkmeshes = [];
 var indexsphere;
 var labels = [];
 var children = [];
@@ -60,15 +61,15 @@ function init() {
   indexsphere = sphere;
   scene.add(sphere);
   /*
-            // ambient
-            scene.add( new THREE.AmbientLight( 0x222222 ) );
-            
-            // light
-            var light = new THREE.DirectionalLight( 0xffffff, 1 );
-            light.position.set( 20,20, 0 );
-            scene.add( light );
-            
-            */
+    // ambient
+    scene.add( new THREE.AmbientLight( 0x222222 ) );
+    
+    // light
+    var light = new THREE.DirectionalLight( 0xffffff, 1 );
+    light.position.set( 20,20, 0 );
+    scene.add( light );
+    
+    */
   // makeNetwork(data);
 
   // camera rotation-> https://jsfiddle.net/8kn4qrz0/
@@ -78,6 +79,17 @@ function init() {
 function RGB2HTML(red, green, blue) {
   var decColor = 0x1000000 + blue + 0x100 * green + 0x10000 * red;
   return "#" + decColor.toString(16).substr(1);
+}
+
+function RGBA2HTML(rgba) {
+  var r = rgba[0].toString(16).padStart(2, "0");
+  var g = rgba[1].toString(16).padStart(2, "0");
+  var b = rgba[2].toString(16).padStart(2, "0");
+  var a = Math.round((rgba[3] / 255) * 100) / 100;
+  a = Math.round(a * 255)
+    .toString(16)
+    .padStart(2, "0");
+  return "#" + r + g + b + a;
 }
 
 function getPosition(index) {
@@ -135,6 +147,16 @@ function updateNodeColors(data) {
   console.log("node colors updated");
 }
 
+function updateLinkColors(data) {
+  //console.log(linkmeshes);
+  for (let i = 0; i < linkmeshes.length; i++) {
+    color = [data[i * 4], data[i * 4 + 1], data[i * 4 + 2]];
+    linkmeshes[i].material.color.set(RGB2HTML(color[0], color[1], color[2]));
+  }
+  //console.log(linkmeshes);
+  console.log("link colors updated");
+}
+
 function makeNetwork() {
   if (initialized) {
     //delete everything but sphere
@@ -152,9 +174,11 @@ function makeNetwork() {
     }
 
     nodemeshes = [];
+    linkmeshes = [];
     labels = [];
 
     // MAKE NODES
+
     for (let i = 0; i < pfile["nodecount"] + pfile["labelcount"]; i++) {
       if (i < 10000) {
         const ngeometry = new THREE.BoxGeometry(nscale, nscale, nscale);
@@ -223,9 +247,12 @@ function makeNetwork() {
       line.linewidth;
       line.name = "line";
       scene.add(line);
+      linkmeshes.push(line);
       count = l;
       //}
     }
+
+    //console.log(linkmeshes);
   }
 }
 
@@ -411,7 +438,6 @@ function clearProject() {
 async function downloadProjectTextures() {
   clearProject();
   console.log("downloading project maps " + pfile["name"]);
-  console.log(pfile.layouts);
   for (let index = 0; index < pfile["layouts"].length; index++) {
     var path =
       "/static/projects/" +
@@ -467,9 +493,18 @@ async function downloadProjectTextures() {
 }
 
 async function downloadTempTexture(path, channel) {
-  nodesTempRGB = await DownloadImage(path);
-  console.log(nodesTempRGB[0], nodesTempRGB[1], nodesTempRGB[2]);
-  updateNodeColors(nodesTempRGB);
+  switch (channel) {
+    case "nodeRGB":
+      nodesTempRGB = await DownloadImage(path);
+      console.log(nodesTempRGB[0], nodesTempRGB[1], nodesTempRGB[2]);
+      updateNodeColors(nodesTempRGB);
+      break;
+    case "linkRGB":
+      linksTempRGB = await DownloadImage(path);
+      console.log(linksTempRGB[0], linksTempRGB[1], linksTempRGB[2]);
+      updateLinkColors(linksTempRGB);
+      break;
+  }
 }
 
 document.addEventListener("DOMContentLoaded", function () {

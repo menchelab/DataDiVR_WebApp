@@ -4,6 +4,14 @@ var logAll = true;
 var isPreview = false;
 logjs;
 var isMain = false;
+var isUE4 = false;
+
+if (String(navigator.userAgent).includes("UnrealEngine")) {
+  isUE4 = true;
+} else {
+  console.log("not ue4");
+}
+
 var pfile = new VariableListener(new Object());
 console.log("pfile", pfile);
 
@@ -62,6 +70,16 @@ ue.interface.nodelabelclicked = function (data) {
   socket.emit("ex", out);
 };
 
+ue.interface.spee = function (data) {
+  console.log(data);
+  var text = '{"id":"node", "val": -1, "fn": "textinput"}';
+  var out = JSON.parse(text);
+  x = JSON.parse(data);
+  out.id = x.id;
+  out.val = x.text;
+  socket.emit("ex", out);
+};
+
 function updateMcElements() {
   dynelem = document.getElementsByClassName("GD");
 
@@ -95,14 +113,60 @@ function updateMcElements() {
     }
     //console.log(dynelem[i].getAttribute('container'));
   }
+  // add here init values for new joined client
   socket.emit("ex", { usr: uid, id: "cbaddNode", fn: "addNode", val: "init" });
+  socket.emit("ex", {
+    usr: uid,
+    id: "analyticsPathNode1",
+    fn: "analytics",
+    val: "init",
+  });
+  socket.emit("ex", {
+    usr: uid,
+    id: "analyticsPathNode2",
+    fn: "analytics",
+    val: "init",
+  });
+  socket.emit("ex", {
+    usr: uid,
+    id: "annotationOperation",
+    fn: "annotation",
+    val: "init",
+  });
+  socket.emit("ex", {
+    usr: uid,
+    id: "annotationRun",
+    fn: "annotation",
+    val: "init",
+  });
 }
 
 function reconnect() {
   location.reload();
 }
 
+function speakNow(text) {
+  if ("speechSynthesis" in window) {
+    // Speech Synthesis supported 🎉
+    const message = new SpeechSynthesisUtterance(text);
+    message.lang = "en-US";
+
+    const voices = speechSynthesis
+      .getVoices()
+      .filter((voice) => voice.lang === "en-US");
+    console.log(voices);
+    message.voice = voices[1];
+
+    speechSynthesis.speak(message);
+  } else {
+    // Speech Synthesis Not Supported 😣
+    console.log("Sorry, your browser doesn't support text to speech!");
+  }
+}
+
 $(document).ready(function () {
+  speakNow("Hello Human! Welcome to the data diver.");
+
   if (document.getElementById("preview")) {
     isPreview = true;
   }
@@ -165,6 +229,12 @@ $(document).ready(function () {
         document.getElementById("outer").style.backgroundColor =
           "rgb(0 0 0 / 0%)";
       }
+      socket.emit("ex", {
+        usr: uid,
+        id: "analytics",
+        fn: "dropdown",
+        val: "init",
+      });
     }
     //CONNECTION Established - initialize the project (Ui elements initialize when project changes)
   });
@@ -282,20 +352,33 @@ $(document).ready(function () {
         }
         break;
 
-      // ------------------------------------------------------------------------
-      // TO DO : fix error of "shadowRoot not open" (time delay did not work)
-      // ------------------------------------------------------------------------
-      // case "cbaddNode":
-      //     var content = document.getElementById('cbscrollbox').shadowRoot.getElementById("box");
-      //     removeAllChildNodes(content);
-      //     for (let i = 0; i < data.val.length; i++) {
-      //         $(content).append("<mc-button id = 'button"+ i + " 'val= '"+ data.val[i].id + "' name = '"+ data.val[i].name +  "' w = '118' fn = 'node' color = '" + rgbToHex(data.val[i].color[0]*0.5,data.val[i].color[1]*0.5,data.val[i].color[2]*0.5) + "' ></mc-button>");
-      //     }
-      //     break;
+      case "cbaddNode":
+        var content = document
+          .getElementById("cbscrollbox")
+          .shadowRoot.getElementById("box");
+        removeAllChildNodes(content);
+        for (let i = 0; i < data.val.length; i++) {
+          $(content).append(
+            "<mc-button id = 'button" +
+              i +
+              " 'val= '" +
+              data.val[i].id +
+              "' name = '" +
+              data.val[i].name +
+              "' w = '118' fn = 'node' color = '" +
+              rgbToHex(
+                data.val[i].color[0] * 0.5,
+                data.val[i].color[1] * 0.5,
+                data.val[i].color[2] * 0.5
+              ) +
+              "' ></mc-button>"
+          );
+        }
+        break;
 
       case "updateTempTex":
-        if (preview) {
-          downloadTempTexture(data["path"]);
+        if (isPreview) {
+          downloadTempTexture(data["path"], data["channel"]);
         } else {
           ue4(data["fn"], data);
         }
@@ -469,6 +552,21 @@ $(document).ready(function () {
               makeNetwork();
             }
           }
+          if (data.id == "analytics") {
+            $(".analyticsOption").css("display", "none");
+            switch (data.name) {
+              case "Degree Distribution":
+                $("#analyticsSelectedDegree").css("display", "inline-block");
+                break;
+              case "Closeness":
+                $("#analyticsSelectedCloseness").css("display", "inline-block");
+                break;
+              case "Shortest Path":
+                $("#analyticsSelectedPath").css("display", "inline-block");
+                break;
+              // add bindings for options display here
+            }
+          }
         }
 
         ue4(data["fn"], data);
@@ -477,25 +575,15 @@ $(document).ready(function () {
       case "project":
         //clearProject();
         //if (data["usr"]==uid){
-        console.log("pfile", pfile);
-        pfile.update(data["val"]);
-        console.log("pfile", pfile);
+        pfile = data["val"];
+        let legendcount = 0;
+
         //--------------------------------
-        // L E G E N D P A N E L
-
-        // IMAGE on legend panel
-        displayImage(pfile.name);
-
-        //HTMLPLOT on legend panel
-        displayHTML(pfile.name);
-
-        // GRAPHINFO on legend panel
-        displayGraphInfo(pfile.name);
-
-        // NODE + LINK info on legend panel
-        displayNodeLegend(pfile.name);
-        displayLinkLegend(pfile.name);
-
+        // initial inf on L E G E N D P A N E L
+        Legend_displayGraphInfo(pfile.name);
+        Legend_displayfirstNodeInfo(pfile.name);
+        Legend_displayfirstLinkInfo(pfile.name);
+        Legend_displayfirstFile(pfile.name);
         //--------------------------------
 
         if (isPreview) {
@@ -511,6 +599,24 @@ $(document).ready(function () {
 
       case "ue4":
         ue4(data["fn"], data);
+
+        if (data.id == "forwardstep") {
+          Legend_displayNodeLinkInfo_forward(pfile.name);
+        } else if (data.id == "backwardstep") {
+          Legend_displayNodeLinkInfo_backward(pfile.name);
+        }
+
+        break;
+
+      case "textinput":
+        console.log(data.val + " --- " + data.id);
+        if (document.getElementById(data.id)) {
+          var content = document
+            .getElementById(data.id)
+            .shadowRoot.getElementById("text");
+          content.value = data.val;
+        }
+
         break;
 
       case "chatmessage":
@@ -518,9 +624,95 @@ $(document).ready(function () {
         // console.log("C_DEBUG: print text message")
         // ue4(data["fn"], data); // NOT TESTED IF Username taken from ue4
         break;
+      case "analytics":
+        if (data.id == "analyticsDegreePlot") {
+          const config = { displayModeBar: false };
+          const layout = {};
+          let plot_data = JSON.parse(data["val"]);
+
+          Plotly.newPlot(data["parent"], gdata, layout, config);
+          let plotIFrame = document.getElementById("analyticsIFrame");
+          plotIFrame.on("plotly_click", function (data) {
+            if (data.points[0].hasOwnProperty("meta")) {
+              // add callback to nodebuttton automatically if provided
+              console.log(data.points[0].meta);
+              socket.emit("ex", {
+                msg: "none",
+                id: "none",
+                val: data.points[0].meta,
+                fn: "node",
+              });
+            } else if (data.points[0].hasOwnProperty("label")) {
+              console.log(data.points[0].label);
+            } else if (data.points[0].hasOwnProperty("text")) {
+              console.log(data.points[0].text);
+            } else {
+              console.log(data.points[0]);
+            }
+          });
+
+          plotIFrame.style.display = "inline-block";
+
+          // this is the line that hides the bar for real
+          const NavBar = document.getElementsByClassName("modebar-container");
+          for (let i = 0; i < NavBar.length; i++) {
+            NavBar[i].style.visibility = "hidden";
+          }
+        }
+
+        if (data.id == "analyticsPathNode1") {
+          let button = document
+            .getElementById("analyticsPathNode1")
+            .shadowRoot.getElementById("name");
+          if (data.val != "init") {
+            button.innerHTML = data.val.name;
+            button.style.color = data.val.color;
+          }
+        }
+        if (data.id == "analyticsPathNode2") {
+          let button = document
+            .getElementById("analyticsPathNode2")
+            .shadowRoot.getElementById("name");
+          if (data.val != "init") {
+            button.innerHTML = data.val.name;
+            button.style.color = data.val.color;
+          }
+        }
+      case "annotation":
+        if (data.id == "annotationOperation") {
+          let value = data.val;
+          if (value == "init") {
+            return;
+          }
+          let button = document
+            .getElementById("annotationOperation")
+            .shadowRoot.getElementById("name");
+          if (value == true) {
+            button.innerHTML = "[-]";
+            document.getElementById("annotation-2").style.display =
+              "inline-block";
+            document.getElementById("annotation-Operations").style.display =
+              "inline-block";
+          }
+          if (value == false) {
+            button.innerHTML = "OPERATION";
+            document.getElementById("annotation-2").style.display = "none";
+            document.getElementById("annotation-Operations").style.display =
+              "none";
+          }
+        }
+
+      case "func_legend_file":
+        if (data.id == "legend_forward") {
+          Legend_switchingFiles_forward(pfile.name);
+        } else if (data.id == "legend_backward") {
+          Legend_switchingFiles_backward(pfile.name);
+        }
     }
   });
 });
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 function rgbToHex(red, green, blue) {
   const rgb = (red << 16) | (green << 8) | (blue << 0);
@@ -556,74 +748,248 @@ function removeOptions(selectElement) {
 }
 
 //-------------------------------------------------------
+// CHAT TEXT DISPLAY
+//-------------------------------------------------------
+function displayChatText(data) {
+  const chatOutput = document.getElementById("chatoutput");
+  chatOutput.innerHTML += `<div>${data.usr}: ${data.val}</div>`;
+  console.log("C_DEBUG:", chatOutput.innerHTML);
+}
+
+//-------------------------------------------------------
 // I M A G E L O A D I N G functions
 //-------------------------------------------------------
-// function for checking if imagepath/image exists
-function checkImageExists(imgpath, callback) {
-  const img = new Image();
-  img.src = imgpath;
-  if (img.complete) {
-    callback(true);
-  } else {
-    img.onload = () => {
-      callback(true);
-    };
-    img.onerror = () => {
+function Legend_checkFileExists(filepath, callback) {
+  fetch(filepath)
+    .then((response) => {
+      if (response.ok) {
+        callback(true);
+      } else {
+        callback(false);
+      }
+    })
+    .catch((error) => {
       callback(false);
-    };
-  }
-  return callback;
-}
-
-// function for displaying an image
-function displayImage(project_selected) {
-  if (document.getElementById("legendpanel")) {
-    legend_source =
-      "static/projects/" + project_selected + "/legends/legend.png";
-    checkImageExists(legend_source, (exists) => {
-      if (exists) {
-        console.log("C_DEBUG - displayImage: Image exists.");
-        legend_source =
-          "static/projects/" + project_selected + "/legends/legend.png";
-      } else {
-        console.log("C_DEBUG - displayImage: Image DOES NOT exist.");
-        legend_source = "";
-      }
-      console.log("C_DEBUG: Image after check exists:", legend_source);
-      document.getElementById("legendpanel").src = legend_source;
     });
-  }
-}
-
-//-------------------------------------------------------
-// H T M L  L O A D I N G functions
-//-------------------------------------------------------
-// Check File exists
-function checkFileExists(mypath, callback) {
-  console.log("C_DEBUG: in checkFileExists: mypath", mypath);
-  if (mypath) {
-    callback(true);
-  } else {
-    callback(false);
-  }
   return callback;
 }
 
-// function for displaying a html file
-function displayHTML(project_selected) {
-  if (document.getElementById("htmlplot")) {
-    //var mybool = false;
-    source = "static/projects/" + project_selected + "/legends/my_plot.html";
-    checkFileExists(source, (exists) => {
-      if (exists) {
-        console.log("C_DEBUG - displayHTML: HTML exists.");
-        //mybool=false;
+function Legend_checkFileType(fileName) {
+  const fileExtension = fileName.split(".").pop().toLowerCase();
+  const imageExtensions = ["jpg", "jpeg", "png", "gif"];
+  const htmlExtensions = ["html", "htm"];
+
+  if (imageExtensions.includes(fileExtension)) {
+    return "image";
+  }
+  if (htmlExtensions.includes(fileExtension)) {
+    return "html";
+  }
+  return "unknown";
+}
+
+function Legend_changeImage(project_selected, currentIndex, imageSources) {
+  console.log("C_DEBUG: IN changeImage - pfile :", project_selected);
+
+  const imageElement = document.getElementById("legend_image");
+  const htmlElement = document.getElementById("legend_html");
+  const fileType = Legend_checkFileType(
+    "static/projects/" +
+      project_selected +
+      "/legends/" +
+      imageSources[currentIndex]
+  );
+
+  if (fileType === "image") {
+    //console.log("C_DEBUG: changeImage -> in image; currentIndex=", currentIndex);
+
+    imageElement.src =
+      "static/projects/" +
+      project_selected +
+      "/legends/" +
+      imageSources[currentIndex];
+    imageElement.style.display = "block";
+    htmlElement.style.display = "none";
+  } else if (fileType === "html") {
+    //console.log("C_DEBUG: changeImage -> in html; currentIndex=", currentIndex);
+
+    fetch(
+      "static/projects/" +
+        project_selected +
+        "/legends/" +
+        imageSources[currentIndex]
+    )
+      .then((response) => response.text())
+      .then((html) => {
+        htmlElement.srcdoc = html;
+        htmlElement.style.display = "block";
+
+        htmlElement.style.width =
+          htmlElement.parentElement.offsetWidth - 18 + "px";
+        htmlElement.style.height =
+          htmlElement.contentDocument.body.scrollHeight + 20 + "px";
+        imageElement.style.display = "none";
+      });
+  }
+}
+
+function Legend_switchforward(responseData) {
+  const nextButton = document.getElementById("legend_forward");
+  const backButton = document.getElementById("legend_backward");
+
+  let currentIndex = parseInt(nextButton.getAttribute("val"));
+  console.log(
+    "C_DEBUG: in switchforward - currentIndex BEFORE add = ",
+    currentIndex
+  );
+  currentIndex = (currentIndex + 1) % responseData.legendfiles.length;
+  Legend_changeImage(responseData.name, currentIndex, responseData.legendfiles);
+
+  nextButton.setAttribute("val", currentIndex);
+  // also set backButton to have same val :
+  backButton.setAttribute("val", currentIndex);
+
+  console.log(
+    "C_DEBUG: in switchforward - currentIndex AFTER add = ",
+    currentIndex
+  );
+}
+
+function Legend_switchbackward(responseData) {
+  const backButton = document.getElementById("legend_backward");
+  const nextButton = document.getElementById("legend_forward");
+
+  let currentIndex = parseInt(backButton.getAttribute("val"));
+  console.log(
+    "C_DEBUG: in switchbackward - currentIndex BEFORE add = ",
+    currentIndex
+  );
+  currentIndex =
+    (currentIndex - 1 + responseData.legendfiles.length) %
+    responseData.legendfiles.length;
+  Legend_changeImage(responseData.name, currentIndex, responseData.legendfiles);
+
+  backButton.setAttribute("val", currentIndex);
+  // also set nextButton to have same val :
+  nextButton.setAttribute("val", currentIndex);
+
+  console.log(
+    "C_DEBUG: in switchbackward - currentIndex AFTER add = ",
+    currentIndex
+  );
+}
+
+function Legend_switchingFiles_forward(project_selected) {
+  if (
+    document.getElementById("legend_image") &&
+    document.getElementById("legend_html")
+  ) {
+    const legendButtons = document.getElementById("legend_buttons");
+    const imageElement = document.getElementById("legend_image");
+    const htmlElement = document.getElementById("legend_html");
+
+    $.getJSON("static/projects/" + project_selected + "/pfile.json")
+      .done(function (responseData) {
+        if (responseData.legendfiles.length > 0) {
+          legendButtons.style.display = "flex";
+          document
+            .getElementById("legend_forward")
+            .addEventListener("click", Legend_switchforward(responseData));
+        } else {
+          legendButtons.style.display = "none";
+          imageElement.style.display = "none";
+          htmlElement.style.display = "none";
+        }
+      })
+      .fail(function () {
+        console.log("Failed to retrieve JSON data");
+      });
+  }
+}
+
+function Legend_switchingFiles_backward(project_selected) {
+  if (
+    document.getElementById("legend_image") &&
+    document.getElementById("legend_html")
+  ) {
+    const legendButtons = document.getElementById("legend_buttons");
+    const imageElement = document.getElementById("legend_image");
+    const htmlElement = document.getElementById("legend_html");
+
+    $.getJSON("static/projects/" + project_selected + "/pfile.json")
+      .done(function (responseData) {
+        if (responseData.legendfiles.length > 0) {
+          legendButtons.style.display = "flex";
+          document
+            .getElementById("legend_backward")
+            .addEventListener("click", Legend_switchbackward(responseData));
+        } else {
+          legendButtons.style.display = "none";
+          imageElement.style.display = "none";
+          htmlElement.style.display = "none";
+        }
+      })
+      .fail(function () {
+        console.log("Failed to retrieve JSON data");
+      });
+  }
+}
+
+function Legend_displayfirstFile(project_selected) {
+  if (
+    document.getElementById("legend_image") &&
+    document.getElementById("legend_html")
+  ) {
+    const p_file = "static/projects/" + project_selected + "/pfile.json";
+    const imageElement = document.getElementById("legend_image");
+    const htmlElement = document.getElementById("legend_html");
+
+    const legendButtons = document.getElementById("legend_buttons");
+    const nextButton = document.getElementById("legend_forward");
+    const backButton = document.getElementById("legend_backward");
+
+    $.getJSON(p_file).done(function (data) {
+      if (data.hasOwnProperty("legendfiles") && data.legendfiles.length > 0) {
+        const zeroIndex = data.legendfiles[0];
+        const fileType = Legend_checkFileType(zeroIndex);
+
+        // at new project loaded - set val of both Buttons to zero
+        backButton.setAttribute("val", 0);
+        nextButton.setAttribute("val", 0);
+
+        if (fileType == "image") {
+          console.log("C_DEBUG: display FIRST image - in image");
+
+          imageElement.src =
+            "static/projects/" + project_selected + "/legends/" + zeroIndex;
+          imageElement.style.display = "block";
+          legendButtons.style.display = "flex";
+
+          htmlElement.style.display = "none";
+        } else if (fileType == "html") {
+          //console.log("C_DEBUG: display FIRST image - in html");
+
+          fetch("static/projects/" + project_selected + "/legends/" + zeroIndex)
+            .then((response) => response.text())
+            .then((html) => {
+              htmlElement.srcdoc = html;
+              htmlElement.style.display = "block";
+              htmlElement.style.width =
+                htmlElement.parentElement.offsetWidth - 18 + "px";
+              htmlElement.style.height =
+                htmlElement.contentDocument.body.scrollHeight + 20 + "px";
+
+              legendButtons.style.display = "flex";
+              imageElement.style.display = "none";
+            });
+        }
       } else {
-        console.log("C_DEBUG - displayHTML: HTML DOES NOT exist.");
+        //console.log("C_DEBUG: in else / hide all");
+
+        legendButtons.style.display = "none";
+        imageElement.style.display = "none";
+        htmlElement.style.display = "none";
       }
-      console.log("C_DEBUG: HTML after check exists:", source);
-      document.getElementById("htmlplot").innerHTML = source;
-      //document.getElementById("htmlplot").hidden=mybool;
     });
   }
 }
@@ -631,14 +997,14 @@ function displayHTML(project_selected) {
 //-------------------------------------------------------
 // GRAPH INFO DISPLAY
 //-------------------------------------------------------
-function displayGraphInfo(project_selected) {
+function Legend_displayGraphInfo(project_selected) {
   if (document.getElementById("graphinfo")) {
     const graphname_file =
-      "static/projects/" + project_selected + "/graphinfofile.json";
+      "static/projects/" + project_selected + "/pfile.json";
     $.getJSON(graphname_file)
       .done(function (data) {
-        let graphtitle = "Graph title not specified.";
-        let graphdescription = "Graph description not specified.";
+        let graphtitle = project_selected;
+        let graphdescription = "";
 
         if (data.hasOwnProperty("graphtitle")) {
           graphtitle = data.graphtitle;
@@ -650,7 +1016,7 @@ function displayGraphInfo(project_selected) {
 
         const myDiv = document.getElementById("graphinfo");
         myDiv.innerHTML =
-          "<span style='font-size:20px; font-weight:bold'>" +
+          "<span style='font-size:18px; font-weight:bold'>" +
           graphtitle +
           "</span>" +
           "<br>" +
@@ -659,7 +1025,7 @@ function displayGraphInfo(project_selected) {
       .fail(function () {
         const myDiv = document.getElementById("graphinfo");
         myDiv.innerHTML =
-          "<span style='font-size:20px; font-weight:bold'>Graph title not specified</span>" +
+          "<span style='font-size:18px; font-weight:bold'>Graph title not specified</span>" +
           "<br>" +
           "Graph description not specified.";
       });
@@ -669,25 +1035,42 @@ function displayGraphInfo(project_selected) {
 //-------------------------------------------------------
 // CHAT TEXT DISPLAY
 //-------------------------------------------------------
-function displayChatText(data) {
-  const chatOutput = document.getElementById("chatoutput");
-  chatOutput.innerHTML += `<div>${data.usr}: ${data.val}</div>`;
-  console.log("C_DEBUG:", chatOutput.innerHTML);
+function displayColorAsDiv(color, width, height, marginbottom, margintop) {
+  const div = document.createElement("div");
+  div.style.width = `${width}px`;
+  div.style.height = `${height}px`;
+  div.style.backgroundColor = color;
+
+  div.style.marginBottom = `${marginbottom}px`;
+  div.style.marginTop = `${margintop}px`;
+
+  div.style.marginRight = `10px`;
+  div.style.marginLeft = `10px`;
+  div.style.border = "1.5px solid grey";
+  return div;
 }
 
 //-------------------------------------------------------
 // NODE/LINK COLOR DESCRIPTION IN LEGEND PANEL
 //-------------------------------------------------------
-function displayNodeLegend(project_selected) {
+function Legend_displayfirstNodeInfo(project_selected) {
   if (document.getElementById("legendpanel")) {
     const p_file = "static/projects/" + project_selected + "/pfile.json";
+
+    const nextButton = document.getElementById("forwardstep");
+    const backButton = document.getElementById("backwardstep");
+    // at new project loaded - set val of both Buttons to zero
+    backButton.setAttribute("val", "0");
+    nextButton.setAttribute("val", "0");
 
     $.getJSON(p_file, (pfiledata) => {
       const clusterlist = pfiledata["selections"];
 
-      // W I T H O U T   D E F I N E D   C L U S T E R S (in pfiledata["selectiond"])
       if (clusterlist.length === 0) {
-        //console.log("clusterlist is empty");
+        // W I T H O U T   D E F I N E D   C L U S T E R S (in pfiledata["selectiond"])
+        //console.log("C_DEBUG: in clusterlist length is 0");
+
+        const allnode_Div = document.getElementById("legend_node_all");
 
         const nodedesc_Div = document.getElementById("legend_nodedescription");
         const nodecol_Div = document.getElementById("legend_nodecolor");
@@ -725,7 +1108,6 @@ function displayNodeLegend(project_selected) {
             const colorKey = `${r},${g},${b}`;
 
             // If the color key doesn't exist in the dictionary yet, add it
-
             if (!colorsDict.hasOwnProperty(colorKey)) {
               const pixelIndex = i / 4; // Get the pixel index
               namesDict[pixelIndex] = { name: "Nodegroup " + index, nodes: [] }; //, "color" : []}; // Set the index as the key
@@ -743,32 +1125,44 @@ function displayNodeLegend(project_selected) {
             },${pixelData[pixelIndex * 4 + 2]}`;
             newNamesDict[colorKey] = namesDict[pixelIndex];
           }
-          // console.log("C_DEBUG: newNamesDict: ", newNamesDict);
+          //console.log("C_DEBUG: newNamesDict: ", newNamesDict);
 
           // Loop through the namesDict and create an element for each node
           for (const color in newNamesDict) {
-            // Split the color string into R, G, B values
-            const [r, g, b] = color.split(",");
+            //const [r, g, b] = color.split(',');
 
             // Check if the color is non-black
-            if (r !== "0" || g !== "0" || b !== "0") {
+            if (color != "0,0,0") {
+              //console.log("C_DEBUG: color not black: ", color);
+              const color_reformated = "rgb(" + color + ")";
               const textdiv = document.createElement("div");
               const text = document.createTextNode(newNamesDict[color]["name"]);
+              textdiv.style.fontSize = "14px";
+              textdiv.style.lineHeight = "24px"; // this should be same as colorImg.height+colorImg.marginBottom
               textdiv.appendChild(text);
               nodedesc_Div.appendChild(textdiv);
-
-              const colorImg = displayColorAsImage(color, 18.5, 18.5); // 20px 20px square
+              const colorImg = displayColorAsDiv(
+                color_reformated,
+                18.5,
+                18.5,
+                5.5,
+                0
+              );
               nodecol_Div.appendChild(colorImg);
             }
           }
+          allnode_Div.appendChild(nodecol_Div);
+          allnode_Div.appendChild(nodedesc_Div);
         };
-
-        // W I T H   D E F I N E D   C L U S T E R S
       } else {
-        //console.log("C_DEBUG: clusterlist = ", clusterlist);
+        // W I T H   D E F I N E D   C L U S T E R S
+        //console.log("C_DEBUG: in clusterlist length is: ", clusterlist.length);
+
+        const allnode_Div = document.getElementById("legend_node_all");
 
         const nodedesc_Div = document.getElementById("legend_nodedescription");
         const nodecol_Div = document.getElementById("legend_nodecolor");
+
         nodedesc_Div.innerHTML = "";
         nodecol_Div.innerHTML = "";
 
@@ -822,13 +1216,23 @@ function displayNodeLegend(project_selected) {
             });
             sortedResults.forEach((result) => {
               const textdiv = document.createElement("div");
+              textdiv.style.fontSize = "14px";
+              textdiv.style.lineHeight = "24px";
               const text = document.createTextNode(result.cluster["name"]);
               textdiv.appendChild(text);
               nodedesc_Div.appendChild(textdiv);
 
-              const colorImg = displayColorAsImage(result.color, 18.5, 18.5); // 20px 20px square
+              const colorImg = displayColorAsDiv(
+                result.color,
+                18.5,
+                18.5,
+                5.5,
+                0
+              );
               nodecol_Div.appendChild(colorImg);
             });
+            allnode_Div.appendChild(nodecol_Div);
+            allnode_Div.appendChild(nodedesc_Div);
           })
           .catch((err) => {
             console.log("Error: Could not load image: " + err);
@@ -840,13 +1244,14 @@ function displayNodeLegend(project_selected) {
   }
 }
 
-function displayLinkLegend(project_selected) {
+function Legend_displayfirstLinkInfo(project_selected) {
   if (document.getElementById("legendpanel")) {
     const p_file = "static/projects/" + project_selected + "/pfile.json";
 
+    const alllink_Div = document.getElementById("legend_link_all");
+
     $.getJSON(p_file, (pfiledata) => {
       const clusterlist = pfiledata["selections"];
-
       const linkdesc_Div = document.getElementById("legend_linkdescription");
       const linkcol_Div = document.getElementById("legend_linkcolor");
       linkdesc_Div.innerHTML = "";
@@ -908,19 +1313,27 @@ function displayLinkLegend(project_selected) {
 
         // Loop through the namesDict and create an element for each node
         for (const color in newNamesDict) {
-          // Split the color string into R, G, B values
-          const [r, g, b] = color.split(",");
-          // Check if the color is non-black
-          if (color !== "0,0,0") {
-            // (r !== '0' && g !== '0' && b !== '0') {
+          if (color != "0,0,0") {
+            const color_reformated = "rgb(" + color + ")";
+
+            const colorImg = displayColorAsDiv(
+              color_reformated,
+              18.5,
+              18.5,
+              5.5,
+              0
+            ); //30, 5, 0, 0); // 20px 20px square
+            linkcol_Div.appendChild(colorImg);
+
             const textdiv = document.createElement("div");
+            textdiv.style.fontSize = "14px";
+            textdiv.style.lineHeight = "24px"; // this should be same as colorImg.height+colorImg.marginBottom
             const text = document.createTextNode(newNamesDict[color]["name"]);
             textdiv.appendChild(text);
             linkdesc_Div.appendChild(textdiv);
-
-            const colorImg = displayColorAsImage(color, 40, 3); // 20px 20px square
-            linkcol_Div.appendChild(colorImg);
           }
+          alllink_Div.appendChild(linkcol_Div);
+          alllink_Div.appendChild(linkdesc_Div);
         }
       };
     }).fail(function () {
@@ -932,16 +1345,620 @@ function displayLinkLegend(project_selected) {
 //-------------------------------------------------------
 // display color as image
 //-------------------------------------------------------
-function displayColorAsImage(color, width, height) {
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext("2d");
-  const colorArr = color.match(/\d+/g).map(Number);
-  ctx.fillStyle = `rgb(${colorArr[0]}, ${colorArr[1]}, ${colorArr[2]})`;
-  ctx.fillRect(0, 0, width, height);
-  const dataURL = canvas.toDataURL();
-  const img = document.createElement("img");
-  img.src = dataURL;
-  return img;
+
+// forward
+function getIndexforwardstep(data) {
+  const nextButton = document.getElementById("forwardstep");
+  const backButton = document.getElementById("backwardstep");
+
+  let currentIndex = parseInt(nextButton.getAttribute("val"));
+  currentIndex = (currentIndex + 1) % data;
+
+  nextButton.setAttribute("val", currentIndex);
+  backButton.setAttribute("val", currentIndex);
+  console.log("C_DEBUG: getIndexforwardstep value = ", currentIndex);
+
+  return currentIndex;
+}
+
+// backward
+function getIndexbackwardstep(data) {
+  const backButton = document.getElementById("backwardstep");
+  const nextButton = document.getElementById("forwardstep");
+
+  let currentIndex = parseInt(backButton.getAttribute("val"));
+  currentIndex = (currentIndex - 1 + data) % data;
+
+  backButton.setAttribute("val", currentIndex);
+  nextButton.setAttribute("val", currentIndex);
+  console.log("C_DEBUG: getIndexbackwardstep value = ", currentIndex);
+
+  return currentIndex;
+}
+
+function Legend_displayNodeLinkInfo_forward(project_selected) {
+  if (document.getElementById("legendpanel")) {
+    const p_file = "static/projects/" + project_selected + "/pfile.json";
+    const alllink_Div = document.getElementById("legend_link_all");
+
+    $.getJSON(p_file, (pfiledata) => {
+      const clusterlist = pfiledata["selections"];
+      forwardidx = getIndexforwardstep(pfiledata.layoutsRGB.length);
+      //console.log("C_DEBUG: NODE/LINK forwardidx = ", forwardidx);
+
+      // -------------------------------
+      // L I N K S
+      // -------------------------------
+      const linkdesc_Div = document.getElementById("legend_linkdescription");
+      const linkcol_Div = document.getElementById("legend_linkcolor");
+      linkdesc_Div.innerHTML = "";
+      linkcol_Div.innerHTML = "";
+
+      // WIP - currently temp fix: catch if there are more node color files than link color files
+      if (pfiledata.layoutsRGB.length > pfiledata.linksRGB.length) {
+        const img_name = pfiledata["linksRGB"][0];
+        img = new Image();
+        img.src =
+          "static/projects/" +
+          project_selected +
+          "/linksRGB/" +
+          img_name +
+          ".png";
+        console.log("C_DEBUG: forwardidx > linksRGB.length.");
+      } else {
+        const img_name = pfiledata["linksRGB"][forwardidx];
+        img = new Image();
+        img.src =
+          "static/projects/" +
+          project_selected +
+          "/linksRGB/" +
+          img_name +
+          ".png";
+        console.log("C_DEBUG: forwardidx - in else.");
+      }
+
+      const canvas = document.createElement("canvas");
+      img.onload = function () {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const pixelData = imageData.data;
+
+        // Loop through all the pixels in the image
+        const colorsDict = {};
+        const namesDict = {};
+        let index = 1;
+
+        for (let i = 0; i < pixelData.length; i += 4) {
+          const r = pixelData[i];
+          const g = pixelData[i + 1];
+          const b = pixelData[i + 2];
+          const a = pixelData[i + 3];
+          const colorKey = `${r},${g},${b}`;
+
+          // If the color key doesn't exist in the dictionary yet, add it
+
+          if (!colorsDict.hasOwnProperty(colorKey)) {
+            const pixelIndex = i / 4; // Get the pixel index
+            namesDict[pixelIndex] = {
+              name: "Connections ", //+index,
+              nodes: [],
+            }; //, "color" : []}; // Set the index as the key
+            colorsDict[colorKey] = pixelIndex; // Map the color key to the pixel index
+            index += 1;
+          }
+          const pixelIndex = colorsDict[colorKey]; // Retrieve the pixel index from the color key mapping
+          namesDict[pixelIndex]["nodes"].push(i / 4);
+        }
+        // Create a new dictionary with the colorKey as the key
+        const newNamesDict = {};
+        for (const pixelIndex in namesDict) {
+          const colorKey = `${pixelData[pixelIndex * 4]},${
+            pixelData[pixelIndex * 4 + 1]
+          },${pixelData[pixelIndex * 4 + 2]}`;
+          newNamesDict[colorKey] = namesDict[pixelIndex];
+        }
+        // console.log("C_DEBUG: newNamesDict: ", newNamesDict);
+
+        // Loop through the namesDict and create an element for each node
+        for (const color in newNamesDict) {
+          if (color != "0,0,0") {
+            const color_reformated = "rgb(" + color + ")";
+
+            const colorImg = displayColorAsDiv(
+              color_reformated,
+              18.5,
+              18.5,
+              5.5,
+              0
+            ); //30, 5, 0, 0); // 20px 20px square
+            linkcol_Div.appendChild(colorImg);
+
+            const textdiv = document.createElement("div");
+            textdiv.style.fontSize = "14px";
+            textdiv.style.lineHeight = "24px"; // this should be same as colorImg.height+colorImg.marginBottom
+            const text = document.createTextNode(newNamesDict[color]["name"]);
+            textdiv.appendChild(text);
+            linkdesc_Div.appendChild(textdiv);
+          }
+          alllink_Div.appendChild(linkcol_Div);
+          alllink_Div.appendChild(linkdesc_Div);
+        }
+      };
+
+      // -------------------------------
+      // N O D E S
+      // -------------------------------
+      if (clusterlist.length === 0) {
+        // W I T H O U T   D E F I N E D   C L U S T E R S (in pfiledata["selectiond"])
+        //console.log("C_DEBUG: in clusterlist length is 0");
+
+        const allnode_Div = document.getElementById("legend_node_all");
+
+        const nodedesc_Div = document.getElementById("legend_nodedescription");
+        const nodecol_Div = document.getElementById("legend_nodecolor");
+        nodedesc_Div.innerHTML = "";
+        nodecol_Div.innerHTML = "";
+
+        const img_name = pfiledata["layoutsRGB"][forwardidx]; //"nodecolors0RGB";
+        const img = new Image();
+        img.src =
+          "static/projects/" +
+          project_selected +
+          "/layoutsRGB/" +
+          img_name +
+          ".png";
+
+        const canvas = document.createElement("canvas");
+        img.onload = function () {
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0);
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const pixelData = imageData.data;
+
+          // Loop through all the pixels in the image
+          const colorsDict = {};
+          const namesDict = {};
+          let index = 1;
+
+          for (let i = 0; i < pixelData.length; i += 4) {
+            const r = pixelData[i];
+            const g = pixelData[i + 1];
+            const b = pixelData[i + 2];
+            const a = pixelData[i + 3];
+            const colorKey = `${r},${g},${b}`;
+
+            // If the color key doesn't exist in the dictionary yet, add it
+            if (!colorsDict.hasOwnProperty(colorKey)) {
+              const pixelIndex = i / 4; // Get the pixel index
+              namesDict[pixelIndex] = { name: "Nodegroup " + index, nodes: [] }; //, "color" : []}; // Set the index as the key
+              colorsDict[colorKey] = pixelIndex; // Map the color key to the pixel index
+              index += 1;
+            }
+            const pixelIndex = colorsDict[colorKey]; // Retrieve the pixel index from the color key mapping
+            namesDict[pixelIndex]["nodes"].push(i / 4);
+          }
+          // Create a new dictionary with the colorKey as the key
+          const newNamesDict = {};
+          for (const pixelIndex in namesDict) {
+            const colorKey = `${pixelData[pixelIndex * 4]},${
+              pixelData[pixelIndex * 4 + 1]
+            },${pixelData[pixelIndex * 4 + 2]}`;
+            newNamesDict[colorKey] = namesDict[pixelIndex];
+          }
+          //console.log("C_DEBUG: newNamesDict: ", newNamesDict);
+
+          // Loop through the namesDict and create an element for each node
+          for (const color in newNamesDict) {
+            //const [r, g, b] = color.split(',');
+
+            // Check if the color is non-black
+            if (color != "0,0,0") {
+              //console.log("C_DEBUG: color not black: ", color);
+              const color_reformated = "rgb(" + color + ")";
+              const textdiv = document.createElement("div");
+              const text = document.createTextNode(newNamesDict[color]["name"]);
+              textdiv.style.fontSize = "14px";
+              textdiv.style.lineHeight = "24px"; // this should be same as colorImg.height+colorImg.marginBottom
+              textdiv.appendChild(text);
+              nodedesc_Div.appendChild(textdiv);
+              const colorImg = displayColorAsDiv(
+                color_reformated,
+                18.5,
+                18.5,
+                5.5,
+                0
+              );
+              nodecol_Div.appendChild(colorImg);
+            }
+          }
+          allnode_Div.appendChild(nodecol_Div);
+          allnode_Div.appendChild(nodedesc_Div);
+        };
+      } else {
+        // W I T H   D E F I N E D   C L U S T E R S
+        //console.log("C_DEBUG: in clusterlist length is: ", clusterlist.length);
+
+        const allnode_Div = document.getElementById("legend_node_all");
+
+        const nodedesc_Div = document.getElementById("legend_nodedescription");
+        const nodecol_Div = document.getElementById("legend_nodecolor");
+
+        nodedesc_Div.innerHTML = "";
+        nodecol_Div.innerHTML = "";
+
+        // Use Promise.all to wait for all images to load before processing them
+        Promise.all(
+          clusterlist.map((cluster) => {
+            const nodeID = cluster.nodes[0];
+            const img_name = pfiledata["layoutsRGB"][forwardidx]; //"nodecolors0RGB";
+            const img = new Image();
+            img.src =
+              "static/projects/" +
+              project_selected +
+              "/layoutsRGB/" +
+              img_name +
+              ".png";
+
+            return new Promise((resolve, reject) => {
+              img.onload = () => {
+                const canvas = document.createElement("canvas");
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0);
+                const imageData = ctx.getImageData(
+                  nodeID,
+                  0,
+                  canvas.width,
+                  canvas.height
+                ); // x = nodeID, y = 0
+                const colorData = imageData.data;
+                const color =
+                  "rgb(" +
+                  colorData[0] +
+                  ", " +
+                  colorData[1] +
+                  ", " +
+                  colorData[2] +
+                  ")";
+                resolve({ cluster: cluster, color: color });
+              };
+              img.onerror = reject;
+            });
+          })
+        )
+          .then((results) => {
+            // sort the results by the order of clusterlist
+            const sortedResults = results.sort((a, b) => {
+              return (
+                clusterlist.indexOf(a.cluster) - clusterlist.indexOf(b.cluster)
+              );
+            });
+            sortedResults.forEach((result) => {
+              const textdiv = document.createElement("div");
+              textdiv.style.fontSize = "14px";
+              textdiv.style.lineHeight = "24px";
+              const text = document.createTextNode(result.cluster["name"]);
+              textdiv.appendChild(text);
+              nodedesc_Div.appendChild(textdiv);
+
+              const colorImg = displayColorAsDiv(
+                result.color,
+                18.5,
+                18.5,
+                5.5,
+                0
+              );
+              nodecol_Div.appendChild(colorImg);
+            });
+            allnode_Div.appendChild(nodecol_Div);
+            allnode_Div.appendChild(nodedesc_Div);
+          })
+          .catch((err) => {
+            console.log("Error: Could not load image: " + err);
+          });
+      }
+    }).fail(function () {
+      console.log("Error: Could not load JSON file");
+    });
+  }
+}
+
+function Legend_displayNodeLinkInfo_backward(project_selected) {
+  if (document.getElementById("legendpanel")) {
+    const p_file = "static/projects/" + project_selected + "/pfile.json";
+
+    const alllink_Div = document.getElementById("legend_link_all");
+
+    $.getJSON(p_file, (pfiledata) => {
+      const clusterlist = pfiledata["selections"];
+      backwardidx = getIndexbackwardstep(pfiledata.layoutsRGB.length);
+      console.log("C_DEBUG: NODE/LINK backwardidx = ", backwardidx);
+
+      // -------------------------------
+      // L I N K S
+      // -------------------------------
+      const linkdesc_Div = document.getElementById("legend_linkdescription");
+      const linkcol_Div = document.getElementById("legend_linkcolor");
+      linkdesc_Div.innerHTML = "";
+      linkcol_Div.innerHTML = "";
+
+      // WIP - currently temp fix: catch if there are more node color files than link color files
+      if (pfiledata.layoutsRGB.length > pfiledata.linksRGB.length) {
+        const img_name = pfiledata["linksRGB"][0];
+        img = new Image();
+        img.src =
+          "static/projects/" +
+          project_selected +
+          "/linksRGB/" +
+          img_name +
+          ".png";
+        console.log("C_DEBUG: backwardidx > linksRGB.length.");
+      } else {
+        const img_name = pfiledata["linksRGB"][backwardidx];
+        img = new Image();
+        img.src =
+          "static/projects/" +
+          project_selected +
+          "/linksRGB/" +
+          img_name +
+          ".png";
+        console.log("C_DEBUG: backwardidx - in else.");
+      }
+
+      const canvas = document.createElement("canvas");
+      img.onload = function () {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const pixelData = imageData.data;
+
+        // Loop through all the pixels in the image
+        const colorsDict = {};
+        const namesDict = {};
+        let index = 1;
+
+        for (let i = 0; i < pixelData.length; i += 4) {
+          const r = pixelData[i];
+          const g = pixelData[i + 1];
+          const b = pixelData[i + 2];
+          const a = pixelData[i + 3];
+          const colorKey = `${r},${g},${b}`;
+
+          // If the color key doesn't exist in the dictionary yet, add it
+
+          if (!colorsDict.hasOwnProperty(colorKey)) {
+            const pixelIndex = i / 4; // Get the pixel index
+            namesDict[pixelIndex] = {
+              name: "Connections ", //+index,
+              nodes: [],
+            }; //, "color" : []}; // Set the index as the key
+            colorsDict[colorKey] = pixelIndex; // Map the color key to the pixel index
+            index += 1;
+          }
+          const pixelIndex = colorsDict[colorKey]; // Retrieve the pixel index from the color key mapping
+          namesDict[pixelIndex]["nodes"].push(i / 4);
+        }
+        // Create a new dictionary with the colorKey as the key
+        const newNamesDict = {};
+        for (const pixelIndex in namesDict) {
+          const colorKey = `${pixelData[pixelIndex * 4]},${
+            pixelData[pixelIndex * 4 + 1]
+          },${pixelData[pixelIndex * 4 + 2]}`;
+          newNamesDict[colorKey] = namesDict[pixelIndex];
+        }
+        // console.log("C_DEBUG: newNamesDict: ", newNamesDict);
+
+        // Loop through the namesDict and create an element for each node
+        for (const color in newNamesDict) {
+          if (color != "0,0,0") {
+            const color_reformated = "rgb(" + color + ")";
+
+            const colorImg = displayColorAsDiv(
+              color_reformated,
+              18.5,
+              18.5,
+              5.5,
+              0
+            ); //30, 5, 0, 0); // 20px 20px square
+            linkcol_Div.appendChild(colorImg);
+
+            const textdiv = document.createElement("div");
+            textdiv.style.fontSize = "14px";
+            textdiv.style.lineHeight = "24px"; // this should be same as colorImg.height+colorImg.marginBottom
+            const text = document.createTextNode(newNamesDict[color]["name"]);
+            textdiv.appendChild(text);
+            linkdesc_Div.appendChild(textdiv);
+          }
+          alllink_Div.appendChild(linkcol_Div);
+          alllink_Div.appendChild(linkdesc_Div);
+        }
+      };
+
+      // -------------------------------
+      // N O D E S
+      // -------------------------------
+      if (clusterlist.length === 0) {
+        // W I T H O U T   D E F I N E D   C L U S T E R S (in pfiledata["selectiond"])
+        //console.log("C_DEBUG: in clusterlist length is 0");
+
+        const allnode_Div = document.getElementById("legend_node_all");
+
+        const nodedesc_Div = document.getElementById("legend_nodedescription");
+        const nodecol_Div = document.getElementById("legend_nodecolor");
+        nodedesc_Div.innerHTML = "";
+        nodecol_Div.innerHTML = "";
+
+        const img_name = pfiledata["layoutsRGB"][backwardidx]; //"nodecolors0RGB";
+        const img = new Image();
+        img.src =
+          "static/projects/" +
+          project_selected +
+          "/layoutsRGB/" +
+          img_name +
+          ".png";
+
+        const canvas = document.createElement("canvas");
+        img.onload = function () {
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0);
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const pixelData = imageData.data;
+
+          // Loop through all the pixels in the image
+          const colorsDict = {};
+          const namesDict = {};
+          let index = 1;
+
+          for (let i = 0; i < pixelData.length; i += 4) {
+            const r = pixelData[i];
+            const g = pixelData[i + 1];
+            const b = pixelData[i + 2];
+            const a = pixelData[i + 3];
+            const colorKey = `${r},${g},${b}`;
+
+            // If the color key doesn't exist in the dictionary yet, add it
+            if (!colorsDict.hasOwnProperty(colorKey)) {
+              const pixelIndex = i / 4; // Get the pixel index
+              namesDict[pixelIndex] = { name: "Nodegroup " + index, nodes: [] }; //, "color" : []}; // Set the index as the key
+              colorsDict[colorKey] = pixelIndex; // Map the color key to the pixel index
+              index += 1;
+            }
+            const pixelIndex = colorsDict[colorKey]; // Retrieve the pixel index from the color key mapping
+            namesDict[pixelIndex]["nodes"].push(i / 4);
+          }
+          // Create a new dictionary with the colorKey as the key
+          const newNamesDict = {};
+          for (const pixelIndex in namesDict) {
+            const colorKey = `${pixelData[pixelIndex * 4]},${
+              pixelData[pixelIndex * 4 + 1]
+            },${pixelData[pixelIndex * 4 + 2]}`;
+            newNamesDict[colorKey] = namesDict[pixelIndex];
+          }
+          //console.log("C_DEBUG: newNamesDict: ", newNamesDict);
+
+          // Loop through the namesDict and create an element for each node
+          for (const color in newNamesDict) {
+            //const [r, g, b] = color.split(',');
+
+            // Check if the color is non-black
+            if (color != "0,0,0") {
+              //console.log("C_DEBUG: color not black: ", color);
+              const color_reformated = "rgb(" + color + ")";
+              const textdiv = document.createElement("div");
+              const text = document.createTextNode(newNamesDict[color]["name"]);
+              textdiv.style.fontSize = "14px";
+              textdiv.style.lineHeight = "24px"; // this should be same as colorImg.height+colorImg.marginBottom
+              textdiv.appendChild(text);
+              nodedesc_Div.appendChild(textdiv);
+              const colorImg = displayColorAsDiv(
+                color_reformated,
+                18.5,
+                18.5,
+                5.5,
+                0
+              );
+              nodecol_Div.appendChild(colorImg);
+            }
+          }
+          allnode_Div.appendChild(nodecol_Div);
+          allnode_Div.appendChild(nodedesc_Div);
+        };
+      } else {
+        // W I T H   D E F I N E D   C L U S T E R S
+        //console.log("C_DEBUG: in clusterlist length is: ", clusterlist.length);
+
+        const allnode_Div = document.getElementById("legend_node_all");
+
+        const nodedesc_Div = document.getElementById("legend_nodedescription");
+        const nodecol_Div = document.getElementById("legend_nodecolor");
+
+        nodedesc_Div.innerHTML = "";
+        nodecol_Div.innerHTML = "";
+
+        // Use Promise.all to wait for all images to load before processing them
+        Promise.all(
+          clusterlist.map((cluster) => {
+            const nodeID = cluster.nodes[0];
+            const img_name = pfiledata["layoutsRGB"][backwardidx]; //"nodecolors0RGB";
+            const img = new Image();
+            img.src =
+              "static/projects/" +
+              project_selected +
+              "/layoutsRGB/" +
+              img_name +
+              ".png";
+
+            return new Promise((resolve, reject) => {
+              img.onload = () => {
+                const canvas = document.createElement("canvas");
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0);
+                const imageData = ctx.getImageData(
+                  nodeID,
+                  0,
+                  canvas.width,
+                  canvas.height
+                ); // x = nodeID, y = 0
+                const colorData = imageData.data;
+                const color =
+                  "rgb(" +
+                  colorData[0] +
+                  ", " +
+                  colorData[1] +
+                  ", " +
+                  colorData[2] +
+                  ")";
+                resolve({ cluster: cluster, color: color });
+              };
+              img.onerror = reject;
+            });
+          })
+        )
+          .then((results) => {
+            // sort the results by the order of clusterlist
+            const sortedResults = results.sort((a, b) => {
+              return (
+                clusterlist.indexOf(a.cluster) - clusterlist.indexOf(b.cluster)
+              );
+            });
+            sortedResults.forEach((result) => {
+              const textdiv = document.createElement("div");
+              textdiv.style.fontSize = "14px";
+              textdiv.style.lineHeight = "24px";
+              const text = document.createTextNode(result.cluster["name"]);
+              textdiv.appendChild(text);
+              nodedesc_Div.appendChild(textdiv);
+
+              const colorImg = displayColorAsDiv(
+                result.color,
+                18.5,
+                18.5,
+                5.5,
+                0
+              );
+              nodecol_Div.appendChild(colorImg);
+            });
+            allnode_Div.appendChild(nodecol_Div);
+            allnode_Div.appendChild(nodedesc_Div);
+          })
+          .catch((err) => {
+            console.log("Error: Could not load image: " + err);
+          });
+      }
+    }).fail(function () {
+      console.log("Error: Could not load JSON file");
+    });
+  }
 }

@@ -6,6 +6,10 @@ venv/
 **/**.vscode/
 **/**.code-workspace
 projects/
+openAI_KEY_doNOTcommit.txt
+static/TTSaudio/
+static/extensions/whisperSpeechRecognition/static/WisperAudio/
 logs/*
 extensions/*
 !extensions/documentation
+!extensions/whisperSpeechRecognition
