@@ -1,9 +1,9 @@
 [submodule "StringEx"]
-	path = extensions/StringEx
+	path = /extensions/StringEx
 	url = https://github.com/menchelab/StringEx
 [submodule "ExampleExtension"]
-	path = extensions/ExampleExtension
+	path = /extensions/ExampleExtension
 	url = https://github.com/menchelab/ExampleExtension
 [submodule "ProteinStructureFetch"]
-	path = extensions/ProteinStructureFetch
+	path = /extensions/ProteinStructureFetch
 	url = https://github.com/menchelab/ProteinStructureFetch
