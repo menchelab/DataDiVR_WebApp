@@ -26,105 +26,76 @@
   <script type="text/javascript" src="{{ url_for('static', filename='js/mc_UI_Elements.js') }}"></script>
 </head>
 
-<body>
-  <div id="tabsUL"><a href="upload.html" id="" title="upload"></a>
-    <!--upload-->
-    <ul id="uploadTabs">
+<body> 
+  <div style="margin-left: 30px; margin-top: 30px;"> <!--id="tabsUL"><a href="upload.html" id="" title="upload"></a>-->
+
+    <!-- <ul id="uploadTabs">
       <li>
         <a href="#fragment-1">
           <img draggable="false" onmousedown="return false" height='40' width='40'
             src="{{ url_for('static', filename='css/images/upload.png') }}" />
         </a>
       </li>
-    </ul>
+    </ul> -->
+
     <div id="fragment-1">
       <form id="upload_formJSON" method=post enctype=multipart/form-data>
         <div class="twelve columns">
           <div class="eight columns">
-            <h2 class="lineglowslow" style="margin-top:30px">VRNetzer</h2>
-          </div>
-          <div class="four columns">
-            <div class="swagLogo"><br></br></div>
+            <h2 class="lineglowslow" style="margin-top:30px">DataDiVR</h2>
           </div>
         </div>
-        <div>Check out the new webGL preview!</div>
-        <input onclick="followLink('/main')" type="button" value="webGL preview" style="height: 50px; width: 250px;min-width: fit-content;" />
-        <br>
+
         <div class="twelve columns">
-          <h3><span>UPLOAD NEW DATA</span></h3>
-          <p>For filestructure refer to the Example File Download Links below.</p>
+          <h3><span>UPLOAD NEW DATA</span> <span style="color:rgb(60,60,60)"> / JSON UPLOAD</span></h3>
+          <p style="color:grey">For filestructure refer to the Example File Download Links below.</p>
         </div>
 
-        <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-                      Project + Namespace Dropdown
-        +++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
-
-        <div class="twelve columns">
-           
-            <!-- REMOVE option "add to project" 
-              
-              <div class="frameBox" style="width: 420px">
-              <div class="two columns">
-                <input type="radio" name="namespace" value="existing" checked ><br>
-              </div>
-              <h5> ADD TO PROJECT</h5>
-
-              <br>
-
-              <div class="cornerBox">
-                <select name="namespaces" id="namespaces">
-                  {% for namespace in namespaces %}
-                  <option value="{{namespace}}">{{namespace}}</option>
-                  {% endfor %}
-                </select>
-                <br>
-
-              </div>
-
-            </div> -->
+        <div class="four columns">
           
-          <br>
-
-          <div class="frameBox"  style="width: 420px">
-            <h5>CREATE NEW PROJECT</h5>
-            <!--<div class="two columns">
-            <input type="radio" name="namespace" id="radio_new_namespaceJSON" value="New" ></input>
+          <div class="gradientBox" style="background:none">
+            <div class="swagBox" style="background-color: rgba(0, 10, 20, 0.3);">
+              <h5>CREATE NEW PROJECT</h5>  
+              <br>
+              <input type="text" name="namespaceJSON" id="new_namespace_nameJSON" class="swagBox"></input>
+              <p id="submit_warnings" style="display:inline"></p>
             </div>
-            <br>
-            <h5>CREATE NEW PROJECT</h5> -->     
-            <br>
-            <input type="text" name="namespace" id="new_namespace_nameJSON" class="swagBox" style="width: 385px;"></input>
-            <p id="submit_warnings" style="display:inline"></p>
-
           </div>
         </div>
 
-        <div class="frameBox" style="width:420px">
-          <div class="twelve columns">
-            <h5>GRAPH JSON FILE</h5>
-            <a style="font-size:14px" target="_blank" href="../static/examplefiles/Upload_examples_JSON/ZacharyGraph_JSON/ZacharysKarateClub0.json">View Example File here</a>
-            <br>
-            <a style="font-size:14px" href="../static/examplefiles/Upload_examples_JSON/ZacharyGraph_JSON/ZacharysKarateClub0.json" download>Download Example File here</a>
-            <input type=file name=graphJSON multiple></input><br><br>
-            
+        <div class="four columns">
+          <div class="gradientBox" style="background:none">
+            <div class="swagBox" style="background-color: rgba(0, 10, 20, 0.3);">
+              <h5>GRAPH JSON FILE</h5>
+              <a target="_blank" href="../static/examplefiles/Upload_examples_JSON/ZacharyGraph_JSON/ZacharysKarateClub0.json">View Example File here</a>
+              <br>
+              <a href="../static/examplefiles/Upload_examples_JSON/ZacharyGraph_JSON/ZacharysKarateClub0.json" download>Download Example File here</a>
+              <input type=file name=graphJSON multiple></input><br>
+              <br>
+              <h5><span>LEGEND FILES</span> <span style="font-size:14px">(optional)</span></h5>
+              <input type="file" name="legendFiles" multiple></input><br>
+            </div>
           </div>
         </div>
-        <br>
-        <div class="frameBox" style="width:420px">
-          <div class="twelve columns">
-            <input type=submit value=Upload id=upload_buttonJSON class="swagSubmit"></button>
-            <br><br>
-            <div id="upload_message"></div>
-            <br>
 
-
+        <div class="four columns">
+          <div class="gradientBox" style="background:none">
+              <div class="swagBox" style="background-color: rgba(0, 10, 20, 0.3);">
+              <input type=submit value=Upload id=upload_buttonJSON class="swagSubmit"></button>
+              <br>
+              <div id="upload_message" style="font-size:14px;"></div>
+              <br>
+              <div style="font-size:14px">Check out the new webGL preview!</div>
+              <input onclick="followLink('/main')" type="button" value="webGL preview" style="height: 50px; text-align: justify" /> <!-- style="height: 50px; width: 250px;min-width: fit-content;" -->
+        
+            </div>
           </div>
         </div>
+      
       </form>
+
     </div>
 
   </div>
-
-
 
 </body>

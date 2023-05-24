@@ -3,6 +3,7 @@ from PIL import Image
 import os.path
 from os import path
 import util
+from collections import OrderedDict
 
 # idata = {'mes': 'dfhdfhfh', 'usr': 'NaS7QA89nxLg9nKQAAAn', 'tag': 'flask'}
 
@@ -23,6 +24,7 @@ pdata = {}
 nodes = {}
 links = {}
 names = {}
+annotations = {}
 # todo deal with multiple linklists
 nchildren = []
 
@@ -176,20 +178,20 @@ def loadLinks():
     # print(nchildren)
 
 
+def load_annotations():
+    global annotations
+    temp_annotations = {}
+    for node in nodes["nodes"]:
+        if "attrlist" not in node.keys():
+            continue
+        
+        # efficient filtering of annotation which are not strings (i.e. json) or name of node 
+        valid_annotations = [annotation for annotation in node["attrlist"] if isinstance(annotation, str) and annotation != node["n"]]
 
-#----------------------------------
-# GRAPH TITLE + DESCRIPTION 
+        for annotation in valid_annotations:
+            if annotation not in temp_annotations:
+                temp_annotations[annotation] = []
+            temp_annotations[annotation].append(node["id"])
+    annotations = OrderedDict(sorted(temp_annotations.items(), key=lambda x: x[0].lower()))  # annotations initilized increasing alphabetically
 
-# loaded at start / page refresh 
-def loadGraphinfoFile(): 
-    if path.exists("static/projects/" + data["actPro"] + "/graphinfofile.json"):
-        with open("static/projects/" + data["actPro"] + "/graphinfofile.json", "r") as json_file:
-            global graphinfofile
-            graphinfofile = json.load(json_file)
-            #print("C_DEBUG in Globaldata: loadGraphInfoFile - loaded.")
-            json_file.close()
-    else:
-        graphinfofile = {"graphtitle":"Graph title not specified.", "graphdesc": "Graph description not specified."}
-        #print("C_DEBUG in Globaldata: loadGraphInfoFile - created.")
-
-#----------------------------------
+    

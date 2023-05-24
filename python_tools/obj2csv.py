@@ -1,7 +1,7 @@
 from os import link
 
-name = "w4"
-f = open(name + ".obj", "r")
+name = "teapot64x2x2"
+f = open("python_tools/" +name + ".obj", "r")
 lines = f.readlines()
 verticis = []
 polygons = []
@@ -94,24 +94,34 @@ for p in polygons:
 final_linklist = list(dict.fromkeys(nLinkList))
 
 print(str(len(linklist)) + "after removing dublicates: " + str(len(final_linklist)))
+
 for i in final_linklist:
     tlink = list(i.split(" "))
     thislink = [int(tlink[0]), int(tlink[1])]
     linklist.append(thislink)
 
 
+
+
+i = 0
+with open(name +'_nodes.csv', 'w') as f:
+    for l in normverts:
+        line = str(l[0]) + ',' + str(l[1])+ ',' + str(l[2]) +"\n"
+        f.write(line)
+        i = i + 1
+f.close()
+
 with open(name +'_links.csv', 'w') as f:
     for l in linklist:
         line = str(l[0]) + ',' + str(l[1]) +"\n"
         f.write(line)
 f.close()
-
-i = 0
+'''
 with open(name +'_nodes.csv', 'w') as f:
     for l in normverts:
         line = str(l[0]) + ',' + str(l[1])+ ',' + str(l[2]) + ",255,255,0,100,node" + str(i) +";vertex" +"\n"
         f.write(line)
         i = i + 1
 f.close()
-
+'''
 print(str(len(normverts)) + " verticies")

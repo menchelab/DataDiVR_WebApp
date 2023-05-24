@@ -1,0 +1,128 @@
+
+<div class="gradientBox">
+    <div class='swagBox' style="width:420px; background-color: rgba(16, 3, 0, 0.3);">
+         
+        <h5 style="  float:left; font-size: 25px;  color: rgb(102, 102, 102); margin-top:5px; margin-bottom:5px;">
+            AUDIO</h5>
+        <br>
+        <div class="gradient"></div>
+        <br>
+
+            <div class="select" style="overflow-x: hidden;">
+                <label for="audioSource">Audio input source: </label><select id="audioSource"></select>
+            </div>
+        <div>
+
+        </div>
+
+
+    </div>
+</div>
+
+
+<script>
+   
+    const audioInputSelect = document.querySelector('select#audioSource');
+    const selectors = [audioInputSelect];
+    let recorder;
+    var isrecording = false;
+    var htmlelement = "";
+
+    function gotDevices(deviceInfos) {
+
+            for (let i = 0; i !== deviceInfos.length; ++i) {
+                const deviceInfo = deviceInfos[i];
+                const option = document.createElement('option');
+                option.value = deviceInfo.deviceId;
+                if (deviceInfo.kind === 'audioinput') {
+                option.text = deviceInfo.label || `microphone ${audioInputSelect.length + 1}`;
+                audioInputSelect.appendChild(option);
+                }
+            }
+    }
+
+    console.log(navigator.userAgent);
+    navigator.mediaDevices.enumerateDevices().then(gotDevices);
+
+    const constraints = {
+    audio: {deviceId: audioSource ? {exact: audioSource} : undefined},
+    };
+ // navigator.mediaDevices.getUserMedia(constraints).then(gotDevices).catch(handleError);
+
+    const uploadURL = '/whisper/uploadAudio';
+
+    setuprecorder();
+
+    function setuprecorder() {
+
+        if (!navigator.mediaDevices) {
+        console.error("getUserMedia not supported.")
+        return;
+        }
+        
+        const audioSource = audioInputSelect.value;
+        const constraints = {audio: {deviceId: audioSource ? {exact: audioSource} : undefined} };
+        //const constraints = {audio:true};
+
+        navigator.mediaDevices.getUserMedia(constraints)
+        .then(function(stream) {
+            let chunks = []
+            recorder = new MediaRecorder(stream);
+            recorder.ondataavailable = event => {
+                // Collect all the chunks of the recording in an array.
+                chunks.push(event.data);
+            };
+
+            recorder.onstop = event => {
+                console.log("Recording stopped.")
+                // Create a blob with all the chunks of the recording.
+                let blob = new Blob(chunks, { type: recorder.mimeType }); 
+                chunks = [];
+                let formData = new FormData();
+                formData.append("audio_file", blob);
+
+                // Send the form data to the server.
+                fetch(uploadURL, {
+                    method: "POST",
+                    cache: "no-cache",
+                    body: formData
+                    }).then(response => {
+                        return response.json();
+                    }).then(jsonResponse => {
+                        //RECEIVE TRANSSCRIPT FROM WHISPER
+                        //console.log(jsonResponse);
+                        socket.emit('ex', { usr: uid, id: htmlelement, fn: "textinput", val: jsonResponse.text});
+                
+                    }).catch(err => {
+                        console.error(err);
+                });
+            };
+            recorder.onstart = event => {
+            console.log("Recording started.");
+            }
+            setTimeout(function() {
+                if(isrecording){
+                    recorder.stop();
+                    console.log("recording stopped automatically after 10s")
+                };
+            }, 10000);
+            
+
+
+        })
+        .catch(function(err) {
+            console.error(err);
+        });
+    };
+
+    function record(isrec, parent) {
+        if (isrec){
+                htmlelement = parent;
+                recorder.start();
+                isrecording = true;
+            }else{
+                recorder.stop();
+                isrecording = false; 
+            }
+    }
+</script>

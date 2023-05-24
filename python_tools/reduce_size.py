@@ -28,8 +28,8 @@ def main(source, dest):
 
 if __name__ == "__main__":
     # main(sys.argv[1], sys.argv[2])
-    # src = r"c:\Users\sebastian\Documents\Unreal Projects\VRNetzer_Backend\static\MAPS"
-    # dest = r"c:\Users\sebastian\Documents\Unreal Projects\VRNetzer_Backend\static\NewMaps"
-    src = "/Users/till/Documents/Playground/VRNetzer_Backend/static/maps/cartoons_ss_coloring"
-    dest = "/Users/till/Documents/Playground/VRNetzer_Backend/static/maps/cartoons_ss_coloring_256"
+    # src = r"c:\Users\sebastian\Documents\Unreal Projects\DataDiVR_WebApp\static\MAPS"
+    # dest = r"c:\Users\sebastian\Documents\Unreal Projects\DataDiVR_WebApp\static\NewMaps"
+    src = "/Users/till/Documents/Playground/DataDiVR_WebApp/static/maps/cartoons_ss_coloring"
+    dest = "/Users/till/Documents/Playground/DataDiVR_WebApp/static/maps/cartoons_ss_coloring_256"
     main(src, dest)

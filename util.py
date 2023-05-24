@@ -1,14 +1,13 @@
 import os
 import random
-import re
 import shutil
-
 import flask
-
 import GlobalData as GD
 import uploader
 import pandas as pd
-import numpy as np
+import networkx as nx
+import json
+
 
 
 def delete_project(request: flask.request):
@@ -126,3 +125,33 @@ def get_identifier_collection():
         "static", "examplefiles", "protein_structure_info", "uniprot_identifiers.tsv"
     )
     identifier_collection = pd.read_csv(tsv_file, sep="\t")
+
+
+def project_to_graph(project):
+    with open(f"./static/projects/{project}/links.json") as links_json:
+        links = json.load(links_json)
+    try:
+        with open(f"./static/projects/{project}/nodes.json") as nodes_json:
+            nodes = json.load(nodes_json)
+    except FileNotFoundError:
+        # here maybe names.json parsing (even if its deprecated)
+        raise FileNotFoundError("The selected Project does not support nodes.json file for storing nodes.")
+    
+    graph_dict = {}
+
+    for node in nodes["nodes"]:
+        graph_dict[str(node["id"])] = []
+    
+    for link in links["links"]:
+        graph_dict[str(link["s"])].append(str(link["e"]))
+        
+    graph = nx.from_dict_of_lists(graph_dict)
+    return graph
+
+def rgb_to_hex(color):
+    print(color)
+    if len(color) == 3:
+        r, g, b = color
+    if len(color) == 4:
+        r, g, b, a = color
+    return f"#{r:02x}{g:02x}{b:02x}"

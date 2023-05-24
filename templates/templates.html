@@ -165,6 +165,7 @@
 
 <template id="mcRB-template">
     <style>
+
         button {
             width: 15%;
             font-family: 'Future', sans-serif;
@@ -186,6 +187,8 @@
     <div id="container" style="width: 120px; height: 30p0x; display: inline-block; padding: 4px 2px">
         <button id="name" style=" float: left; width: 90px; height: 30p0x; border-top-right-radius: 0px; border-bottom-right-radius: 0px; border-right: 0px"></button>
         <button id="x" style="float: right; width: 30px; height: 30p0x;border-top-left-radius: 0px; border-bottom-left-radius: 0px; background-color: #3d3d3d;">X</button>
+        <!-- <input type="checkbox" class="rec" id="checkbox1"></input> -->
+        <!-- <label for="checkbox1" id ="reclabel"></label> -->
     </div>
 </template>
 
@@ -208,35 +211,70 @@
         this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
 
         let text = this.shadowRoot.querySelector("#text");
-        let x_button = this.shadowRoot.querySelector("#x");
+        //let x_button = this.shadowRoot.querySelector("#x");
+        let rec_button = this.shadowRoot.querySelector("#rec");
 
-        //name_button.textContent = this.getAttribute('name');
+        var msg = {}
+        msg.id = this.getAttribute('id');
         //name_button.style.background = this.getAttribute('color');//("background",);
-        console.log('create: '+ this.getAttribute('container'));
-        
-        x_button.addEventListener('click', () => {
+            text.addEventListener('change', () => {
 
             console.log(text.value);
 
 
             socket.emit('ex', { usr: uid, id: this.getAttribute('id'), parent: this.getAttribute('container'), fn: this.getAttribute('fn'), val: text.value});
-            
 
-        });
+
+            });
+
+            //console.log('create: '+ this.getAttribute('container'));
+        
+            //x_button.addEventListener('click', () => {
+
+                //console.log(text.value);
+
+
+               // socket.emit('ex', { usr: uid, id: this.getAttribute('id'), parent: this.getAttribute('container'), fn: this.getAttribute('fn'), val: text.value});
+                
+
+            //});
+
+            rec_button.addEventListener('change', () => {
+            //socket.emit('ex', { id: this.getAttribute('id'), fn: fn, val: select.selectedIndex});
+                if (rec_button.checked){
+                    console.log("Rec " + msg.id);
+                    msg.val = 'rec';
+                    if (isUE4){ue4("rec",msg);}
+                    else{record(true, msg.id);}
+                }else{
+                    console.log("NoRec");
+                    msg.val = 'stoprec';
+                    if (isUE4){ue4("rec",msg);}
+                    else{record(false, msg.id);}
+                    
+                }
+                
+
+            });
         
         }
 
 
+
+ 
     }
 
     customElements.define('mc-textinput', mcTInput);
 </script>
 
 <template id="mcTextInput-template">
+
     <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
-    <div id="container" style="display: inline-block; width:100%; padding: 10px 0px;">
-        <input type="text" id="text" placeholder="Enter your message here" style="float:left; width:85%;"></input>
-        <input type="button" id="x" value="OK" class="swagTextButton" style="width: 12%; float:right; height:58px; text-align: center"></input>
+    <div id="container" style="display: inline-block; overflow:auto; width:100%; padding: 10px 0px;">
+        <textarea class="swagButton" type="text" id="text" placeholder="Enter your message here" style="white-space:pre-wrap; float:left; width:85%;"></textarea>
+        <!-- <input type="button" id="x" value="OK" class="swagTextButton" style="width: 12%; float:right; height:58px; text-align: center"></input> -->
+        <input type="checkbox" class="rec" id="rec"></input>
+        <label for="rec"></label>
     </div>
 </template>
 
@@ -474,7 +512,6 @@
     <!-- <div id = "label" class = "swagLabelSmall">TEXT</div> -->
     <div id='box' name='box' class='swagBoxT' style="width:398px; max-height: 380px; height:auto; overflow-y: auto; overflow-x: hidden;">
 
-    </div>
 </template>
 
 
@@ -524,7 +561,9 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
 
     <div id="label" class="swagLabelSmall">TEXT</div>
-    <input type="Text" id="text" autocomplete="off">
+    <input type="Text" id="text" autocomplete="off"></input>
+
+ 
 </template>
 
 

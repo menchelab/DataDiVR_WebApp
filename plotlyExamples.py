@@ -220,13 +220,19 @@ def barGraph(data):
                 meta = ids, # the meta value is used to attatch a callback to the graphs nodes in .js when the graph is created
                 x=val,
                 y=names,
+                marker=dict(color='midnightblue'),
                 text=names,
                 textposition='inside',
                 name='SF Zoo',
-                orientation='h'))
+                orientation='h'
+                ))
+    
+    bar_height = 16*len(names)+500
+    print("C_DEBUG: bar height = ", bar_height)
 
     #fig.show()
-    fig.update_layout(height= len(names)*20, font_color = 'rgb(200,200,200)', paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=10, r=10, t=40, b=10))
+    fig.update_layout(height = bar_height,
+        	font_color = 'rgb(200,200,200)', paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=10, r=10, t=40, b=10))
     fig.update_yaxes(showticklabels=False)
     fig.update_layout(uniformtext_minsize=12, uniformtext_mode='show')
     return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
@@ -318,7 +324,7 @@ def writeHtml():
         #fig.show()
         script = '<script src="https://cdn.plot.ly/plotly-2.17.1.min.js"></script>'
         htmlstring = script + plotly.offline.plot(fig, include_plotlyjs=False, output_type='div')
-        text_file = open("C:/Users/spirch/Documents/VRNetzer_Backend/templates/plotly/TEST111.html", "w", encoding="utf-8")
+        text_file = open("C:/Users/spirch/Documents/DataDiVR_WebApp/templates/plotly/TEST111.html", "w", encoding="utf-8")
         text_file.write(htmlstring)
         text_file.close()
         response = {}

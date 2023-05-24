@@ -757,7 +757,7 @@ function displayChatText(data) {
 }
 
 //-------------------------------------------------------
-// I M A G E L O A D I N G functions
+// CHAT TEXT DISPLAY
 //-------------------------------------------------------
 function Legend_checkFileExists(filepath, callback) {
   fetch(filepath)
@@ -1033,7 +1033,7 @@ function Legend_displayGraphInfo(project_selected) {
 }
 
 //-------------------------------------------------------
-// CHAT TEXT DISPLAY
+// display color as div
 //-------------------------------------------------------
 function displayColorAsDiv(color, width, height, marginbottom, margintop) {
   const div = document.createElement("div");
@@ -1051,7 +1051,7 @@ function displayColorAsDiv(color, width, height, marginbottom, margintop) {
 }
 
 //-------------------------------------------------------
-// NODE/LINK COLOR DESCRIPTION IN LEGEND PANEL
+// First NODE/LINK COLOR DESCRIPTION IN LEGEND PANEL
 //-------------------------------------------------------
 function Legend_displayfirstNodeInfo(project_selected) {
   if (document.getElementById("legendpanel")) {
