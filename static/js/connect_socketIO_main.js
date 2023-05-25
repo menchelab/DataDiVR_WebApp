@@ -527,30 +527,28 @@ $(document).ready(function(){
                     const layout = {};
                     let plot_data = JSON.parse(data["val"]);
     
-                    Plotly.newPlot(data["parent"], gdata, layout, config);
-                    let plotIFrame = document.getElementById("analyticsIFrame");
+                    Plotly.newPlot(data["target"], plot_data, layout, config);
+
+                    let plotIFrame = document.getElementById(data["target"]);
+
+                    let user = data.usr;
+                    let targetDiv = data.target;
                     plotIFrame.on('plotly_click', function(data){
-                        if (data.points[0].hasOwnProperty("meta")){  // add callback to nodebuttton automatically if provided
-                            console.log(data.points[0].meta);
-                            socket.emit('ex', { msg: "none", id: "none",val: data.points[0].meta,  fn: 'node'});
+                        let clickedBarLabel = data.points[0].label;
+                        let request = {
+                            fn: "analytics",
+                            id: "analyticsDegreeRun",
+                            highlight: clickedBarLabel,
+                            target: targetDiv,
+                            usr: user
                         }
-                        else if (data.points[0].hasOwnProperty("label")){
-                            console.log(data.points[0].label);
-                        }
-                        else if(data.points[0].hasOwnProperty("text")){
-                            console.log(data.points[0].text);
-                        }else {
-                            console.log(data.points[0]);
-                        }
+
+                        socket.emit("ex", request);
                     });
                     
                     plotIFrame.style.display = "inline-block";
-
-                    // this is the line that hides the bar for real
                     const NavBar = document.getElementsByClassName("modebar-container");
-                    for (let i = 0; i < NavBar.length; i++) {
-                    NavBar[i].style.visibility = "hidden";
-                    }
+                    for (let i = 0; i < NavBar.length; i++) {NavBar[i].style.visibility = "hidden";}
                 }
 
 
@@ -568,6 +566,8 @@ $(document).ready(function(){
                         button.style.color = data.val.color;
                     }
                 }
+                
+                break;
             case "annotation":
                 if (data.id == "annotationOperation"){
                     let value = data.val;
@@ -585,7 +585,7 @@ $(document).ready(function(){
                     }
                 }
                 
-                
+                break;
             case "func_legend_file":
                 if (data.id == "legend_forward") {
                     Legend_switchingFiles_forward(pfile.name);

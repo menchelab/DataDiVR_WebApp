@@ -31,6 +31,7 @@ nchildren = []
 pixel_valuesc = []
 
 
+
 def listProjects():
     folder = "static/projects"
     sub_folders = [

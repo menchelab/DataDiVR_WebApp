@@ -3,6 +3,7 @@ Util for Annotation Module
 """
 from PIL import Image
 import math
+import GlobalData as GD
 
 
 class AnnotationTextures:
@@ -70,8 +71,9 @@ class AnnotationTextures:
                 continue
             nodes_colors.append(self.colors["none"])
 
-        dim_nodes = math.ceil(math.sqrt(len(nodes_colors)))
-        texture_nodes = Image.new("RGBA", (dim_nodes, dim_nodes))
+        
+        texture_nodes_active = Image.open("static/projects/"+ GD.data["actPro"]  + "/layoutsRGB/"+ GD.pfile["layoutsRGB"][int(GD.pdata["layoutsRGBDD"])]+".png","r")
+        texture_nodes = texture_nodes_active.copy()
         texture_nodes.putdata(nodes_colors)
         texture_nodes.save(self.path_nodes, "PNG")
 
@@ -88,10 +90,15 @@ class AnnotationTextures:
                 color = self.colors["result"]
             link_colors.append(color)
         
-        dim_links = math.ceil(math.sqrt(len(link_colors)))
-        texture_links = Image.new("RGBA", (dim_links, dim_links))
+        texture_links_active = Image.open("static/projects/"+ GD.data["actPro"]  + "/linksRGB/"+ GD.pfile["linksRGB"][int(GD.pdata["linksRGBDD"])]+".png","r")
+        texture_links = texture_links_active.copy()
         texture_links.putdata(link_colors)
         texture_links.save(self.path_links, "PNG")
+
+        texture_links_active.close()
+        texture_nodes_active.close()
+        texture_links.close()
+        texture_nodes.close()
 
         
         # return dict as in shortest path

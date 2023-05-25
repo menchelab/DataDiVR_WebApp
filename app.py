@@ -397,17 +397,35 @@ def ex(message):
         if message['id'] == "analyticsDegreeRun":
             graph = util.project_to_graph(project)
             arr = analytics.analytics_degree_distribution(graph)
-            print(arr, type(arr))
             plot_data = analytics.plotly_degree_distribution(arr)
 
             response = {}
             response["fn"] = message["fn"]
             response["id"] = "analyticsDegreePlot"
-            response["target"] = "analyticsIFrame"   # i frame to render plot in
+            response["target"] = "analyticsContainer"   # container to render plot in
             response["val"] = plot_data
+            emit("ex", response, room=room)
 
+        if message["id"] == "analyticsDegreePlotClick":
+                    project = GD.data["actPro"]
+        # add functionality here to analtics
+        if message['id'] == "analyticsDegreeRun":
+            graph = util.project_to_graph(project)
+            arr = analytics.analytics_degree_distribution(graph)
+            highlight = None
+            if "highlight" in message.keys():
+                highlight = int(message["highlight"])
 
+            plot_data = analytics.plotly_degree_distribution(arr, highlight)
 
+            response = {}
+            response["fn"] = message["fn"]
+            response["id"] = "analyticsDegreePlot"
+            response["target"] = "analyticsContainer"   # container to render plot in
+            response["val"] = plot_data
+            emit("ex", response, room=room)
+
+            # setup new texture
 
         if message['id'] == "analyticsClosenessRun":
             graph = util.project_to_graph(project)
