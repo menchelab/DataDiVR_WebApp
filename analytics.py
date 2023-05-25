@@ -41,6 +41,50 @@ def plotly_degree_distribution(degrees, highlighted_bar=None):
     return plotly_json
 
 
+def analytics_color_degree_distribution(degrees, highlight):
+    # get nodes to highlight
+    highlight_nodes = [i for i in range(len(degrees)) if degrees[i] == highlight]
+
+    # gen textures
+    node_colors = []
+    for node in range(len(GD.pixel_valuesc)):
+        if node in highlight_nodes:
+            node_colors.append((255, 166, 0, 100))
+            continue
+        node_colors.append((66, 66, 66, 100))
+    # get links
+
+    link_colors = []
+    try:
+        with open("static/projects/"+ GD.data["actPro"] + "/links.json", "r") as links_file:
+            links = json.load(links_file)
+        # set link colors
+        link_colors = [(66, 66, 66, 30) for _ in links["links"]]
+
+        
+        # create images
+        texture_nodes_active = Image.open("static/projects/"+ GD.data["actPro"]  + "/layoutsRGB/"+ GD.pfile["layoutsRGB"][int(GD.pdata["layoutsRGBDD"])]+".png","r")
+        texture_links_active = Image.open("static/projects/"+ GD.data["actPro"]  + "/linksRGB/"+ GD.pfile["linksRGB"][int(GD.pdata["linksRGBDD"])]+".png","r")
+
+        texture_nodes = texture_nodes_active.copy()
+        texture_links = texture_links_active.copy()
+        texture_nodes.putdata(node_colors)
+        texture_links.putdata(link_colors)
+        path_nodes = "static/projects/"+ GD.data["actPro"]  + "/layoutsRGB/temp.png"
+        path_links = "static/projects/"+ GD.data["actPro"]  + "/linksRGB/temp.png"
+        texture_nodes.save(path_nodes, "PNG")
+        texture_links.save(path_links, "PNG")
+
+        texture_links_active.close()
+        texture_nodes_active.close()
+        texture_links.close()
+        texture_nodes.close()
+
+        return {"textures_created": True, "path_nodes": path_nodes, "path_links": path_links}
+    except:
+        return {"textures_created": False}
+    
+
 def analytics_closeness(graph):
     # nx graph to closeness distribution
     closeness_seq = [nx.closeness_centrality(graph, node) for node in graph.nodes()]
@@ -106,3 +150,8 @@ def analytics_color_shortest_path(path):
         return {"textures_created": True, "path_nodes": path_nodes, "path_links": path_links}
     except:
         return {"textures_created": False}
+
+
+# might update existing code to have only one function for texture updates
+def update_nodes_texture():...
+def update_links_texture():...

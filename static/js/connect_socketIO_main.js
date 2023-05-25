@@ -530,6 +530,8 @@ $(document).ready(function(){
                     Plotly.newPlot(data["target"], plot_data, layout, config);
 
                     let plotIFrame = document.getElementById(data["target"]);
+                    
+                    console.log(">>>>>>>>>>>>>", data)
 
                     let user = data.usr;
                     let targetDiv = data.target;

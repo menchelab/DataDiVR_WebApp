@@ -420,12 +420,35 @@ def ex(message):
 
             response = {}
             response["fn"] = message["fn"]
+            response["usr"] = message["usr"]
             response["id"] = "analyticsDegreePlot"
             response["target"] = "analyticsContainer"   # container to render plot in
             response["val"] = plot_data
             emit("ex", response, room=room)
 
             # setup new texture
+            if highlight is None:
+                return
+            
+            degree_distribution_textures = analytics.analytics_color_degree_distribution(arr, highlight)
+            if degree_distribution_textures["textures_created"] is False:
+                print("Failed to create textures for Analytics/Shortest Path.")
+                return
+        
+            response_nodes = {}
+            response_nodes["usr"] = message["usr"]
+            response_nodes["fn"] = "updateTempTex"
+            response_nodes["channel"] = "nodeRGB"
+            response_nodes["path"] = degree_distribution_textures["path_nodes"]
+            emit("ex", response_nodes, room=room)
+
+            response_links = {}
+            response_links["usr"] = message["usr"]
+            response_links["fn"] = "updateTempTex"
+            response_links["channel"] = "linkRGB"
+            response_links["path"] = degree_distribution_textures["path_links"]
+            emit("ex", response_links, room=room)
+
 
         if message['id'] == "analyticsClosenessRun":
             graph = util.project_to_graph(project)
