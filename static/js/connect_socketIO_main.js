@@ -575,7 +575,9 @@ $(document).ready(function () {
       case "project":
         //clearProject();
         //if (data["usr"]==uid){
-        pfile = data["val"];
+        console.log(pfile);
+        pfile.update(data["val"]);
+        console.log(pfile);
         let legendcount = 0;
 
         //--------------------------------
