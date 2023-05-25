@@ -51,7 +51,7 @@ def analytics_color_degree_distribution(degrees, highlight):
         if node in highlight_nodes:
             node_colors.append((255, 166, 0, 100))
             continue
-        node_colors.append((66, 66, 66, 100))
+        node_colors.append((33, 33, 33, 100))
     # get links
 
     link_colors = []
@@ -59,19 +59,18 @@ def analytics_color_degree_distribution(degrees, highlight):
         with open("static/projects/"+ GD.data["actPro"] + "/links.json", "r") as links_file:
             links = json.load(links_file)
         # set link colors
-        link_colors = [(66, 66, 66, 30) for _ in links["links"]]
+        link_colors = [(33, 33, 33, 30) for _ in links["links"]]
 
-        
         # create images
-        texture_nodes_active = Image.open("static/projects/"+ GD.data["actPro"]  + "/layoutsRGB/"+ GD.pfile["layoutsRGB"][int(GD.pdata["layoutsRGBDD"])]+".png","r")
-        texture_links_active = Image.open("static/projects/"+ GD.data["actPro"]  + "/linksRGB/"+ GD.pfile["linksRGB"][int(GD.pdata["linksRGBDD"])]+".png","r")
+        texture_nodes_active = Image.open("static/projects/" + GD.data["actPro"] + "/layoutsRGB/" + GD.pfile["layoutsRGB"][int(GD.pdata["layoutsRGBDD"])] + ".png", "r")
+        texture_links_active = Image.open("static/projects/" + GD.data["actPro"] + "/linksRGB/" + GD.pfile["linksRGB"][int(GD.pdata["linksRGBDD"])] + ".png", "r")
 
         texture_nodes = texture_nodes_active.copy()
         texture_links = texture_links_active.copy()
         texture_nodes.putdata(node_colors)
         texture_links.putdata(link_colors)
-        path_nodes = "static/projects/"+ GD.data["actPro"]  + "/layoutsRGB/temp.png"
-        path_links = "static/projects/"+ GD.data["actPro"]  + "/linksRGB/temp.png"
+        path_nodes = "static/projects/" + GD.data["actPro"] + "/layoutsRGB/temp.png"
+        path_links = "static/projects/" + GD.data["actPro"] + "/linksRGB/temp.png"
         texture_nodes.save(path_nodes, "PNG")
         texture_links.save(path_links, "PNG")
 
@@ -84,6 +83,57 @@ def analytics_color_degree_distribution(degrees, highlight):
     except:
         return {"textures_created": False}
     
+
+def update_network_colors(node_colors, link_colors=None):
+    """
+    incorporate as following:
+        generated_textures = analytics.update_network_colors(...)
+        if generated_textures["textures_created"] is False:
+            print("Failed to create textures for Analytics/Shortest Path.")
+            return
+        response_nodes = {}
+        response_nodes["usr"] = message["usr"]
+        response_nodes["fn"] = "updateTempTex"
+        response_nodes["channel"] = "nodeRGB"
+        response_nodes["path"] = generated_textures["path_nodes"]
+        emit("ex", response_nodes, room=room)
+
+        response_links = {}
+        response_links["usr"] = message["usr"]
+        response_links["fn"] = "updateTempTex"
+        response_links["channel"] = "linkRGB"
+        response_links["path"] = generated_textures["path_links"]
+        emit("ex", response_links, room=room)
+    """
+
+    #try:
+    with open("static/projects/"+ GD.data["actPro"] + "/links.json", "r") as links_file:
+        links = json.load(links_file)
+    # set link colors
+    if link_colors is None:
+        link_colors = [(33, 33, 33, 30) for _ in links["links"]]
+
+    # create images
+    texture_nodes_active = Image.open("static/projects/" + GD.data["actPro"] + "/layoutsRGB/" + GD.pfile["layoutsRGB"][int(GD.pdata["layoutsRGBDD"])] + ".png", "r")
+    texture_links_active = Image.open("static/projects/" + GD.data["actPro"] + "/linksRGB/" + GD.pfile["linksRGB"][int(GD.pdata["linksRGBDD"])] + ".png", "r")
+
+    texture_nodes = texture_nodes_active.copy()
+    texture_links = texture_links_active.copy()
+    texture_nodes.putdata(node_colors)
+    texture_links.putdata(link_colors)
+    path_nodes = "static/projects/" + GD.data["actPro"] + "/layoutsRGB/temp.png"
+    path_links = "static/projects/" + GD.data["actPro"] + "/linksRGB/temp.png"
+    texture_nodes.save(path_nodes, "PNG")
+    texture_links.save(path_links, "PNG")
+
+    texture_links_active.close()
+    texture_nodes_active.close()
+    texture_links.close()
+    texture_nodes.close()
+
+    return {"textures_created": True, "path_nodes": path_nodes, "path_links": path_links}
+    # except:
+        # return {"textures_created": False}
 
 def analytics_closeness(graph):
     # nx graph to closeness distribution
@@ -114,7 +164,7 @@ def analytics_color_shortest_path(path):
         if node in path:
             node_colors.append((255, 166, 0, 100))
             continue
-        node_colors.append((66, 66, 66, 100))
+        node_colors.append((33, 33, 33, 100))
     
     # get links
     link_colors = []
@@ -126,7 +176,7 @@ def analytics_color_shortest_path(path):
             if int(link["s"]) in path and int(link["e"]) in path:
                 link_colors.append((244, 255, 89, 150))
                 continue
-            link_colors.append((66, 66, 66, 30))
+            link_colors.append((33, 33, 33, 30))
         
     
         # create images
@@ -151,7 +201,3 @@ def analytics_color_shortest_path(path):
     except:
         return {"textures_created": False}
 
-
-# might update existing code to have only one function for texture updates
-def update_nodes_texture():...
-def update_links_texture():...

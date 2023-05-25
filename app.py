@@ -454,6 +454,28 @@ def ex(message):
             graph = util.project_to_graph(project)
             arr = analytics.analytics_closeness(graph)
             print(arr)
+            
+            gradient_low, gradient_high = [0, 166, 255], [255, 0, 0]
+            node_colors = util.sample_color_gradient(color_low=gradient_low, color_high=gradient_high, values=arr)
+            print(node_colors)
+
+            generated_textures = analytics.update_network_colors(node_colors=node_colors)  # link_colors stays None for grey
+            if generated_textures["textures_created"] is False:
+                print("Failed to create textures for Analytics/Shortest Path.")
+                return
+            response_nodes = {}
+            response_nodes["usr"] = message["usr"]
+            response_nodes["fn"] = "updateTempTex"
+            response_nodes["channel"] = "nodeRGB"
+            response_nodes["path"] = generated_textures["path_nodes"]
+            emit("ex", response_nodes, room=room)
+
+            response_links = {}
+            response_links["usr"] = message["usr"]
+            response_links["fn"] = "updateTempTex"
+            response_links["channel"] = "linkRGB"
+            response_links["path"] = generated_textures["path_links"]
+            emit("ex", response_links, room=room)
 
         if message["id"] == "analyticsPathNode1":
             # set server data: node +  hex color

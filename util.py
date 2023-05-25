@@ -7,6 +7,7 @@ import uploader
 import pandas as pd
 import networkx as nx
 import json
+import colorsys
 
 
 
@@ -155,3 +156,20 @@ def rgb_to_hex(color):
     if len(color) == 4:
         r, g, b, a = color
     return f"#{r:02x}{g:02x}{b:02x}"
+
+
+def sample_color_gradient(color_low, color_high, values):
+    """
+    colors has to be lists as color = [r, g, b]
+    returns list of lists according to the color
+    """
+    colors = []
+    for value in values:
+        # Interpolate between colors
+        interpolated_color = [
+            int(color_low[channel] + (color_high[channel] - color_low[channel]) * value)
+            for channel in range(3)
+        ]
+        colors.append(tuple(interpolated_color))
+
+    return colors
