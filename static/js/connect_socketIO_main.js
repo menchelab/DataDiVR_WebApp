@@ -537,11 +537,16 @@ $(document).ready(function(){
                     let user = data.usr;
                     let targetDiv = data.target;
                     plotIFrame.on('plotly_click', function(data){
-                        let clickedBarLabel = data.points[0].label;
+                        if (data.event.button !== 0){return;}
+
+                        let clickedBarX = Math.floor(data.points[0].x);
+                        
+                        console.log(clickedBarX);
+
                         let request = {
                             fn: "analytics",
                             id: "analyticsDegreeRun",
-                            highlight: clickedBarLabel,
+                            highlight: clickedBarX,
                             target: targetDiv,
                             usr: user
                         }

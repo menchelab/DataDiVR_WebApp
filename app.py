@@ -393,23 +393,7 @@ def ex(message):
     
     elif message['fn'] == "analytics":
         project = GD.data["actPro"]
-        # add functionality here to analtics
-        if message['id'] == "analyticsDegreeRun":
-            graph = util.project_to_graph(project)
-            arr = analytics.analytics_degree_distribution(graph)
-            plot_data = analytics.plotly_degree_distribution(arr)
 
-            response = {}
-            response["fn"] = message["fn"]
-            response["usr"] = message["usr"]
-            response["id"] = "analyticsDegreePlot"
-            response["target"] = "analyticsContainer"   # container to render plot in
-            response["val"] = plot_data
-            emit("ex", response, room=room)
-
-        if message["id"] == "analyticsDegreePlotClick":
-                    project = GD.data["actPro"]
-        # add functionality here to analtics
         if message['id'] == "analyticsDegreeRun":
             graph = util.project_to_graph(project)
             arr = analytics.analytics_degree_distribution(graph)
@@ -417,7 +401,7 @@ def ex(message):
             if "highlight" in message.keys():
                 highlight = int(message["highlight"])
 
-            plot_data = analytics.plotly_degree_distribution(arr, highlight)
+            plot_data, highlighted_degrees = analytics.plotly_degree_distribution(arr, highlight)
 
             response = {}
             response["fn"] = message["fn"]
@@ -430,8 +414,8 @@ def ex(message):
             # setup new texture
             if highlight is None:
                 return
-            
-            degree_distribution_textures = analytics.analytics_color_degree_distribution(arr, highlight)
+
+            degree_distribution_textures = analytics.analytics_color_degree_distribution(arr, highlighted_degrees)
             if degree_distribution_textures["textures_created"] is False:
                 print("Failed to create textures for Analytics/Shortest Path.")
                 return

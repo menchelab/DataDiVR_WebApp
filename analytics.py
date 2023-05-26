@@ -16,7 +16,7 @@ def analytics_degree_distribution(graph):
     return degree_sequence
 
 
-def plotly_degree_distribution(degrees, highlighted_bar=None):
+def plotly_degree_distribution_OLD(degrees, highlighted_bar=None):
     # Create a bar chart
     x = list(range(max(degrees) + 1))
     y = [degrees.count(i) for i in x]
@@ -43,9 +43,79 @@ def plotly_degree_distribution(degrees, highlighted_bar=None):
     return plotly_json
 
 
+
+def plotly_degree_distribution(degrees, highlighted_bar=None):
+    maximum_amount_of_bars = 10
+
+    highlighted_degrees = []
+
+    maximum_degree = max(degrees)
+    if maximum_degree <= maximum_amount_of_bars:
+        num_bins = maximum_degree
+    else:
+        num_bins = min(int(maximum_degree ** 0.5) + 1, maximum_amount_of_bars)
+    bin_width = math.ceil(maximum_degree / num_bins)
+    bin_counts = {i: 0 for i in range(num_bins)}
+
+    for degree in degrees:
+        bin_index = min(int(degree // bin_width), num_bins - 1)
+        bin_counts[bin_index] += 1
+
+    # bar chart   
+    if maximum_degree <= maximum_amount_of_bars:
+        x = list(range(num_bins))
+        y = [bin_counts[i] for i in range(num_bins)]
+        colors = ['#636efa' if i != highlighted_bar else 'orange' for i in x]
+        
+        layout = go.Layout(
+            xaxis=dict(title='Degree'),
+            yaxis=dict(title='Number of Nodes'),
+            bargap=0.1,
+            title=None if highlighted_bar is None else f"Selected Node Degree: {highlighted_bar}",
+            title_y=0.97
+        )
+        
+        highlighted_degrees = [highlighted_bar]
+
+        fig = go.Figure(data=go.Bar(x=x, y=y, marker=dict(color=colors)), layout=layout)
+
+    
+    # hist
+    else:
+        # convert highlighted_bar to actual bin index
+        if highlighted_bar is not None:
+            highlighted_bar = math.floor(highlighted_bar / bin_width)
+
+        colors = ['#636efa' if i != highlighted_bar else 'orange' for i in range(num_bins)]
+
+        if highlighted_bar is not None:
+            min_degree_selected = int(highlighted_bar * bin_width)
+            max_degree_selected = int((highlighted_bar + 1) * bin_width - 1) if int((highlighted_bar + 1) * bin_width - 1) <= maximum_degree else maximum_degree
+            highlighted_degrees = list(range(min_degree_selected, max_degree_selected + 1))
+
+        layout = go.Layout(
+            xaxis=dict(title='Degree Range'),
+            yaxis=dict(title='Number of Nodes'),
+            bargap=0.1,
+            title=None if highlighted_bar is None else f"Selected Node Degrees: {min_degree_selected} to {max_degree_selected}",
+            title_y=0.97
+        )
+        
+        fig = go.Figure(data=go.Histogram(x=degrees, xbins=dict(size=bin_width, start=min(degrees), end=max(degrees)), marker=dict(color=colors)), layout=layout)
+
+    fig.update_layout(width=400, height=400, font_color='rgb(200,200,200)', paper_bgcolor="rgba(0,0,0,0)",
+                      plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=10, r=40, t=30, b=10))
+    fig.update_yaxes(showticklabels=False)
+    fig.update_layout(uniformtext_minsize=12, uniformtext_mode='show')
+    plotly_json = json.dumps(fig, cls=pu.PlotlyJSONEncoder)
+
+    return (plotly_json, highlighted_degrees)
+
+
 def analytics_color_degree_distribution(degrees, highlight):
     # get nodes to highlight
-    highlight_nodes = [i for i in range(len(degrees)) if degrees[i] == highlight]
+    highlighted_degrees = set(highlight)
+    highlight_nodes = [i for i in range(len(degrees)) if degrees[i] in highlighted_degrees]
 
     # gen textures
     node_colors = []
