@@ -472,7 +472,10 @@ $(document).ready(function(){
                 //if (data["usr"]==uid){
                     pfile = data["val"];
                     let legendcount=0;
-                    
+
+                    // init analytics container
+                    document.getElementById('analyticsContainer').innerHTML = '';
+
                     //--------------------------------
                     // initial inf on L E G E N D P A N E L 
                     Legend_displayGraphInfo(pfile.name);
@@ -530,8 +533,6 @@ $(document).ready(function(){
                     Plotly.newPlot(data["target"], plot_data, layout, config);
 
                     let plotIFrame = document.getElementById(data["target"]);
-                    
-                    console.log(">>>>>>>>>>>>>", data)
 
                     let user = data.usr;
                     let targetDiv = data.target;

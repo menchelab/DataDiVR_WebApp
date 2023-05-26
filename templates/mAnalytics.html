@@ -35,6 +35,23 @@
         
         <!-- plotly container-->
         <div id="analyticsContainer" frameborder="0" style="display: none;"></div>
-        
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                var plotlyDiv = document.getElementById('analyticsContainer');
+
+                // add here all run buttons which does not use the analyticsContainer
+                var clearButton0 = document.getElementById('analyticsClosenessRun');
+                clearButton0.addEventListener('click', function() {
+                    plotlyDiv.innerHTML = '';
+                });
+
+                var clearButton1 = document.getElementById('analyticsPathRun');
+                clearButton1.addEventListener('click', function() {
+                    plotlyDiv.innerHTML = '';
+                });
+            });
+        </script>
     </div>
+
+    
 </div>

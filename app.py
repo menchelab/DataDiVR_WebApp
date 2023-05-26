@@ -401,6 +401,7 @@ def ex(message):
 
             response = {}
             response["fn"] = message["fn"]
+            response["usr"] = message["usr"]
             response["id"] = "analyticsDegreePlot"
             response["target"] = "analyticsContainer"   # container to render plot in
             response["val"] = plot_data

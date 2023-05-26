@@ -27,13 +27,15 @@ def plotly_degree_distribution(degrees, highlighted_bar=None):
     layout = go.Layout(
         xaxis=dict(title='Degree'),
         yaxis=dict(title='Number of Nodes'),
-        bargap=0.1
+        bargap=0.1,
+        title=None if highlighted_bar is None else f"Selected Node Degree: {highlighted_bar}",
+        title_y=0.97
     )
 
     # Create a Figure object
     fig = go.Figure(data=go.Bar(x=x, y=y, marker=dict(color=colors)), layout=layout)
 
-    fig.update_layout(height= 420, font_color = 'rgb(200,200,200)', paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=10, r=10, t=10, b=10))
+    fig.update_layout(height= 420, font_color = 'rgb(200,200,200)', paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=10, r=30, t=30, b=10))
     fig.update_yaxes(showticklabels=False)
     fig.update_layout(uniformtext_minsize=12, uniformtext_mode='show')
     plotly_json = json.dumps(fig, cls=pu.PlotlyJSONEncoder)
