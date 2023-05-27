@@ -8,6 +8,7 @@ import math
 import json
 import plotly.graph_objs as go
 import plotly.utils as pu
+from joblib import Parallel, delayed
 
 
 def analytics_degree_distribution(graph):
@@ -207,9 +208,22 @@ def update_network_colors(node_colors, link_colors=None):
     # except:
         # return {"textures_created": False}
 
-def analytics_closeness(graph):
+def analytics_closeness_OLD(graph):
     # nx graph to closeness distribution
     closeness_seq = [nx.closeness_centrality(graph, node) for node in graph.nodes()]
+    return closeness_seq
+
+def analytics_closeness(graph):
+    def _compute_closeness(node, graph):
+        return nx.closeness_centrality(graph, wf_improved=True)[node]
+    
+    if len(graph.nodes()) <= 10000 or len(graph.edges()) <= 100000:
+        closeness_seq = list(nx.closeness_centrality(graph, wf_improved=True).values())
+    else:
+        num_cores = min(8, len(graph.nodes()))  # number of cores available
+        closeness_seq = Parallel(n_jobs=num_cores)(
+            delayed(_compute_closeness)(node, graph) for node in graph.nodes()
+        )
     return closeness_seq
 
 

@@ -395,8 +395,17 @@ def ex(message):
         project = GD.data["actPro"]
 
         if message['id'] == "analyticsDegreeRun":
-            graph = util.project_to_graph(project)
-            arr = analytics.analytics_degree_distribution(graph)
+         
+    
+            if "analyticsDegreeRun" not in GD.session_data.keys():
+                ### "expensive" stuff
+                graph = util.project_to_graph(project)
+                result = analytics.analytics_degree_distribution(graph)
+                ###
+                GD.session_data["analyticsDegreeRun"] = result
+            arr = GD.session_data["analyticsDegreeRun"]
+
+
             highlight = None
             if "highlight" in message.keys():
                 highlight = int(message["highlight"])
@@ -436,14 +445,22 @@ def ex(message):
 
 
         if message['id'] == "analyticsClosenessRun":
-            graph = util.project_to_graph(project)
-            arr = analytics.analytics_closeness(graph)
-            print(arr)
+
+            print(">")
+            if "analyticsClosenessRun" not in GD.session_data.keys():
+                ### "expensive" stuff
+                graph = util.project_to_graph(project)
+                print(">.5")
+                result = analytics.analytics_closeness(graph)
+                print(result)
+                ###
+                GD.session_data["analyticsClosenessRun"] = result
+            arr = GD.session_data["analyticsClosenessRun"]
+            print(">>")
             
             gradient_low, gradient_high = [0, 166, 255], [255, 0, 0]
             node_colors = util.sample_color_gradient(color_low=gradient_low, color_high=gradient_high, values=arr)
-            print(node_colors)
-
+            print(">>>")
             generated_textures = analytics.update_network_colors(node_colors=node_colors)  # link_colors stays None for grey
             if generated_textures["textures_created"] is False:
                 print("Failed to create textures for Analytics/Shortest Path.")
@@ -461,6 +478,8 @@ def ex(message):
             response_links["channel"] = "linkRGB"
             response_links["path"] = generated_textures["path_links"]
             emit("ex", response_links, room=room)
+            print(">>>>")
+
 
         if message["id"] == "analyticsPathNode1":
             # set server data: node +  hex color
