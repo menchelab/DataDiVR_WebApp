@@ -461,7 +461,7 @@ def ex(message):
 
             generated_textures = analytics.update_network_colors(node_colors=node_colors)  # link_colors stays None for grey
             if generated_textures["textures_created"] is False:
-                print("Failed to create textures for Analytics/Shortest Path.")
+                print("Failed to create textures for Analytics/Closeness")
                 return
             response_nodes = {}
             response_nodes["usr"] = message["usr"]
@@ -577,7 +577,39 @@ def ex(message):
 
             generated_textures = analytics.update_network_colors(node_colors=node_colors)  # link_colors stays None for grey
             if generated_textures["textures_created"] is False:
-                print("Failed to create textures for Analytics/Shortest Path.")
+                print("Failed to create textures for Analytics/Eigenvector.")
+                return
+            response_nodes = {}
+            response_nodes["usr"] = message["usr"]
+            response_nodes["fn"] = "updateTempTex"
+            response_nodes["channel"] = "nodeRGB"
+            response_nodes["path"] = generated_textures["path_nodes"]
+            emit("ex", response_nodes, room=room)
+
+            response_links = {}
+            response_links["usr"] = message["usr"]
+            response_links["fn"] = "updateTempTex"
+            response_links["channel"] = "linkRGB"
+            response_links["path"] = generated_textures["path_links"]
+            emit("ex", response_links, room=room)
+
+
+        if message['id'] == "analyticsModcommunityRun":
+
+
+            if "analyticsModcommunityRun" not in GD.session_data.keys():
+                ### "expensive" stuff
+                graph = util.project_to_graph(project)
+                result = analytics.modularity_community_detection(graph)
+                ###
+                GD.session_data["analyticsModcommunityRun"] = result
+            arr = GD.session_data["analyticsModcommunityRun"]
+
+            node_colors = analytics.color_mod_community_det(arr)
+
+            generated_textures = analytics.update_network_colors(node_colors=node_colors)  # link_colors stays None for grey
+            if generated_textures["textures_created"] is False:
+                print("Failed to create textures for Analytics/Mod-based Communities")
                 return
             response_nodes = {}
             response_nodes["usr"] = message["usr"]
@@ -649,7 +681,7 @@ def ex(message):
             generated_annotation_textures = annotation_texture.gen_textures(annotation_1=annotation_1, annotation_2=annotation_2, operation=operation)
 
             if generated_annotation_textures["generated_texture"] is False:
-                print("Failed to create textures for Analytics/Shortest Path.")
+                print("Failed to create textures for Annotation")
                 return
             response_nodes = {}
             response_nodes["usr"] = message["usr"]
@@ -687,7 +719,7 @@ def ex(message):
                 
                 # dropdown for fixed selections, might need a better solution to hardcode them in HTML / JS
                 if message["id"] == "analytics":
-                    response["opt"] = ["Degree Distribution", "Closeness", "Shortest Path", "Eigenvector"]
+                    response["opt"] = ["Degree Distribution", "Closeness", "Shortest Path", "Eigenvector", "Mod-based Communities"]
                     response["sel"] = 0
 
                 # dropdown for visualization type selection 

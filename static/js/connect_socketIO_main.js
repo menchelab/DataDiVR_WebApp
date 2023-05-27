@@ -460,6 +460,9 @@ $(document).ready(function(){
                             case "Eigenvector":
                                 $("#analyticsSelectedEigenvector").css('display', 'inline-block');
                             break;
+                            case "Mod-based Communities":
+                                $("#analyticsSelectedModcommunity").css('display', 'inline-block');
+                            break;
                             // add bindings for options display here
 
                         }

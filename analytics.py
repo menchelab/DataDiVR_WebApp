@@ -11,6 +11,7 @@ import plotly.utils as pu
 from joblib import Parallel, delayed
 import igraph as ig
 import numpy as np
+import util
 
 
 def analytics_degree_distribution(graph):
@@ -161,6 +162,9 @@ def analytics_color_degree_distribution(degrees, highlight):
 
 def update_network_colors(node_colors, link_colors=None):
     """
+
+    node_colors: list where index correspond to node id and value is color in (r, g, b) format
+
     incorporate as following:
         generated_textures = analytics.update_network_colors(...)
         if generated_textures["textures_created"] is False:
@@ -327,3 +331,31 @@ def analytics_eigenvector(graph):
     
 
     return (centrality_seq, visual_centrality_seq)
+
+
+def modularity_community_detection(ordered_graph):
+    if not isinstance(ordered_graph, util.OrderedGraph):
+        raise TypeError("The graph should be an instance of OrderedGraph.")
+
+    communities = nx.algorithms.community.modularity_max.greedy_modularity_communities(ordered_graph)
+    # some alternatives:
+    # communities = nx.algorithms.community.girvan_newman(ordered_graph)
+    # communities = nx.algorithms.community.community_louvain(ordered_graph)
+    # communities = nx.algorithms.community.label_propagation_communities(ordered_graph)
+    # communities = nx.algorithms.community.modularity_max.greedy_modularity_communities(ordered_graph)
+
+    community_assignment = [0] * len(ordered_graph.node_order)
+
+    for i, comm in enumerate(communities):
+        for node in comm:
+            node_index = ordered_graph.node_order.index(node)
+            community_assignment[node_index] = i + 1
+    return community_assignment
+
+
+def color_mod_community_det(communities_arr):
+    num_communities = max(communities_arr)
+    colors = util.generate_colors(n=num_communities)
+    colors.insert(0, (66, 66, 66))  # grey out all non community nodes
+    node_colors = [colors[community] for community in communities_arr]
+    return node_colors
