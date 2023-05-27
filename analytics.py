@@ -301,3 +301,29 @@ def analytics_color_shortest_path(path):
     except:
         return {"textures_created": False}
 
+
+def analytics_eigenvector(graph):
+    def _compute_eigenvector_centrality_nx(graph):
+        centrality = nx.eigenvector_centrality_numpy(graph)
+        return list(centrality.values())
+
+    def _compute_eigenvector_centrality_igraph(graph):
+        g = ig.Graph.Adjacency((graph > 0).tolist(), mode="DIRECTED")
+        centrality = g.eigenvector_centrality(directed=True)
+        return centrality
+    def _scale(centrality_seq):
+        min_value = min(centrality_seq)
+        max_value = max(centrality_seq)
+        scaled_seq = [(x - min_value) / (max_value - min_value) for x in centrality_seq]
+        return scaled_seq
+
+    if len(graph.nodes()) <= 10000 or len(graph.edges()) <= 80000:
+        centrality_seq = _compute_eigenvector_centrality_nx(graph)
+    else:
+        adjacency_matrix = nx.to_numpy_array(graph)
+        centrality_seq = _compute_eigenvector_centrality_igraph(adjacency_matrix)
+
+    visual_centrality_seq = _scale(centrality_seq)
+    
+
+    return (centrality_seq, visual_centrality_seq)

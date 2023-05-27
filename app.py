@@ -456,10 +456,9 @@ def ex(message):
                 GD.session_data["analyticsClosenessRun"] = result
             arr = GD.session_data["analyticsClosenessRun"]
 
-            
-            gradient_low, gradient_high = [0, 166, 255], [255, 0, 0]
-            node_colors = util.sample_color_gradient(color_low=gradient_low, color_high=gradient_high, values=arr)
-            
+
+            node_colors = util.sample_color_gradient(plt_color_map="plasma", values=arr)
+
             generated_textures = analytics.update_network_colors(node_colors=node_colors)  # link_colors stays None for grey
             if generated_textures["textures_created"] is False:
                 print("Failed to create textures for Analytics/Shortest Path.")
@@ -561,6 +560,40 @@ def ex(message):
             response_links["path"] = shortest_path_textures["path_links"]
             emit("ex", response_links, room=room)
 
+
+        if message['id'] == "analyticsEigenvectorRun":
+
+
+            if "analyticsEigenvectorRun" not in GD.session_data.keys():
+                ### "expensive" stuff
+                graph = util.project_to_graph(project)
+                result = analytics.analytics_eigenvector(graph)
+                ###
+                GD.session_data["analyticsEigenvectorRun"] = result
+            arr = GD.session_data["analyticsEigenvectorRun"][1]  # index: visual 1, original 0
+
+
+            node_colors = util.sample_color_gradient(plt_color_map="magma", values=arr)
+
+            generated_textures = analytics.update_network_colors(node_colors=node_colors)  # link_colors stays None for grey
+            if generated_textures["textures_created"] is False:
+                print("Failed to create textures for Analytics/Shortest Path.")
+                return
+            response_nodes = {}
+            response_nodes["usr"] = message["usr"]
+            response_nodes["fn"] = "updateTempTex"
+            response_nodes["channel"] = "nodeRGB"
+            response_nodes["path"] = generated_textures["path_nodes"]
+            emit("ex", response_nodes, room=room)
+
+            response_links = {}
+            response_links["usr"] = message["usr"]
+            response_links["fn"] = "updateTempTex"
+            response_links["channel"] = "linkRGB"
+            response_links["path"] = generated_textures["path_links"]
+            emit("ex", response_links, room=room)
+
+
     elif message["fn"] == "annotation":
         if message["id"] == "annotationOperation":
             if message["val"] == "init":
@@ -654,7 +687,7 @@ def ex(message):
                 
                 # dropdown for fixed selections, might need a better solution to hardcode them in HTML / JS
                 if message["id"] == "analytics":
-                    response["opt"] = ["Degree Distribution", "Closeness", "Shortest Path"]
+                    response["opt"] = ["Degree Distribution", "Closeness", "Shortest Path", "Eigenvector"]
                     response["sel"] = 0
 
                 # dropdown for visualization type selection 

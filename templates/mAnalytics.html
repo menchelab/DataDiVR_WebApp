@@ -33,6 +33,11 @@
             <mc-button1 name="RUN" id="analyticsPathRun" fn="analytics"></mc-button1>
         </div>
         
+        <div id="analyticsSelectedEigenvector" style="display: none;" class="analyticsOption">
+            <mc-button1 name="RUN" id="analyticsEigenvectorRun" fn="analytics"></mc-button1>
+        </div>
+
+
         <!-- plotly container-->
         <div id="analyticsContainer" frameborder="0" style="display: none;"></div>
         <script>
@@ -47,6 +52,11 @@
 
                 var clearButton1 = document.getElementById('analyticsPathRun');
                 clearButton1.addEventListener('click', function() {
+                    plotlyDiv.innerHTML = '';
+                });
+
+                var clearButton2 = document.getElementById('analyticsEigenvectorRun');
+                clearButton2.addEventListener('click', function() {
                     plotlyDiv.innerHTML = '';
                 });
             });

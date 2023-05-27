@@ -7,7 +7,7 @@ import uploader
 import pandas as pd
 import networkx as nx
 import json
-import colorsys
+import matplotlib.cm as cm
 
 
 
@@ -158,18 +158,18 @@ def rgb_to_hex(color):
     return f"#{r:02x}{g:02x}{b:02x}"
 
 
-def sample_color_gradient(color_low, color_high, values):
+def sample_color_gradient(plt_color_map, values):
     """
     colors has to be lists as color = [r, g, b]
-    returns list of lists according to the color
+    returns list of tuples according to the color
     """
     colors = []
+    colormap = cm.get_cmap(plt_color_map)
+
     for value in values:
         # Interpolate between colors
-        interpolated_color = [
-            int(color_low[channel] + (color_high[channel] - color_low[channel]) * value)
-            for channel in range(3)
-        ]
-        colors.append(tuple(interpolated_color))
+        interpolated_color = colormap(value)
+        rgb_color = tuple(int(x * 255) for x in interpolated_color[:3])
+        colors.append(rgb_color)
 
     return colors

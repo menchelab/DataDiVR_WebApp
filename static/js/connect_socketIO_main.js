@@ -457,6 +457,9 @@ $(document).ready(function(){
                             case "Shortest Path":
                                 $("#analyticsSelectedPath").css('display', 'inline-block');
                             break;
+                            case "Eigenvector":
+                                $("#analyticsSelectedEigenvector").css('display', 'inline-block');
+                            break;
                             // add bindings for options display here
 
                         }
