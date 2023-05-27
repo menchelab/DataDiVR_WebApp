@@ -9,6 +9,8 @@ import json
 import plotly.graph_objs as go
 import plotly.utils as pu
 from joblib import Parallel, delayed
+import igraph as ig
+import numpy as np
 
 
 def analytics_degree_distribution(graph):
@@ -209,11 +211,6 @@ def update_network_colors(node_colors, link_colors=None):
         # return {"textures_created": False}
 
 def analytics_closeness_OLD(graph):
-    # nx graph to closeness distribution
-    closeness_seq = [nx.closeness_centrality(graph, node) for node in graph.nodes()]
-    return closeness_seq
-
-def analytics_closeness(graph):
     def _compute_closeness(node, graph):
         return nx.closeness_centrality(graph, wf_improved=True)[node]
     
@@ -225,6 +222,23 @@ def analytics_closeness(graph):
             delayed(_compute_closeness)(node, graph) for node in graph.nodes()
         )
     return closeness_seq
+
+
+def analytics_closeness(graph):
+    def _compute_closeness_igraph(graph):
+        g = ig.Graph.Adjacency((graph > 0).tolist(), mode="DIRECTED")
+        closeness_seq = g.closeness(mode="out")
+        closeness_seq = np.where(np.isnan(closeness_seq), 0, closeness_seq)  # Replace NaN values with 0
+        return closeness_seq
+
+    if len(graph.nodes()) <= 10000 or len(graph.edges()) <= 80000:
+        closeness_seq = [nx.closeness_centrality(graph, node) for node in graph.nodes()]
+    else:
+        adjacency_matrix = nx.to_numpy_array(graph)
+        closeness_seq = _compute_closeness_igraph(adjacency_matrix)
+        closeness_seq = list(closeness_seq)  # Convert numpy array to list
+    return closeness_seq
+
 
 
 def analytics_shortest_path(graph, node_1, node_2):

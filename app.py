@@ -446,21 +446,20 @@ def ex(message):
 
         if message['id'] == "analyticsClosenessRun":
 
-            print(">")
+
             if "analyticsClosenessRun" not in GD.session_data.keys():
                 ### "expensive" stuff
                 graph = util.project_to_graph(project)
-                print(">.5")
                 result = analytics.analytics_closeness(graph)
                 print(result)
                 ###
                 GD.session_data["analyticsClosenessRun"] = result
             arr = GD.session_data["analyticsClosenessRun"]
-            print(">>")
+
             
             gradient_low, gradient_high = [0, 166, 255], [255, 0, 0]
             node_colors = util.sample_color_gradient(color_low=gradient_low, color_high=gradient_high, values=arr)
-            print(">>>")
+            
             generated_textures = analytics.update_network_colors(node_colors=node_colors)  # link_colors stays None for grey
             if generated_textures["textures_created"] is False:
                 print("Failed to create textures for Analytics/Shortest Path.")
@@ -478,7 +477,6 @@ def ex(message):
             response_links["channel"] = "linkRGB"
             response_links["path"] = generated_textures["path_links"]
             emit("ex", response_links, room=room)
-            print(">>>>")
 
 
         if message["id"] == "analyticsPathNode1":
