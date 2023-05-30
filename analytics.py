@@ -365,25 +365,36 @@ def generate_layout_community_det(communities_arr, ordered_graph, radius=1.5):
     if not isinstance(ordered_graph, util.OrderedGraph):
         raise TypeError("The graph should be an instance of OrderedGraph.")
 
-    pos = {}
-    communities = list(set(communities_arr))  # Get unique community labels
+    # Create an empty layout dictionary
+    layout = {}
 
-    for community in communities:
-        nodes = [node for node, comm in zip(ordered_graph.node_order, communities_arr) if comm == community]
-        n = len(nodes)
+    # Store the seed position for each community
+    seed_positions = {}
 
-        # Generate positions for nodes in the same community
-        angles = np.linspace(0, 2 * np.pi, n, endpoint=False)
-        x = radius * np.cos(angles)
-        y = radius * np.sin(angles)
-        z = np.random.uniform(-0.5, 0.5, size=n)  # Random z-values between -0.5 and 0.5
-        positions = np.vstack([x, y, z]).T
+    # Iterate over each node
+    for i, node in enumerate(ordered_graph.node_order):
+        # Get the community label for the current node
+        community_label = communities_arr[i]
 
-        # Assign positions to nodes
-        for node, position in zip(nodes, positions):
-            pos[node] = position
+        # Calculate the distance from the current node to the seed position of the community
+        if community_label not in seed_positions:
+            # Generate a random seed position for the new community
+            seed_positions[community_label] = (
+                np.random.uniform(-10, 10),
+                np.random.uniform(-10, 10),
+                np.random.uniform(-10, 10),
+            )
 
-    layout = nx.spring_layout(ordered_graph, dim=3, pos=pos)
+        seed_position = seed_positions[community_label]
+        distance_to_seed = np.random.uniform(0, 3)  # Adjust the distance to your preference
+
+        # Calculate the layout position based on the community seed and distance
+        x = seed_position[0] + np.random.uniform(-distance_to_seed, distance_to_seed)
+        y = seed_position[1] + np.random.uniform(-distance_to_seed, distance_to_seed)
+        z = seed_position[2] + np.random.uniform(-distance_to_seed, distance_to_seed)
+
+        # Add the layout position to the dictionary
+        layout[node] = (x, y, z)
     
     # normalize
     x, y, z = [], [], []
@@ -397,9 +408,9 @@ def generate_layout_community_det(communities_arr, ordered_graph, radius=1.5):
     positions = [[
         (x[node_id] - min_x) / (max_x - min_x),
         (y[node_id] - min_y) / (max_y - min_y),
-        (z[node_id] - min_z) / (max_z - min_z),
+        ((z[node_id] - min_z) / (max_z - min_z)) if min_z != max_z else 0,
     ] for node_id in range(len(communities_arr))]
-
+    
     return positions
 
 
@@ -407,11 +418,11 @@ def generate_temp_layout(positions):
     try:
         ### low refers to the texture layoutsl !!!!
         # copy old layouts
-        current_layout_low = Image.open("static/projects/"+ GD.data["actPro"] + "/layoutsl/"+ GD.pfile["layouts"][int(GD.pdata["layoutsDD"])]+".bmp","r")
+        current_layout_low = Image.open("static/projects/"+ GD.data["actPro"] + "/layoutsl/"+ GD.pfile["layouts"][int(GD.pdata["layoutsDD"])]+"l.bmp","r")
         current_layout_hi = Image.open("static/projects/"+ GD.data["actPro"] + "/layouts/"+ GD.pfile["layouts"][int(GD.pdata["layoutsDD"])]+".bmp","r")
         updated_layout_low = current_layout_low.copy()
         updated_layout_hi = current_layout_hi.copy()
-        
+
         # decompose positions
         pos_low = []
         pos_hi = []
@@ -431,7 +442,7 @@ def generate_temp_layout(positions):
         # save new layouts
         updated_layout_low.putdata(pos_low)
         updated_layout_hi.putdata(pos_hi)
-        path_low = "static/projects/"+ GD.data["actPro"]  + "/layoutsl/temp.bmp"
+        path_low = "static/projects/"+ GD.data["actPro"]  + "/layoutsl/templ.bmp"
         path_hi = "static/projects/"+ GD.data["actPro"]  + "/layouts/temp.bmp"
         updated_layout_low.save(path_low, "BMP")
         updated_layout_hi.save(path_hi, "BMP")
@@ -443,7 +454,7 @@ def generate_temp_layout(positions):
         updated_layout_hi.close()
 
         # output texture dictionary
-        return {"layout_created": False, "layout_low": path_low, "layout_hi": path_hi}
+        return {"layout_created": True, "layout_low": path_low, "layout_hi": path_hi}
     except Exception: 
         return {"layout_created": False} 
     

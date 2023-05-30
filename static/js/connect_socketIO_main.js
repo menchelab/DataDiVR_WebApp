@@ -304,7 +304,16 @@ $(document).ready(function(){
                     ue4(data["fn"], data);
                 }
                 break;
+
+            case "updateTempLayout":
+                if(isPreview){
+                    updateLayoutTemp(data["path_low"], data["path_hi"])
+                }else{
+                    ue4(data["fn"], data);
+                }
+                break;
     
+
 
             case 'node':
                 if(document.getElementById("nodeL2")){

@@ -563,7 +563,6 @@ def ex(message):
 
         if message['id'] == "analyticsEigenvectorRun":
 
-
             if "analyticsEigenvectorRun" not in GD.session_data.keys():
                 ### "expensive" stuff
                 graph = util.project_to_graph(project)
@@ -571,7 +570,6 @@ def ex(message):
                 ###
                 GD.session_data["analyticsEigenvectorRun"] = result
             arr = GD.session_data["analyticsEigenvectorRun"][1]  # index: visual 1, original 0
-
 
             node_colors = util.sample_color_gradient(plt_color_map="magma", values=arr)
 
@@ -626,11 +624,28 @@ def ex(message):
             emit("ex", response_links, room=room)
 
 
-        
-            positions = analytics.generate_layout_community_det(communities_arr=arr, ordered_graph=util.project_to_graph(project))
-            generated_layout = analytics.generate_temp_layout(positions=positions)
-            print(generated_layout)
+        if message['id'] == "analyticsModcommunityLayout":
 
+            if "analyticsModcommunityLayout" not in GD.session_data.keys():
+                ### "expensive" stuff
+                graph = util.project_to_graph(project)
+                communities_list = GD.session_data["analyticsModcommunityRun"]  # this has to be generated before you would be able to run this
+                result = analytics.generate_layout_community_det(communities_arr=communities_list, ordered_graph=graph)
+                ###
+                GD.session_data["analyticsModcommunityLayout"] = result
+            positions = GD.session_data["analyticsModcommunityLayout"]
+        
+            generated_layout = analytics.generate_temp_layout(positions=positions)
+            if generated_layout["layout_created"] is False:
+                print("Failed to create layout for Analytics/Mod-based Communities")
+                return
+            response = {}
+            response["usr"] = message["usr"]
+            response["fn"] = "updateTempLayout"
+            response["path_hi"] = generated_layout["layout_hi"]
+            response["path_low"] = generated_layout["layout_low"]
+            emit("ex", response, room=room)
+            return
 
     elif message["fn"] == "annotation":
         if message["id"] == "annotationOperation":
