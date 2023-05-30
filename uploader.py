@@ -10,6 +10,7 @@ from io import StringIO
 
 from distutils.dir_util import copy_tree
 
+import re
 
 # functions to calculate lon/lat to xyz for the DataDiVR 
 import numpy as np 
@@ -58,7 +59,7 @@ def normalize_xyz(coords):
 
     return x_norm,y_norm,z_norm
 
-def hex_to_rgba(hx):
+def hex_to_rgb(hx):
     hx=hx.lstrip('#')
     hlen=len(hx)
     return tuple(int(hx[i:i+hlen//3], 16) for i in range(0,hlen//3))
@@ -268,11 +269,10 @@ def makeNodeRGBTexture(project, pixeldata, name=None):
     for i in (pixeldata["data"]):
         rgba_colors = []
         if type(i) is str and len(i) == 6 and i.startswith('#'):
-            rgba_converted = hex_to_rgba(pixeldata["data"][i]) 
+            rgba_converted = hex_to_rgb(pixeldata["data"][i]) 
             rgba_colors.append(rgba_converted)
-        else: 
+        else:
             rgba_colors = pixeldata["data"]
-
 
     hight = 128 * (int((len(pixeldata["data"])) / 16384) + 1)
 
@@ -360,7 +360,6 @@ def makeLinkTexNew(project, links, name=None):
 
 def makeLinkRGBTex(project, linksRGB, name=None):
     
-
     hight = 64 * (int((len(linksRGB["data"])) / 32768) + 1)
     path = 'static/projects/' + project 
 
@@ -369,7 +368,7 @@ def makeLinkRGBTex(project, linksRGB, name=None):
         for i in (linksRGB["data"]):
             rgba_colors = []
             if type(i) is str and len(i) == 6 and i.startswith('#'):
-                rgba_converted = hex_to_rgba(linksRGB["data"][i]) 
+                rgba_converted = hex_to_rgb(linksRGB["data"][i]) 
                 rgba_colors.append(rgba_converted)
             else: 
                 rgba_colors = linksRGB["data"]
