@@ -19,6 +19,7 @@
             name_button.textContent = this.getAttribute('name');
             name_button.style.width = this.getAttribute('w') + "px";
             name_button.style.background = this.getAttribute('color');
+            //name_button.style.background = url('images/NotR;ecording.png')
             var fun = this.getAttribute('fn');
 
             name_button.addEventListener('click', () => {
@@ -66,7 +67,7 @@
     }
 </style>
     <div id="container" style="width: auto; height: 30p0x; display: inline-block; padding: 4px 2px">
-        <button id="name"></button>
+        <button id="name"><img src="static/css/images/NotRecording.png"></img></button>
     </div>
 
 </template>
@@ -90,7 +91,10 @@
         let name_button = this.shadowRoot.querySelector("#name");
 
         name_button.textContent = this.getAttribute('name');
-
+        if (this.getAttribute('img')){
+            name_button.innerHTML ='<img src="static/css/images/'+ this.getAttribute('img') +'" />';
+        }
+        //
         var fun = this.getAttribute('fn');
         //console.log('create: '+ this.getAttribute('data'));
 
