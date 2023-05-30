@@ -36,6 +36,8 @@ import whisper
 import torch
 from io_blueprint import IOBlueprint
 
+print("whisper GPU = "+ str(torch.cuda.is_available()))
+
 global model
 model = ''
 
