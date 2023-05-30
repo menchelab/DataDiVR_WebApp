@@ -626,6 +626,12 @@ def ex(message):
             emit("ex", response_links, room=room)
 
 
+        
+            positions = analytics.generate_layout_community_det(communities_arr=arr, ordered_graph=util.project_to_graph(project))
+            generated_layout = analytics.generate_temp_layout(positions=positions)
+            print(generated_layout)
+
+
     elif message["fn"] == "annotation":
         if message["id"] == "annotationOperation":
             if message["val"] == "init":
