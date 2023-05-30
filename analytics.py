@@ -127,7 +127,7 @@ def analytics_color_degree_distribution(degrees, highlight):
         if node in highlight_nodes:
             node_colors.append((255, 166, 0, 100))
             continue
-        node_colors.append((33, 33, 33, 100))
+        node_colors.append((55, 55, 55, 100))
     # get links
 
     link_colors = []
@@ -135,7 +135,7 @@ def analytics_color_degree_distribution(degrees, highlight):
         with open("static/projects/"+ GD.data["actPro"] + "/links.json", "r") as links_file:
             links = json.load(links_file)
         # set link colors
-        link_colors = [(33, 33, 33, 30) for _ in links["links"]]
+        link_colors = [(55, 55, 55, 30) for _ in links["links"]]
 
         # create images
         texture_nodes_active = Image.open("static/projects/" + GD.data["actPro"] + "/layoutsRGB/" + GD.pfile["layoutsRGB"][int(GD.pdata["layoutsRGBDD"])] + ".png", "r")
@@ -190,7 +190,7 @@ def update_network_colors(node_colors, link_colors=None):
         links = json.load(links_file)
     # set link colors
     if link_colors is None:
-        link_colors = [(33, 33, 33, 30) for _ in links["links"]]
+        link_colors = [(55, 55, 55, 30) for _ in links["links"]]
 
     # create images
     texture_nodes_active = Image.open("static/projects/" + GD.data["actPro"] + "/layoutsRGB/" + GD.pfile["layoutsRGB"][int(GD.pdata["layoutsRGBDD"])] + ".png", "r")
@@ -268,7 +268,7 @@ def analytics_color_shortest_path(path):
         if node in path:
             node_colors.append((255, 166, 0, 100))
             continue
-        node_colors.append((33, 33, 33, 100))
+        node_colors.append((55, 55, 55, 100))
     
     # get links
     link_colors = []
@@ -280,7 +280,7 @@ def analytics_color_shortest_path(path):
             if int(link["s"]) in path and int(link["e"]) in path:
                 link_colors.append((244, 255, 89, 150))
                 continue
-            link_colors.append((33, 33, 33, 30))
+            link_colors.append((55, 55, 55, 30))
         
     
         # create images
@@ -356,6 +356,105 @@ def modularity_community_detection(ordered_graph):
 def color_mod_community_det(communities_arr):
     num_communities = max(communities_arr)
     colors = util.generate_colors(n=num_communities)
-    colors.insert(0, (66, 66, 66))  # grey out all non community nodes
+    colors.insert(0, (55, 55, 55))  # grey out all non community nodes
     node_colors = [colors[community] for community in communities_arr]
     return node_colors
+
+
+def generate_layout_community_det(communities_arr, ordered_graph, radius=1.5):
+    if not isinstance(ordered_graph, util.OrderedGraph):
+        raise TypeError("The graph should be an instance of OrderedGraph.")
+
+    # Create an empty layout dictionary
+    layout = {}
+
+    # Store the seed position for each community
+    seed_positions = {}
+
+    # Iterate over each node
+    for i, node in enumerate(ordered_graph.node_order):
+        # Get the community label for the current node
+        community_label = communities_arr[i]
+
+        # Calculate the distance from the current node to the seed position of the community
+        if community_label not in seed_positions:
+            # Generate a random seed position for the new community
+            seed_positions[community_label] = (
+                np.random.uniform(-10, 10),
+                np.random.uniform(-10, 10),
+                np.random.uniform(-10, 10),
+            )
+
+        seed_position = seed_positions[community_label]
+        distance_to_seed = np.random.uniform(0, 3)  # Adjust the distance to your preference
+
+        # Calculate the layout position based on the community seed and distance
+        x = seed_position[0] + np.random.uniform(-distance_to_seed, distance_to_seed)
+        y = seed_position[1] + np.random.uniform(-distance_to_seed, distance_to_seed)
+        z = seed_position[2] + np.random.uniform(-distance_to_seed, distance_to_seed)
+
+        # Add the layout position to the dictionary
+        layout[node] = (x, y, z)
+    
+    # normalize
+    x, y, z = [], [], []
+    for node_id in range(len(communities_arr)):
+        x.append(layout[str(node_id)][0])
+        y.append(layout[str(node_id)][1])
+        z.append(layout[str(node_id)][2])
+    max_x, min_x = max(x), min(x)
+    max_y, min_y = max(y), min(y)
+    max_z, min_z = max(z), min(z)
+    positions = [[
+        (x[node_id] - min_x) / (max_x - min_x),
+        (y[node_id] - min_y) / (max_y - min_y),
+        ((z[node_id] - min_z) / (max_z - min_z)) if min_z != max_z else 0,
+    ] for node_id in range(len(communities_arr))]
+    
+    return positions
+
+
+def generate_temp_layout(positions):
+    try:
+        ### low refers to the texture layoutsl !!!!
+        # copy old layouts
+        current_layout_low = Image.open("static/projects/"+ GD.data["actPro"] + "/layoutsl/"+ GD.pfile["layouts"][int(GD.pdata["layoutsDD"])]+"l.bmp","r")
+        current_layout_hi = Image.open("static/projects/"+ GD.data["actPro"] + "/layouts/"+ GD.pfile["layouts"][int(GD.pdata["layoutsDD"])]+".bmp","r")
+        updated_layout_low = current_layout_low.copy()
+        updated_layout_hi = current_layout_hi.copy()
+
+        # decompose positions
+        pos_low = []
+        pos_hi = []
+        for node_pos in positions:
+            x = int(float(node_pos[0]) * 65280)
+            y = int(float(node_pos[1]) * 65280)
+            z = int(float(node_pos[2]) * 65280)
+            x_hi = int(x / 255)
+            y_hi = int(y / 255)
+            z_hi = int(z / 255)
+            x_low = x % 255
+            y_low = y % 255
+            z_low = z % 255
+            pos_low.append((x_low, y_low, z_low))
+            pos_hi.append((x_hi, y_hi, z_hi))
+
+        # save new layouts
+        updated_layout_low.putdata(pos_low)
+        updated_layout_hi.putdata(pos_hi)
+        path_low = "static/projects/"+ GD.data["actPro"]  + "/layoutsl/templ.bmp"
+        path_hi = "static/projects/"+ GD.data["actPro"]  + "/layouts/temp.bmp"
+        updated_layout_low.save(path_low, "BMP")
+        updated_layout_hi.save(path_hi, "BMP")
+
+        # close images
+        current_layout_low.close()
+        current_layout_hi.close()
+        updated_layout_low.close()
+        updated_layout_hi.close()
+
+        # output texture dictionary
+        return {"layout_created": True, "layout_low": path_low, "layout_hi": path_hi}
+    except Exception: 
+        return {"layout_created": False} 
+    

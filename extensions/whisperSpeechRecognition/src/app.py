@@ -33,8 +33,13 @@ import wave
 from mimetypes import guess_extension
 
 import whisper
-import torch
+import torch #pip install torch==1.13.1+cu116 torchvision==0.14.1+cu116 torchaudio==0.13.1 --extra-index-url https://download.pytorch.org/whl/cu116
+# for cuda 11.6
+
+
 from io_blueprint import IOBlueprint
+
+print("whisper GPU = "+ str(torch.cuda.is_available()))
 
 global model
 model = ''
