@@ -39,6 +39,8 @@ import torch #pip install torch==1.13.1+cu116 torchvision==0.14.1+cu116 torchaud
 
 from io_blueprint import IOBlueprint
 
+print("whisper GPU = "+ str(torch.cuda.is_available()))
+
 global model
 model = ''
 

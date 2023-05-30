@@ -1,4 +1,4 @@
-<!-- Analytics box -->
+<!-- Analytics Module -->
 
 
 <div class="gradientBox">
@@ -33,6 +33,45 @@
             <mc-button1 name="RUN" id="analyticsPathRun" fn="analytics"></mc-button1>
         </div>
         
+        <div id="analyticsSelectedEigenvector" style="display: none;" class="analyticsOption">
+            <mc-button1 name="RUN" id="analyticsEigenvectorRun" fn="analytics"></mc-button1>
+        </div>
 
+        <div id="analyticsSelectedModcommunity" style="display: none;" class="analyticsOption">
+            <mc-button1 name="RUN" id="analyticsModcommunityRun" fn="analytics"></mc-button1>
+            <mc-button1 name="Apply Layout" id="analyticsModcommunityLayout" fn="analytics"></mc-button1>
+        </div>
+
+
+        <!-- plotly container-->
+        <div id="analyticsContainer" frameborder="0" style="display: none;"></div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                var plotlyDiv = document.getElementById('analyticsContainer');
+
+                // add here all run buttons which does not use the analyticsContainer
+                var clearButton0 = document.getElementById('analyticsClosenessRun');
+                clearButton0.addEventListener('click', function() {
+                    plotlyDiv.innerHTML = '';
+                });
+
+                var clearButton1 = document.getElementById('analyticsPathRun');
+                clearButton1.addEventListener('click', function() {
+                    plotlyDiv.innerHTML = '';
+                });
+
+                var clearButton2 = document.getElementById('analyticsEigenvectorRun');
+                clearButton2.addEventListener('click', function() {
+                    plotlyDiv.innerHTML = '';
+                });
+
+                var clearButton3 = document.getElementById('analyticsModcommunityRun');
+                clearButton3.addEventListener('click', function() {
+                    plotlyDiv.innerHTML = '';
+                });
+            });
+        </script>
     </div>
+
+    
 </div>

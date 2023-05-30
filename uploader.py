@@ -417,11 +417,6 @@ def upload_filesNew(request):
     prolist = GD.plist
 
     namespace = form["new_name"]
-    # namespace = '' 
-    #if form["namespace"] == "New":
-    #    namespace = form["namespace"]   
-    #else:
-    #    namespace = form["existing_namespace"]
     if not namespace:
         return "namespace fail"
     

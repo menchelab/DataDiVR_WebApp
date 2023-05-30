@@ -228,7 +228,7 @@ def barGraph(data):
                 orientation='h'
                 ))
     
-    bar_height = 20*len(names)+500
+    bar_height = 16*len(names)+500
     print("C_DEBUG: bar height = ", bar_height)
 
     #fig.show()

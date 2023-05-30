@@ -30,6 +30,8 @@ nchildren = []
 
 pixel_valuesc = []
 
+session_data = {}  # data computed in expensive algorithms once are stored during session -> key: str of algorithm id, value result of algoriuthm/function 
+
 
 def listProjects():
     folder = "static/projects"
@@ -74,6 +76,10 @@ def loadPD():
     global pdata
     global nodes
     global links
+
+    global session_data
+    session_data = {} # empty session data on changing project
+
     if not path.exists("static/projects/" + data["actPro"] + "/pdata.json"):
         with open("static/projects/" + data["actPro"] + "/pdata.json", "w") as outfile:
             json.dump(pdata, outfile)

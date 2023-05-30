@@ -393,15 +393,90 @@ def ex(message):
     
     elif message['fn'] == "analytics":
         project = GD.data["actPro"]
-        # add functionality here to analtics
+
         if message['id'] == "analyticsDegreeRun":
-            graph = util.project_to_graph(project)
-            arr = analytics.analytics_degree_distribution(graph)
-            print(arr)
+         
+    
+            if "analyticsDegreeRun" not in GD.session_data.keys():
+                ### "expensive" stuff
+                graph = util.project_to_graph(project)
+                result = analytics.analytics_degree_distribution(graph)
+                ###
+                GD.session_data["analyticsDegreeRun"] = result
+            arr = GD.session_data["analyticsDegreeRun"]
+
+
+            highlight = None
+            if "highlight" in message.keys():
+                highlight = int(message["highlight"])
+
+            plot_data, highlighted_degrees = analytics.plotly_degree_distribution(arr, highlight)
+
+            response = {}
+            response["fn"] = message["fn"]
+            response["usr"] = message["usr"]
+            response["id"] = "analyticsDegreePlot"
+            response["target"] = "analyticsContainer"   # container to render plot in
+            response["val"] = plot_data
+            emit("ex", response, room=room)
+
+            # setup new texture
+            if highlight is None:
+                return
+
+            degree_distribution_textures = analytics.analytics_color_degree_distribution(arr, highlighted_degrees)
+            if degree_distribution_textures["textures_created"] is False:
+                print("Failed to create textures for Analytics/Shortest Path.")
+                return
+        
+            response_nodes = {}
+            response_nodes["usr"] = message["usr"]
+            response_nodes["fn"] = "updateTempTex"
+            response_nodes["channel"] = "nodeRGB"
+            response_nodes["path"] = degree_distribution_textures["path_nodes"]
+            emit("ex", response_nodes, room=room)
+
+            response_links = {}
+            response_links["usr"] = message["usr"]
+            response_links["fn"] = "updateTempTex"
+            response_links["channel"] = "linkRGB"
+            response_links["path"] = degree_distribution_textures["path_links"]
+            emit("ex", response_links, room=room)
+
+
         if message['id'] == "analyticsClosenessRun":
-            graph = util.project_to_graph(project)
-            arr = analytics.analytics_closeness(graph)
-            print(arr)
+
+
+            if "analyticsClosenessRun" not in GD.session_data.keys():
+                ### "expensive" stuff
+                graph = util.project_to_graph(project)
+                result = analytics.analytics_closeness(graph)
+                print(result)
+                ###
+                GD.session_data["analyticsClosenessRun"] = result
+            arr = GD.session_data["analyticsClosenessRun"]
+
+
+            node_colors = util.sample_color_gradient(plt_color_map="plasma", values=arr)
+
+            generated_textures = analytics.update_network_colors(node_colors=node_colors)  # link_colors stays None for grey
+            if generated_textures["textures_created"] is False:
+                print("Failed to create textures for Analytics/Closeness")
+                return
+            response_nodes = {}
+            response_nodes["usr"] = message["usr"]
+            response_nodes["fn"] = "updateTempTex"
+            response_nodes["channel"] = "nodeRGB"
+            response_nodes["path"] = generated_textures["path_nodes"]
+            emit("ex", response_nodes, room=room)
+
+            response_links = {}
+            response_links["usr"] = message["usr"]
+            response_links["fn"] = "updateTempTex"
+            response_links["channel"] = "linkRGB"
+            response_links["path"] = generated_textures["path_links"]
+            emit("ex", response_links, room=room)
+
 
         if message["id"] == "analyticsPathNode1":
             # set server data: node +  hex color
@@ -433,7 +508,7 @@ def ex(message):
                 if "analyticsData" not in GD.pdata.keys():
                     GD.pdata["analyticsData"] = {}
                     print(GD.pdata)
-                if "shortestPathNode2" in GD.pdata["analyticsData"].keys():
+                if "shortestPathNode2" not in GD.pdata["analyticsData"].keys():
                     GD.pdata["analyticsData"]["shortestPathNode2"] = {}
                 GD.pdata["analyticsData"]["shortestPathNode2"]["id"] = GD.pdata["activeNode"]
                 GD.pdata["analyticsData"]["shortestPathNode2"]["color"] = util.rgb_to_hex(GD.pixel_valuesc[int(GD.pdata["activeNode"])])
@@ -484,6 +559,78 @@ def ex(message):
             response_links["channel"] = "linkRGB"
             response_links["path"] = shortest_path_textures["path_links"]
             emit("ex", response_links, room=room)
+
+
+        if message['id'] == "analyticsEigenvectorRun":
+
+
+            if "analyticsEigenvectorRun" not in GD.session_data.keys():
+                ### "expensive" stuff
+                graph = util.project_to_graph(project)
+                result = analytics.analytics_eigenvector(graph)
+                ###
+                GD.session_data["analyticsEigenvectorRun"] = result
+            arr = GD.session_data["analyticsEigenvectorRun"][1]  # index: visual 1, original 0
+
+
+            node_colors = util.sample_color_gradient(plt_color_map="magma", values=arr)
+
+            generated_textures = analytics.update_network_colors(node_colors=node_colors)  # link_colors stays None for grey
+            if generated_textures["textures_created"] is False:
+                print("Failed to create textures for Analytics/Eigenvector.")
+                return
+            response_nodes = {}
+            response_nodes["usr"] = message["usr"]
+            response_nodes["fn"] = "updateTempTex"
+            response_nodes["channel"] = "nodeRGB"
+            response_nodes["path"] = generated_textures["path_nodes"]
+            emit("ex", response_nodes, room=room)
+
+            response_links = {}
+            response_links["usr"] = message["usr"]
+            response_links["fn"] = "updateTempTex"
+            response_links["channel"] = "linkRGB"
+            response_links["path"] = generated_textures["path_links"]
+            emit("ex", response_links, room=room)
+
+
+        if message['id'] == "analyticsModcommunityRun":
+
+
+            if "analyticsModcommunityRun" not in GD.session_data.keys():
+                ### "expensive" stuff
+                graph = util.project_to_graph(project)
+                result = analytics.modularity_community_detection(graph)
+                ###
+                GD.session_data["analyticsModcommunityRun"] = result
+            arr = GD.session_data["analyticsModcommunityRun"]
+
+            node_colors = analytics.color_mod_community_det(arr)
+
+            generated_textures = analytics.update_network_colors(node_colors=node_colors)  # link_colors stays None for grey
+            if generated_textures["textures_created"] is False:
+                print("Failed to create textures for Analytics/Mod-based Communities")
+                return
+            response_nodes = {}
+            response_nodes["usr"] = message["usr"]
+            response_nodes["fn"] = "updateTempTex"
+            response_nodes["channel"] = "nodeRGB"
+            response_nodes["path"] = generated_textures["path_nodes"]
+            emit("ex", response_nodes, room=room)
+
+            response_links = {}
+            response_links["usr"] = message["usr"]
+            response_links["fn"] = "updateTempTex"
+            response_links["channel"] = "linkRGB"
+            response_links["path"] = generated_textures["path_links"]
+            emit("ex", response_links, room=room)
+
+
+        
+            positions = analytics.generate_layout_community_det(communities_arr=arr, ordered_graph=util.project_to_graph(project))
+            generated_layout = analytics.generate_temp_layout(positions=positions)
+            print(generated_layout)
+
 
     elif message["fn"] == "annotation":
         if message["id"] == "annotationOperation":
@@ -540,7 +687,7 @@ def ex(message):
             generated_annotation_textures = annotation_texture.gen_textures(annotation_1=annotation_1, annotation_2=annotation_2, operation=operation)
 
             if generated_annotation_textures["generated_texture"] is False:
-                print("Failed to create textures for Analytics/Shortest Path.")
+                print("Failed to create textures for Annotation")
                 return
             response_nodes = {}
             response_nodes["usr"] = message["usr"]
@@ -578,7 +725,7 @@ def ex(message):
                 
                 # dropdown for fixed selections, might need a better solution to hardcode them in HTML / JS
                 if message["id"] == "analytics":
-                    response["opt"] = ["Degree Distribution", "Closeness", "Shortest Path"]
+                    response["opt"] = ["Degree Distribution", "Closeness", "Shortest Path", "Eigenvector", "Mod-based Communities"]
                     response["sel"] = 0
 
                 # dropdown for visualization type selection 
