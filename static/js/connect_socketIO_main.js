@@ -925,7 +925,7 @@ function Legend_displayGraphInfo(project_selected) {
             })
             .fail(function() {
                 const myDiv = document.getElementById("graphinfo");
-                myDiv.innerHTML = "<span style='font-size:18px; font-weight:bold'>Graph title not specified</span>" + "<br>" + "Graph description not specified.";
+                myDiv.innerHTML = "";
             });
     }
 }
@@ -1217,7 +1217,7 @@ function NEWIndexforwardstep(data){
 
     nextButton.setAttribute('val',currentIndex);
     backButton.setAttribute('val',currentIndex);
-    console.log("C_DEBUG: NEWIndexforwardstep value = ", currentIndex)
+    //console.log("C_DEBUG: NEWIndexforwardstep value = ", currentIndex)
 
     return currentIndex;
 }
@@ -1226,7 +1226,7 @@ function NEWIndexforwardstep(data){
 function getIndexforwardstep(data){
     const nextButton = document.getElementById('forwardstep');
     let currentIndex = parseInt(nextButton.getAttribute('val'));
-    console.log("C_DEBUG: getIndexforwardstep value = ", currentIndex)
+    //console.log("C_DEBUG: getIndexforwardstep value = ", currentIndex)
 
     return currentIndex;
 }
@@ -1241,7 +1241,7 @@ function NEWIndexbackwardstep(data) {
 
     backButton.setAttribute('val',currentIndex);
     nextButton.setAttribute('val',currentIndex);
-    console.log("C_DEBUG: NEWIndexbackwardstep value = ", currentIndex)
+    //console.log("C_DEBUG: NEWIndexbackwardstep value = ", currentIndex)
 
     return currentIndex;
 }
@@ -1249,7 +1249,7 @@ function NEWIndexbackwardstep(data) {
 function getIndexbackwardstep(data) {
     const backButton = document.getElementById('backwardstep');
     let currentIndex = parseInt(backButton.getAttribute('val'));
-    console.log("C_DEBUG: getIndexbackwardstep value = ", currentIndex)
+    //console.log("C_DEBUG: getIndexbackwardstep value = ", currentIndex)
 
     return currentIndex;
 }

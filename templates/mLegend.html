@@ -1,7 +1,7 @@
 
 
 <div class="gradientBox">
-    <div id="legendpanel" class='swagBox' style="width:420px;  background-color: rgba(16, 3, 0, 0.3);">
+    <div id="legendpanel" class='swagBox' style="width:420px; min-height:80vh;  background-color: rgba(16, 3, 0, 0.3);">
          
         <h5 style="  float:left; font-size: 25px;  color: rgb(102, 102, 102); margin-top:5px; margin-bottom:5px;">
             NETWORK LEGEND</h5>
@@ -10,16 +10,15 @@
 
         <div class="gradient" ></div><br>
         
-        <div id='graphinfo'></div>
+        <div style="margin-bottom:6px;"> PROJECT TITLE : :  <span id='graphinfo'></span> </div>
 
         <br>
 
-        <div style="margin-bottom:6px;"> Current Layout title: </div>
-        <div style="font-weight:bold;" id='graphlayout'></div>
+        <div style="margin-bottom:6px;"> LAYOUT TITLE : : <span style="font-weight:bold;" id='graphlayout'><spanv> </spanv></div>
         
-        <br><br>
+        <br>
 
-        <div style="margin-bottom:6px;"> Node color description: </div>
+        <div style="margin-bottom:6px;"> NODE COLORS </div>
         
 
         <div id="legend_node_all" style="display:inline-flex;">
@@ -29,7 +28,7 @@
         
         <br><br>
 
-        <div style="margin-bottom:6px;"> Link color description: </div> <!-- clear:both-->
+        <div style="margin-bottom:6px;"> LINK COLORS </div> <!-- clear:both-->
  
         
         <div id="legend_link_all" style="display:inline-flex;">
@@ -37,16 +36,15 @@
         <div id="legend_linkdescription"></div>
         </div>
 
+        <br><br>
 
-        <br>
-
-        <img id='legend_image' style='width:100%'></img>
-        <iframe id='legend_html' style='width:100%; border:none'></iframe>
-        
         <div id="legend_buttons" style="justify-content: center;">
             <mc-button1 id="legend_backward" parent="" val="0" name="&#60&#60" fn="func_legend_file"></mc-button1>
             <mc-button1 id="legend_forward" parent="" val="0" name="&#62&#62" fn="func_legend_file"></mc-button1>
         </div>
+        
+        <img id='legend_image' style='width:100%'></img>
+        <iframe id='legend_html' style='width:100%; border:none'></iframe>
 
     </div>
 </div>

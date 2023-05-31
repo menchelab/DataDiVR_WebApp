@@ -353,15 +353,19 @@ def parseGraphJSON_linkcolors(files,target):
             linkcolor_rgba = []
             for i in range(0,num_of_links):
                 color = file["links"][i]["linkcolor"]
-                # if HEX FORMAT
-                if re.match(r'^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$', color):
-                    rgba_color = (*hex_to_rgb(color), 100)
-                    linkcolor_rgba.append(rgba_color)
-                # if RGBA FORMAT
-                elif re.match(r'^rgba\((\d+),(\d+),(\d+),(\d+)\)$', color) or re.match(r'^\((\d+),(\d+),(\d+),(\d+)\)$', color):
-                    rgba = re.findall(r'\d+', color)
-                    rgba_color = tuple(map(int, rgba))
-                    linkcolor_rgba.append(rgba_color)
+
+                if isinstance(color, str):
+                    # if HEX FORMAT
+                    if re.match(r'^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$', color):
+                        rgba_color = (*hex_to_rgb(color), 100)
+                        linkcolor_rgba.append(rgba_color)
+                    # if RGBA FORMAT
+                    elif re.match(r'^rgba\((\d+),(\d+),(\d+),(\d+)\)$', color) or re.match(r'^\((\d+),(\d+),(\d+),(\d+)\)$', color):
+                        rgba = re.findall(r'\d+', color)
+                        rgba_color = tuple(map(int, rgba))
+                        linkcolor_rgba.append(rgba_color)
+                elif isinstance(color, list) and len(color) == 4:
+                    linkcolor_rgba.append(tuple(color))
                 else:
                     linkcolor_rgba.append((255, 0, 255, 100))
 
@@ -496,7 +500,7 @@ def parseGraphJSON_graphdesc(files,target):
             elif "graphdesc" in file["graph"].keys():
                 descr_of_graph = file["graph"]["graphdesc"]
             else: 
-                descr_of_graph = "Graph description not specified."
+                descr_of_graph = ""
             vecList = {}
             vecList["graphdesc"] = descr_of_graph 
             target.append(vecList)
