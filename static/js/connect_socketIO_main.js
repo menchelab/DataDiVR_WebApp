@@ -472,6 +472,9 @@ $(document).ready(function(){
                             case "Mod-based Communities":
                                 $("#analyticsSelectedModcommunity").css('display', 'inline-block');
                             break;
+                            case "Clustering Coefficient":
+                                $("#analyticsSelectedClusteringCoeff").css('display', 'inline-block');
+                            break;
                             // add bindings for options display here
 
                         }
@@ -648,7 +651,39 @@ $(document).ready(function(){
                     for (let i = 0; i < NavBar.length; i++) {NavBar[i].style.visibility = "hidden";}
                 }
 
+                if (data.id == "analyticsClusteringCoeffPlot") {
+                    const config = {displayModeBar: false};
+                    const layout = {};
+                    let plot_data = JSON.parse(data["val"]);
+    
+                    Plotly.newPlot(data["target"], plot_data, layout, config);
 
+                    let plotIFrame = document.getElementById(data["target"]);
+
+                    let user = data.usr;
+                    let targetDiv = data.target;
+                    plotIFrame.on('plotly_click', function(data){
+                        if (data.event.button !== 0){return;}
+
+                        let clickedBarX = data.points[0].x;
+                        
+                        console.log(clickedBarX);
+
+                        let request = {
+                            fn: "analytics",
+                            id: "analyticsClusteringCoeffRun",
+                            highlight: clickedBarX,
+                            target: targetDiv,
+                            usr: user
+                        }
+
+                        socket.emit("ex", request);
+                    });
+                    
+                    plotIFrame.style.display = "inline-block";
+                    const NavBar = document.getElementsByClassName("modebar-container");
+                    for (let i = 0; i < NavBar.length; i++) {NavBar[i].style.visibility = "hidden";}
+                }
                 if (data.id == "analyticsPathNode1"){
                     let button = document.getElementById("analyticsPathNode1").shadowRoot.getElementById("name");
                     if (data.val != "init"){

@@ -540,3 +540,45 @@ def generate_temp_layout(positions):
     except Exception: 
         return {"layout_created": False} 
     
+
+def analytics_clustering_coefficient(ordered_graph):
+    if not isinstance(ordered_graph, util.OrderedGraph):
+        raise TypeError("The graph should be an instance of OrderedGraph.")
+    
+    clustering_coefficients = [nx.clustering(ordered_graph, node) for node in ordered_graph.node_order]
+    return clustering_coefficients
+
+
+def plotly_clustering_coefficient(assignment_list, highlighted_bar=None):
+    num_bins, bin_width = __compute_histogram_bins(assignment_list)
+
+    highlighted_assignments = [highlighted_bar]
+
+    # convert highlighted_bar to bin boundaries
+    if highlighted_bar is not None:
+        highlighted_bar = math.floor(highlighted_bar / bin_width)
+
+    colors = ['#636efa' if i != highlighted_bar else 'orange' for i in range(num_bins)]  # i/10 to iter over 0 to 1 in 0.1 steps
+
+    if highlighted_bar is not None:
+        min_assignment_selected = highlighted_bar * bin_width
+        max_assignment_selected = (highlighted_bar + 1) * bin_width
+        highlighted_assignments = [min_assignment_selected, max_assignment_selected]
+
+    layout = go.Layout(
+        xaxis=dict(title='Clustering Coefficient Range'),
+        yaxis=dict(title='Number of Nodes'),
+        bargap=0.1,
+        title=None if highlighted_bar is None else f"Selected Cluster Coefficients: {min_assignment_selected:.3f} to {max_assignment_selected:.3f}",
+        title_y=0.97
+    )
+    
+    fig = go.Figure(data=go.Histogram(x=assignment_list, xbins=dict(size=bin_width, start=0, end=1), marker=dict(color=colors)), layout=layout)
+
+    fig.update_layout(width=400, height=400, font_color='rgb(200,200,200)', paper_bgcolor="rgba(0,0,0,0)",
+                      plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=10, r=40, t=30, b=10))
+    fig.update_yaxes(showticklabels=True)
+    fig.update_layout(uniformtext_minsize=12, uniformtext_mode='show')
+    plotly_json = json.dumps(fig, cls=pu.PlotlyJSONEncoder)
+
+    return (plotly_json, highlighted_assignments)

@@ -627,6 +627,56 @@ def ex(message):
             emit("ex", response_links, room=room)
 
 
+        if message['id'] == "analyticsClusteringCoeffRun":
+
+            if "analyticsClusteringCoeffRun" not in GD.session_data.keys():
+                ### "expensive" stuff
+                graph = util.project_to_graph(project)
+                result = analytics.analytics_clustering_coefficient(graph)  
+                ###
+                GD.session_data["analyticsClusteringCoeffRun"] = result
+            arr = GD.session_data["analyticsClusteringCoeffRun"] 
+
+
+            highlight = None
+            if "highlight" in message.keys():
+                highlight = float(message["highlight"])
+
+            plot_data, highlighted_closeness = analytics.plotly_clustering_coefficient(arr, highlight)
+
+            response = {}
+            response["fn"] = message["fn"]
+            response["usr"] = message["usr"]
+            response["id"] = "analyticsClusteringCoeffPlot"
+            response["target"] = "analyticsContainer"   # container to render plot in
+            response["val"] = plot_data
+            emit("ex", response, room=room)
+
+            # setup new texture
+            if highlight is None:
+                return
+
+            closeness_textures = analytics.analytics_color_continuous(arr, highlighted_closeness)
+            if closeness_textures["textures_created"] is False:
+                print("Failed to create textures for Analytics/Clustering Coefficient.")
+                return
+        
+            response_nodes = {}
+            response_nodes["usr"] = message["usr"]
+            response_nodes["fn"] = "updateTempTex"
+            response_nodes["channel"] = "nodeRGB"
+            response_nodes["path"] = closeness_textures["path_nodes"]
+            emit("ex", response_nodes, room=room)
+
+            response_links = {}
+            response_links["usr"] = message["usr"]
+            response_links["fn"] = "updateTempTex"
+            response_links["channel"] = "linkRGB"
+            response_links["path"] = closeness_textures["path_links"]
+            emit("ex", response_links, room=room)
+
+
+
         if message['id'] == "analyticsModcommunityRun":
 
             if "analyticsModcommunityRun" not in GD.session_data.keys():
@@ -781,7 +831,7 @@ def ex(message):
                 
                 # dropdown for fixed selections, might need a better solution to hardcode them in HTML / JS
                 if message["id"] == "analytics":
-                    response["opt"] = ["Degree Distribution", "Closeness", "Shortest Path", "Eigenvector", "Mod-based Communities"]
+                    response["opt"] = ["Degree Distribution", "Closeness", "Shortest Path", "Eigenvector", "Mod-based Communities", "Clustering Coefficient"]
                     response["sel"] = 0
 
                 # dropdown for visualization type selection 
