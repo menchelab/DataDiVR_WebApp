@@ -1750,7 +1750,8 @@ function Legend_displayfirstGraphLayout(project_selected) {
             .done(function(pfiledata) {
 
                 if (pfiledata.hasOwnProperty('layouts')) {
-                    graphlayout = pfiledata.layouts[0];
+                    graphlayout_pre = pfiledata.layouts[0];
+                    graphlayout = graphlayout_pre.slice(0, -3);
                 }
                 const myDiv = document.getElementById("graphlayout");
                 myDiv.innerHTML = graphlayout;
@@ -1772,7 +1773,8 @@ function Legend_displayGraphLayout_backward(project_selected) {
                 backwardidx = getIndexbackwardstep(pfiledata.layouts.length);
 
                 if (pfiledata.hasOwnProperty('layouts')) {
-                    graphlayout = pfiledata.layouts[backwardidx];
+                    graphlayout_pre = pfiledata.layouts[backwardidx];
+                    graphlayout = graphlayout_pre.slice(0, -3);
                 }
                 const myDiv = document.getElementById("graphlayout");
                 myDiv.innerHTML = graphlayout;
@@ -1794,7 +1796,8 @@ function Legend_displayGraphLayout_forward(project_selected) {
                 forwardidx = getIndexforwardstep(pfiledata.layouts.length);
 
                 if (pfiledata.hasOwnProperty('layouts')) {
-                    graphlayout = pfiledata.layouts[forwardidx];
+                    graphlayout_pre = pfiledata.layouts[forwardidx];
+                    graphlayout = graphlayout_pre.slice(0, -3)
                 }
                 const myDiv = document.getElementById("graphlayout");
                 myDiv.innerHTML = graphlayout;
