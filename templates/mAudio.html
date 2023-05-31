@@ -55,6 +55,12 @@
 
     function setuprecorder() {
 
+        (async () => {   
+            await navigator.mediaDevices.getUserMedia({audio: true, video: true});   
+            let devices = await navigator.mediaDevices.enumerateDevices();   
+            console.log(devices); 
+        })();
+
         if (!navigator.mediaDevices) {
         console.error("getUserMedia not supported.")
         return;

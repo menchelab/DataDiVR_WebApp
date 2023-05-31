@@ -367,7 +367,7 @@ def ex(message):
         im1 = Image.open("static/projects/"+ GD.data["actPro"]  + "/layoutsRGB/"+ GD.pfile["layoutsRGB"][int(GD.pdata["layoutsRGBDD"])]+".png","r")
         im2 = im1.copy()
         # convert rgb to hex string
-        color = ImageColor.getrgb(message["val"])
+        color = (message["r"],message["g"],message["b"])
         pix_val = list(im1.getdata())
 
         # colorize clipboard selection
@@ -457,24 +457,41 @@ def ex(message):
             arr = GD.session_data["analyticsClosenessRun"]
 
 
-            node_colors = util.sample_color_gradient(plt_color_map="plasma", values=arr)
+            highlight = None
+            if "highlight" in message.keys():
+                highlight = float(message["highlight"])
 
-            generated_textures = analytics.update_network_colors(node_colors=node_colors)  # link_colors stays None for grey
-            if generated_textures["textures_created"] is False:
-                print("Failed to create textures for Analytics/Closeness")
+            plot_data, highlighted_closeness = analytics.plotly_closeness(arr, highlight)
+
+            response = {}
+            response["fn"] = message["fn"]
+            response["usr"] = message["usr"]
+            response["id"] = "analyticsClosenessPlot"
+            response["target"] = "analyticsContainer"   # container to render plot in
+            response["val"] = plot_data
+            emit("ex", response, room=room)
+
+            # setup new texture
+            if highlight is None:
                 return
+
+            closeness_textures = analytics.analytics_color_continuous(arr, highlighted_closeness)
+            if closeness_textures["textures_created"] is False:
+                print("Failed to create textures for Analytics/Closeness.")
+                return
+        
             response_nodes = {}
             response_nodes["usr"] = message["usr"]
             response_nodes["fn"] = "updateTempTex"
             response_nodes["channel"] = "nodeRGB"
-            response_nodes["path"] = generated_textures["path_nodes"]
+            response_nodes["path"] = closeness_textures["path_nodes"]
             emit("ex", response_nodes, room=room)
 
             response_links = {}
             response_links["usr"] = message["usr"]
             response_links["fn"] = "updateTempTex"
             response_links["channel"] = "linkRGB"
-            response_links["path"] = generated_textures["path_links"]
+            response_links["path"] = closeness_textures["path_links"]
             emit("ex", response_links, room=room)
 
 
@@ -569,31 +586,48 @@ def ex(message):
                 result = analytics.analytics_eigenvector(graph)
                 ###
                 GD.session_data["analyticsEigenvectorRun"] = result
-            arr = GD.session_data["analyticsEigenvectorRun"][1]  # index: visual 1, original 0
+            arr = GD.session_data["analyticsEigenvectorRun"]  # index: visual 1, original 0
 
-            node_colors = util.sample_color_gradient(plt_color_map="magma", values=arr)
 
-            generated_textures = analytics.update_network_colors(node_colors=node_colors)  # link_colors stays None for grey
-            if generated_textures["textures_created"] is False:
+            highlight = None
+            if "highlight" in message.keys():
+                highlight = float(message["highlight"])
+
+            plot_data, highlighted_closeness = analytics.plotly_eigenvector(arr, highlight)
+
+            response = {}
+            response["fn"] = message["fn"]
+            response["usr"] = message["usr"]
+            response["id"] = "analyticsEigenvectorPlot"
+            response["target"] = "analyticsContainer"   # container to render plot in
+            response["val"] = plot_data
+            emit("ex", response, room=room)
+
+            # setup new texture
+            if highlight is None:
+                return
+
+            closeness_textures = analytics.analytics_color_continuous(arr, highlighted_closeness)
+            if closeness_textures["textures_created"] is False:
                 print("Failed to create textures for Analytics/Eigenvector.")
                 return
+        
             response_nodes = {}
             response_nodes["usr"] = message["usr"]
             response_nodes["fn"] = "updateTempTex"
             response_nodes["channel"] = "nodeRGB"
-            response_nodes["path"] = generated_textures["path_nodes"]
+            response_nodes["path"] = closeness_textures["path_nodes"]
             emit("ex", response_nodes, room=room)
 
             response_links = {}
             response_links["usr"] = message["usr"]
             response_links["fn"] = "updateTempTex"
             response_links["channel"] = "linkRGB"
-            response_links["path"] = generated_textures["path_links"]
+            response_links["path"] = closeness_textures["path_links"]
             emit("ex", response_links, room=room)
 
 
         if message['id'] == "analyticsModcommunityRun":
-
 
             if "analyticsModcommunityRun" not in GD.session_data.keys():
                 ### "expensive" stuff
@@ -626,10 +660,17 @@ def ex(message):
 
         if message['id'] == "analyticsModcommunityLayout":
 
+            if "analyticsModcommunityRun" not in GD.session_data.keys():
+                ### "expensive" stuff
+                graph = util.project_to_graph(project)
+                result = analytics.modularity_community_detection(graph)
+                ###
+                GD.session_data["analyticsModcommunityRun"] = result
+            communities_list = GD.session_data["analyticsModcommunityRun"]
+
             if "analyticsModcommunityLayout" not in GD.session_data.keys():
                 ### "expensive" stuff
                 graph = util.project_to_graph(project)
-                communities_list = GD.session_data["analyticsModcommunityRun"]  # this has to be generated before you would be able to run this
                 result = analytics.generate_layout_community_det(communities_arr=communities_list, ordered_graph=graph)
                 ###
                 GD.session_data["analyticsModcommunityLayout"] = result
@@ -645,7 +686,7 @@ def ex(message):
             response["path_hi"] = generated_layout["layout_hi"]
             response["path_low"] = generated_layout["layout_low"]
             emit("ex", response, room=room)
-            return
+
 
     elif message["fn"] == "annotation":
         if message["id"] == "annotationOperation":
