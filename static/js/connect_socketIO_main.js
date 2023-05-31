@@ -580,6 +580,74 @@ $(document).ready(function(){
                     for (let i = 0; i < NavBar.length; i++) {NavBar[i].style.visibility = "hidden";}
                 }
 
+                if (data.id == "analyticsClosenessPlot") {
+                    const config = {displayModeBar: false};
+                    const layout = {};
+                    let plot_data = JSON.parse(data["val"]);
+    
+                    Plotly.newPlot(data["target"], plot_data, layout, config);
+
+                    let plotIFrame = document.getElementById(data["target"]);
+
+                    let user = data.usr;
+                    let targetDiv = data.target;
+                    plotIFrame.on('plotly_click', function(data){
+                        if (data.event.button !== 0){return;}
+
+                        let clickedBarX = data.points[0].x;
+                        
+                        console.log(clickedBarX);
+
+                        let request = {
+                            fn: "analytics",
+                            id: "analyticsClosenessRun",
+                            highlight: clickedBarX,
+                            target: targetDiv,
+                            usr: user
+                        }
+
+                        socket.emit("ex", request);
+                    });
+                    
+                    plotIFrame.style.display = "inline-block";
+                    const NavBar = document.getElementsByClassName("modebar-container");
+                    for (let i = 0; i < NavBar.length; i++) {NavBar[i].style.visibility = "hidden";}
+                }
+
+                if (data.id == "analyticsEigenvectorPlot") {
+                    const config = {displayModeBar: false};
+                    const layout = {};
+                    let plot_data = JSON.parse(data["val"]);
+    
+                    Plotly.newPlot(data["target"], plot_data, layout, config);
+
+                    let plotIFrame = document.getElementById(data["target"]);
+
+                    let user = data.usr;
+                    let targetDiv = data.target;
+                    plotIFrame.on('plotly_click', function(data){
+                        if (data.event.button !== 0){return;}
+
+                        let clickedBarX = data.points[0].x;
+                        
+                        console.log(clickedBarX);
+
+                        let request = {
+                            fn: "analytics",
+                            id: "analyticsEigenvectorRun",
+                            highlight: clickedBarX,
+                            target: targetDiv,
+                            usr: user
+                        }
+
+                        socket.emit("ex", request);
+                    });
+                    
+                    plotIFrame.style.display = "inline-block";
+                    const NavBar = document.getElementsByClassName("modebar-container");
+                    for (let i = 0; i < NavBar.length; i++) {NavBar[i].style.visibility = "hidden";}
+                }
+
 
                 if (data.id == "analyticsPathNode1"){
                     let button = document.getElementById("analyticsPathNode1").shadowRoot.getElementById("name");

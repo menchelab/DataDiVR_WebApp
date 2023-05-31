@@ -14,38 +14,23 @@ import numpy as np
 import util
 
 
+def __compute_histogram_bins(values, min_bins=2, max_bins=15):
+    min_value = np.min(values)
+    max_value = np.max(values)
+    
+    value_range = max_value - min_value
+    bin_width = value_range / min(max_bins, len(values))
+    num_bins = int(value_range / bin_width)
+    
+    num_bins = max(min_bins, min(max_bins, num_bins))
+    
+    return (num_bins, bin_width)
+
+
 def analytics_degree_distribution(graph):
     # nx graph to degree distribution
     degree_sequence = [d for n, d in graph.degree()] # index is node id, value is degree
     return degree_sequence
-
-
-def plotly_degree_distribution_OLD(degrees, highlighted_bar=None):
-    # Create a bar chart
-    x = list(range(max(degrees) + 1))
-    y = [degrees.count(i) for i in x]
-
-    colors = ['#636efa' if i != highlighted_bar else 'orange' for i in x]
-
-    # Set chart layout
-    layout = go.Layout(
-        xaxis=dict(title='Degree'),
-        yaxis=dict(title='Number of Nodes'),
-        bargap=0.1,
-        title=None if highlighted_bar is None else f"Selected Node Degree: {highlighted_bar}",
-        title_y=0.97
-    )
-
-    # Create a Figure object
-    fig = go.Figure(data=go.Bar(x=x, y=y, marker=dict(color=colors)), layout=layout)
-
-    fig.update_layout(height= 420, font_color = 'rgb(200,200,200)', paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=10, r=30, t=30, b=10))
-    fig.update_yaxes(showticklabels=False)
-    fig.update_layout(uniformtext_minsize=12, uniformtext_mode='show')
-    plotly_json = json.dumps(fig, cls=pu.PlotlyJSONEncoder)
-
-    return plotly_json
-
 
 
 def plotly_degree_distribution(degrees, highlighted_bar=None):
@@ -214,19 +199,6 @@ def update_network_colors(node_colors, link_colors=None):
     # except:
         # return {"textures_created": False}
 
-def analytics_closeness_OLD(graph):
-    def _compute_closeness(node, graph):
-        return nx.closeness_centrality(graph, wf_improved=True)[node]
-    
-    if len(graph.nodes()) <= 10000 or len(graph.edges()) <= 100000:
-        closeness_seq = list(nx.closeness_centrality(graph, wf_improved=True).values())
-    else:
-        num_cores = min(8, len(graph.nodes()))  # number of cores available
-        closeness_seq = Parallel(n_jobs=num_cores)(
-            delayed(_compute_closeness)(node, graph) for node in graph.nodes()
-        )
-    return closeness_seq
-
 
 def analytics_closeness(graph):
     def _compute_closeness_igraph(graph):
@@ -244,6 +216,49 @@ def analytics_closeness(graph):
     return closeness_seq
 
 
+def analytics_color_continuous(assignment_arr, highlight):
+    # get nodes to highlight
+    highlight_min, highlight_max = highlight[0], highlight[1]
+    highlight_nodes = [i for i in range(len(assignment_arr)) if ((assignment_arr[i] >= highlight_min) and (assignment_arr[i] < highlight_max)) ]
+
+    # gen textures
+    node_colors = []
+    for node in range(len(GD.pixel_valuesc)):
+        if node in highlight_nodes:
+            node_colors.append((255, 166, 0, 100))
+            continue
+        node_colors.append((55, 55, 55, 100))
+    # get links
+
+    link_colors = []
+    try:
+        with open("static/projects/"+ GD.data["actPro"] + "/links.json", "r") as links_file:
+            links = json.load(links_file)
+        # set link colors
+        link_colors = [(55, 55, 55, 30) for _ in links["links"]]
+
+        # create images
+        texture_nodes_active = Image.open("static/projects/" + GD.data["actPro"] + "/layoutsRGB/" + GD.pfile["layoutsRGB"][int(GD.pdata["layoutsRGBDD"])] + ".png", "r")
+        texture_links_active = Image.open("static/projects/" + GD.data["actPro"] + "/linksRGB/" + GD.pfile["linksRGB"][int(GD.pdata["linksRGBDD"])] + ".png", "r")
+
+        texture_nodes = texture_nodes_active.copy()
+        texture_links = texture_links_active.copy()
+        texture_nodes.putdata(node_colors)
+        texture_links.putdata(link_colors)
+        path_nodes = "static/projects/" + GD.data["actPro"] + "/layoutsRGB/temp.png"
+        path_links = "static/projects/" + GD.data["actPro"] + "/linksRGB/temp.png"
+        texture_nodes.save(path_nodes, "PNG")
+        texture_links.save(path_links, "PNG")
+
+        texture_links_active.close()
+        texture_nodes_active.close()
+        texture_links.close()
+        texture_nodes.close()
+
+        return {"textures_created": True, "path_nodes": path_nodes, "path_links": path_links}
+    except:
+        return {"textures_created": False}
+    
 
 def analytics_shortest_path(graph, node_1, node_2):
     node_1, node_2 = str(node_1), str(node_2)
@@ -259,6 +274,7 @@ def analytics_shortest_path(graph, node_1, node_2):
     except nx.exception.NetworkXNoPath:
         print(f"ERROR: Node {GD.nodes['nodes'][int(node_1)]} and node {GD.nodes['nodes'][int(node_2)]} are not connected.")
         return []
+
 
 def analytics_color_shortest_path(path):
     # might include this into shortest_path function
@@ -327,10 +343,80 @@ def analytics_eigenvector(graph):
         adjacency_matrix = nx.to_numpy_array(graph)
         centrality_seq = _compute_eigenvector_centrality_igraph(adjacency_matrix)
 
-    visual_centrality_seq = _scale(centrality_seq)
+    #visual_centrality_seq = _scale(centrality_seq)
     
+    return centrality_seq  #(centrality_seq, visual_centrality_seq)
 
-    return (centrality_seq, visual_centrality_seq)
+
+def plotly_eigenvector(assignment_list, highlighted_bar=None):
+    
+    num_bins, bin_width = __compute_histogram_bins(assignment_list)
+
+    highlighted_assignments = [highlighted_bar]
+
+    # convert highlighted_bar to bin boundaries
+    if highlighted_bar is not None:
+        highlighted_bar = math.floor(highlighted_bar / bin_width)
+
+    colors = ['#636efa' if i != highlighted_bar else 'orange' for i in range(num_bins)]  # i/10 to iter over 0 to 1 in 0.1 steps
+
+    if highlighted_bar is not None:
+        min_assignment_selected = highlighted_bar * bin_width
+        max_assignment_selected = (highlighted_bar + 1) * bin_width
+        highlighted_assignments = [min_assignment_selected, max_assignment_selected]
+
+    layout = go.Layout(
+        xaxis=dict(title='Eigenvector Value Range'),
+        yaxis=dict(title='Number of Nodes'),
+        bargap=0.1,
+        title=None if highlighted_bar is None else f"Selected Node Eigenvector: {min_assignment_selected:.3f} to {max_assignment_selected:.3f}",
+        title_y=0.97
+    )
+    
+    fig = go.Figure(data=go.Histogram(x=assignment_list, xbins=dict(size=bin_width, start=0, end=1), marker=dict(color=colors)), layout=layout)
+
+    fig.update_layout(width=400, height=400, font_color='rgb(200,200,200)', paper_bgcolor="rgba(0,0,0,0)",
+                      plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=10, r=40, t=30, b=10))
+    fig.update_yaxes(showticklabels=True)
+    fig.update_layout(uniformtext_minsize=12, uniformtext_mode='show')
+    plotly_json = json.dumps(fig, cls=pu.PlotlyJSONEncoder)
+
+    return (plotly_json, highlighted_assignments)
+
+
+def plotly_closeness(assignment_list, highlighted_bar=None):
+    num_bins, bin_width = __compute_histogram_bins(assignment_list)
+
+    highlighted_assignments = [highlighted_bar]
+
+    # convert highlighted_bar to bin boundaries
+    if highlighted_bar is not None:
+        highlighted_bar = math.floor(highlighted_bar / bin_width)
+
+    colors = ['#636efa' if i != highlighted_bar else 'orange' for i in range(num_bins)]  # i/10 to iter over 0 to 1 in 0.1 steps
+
+    if highlighted_bar is not None:
+        min_assignment_selected = highlighted_bar * bin_width
+        max_assignment_selected = (highlighted_bar + 1) * bin_width
+        highlighted_assignments = [min_assignment_selected, max_assignment_selected]
+
+    layout = go.Layout(
+        xaxis=dict(title='Closeness Range'),
+        yaxis=dict(title='Number of Nodes'),
+        bargap=0.1,
+        title=None if highlighted_bar is None else f"Selected Node Closeness: {min_assignment_selected:.3f} to {max_assignment_selected:.3f}",
+        title_y=0.97
+    )
+    
+    fig = go.Figure(data=go.Histogram(x=assignment_list, xbins=dict(size=bin_width, start=0, end=1), marker=dict(color=colors)), layout=layout)
+
+    fig.update_layout(width=400, height=400, font_color='rgb(200,200,200)', paper_bgcolor="rgba(0,0,0,0)",
+                      plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=10, r=40, t=30, b=10))
+    fig.update_yaxes(showticklabels=True)
+    fig.update_layout(uniformtext_minsize=12, uniformtext_mode='show')
+    plotly_json = json.dumps(fig, cls=pu.PlotlyJSONEncoder)
+
+    return (plotly_json, highlighted_assignments)
 
 
 def modularity_community_detection(ordered_graph):
@@ -350,6 +436,7 @@ def modularity_community_detection(ordered_graph):
         for node in comm:
             node_index = ordered_graph.node_order.index(node)
             community_assignment[node_index] = i + 1
+
     return community_assignment
 
 
@@ -361,24 +448,19 @@ def color_mod_community_det(communities_arr):
     return node_colors
 
 
-def generate_layout_community_det(communities_arr, ordered_graph, radius=1.5):
+def generate_layout_community_det(communities_arr, ordered_graph, min_distance=0, max_distance=2):
     if not isinstance(ordered_graph, util.OrderedGraph):
         raise TypeError("The graph should be an instance of OrderedGraph.")
 
-    # Create an empty layout dictionary
     layout = {}
-
-    # Store the seed position for each community
     seed_positions = {}
 
-    # Iterate over each node
     for i, node in enumerate(ordered_graph.node_order):
-        # Get the community label for the current node
         community_label = communities_arr[i]
 
-        # Calculate the distance from the current node to the seed position of the community
+        # distance from the current node to the seed position of the community
         if community_label not in seed_positions:
-            # Generate a random seed position for the new community
+            # random seed position for new community
             seed_positions[community_label] = (
                 np.random.uniform(-10, 10),
                 np.random.uniform(-10, 10),
@@ -386,9 +468,9 @@ def generate_layout_community_det(communities_arr, ordered_graph, radius=1.5):
             )
 
         seed_position = seed_positions[community_label]
-        distance_to_seed = np.random.uniform(0, 3)  # Adjust the distance to your preference
+        distance_to_seed = np.random.uniform(min_distance, max_distance) 
 
-        # Calculate the layout position based on the community seed and distance
+        # layout position based on the community seed and distance
         x = seed_position[0] + np.random.uniform(-distance_to_seed, distance_to_seed)
         y = seed_position[1] + np.random.uniform(-distance_to_seed, distance_to_seed)
         z = seed_position[2] + np.random.uniform(-distance_to_seed, distance_to_seed)
@@ -408,7 +490,7 @@ def generate_layout_community_det(communities_arr, ordered_graph, radius=1.5):
     positions = [[
         (x[node_id] - min_x) / (max_x - min_x),
         (y[node_id] - min_y) / (max_y - min_y),
-        ((z[node_id] - min_z) / (max_z - min_z)) if min_z != max_z else 0,
+        (z[node_id] - min_z) / (max_z - min_z)
     ] for node_id in range(len(communities_arr))]
     
     return positions
