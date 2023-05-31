@@ -778,7 +778,7 @@ input[type=checkbox] {
 .swagButton {
     border: 9px solid transparent;
     padding: 0px;
-    border-image: url("images/frame1t.png") 10 stretch;
+    border-image: url("images/frame1.png") 10 stretch;
     background-color: rgba(20, 20, 20, 0);
     text-align:left;
     text-transform: uppercase;
@@ -793,7 +793,7 @@ input[type=checkbox] {
 .swagButton:hover {
     border: 9px solid transparent;
     border-image: url("images/frame1.png") 10 stretch;
-    background-color: rgba(77, 77, 77, 0.35);
+    background-color: rgba(77, 77, 77, 0);
 }
 
 .cornerBox {

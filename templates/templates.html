@@ -584,8 +584,9 @@
         connectedCallback() {
             let template = document.querySelector('#mcColorBox-template').content;
             this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
-
+            let outer = this.shadowRoot.querySelector("container");
             let colorbox = this.shadowRoot.querySelector("#color");
+            let colorfield = this.shadowRoot.querySelector("#colorfield");
             let sliders = this.shadowRoot.querySelector("#sliders");
             let sliderR = this.shadowRoot.querySelector("#red");
             let sliderG = this.shadowRoot.querySelector("#green");
@@ -593,18 +594,26 @@
             let sliderA = this.shadowRoot.querySelector("#alpha");
 
             sliderR.addEventListener('input', () => {
-                
                 let color = colorbox.style.backgroundColor;
-                 
-                colorbox. style.backgroundColor = 'rgba(' + sliderR.value + ',' + 128 + ',' + 128 +',' + 0.5 + ')'; 
-
-                console.log(color);
                 const [r,g,b,a] = color.match(/\d+/g).map(Number);
-                console.log(a);
+                colorbox.style.backgroundColor = 'rgba(' + sliderR.value + ',' + g + ',' + b +',' + 1.0 + ')'; 
             });
-            sliderG.addEventListener('input', () => {console.log(sliderG.value); });
-            sliderB.addEventListener('input', () => {console.log(sliderB.value); });
-            sliderA.addEventListener('input', () => {console.log(sliderA.value); });
+            sliderG.addEventListener('input', () => {console.log(sliderG.value); 
+                let color = colorbox.style.backgroundColor;
+                const [r,g,b,a] = color.match(/\d+/g).map(Number);
+                colorbox.style.backgroundColor = 'rgba(' + r + ',' + sliderG.value + ',' + b +',' + 1.0 + ')';  
+            
+            });
+            sliderB.addEventListener('input', () => {console.log(sliderB.value); 
+                let color = colorbox.style.backgroundColor;
+                const [r,g,b,a] = color.match(/\d+/g).map(Number);
+                colorbox.style.backgroundColor = 'rgba(' + r + ',' + g + ',' + sliderB.value +',' + 1.0 + ')';  
+            });
+            sliderA.addEventListener('input', () => {console.log(sliderA.value);
+                let color = colorbox.style.backgroundColor;
+                const [r,g,b,a] = color.match(/\d+/g).map(Number);
+                colorbox.style.backgroundColor = 'rgba(' + r + ',' + g + ',' + b +',' + sliderA.value / 255 + ')';   
+            });
                 
                 
         
@@ -620,6 +629,7 @@
                 //socket.emit('ex', { id: this.getAttribute('id'), fn: fn, val: select.selectedIndex});
                     if (colorbox.checked){
                         sliders.style.visibility = "hidden";
+                        outer.style.height = "50px";;
                     }else{
                         sliders.style.visibility = "visible";
                     }
@@ -640,7 +650,7 @@
     <div id="container" calss="swagBox"style="width: 200px; height: 200px; display: inline-block; padding: 4px 2px">
         <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
         <input type="checkbox" id="color" class="swagButton" style="height:40px; width:80px; appearance:none; background-color: rgba(128,0,0,0.5);"></input>
-        <div id="sliders">
+        <div id="sliders" style="visibility: hidden;">
             <input type="range" min="0" max="255" value="128" class="slider" id="red" style="display: inline-block; width:100%; position:relative; ; Z-index: 1;background-image: linear-gradient(270deg,rgba(255, 0, 0, 0.3),rgba(255, 0, 0, 0.05),rgba(0,0,0,0)); "></input>
             <input type="range" min="0" max="255" value="128" class="slider" id="green" style="display: inline-block; width:100%; position:relative; ; Z-index: 1; background-image: linear-gradient(270deg,rgba( 0,255, 0, 0.3),rgba(0, 255, 0, 0.05),rgba(0,0,0,0));"></input>
             <input type="range" min="0" max="255" value="128" class="slider" id="blue" style="display: inline-block; width:100%; position:relative; ; Z-index: 1; background-image: linear-gradient(270deg,rgba( 0, 0,255, 0.3),rgba(0, 0, 255, 0.05),rgba(0,0,0,0));"></input>
