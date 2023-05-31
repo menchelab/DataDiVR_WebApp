@@ -304,7 +304,16 @@ $(document).ready(function(){
                     ue4(data["fn"], data);
                 }
                 break;
+
+            case "updateTempLayout":
+                if(isPreview){
+                    updateLayoutTemp(data["path_low"], data["path_hi"])
+                }else{
+                    ue4(data["fn"], data);
+                }
+                break;
     
+
 
             case 'node':
                 if(document.getElementById("nodeL2")){
@@ -485,6 +494,9 @@ $(document).ready(function(){
                     //--------------------------------
                     // initial inf on L E G E N D P A N E L 
                     Legend_displayGraphInfo(pfile.name);
+
+                    // changing with Layout: 
+                    Legend_displayfirstGraphLayout(pfile.name);
                     Legend_displayfirstNodeInfo(pfile.name);
                     Legend_displayfirstLinkInfo(pfile.name);
                     Legend_displayfirstFile(pfile.name);
@@ -507,9 +519,12 @@ $(document).ready(function(){
 
                 if (data.id == "forwardstep") {
                     Legend_displayNodeLinkInfo_forward(pfile.name);
+                    Legend_displayGraphLayout_forward(pfile.name);
                     
                 } else if (data.id == "backwardstep") {
                     Legend_displayNodeLinkInfo_backward(pfile.name);
+                    Legend_displayGraphLayout_backward(pfile.name);
+
 
                 }
 
@@ -1192,8 +1207,8 @@ function Legend_displayfirstLinkInfo(project_selected) {
 // PER LAYOUT : NODE/LINK COLOR DESCRIPTION IN LEGEND PANEL
 //-------------------------------------------------------
 
-// forward 
-function getIndexforwardstep(data){
+// forward button adding index
+function NEWIndexforwardstep(data){
     const nextButton = document.getElementById('forwardstep');
     const backButton = document.getElementById('backwardstep');
 
@@ -1202,14 +1217,22 @@ function getIndexforwardstep(data){
 
     nextButton.setAttribute('val',currentIndex);
     backButton.setAttribute('val',currentIndex);
+    console.log("C_DEBUG: NEWIndexforwardstep value = ", currentIndex)
+
+    return currentIndex;
+}
+
+// status of button without adding index
+function getIndexforwardstep(data){
+    const nextButton = document.getElementById('forwardstep');
+    let currentIndex = parseInt(nextButton.getAttribute('val'));
     console.log("C_DEBUG: getIndexforwardstep value = ", currentIndex)
 
     return currentIndex;
 }
 
-
-// backward  
-function getIndexbackwardstep(data) {
+// backward button subtracting index 
+function NEWIndexbackwardstep(data) {
     const backButton = document.getElementById('backwardstep');
     const nextButton = document.getElementById('forwardstep');
 
@@ -1218,6 +1241,14 @@ function getIndexbackwardstep(data) {
 
     backButton.setAttribute('val',currentIndex);
     nextButton.setAttribute('val',currentIndex);
+    console.log("C_DEBUG: NEWIndexbackwardstep value = ", currentIndex)
+
+    return currentIndex;
+}
+
+function getIndexbackwardstep(data) {
+    const backButton = document.getElementById('backwardstep');
+    let currentIndex = parseInt(backButton.getAttribute('val'));
     console.log("C_DEBUG: getIndexbackwardstep value = ", currentIndex)
 
     return currentIndex;
@@ -1233,10 +1264,9 @@ function Legend_displayNodeLinkInfo_forward(project_selected) {
         $.getJSON(p_file, (pfiledata) => {
                 
             const clusterlist = pfiledata["selections"];
-            forwardidx = getIndexforwardstep(pfiledata.layoutsRGB.length);
+            forwardidx = NEWIndexforwardstep(pfiledata.layoutsRGB.length);
             //console.log("C_DEBUG: NODE/LINK forwardidx = ", forwardidx);
 
-            
             // -------------------------------
             // L I N K S  
             // -------------------------------
@@ -1250,13 +1280,13 @@ function Legend_displayNodeLinkInfo_forward(project_selected) {
                 const img_name = pfiledata["linksRGB"][0]; 
                 img = new Image();
                 img.src = 'static/projects/' + project_selected + '/linksRGB/'+ img_name+".png";
-                console.log("C_DEBUG: forwardidx > linksRGB.length.");
+                //console.log("C_DEBUG: forwardidx > linksRGB.length.");
 
             } else {
                 const img_name = pfiledata["linksRGB"][forwardidx]; 
                 img = new Image();
                 img.src = 'static/projects/' + project_selected + '/linksRGB/'+ img_name+".png";
-                console.log("C_DEBUG: forwardidx - in else.");
+                //console.log("C_DEBUG: forwardidx - in else.");
 
             }
 
@@ -1477,8 +1507,8 @@ function Legend_displayNodeLinkInfo_backward(project_selected) {
         $.getJSON(p_file, (pfiledata) => {
                 
             const clusterlist = pfiledata["selections"];
-            backwardidx = getIndexbackwardstep(pfiledata.layoutsRGB.length);
-            console.log("C_DEBUG: NODE/LINK backwardidx = ", backwardidx);
+            backwardidx = NEWIndexbackwardstep(pfiledata.layoutsRGB.length);
+            //console.log("C_DEBUG: NODE/LINK backwardidx = ", backwardidx);
 
             
             // -------------------------------
@@ -1494,12 +1524,12 @@ function Legend_displayNodeLinkInfo_backward(project_selected) {
                 const img_name = pfiledata["linksRGB"][0]; 
                 img = new Image();
                 img.src = 'static/projects/' + project_selected + '/linksRGB/'+ img_name+".png";
-                console.log("C_DEBUG: backwardidx > linksRGB.length.");
+                //console.log("C_DEBUG: backwardidx > linksRGB.length.");
             } else {
                 const img_name = pfiledata["linksRGB"][backwardidx]; 
                 img = new Image();
                 img.src = 'static/projects/' + project_selected + '/linksRGB/'+ img_name+".png";
-                console.log("C_DEBUG: backwardidx - in else.");
+                //console.log("C_DEBUG: backwardidx - in else.");
             }
 
             const canvas = document.createElement('canvas');
@@ -1706,5 +1736,76 @@ function Legend_displayNodeLinkInfo_backward(project_selected) {
         .fail(function() {
             console.log("Error: Could not load JSON file");
         });
+    }
+}
+
+
+//-------------------------------------------------------
+// GRAPH LAYOUT DISPLAY 
+//-------------------------------------------------------
+function Legend_displayfirstGraphLayout(project_selected) {
+    if (document.getElementById('graphlayout')) {
+        const graphname_file = 'static/projects/' + project_selected + '/pfile.json';
+        $.getJSON(graphname_file)
+            .done(function(pfiledata) {
+
+                if (pfiledata.hasOwnProperty('layouts')) {
+                    graphlayout_pre = pfiledata.layouts[0];
+                    graphlayout = graphlayout_pre.slice(0, -3);
+                }
+                const myDiv = document.getElementById("graphlayout");
+                myDiv.innerHTML = graphlayout;
+            })
+            .fail(function() {
+                const myDiv = document.getElementById("graphlayout");
+                myDiv.style.display = "none";
+                myDiv.innerHTML = "";
+            });
+    }
+}
+
+function Legend_displayGraphLayout_backward(project_selected) {
+    if (document.getElementById('graphlayout')) {
+        const graphname_file = 'static/projects/' + project_selected + '/pfile.json';
+        $.getJSON(graphname_file)
+            .done(function(pfiledata) {
+
+                backwardidx = getIndexbackwardstep(pfiledata.layouts.length);
+
+                if (pfiledata.hasOwnProperty('layouts')) {
+                    graphlayout_pre = pfiledata.layouts[backwardidx];
+                    graphlayout = graphlayout_pre.slice(0, -3);
+                }
+                const myDiv = document.getElementById("graphlayout");
+                myDiv.innerHTML = graphlayout;
+            })
+            .fail(function() {
+                const myDiv = document.getElementById("graphlayout");
+                myDiv.style.display = "none";
+                myDiv.innerHTML = "";
+            });
+    }
+}
+
+function Legend_displayGraphLayout_forward(project_selected) {
+    if (document.getElementById('graphlayout')) {
+        const graphname_file = 'static/projects/' + project_selected + '/pfile.json';
+        $.getJSON(graphname_file)
+            .done(function(pfiledata) {
+
+                forwardidx = getIndexforwardstep(pfiledata.layouts.length);
+
+                if (pfiledata.hasOwnProperty('layouts')) {
+                    graphlayout_pre = pfiledata.layouts[forwardidx];
+                    graphlayout = graphlayout_pre.slice(0, -3)
+                }
+                const myDiv = document.getElementById("graphlayout");
+                myDiv.innerHTML = graphlayout;
+            })
+            .fail(function() {
+                const myDiv = document.getElementById("graphlayout");
+                myDiv.style.display = "none";
+                myDiv.innerHTML = "";
+            });
     }
 }
