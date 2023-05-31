@@ -367,7 +367,7 @@ def ex(message):
         im1 = Image.open("static/projects/"+ GD.data["actPro"]  + "/layoutsRGB/"+ GD.pfile["layoutsRGB"][int(GD.pdata["layoutsRGBDD"])]+".png","r")
         im2 = im1.copy()
         # convert rgb to hex string
-        color = ImageColor.getrgb(message["val"])
+        color = (message["r"],message["g"],message["b"])
         pix_val = list(im1.getdata())
 
         # colorize clipboard selection
