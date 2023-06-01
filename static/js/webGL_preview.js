@@ -10,7 +10,6 @@ var linksRGB = [];
 var linksRGBTemp = [];
 var actLinksRGB = 0;
 //var pfile = {"val":{"name":"AUToCOre","layouts":["01-Autocore_globalXYZ","02-Autocore_mix_globalclusterXYZ","03-Autocore_clusterfeaturesXYZ"],"layoutsRGB":["01-Autocore_globalRGB","02-Autocore_mix_globalclusterRGB","03-Autocore_clusterfeaturesRGB"],"links":["Autocore_linksXYZ"],"linksRGB":["Autocore_linksRGB"]},"fn":"project"};
-var pfile = {};
 var mesh, renderer, scene, camera, controls;
 //var data = JSON.parse('{"nodes":[{"p":[0.5,0.5,0.5],"c":[128,128,128,128],"n":"TEST1"},{"p":[0.7,0.7,0.7],"c":[ 0,128,128,128],"n":"TEST2"},{"p":[0.2,0.2,0.2],"c":[128,0,128,128],"n":"TEST3"}],"links":[{"id":0,"s":0,"e":1,"c":[0,128,128,128]},{"id":1,"s":1,"e":2,"c":[0,128,128,128]},{"id":2,"s":2,"e":1,"c":[0,128,128,128]}]}');
 var data = {};

@@ -12,8 +12,7 @@ if (String(navigator.userAgent).includes("UnrealEngine")) {
   console.log("not ue4");
 }
 
-var pfile = new VariableListener(new Object());
-console.log("pfile", pfile);
+let pfile = new VariableListener(new Object());
 
 function makeid(length) {
   let result = "";
@@ -237,6 +236,31 @@ $(document).ready(function () {
       });
     }
     //CONNECTION Established - initialize the project (Ui elements initialize when project changes)
+  });
+  socket.on("update", function (data) {
+    if (isMain || isPreview) {
+      // START initialization routine
+      socket.emit("ex", {
+        id: "projDD",
+        fn: "dropdown",
+        val: "init",
+        usr: uid,
+      });
+    }
+
+    if (document.getElementById("disconnected")) {
+      document.getElementById("disconnected").style.display = "none";
+    }
+    if (document.getElementById("outer")) {
+      document.getElementById("outer").style.backgroundColor =
+        "rgb(0 0 0 / 0%)";
+    }
+    socket.emit("ex", {
+      usr: uid,
+      id: "analytics",
+      fn: "dropdown",
+      val: "init",
+    });
   });
 
   socket.on("ex", function (data) {
@@ -575,9 +599,7 @@ $(document).ready(function () {
       case "project":
         //clearProject();
         //if (data["usr"]==uid){
-        console.log(pfile);
         pfile.update(data["val"]);
-        console.log(pfile);
         let legendcount = 0;
 
         //--------------------------------

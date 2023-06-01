@@ -5,7 +5,7 @@ class VariableListener {
     this.init();
   }
   toString() {
-    return "VariableListener object";
+    return this.constructInternalObject();
   }
   init() {
     for (var i = 0; i < this.keys.length; i++) {
@@ -16,9 +16,6 @@ class VariableListener {
       }
       this.addListener(key, value);
     }
-    this.getInternals = function () {
-      return this.constructInternalObject();
-    };
   }
   constructInternalObject() {
     var internalObjects = {};
@@ -26,46 +23,49 @@ class VariableListener {
       var key = this.keys[i];
       var value = this.obj[key];
 
-      if (value == undefined) {
+      if (this[key + "Internal"] == undefined) {
         continue;
       }
       if (isJsonObject(value)) {
-        value.constructInternalObject();
+        internalObjects[key.replace("Internal", "")] =
+          value.constructInternalObject();
       }
-      if (key.endsWith("Internal")) {
-        internalObjects[key.replace("Internal", "")] = value;
-      }
+      internalObjects[key] = this[key + "Internal"];
     }
     return internalObjects;
   }
   addListener(key, value) {
+    if (!this.keys.includes(key)) {
+      this.keys.push(key);
+    }
     if (isJsonObject(value)) {
       value = new VariableListener(value);
     }
     this[key + "Internal"] = value;
     this[key + "Listener"] = function (val) {
-      // console.log("updated:\n" + val);
+      console.log("updated:\n");
+      console.log(val);
     };
     Object.defineProperty(this, key, {
-      set: function (val) {
+      get() {
+        return this[key + "Internal"];
+      },
+      set(val) {
         if (isJsonObject(val)) {
           val = new VariableListener(val);
         }
         this[key + "Internal"] = val;
         this[key + "Listener"](val);
       },
-      get: function () {
-        return this[key + "Internal"];
-      },
+      configurable: true,
     });
 
     this[key + "RegisterListener"] = function (new_function) {
       this[key + "Listener"] = (function (old_function, new_function) {
-        function extendedFunction(val) {
+        return function extendedFunction(val) {
           old_function(val);
           new_function(val);
-        }
-        return extendedFunction;
+        };
       })(this[key + "Listener"], new_function);
     };
   }
@@ -76,13 +76,19 @@ class VariableListener {
       // check if key is present in the object
       if (!this.keys.includes(key)) {
         this.addListener(key, obj[key]);
-        this.keys.push(key);
-      } else {
-        if (isJsonObject(obj[key])) {
-          this[key].update(obj[key]);
-        } else {
-          this[key] = obj[key];
-        }
+        continue;
+      }
+      if (obj[key] instanceof VariableListener) {
+        this[key].update(obj[key]);
+        continue;
+      }
+      this[key] = obj[key];
+    }
+    var keys = Object.keys(obj);
+    for (var i = 0; i < this.keys.length; i++) {
+      var key = this.keys[i];
+      if (!keys.includes(key)) {
+        this[key] = "";
       }
     }
   }

@@ -23,7 +23,9 @@
   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
   <script type="text/javascript" src="{{ url_for('static', filename='js/upload_UI.js') }}"></script>
   <script type="text/javascript" src="{{ url_for('static', filename='js/mc_UI_Elements.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/extension_tab_load.js') }}"></script>
 </head>
+
 
 <body>
   <div id="tabsUL"><a href="upload.html" id="" title="upload"></a>
@@ -120,7 +122,9 @@
           <div class="twelve columns">
             <h4 class="nine columns">LAYOUTS</h4>
             <br><br>
-            <a style="font-size:14px; text-align:left" href="../static/examplefiles/Upload_examples_CSV_previousversion/zachary_nodepositions.csv" download>Download Example File here</a>
+            <a style="font-size:14px; text-align:left"
+              href="../static/examplefiles/Upload_examples_CSV_previousversion/zachary_nodepositions.csv"
+              download>Download Example File here</a>
             <input type=file name=layouts multiple value="placeholder">
 
             <!--
@@ -130,7 +134,9 @@
 
             <h4 class="nine columns">LINKS</h4>
             <br><br><br>
-            <a style="font-size:14px; text-align:left" href="../static/examplefiles/Upload_examples_CSV_previousversion/zachary_links.csv" download>Download Example File here</a>
+            <a style="font-size:14px; text-align:left"
+              href="../static/examplefiles/Upload_examples_CSV_previousversion/zachary_links.csv" download>Download
+              Example File here</a>
             <input type=file name=links multiple>
 
             <!--
@@ -139,10 +145,12 @@
               -->
             <h4 class="nine columns">LABELS (optional)</h4>
             <br><br><br>
-            <a style="font-size:14px; text-align:left" href="../static/examplefiles/Upload_examples_CSV_previousversion/zachary_labels.csv" download>Download Example File here</a>
-            
+            <a style="font-size:14px; text-align:left"
+              href="../static/examplefiles/Upload_examples_CSV_previousversion/zachary_labels.csv" download>Download
+              Example File here</a>
+
             <input type=file name=labels multiple><br><br>
-            
+
           </div>
         </div>
 
@@ -161,9 +169,20 @@
           </div>-->
       </form>
     </div>
-
+    {% for ext in extensions["ext"] %}
+    {% if "upload_tabs" in ext.keys() %}
+    {% for tab in ext["upload_tabs"]%}
+    {% include tab %}
+    <script>
+      addTab("uploadTabs", "{{ url_for('static', filename='img/upload.png') }}");
+    </script>
+    {% endfor %}
+    {% endif %}
+    {% endfor %}
   </div>
 
-
-
+  <script>
+    deactivateTabs("uploadTabs");
+  </script>
+  <div id="extension_code"></div>
 </body>
