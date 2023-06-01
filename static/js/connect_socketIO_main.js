@@ -296,6 +296,9 @@ $(document).ready(function(){
                     $(content).append("<mc-button id = 'button"+ i + " 'val= '"+ data.val[i].id + "' name = '"+ data.val[i].name +  "' w = '118' fn = 'node' color = '" + rgbToHex(data.val[i].color[0]*0.5,data.val[i].color[1]*0.5,data.val[i].color[2]*0.5) + "' ></mc-button>");
                 }
                 break;
+            case "colorbox":
+                document.getElementById(data.id).shadowRoot.getElementById("color").style.backgroundColor = 'rgba(' + data.r + ',' + data.g + ',' + data.b +',' + data.a + ')';
+                break;
 
             case "updateTempTex":
                 if(isPreview){
