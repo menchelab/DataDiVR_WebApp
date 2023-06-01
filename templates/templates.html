@@ -595,39 +595,38 @@
             let [r,g,b,a] = [0,0,0,0];
 
             sliderR.addEventListener('input', () => {
-                let color = colorbox.style.backgroundColor;
-                [r,g,b,a] = color.match(/\d+/g).map(Number);
-                colorbox.style.backgroundColor = 'rgba(' + sliderR.value + ',' + g + ',' + b +',' + sliderA.value / 255 + ')'; 
+                r = sliderR.value;
+                colorbox.style.backgroundColor = 'rgba(' + sliderR.value + ',' + sliderG.value + ',' + sliderB.value +',' + sliderA.value/255 + ')'; 
             });
             sliderG.addEventListener('input', () => { 
-                let color = colorbox.style.backgroundColor;
-                [r,g,b,a] = color.match(/\d+/g).map(Number);
-                colorbox.style.backgroundColor = 'rgba(' + r + ',' + sliderG.value + ',' + b +',' + sliderA.value / 255 + ')';  
+                g = sliderG.value;
+                colorbox.style.backgroundColor = 'rgba(' + sliderR.value + ',' + sliderG.value + ',' + sliderB.value +',' + sliderA.value/255 + ')';  
             
             });
             sliderB.addEventListener('input', () => {
-                let color = colorbox.style.backgroundColor;
-                [r,g,b,a] = color.match(/\d+/g).map(Number);
-                colorbox.style.backgroundColor = 'rgba(' + r + ',' + g + ',' + sliderB.value +',' + sliderA.value / 255+ ')';  
+                b = sliderB.value;
+                colorbox.style.backgroundColor = 'rgba(' + sliderR.value + ',' + sliderG.value + ',' + sliderB.value +',' + sliderA.value/255 + ')';  
             });
             sliderA.addEventListener('input', () => {
-                a = sliderA.value / 255;
-                colorbox.style.backgroundColor = 'rgba(' + r + ',' + g + ',' + b +',' + sliderA.value / 255 + ')';   
+                a = sliderA.value/255;
+                colorbox.style.backgroundColor ='rgba(' + sliderR.value + ',' + sliderG.value + ',' + sliderB.value +',' + sliderA.value/255 + ')';   
             });
                 
-            colorbox.addEventListener('change', () => {
+            //colorbox.addEventListener('change', () => {
                 //console.log(colorbox.value);
                 //socket.emit('ex', {usr:uid, id: this.getAttribute('id'), val: colorbox.value, fn: "col"});
-            });
-            colorbox.addEventListener('change', () => {
-                //socket.emit('ex', { id: this.getAttribute('id'), fn: fn, val: select.selectedIndex});
-                    if (!colorbox.checked){
+            //});
+            colorbox.addEventListener('click', () => {
+                socket.emit('ex', { usr:uid, id: this.getAttribute('id'), r:r, g:g, b:b, a:a, fn: "colorbox"});
+                /*
+                    if (sliders.style.display != "none"){
                         sliders.style.display = "none";
                         socket.emit('ex', { usr:uid, id: this.getAttribute('id'), r: r, g:g,b:b,a:a, fn: "colorbox"});
-                        console.log(r + " " + g + " "+ b +" "+a);
+                        //console.log(r + " " + g + " "+ b +" "+a);
                     }else{
                         sliders.style.display = "contents";
                     }
+                */
             });
 
         }
@@ -644,8 +643,8 @@
     </style>
     <div id="container" calss="swagBox" style="width: 200px; display: inline-block; padding: 4px 2px;">
         <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
-        <input type="checkbox" id="color" class="swagButton" style="height:40px; width:80px; appearance:none; background-color: rgba(128,0,0,0.5);"></input>
-        <div id="sliders"  style="display:none;">
+        <div type="button" id="color" class="swagButton" style="height:40px; width:80px; background-color: rgba(128,0,0,0.5);"></div>
+        <div id="sliders"  >
             <input type="range" min="0" max="255" value="128" class="slider" id="red" style="display: inline-block; width:100%; position:relative; ; Z-index: 1;background-image: linear-gradient(270deg,rgba(255, 0, 0, 0.3),rgba(255, 0, 0, 0.05),rgba(0,0,0,0)); "></input>
             <input type="range" min="0" max="255" value="128" class="slider" id="green" style="display: inline-block; width:100%; position:relative; ; Z-index: 1; background-image: linear-gradient(270deg,rgba( 0,255, 0, 0.3),rgba(0, 255, 0, 0.05),rgba(0,0,0,0));"></input>
             <input type="range" min="0" max="255" value="128" class="slider" id="blue" style="display: inline-block; width:100%; position:relative; ; Z-index: 1; background-image: linear-gradient(270deg,rgba( 0, 0,255, 0.3),rgba(0, 0, 255, 0.05),rgba(0,0,0,0));"></input>

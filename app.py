@@ -368,7 +368,7 @@ def ex(message):
             im1 = Image.open("static/projects/"+ GD.data["actPro"]  + "/layoutsRGB/"+ GD.pfile["layoutsRGB"][int(GD.pdata["layoutsRGBDD"])]+".png","r")
             im2 = im1.copy()
             # convert rgb to hex string
-            color = (message["r"],message["g"],message["b"])
+            color = (int(message["r"]),int(message["g"]),int(message["b"]),int(message["a"]*255))
             pix_val = list(im1.getdata())
 
             # colorize clipboard selection
@@ -392,7 +392,7 @@ def ex(message):
             response["path"] = "static/projects/"+ GD.data["actPro"]  + "/layoutsRGB/temp1.png"
             emit("ex", response, room=room)
         emit("ex", message, room=room)
-        
+
     elif message['fn'] == "analytics":
         project = GD.data["actPro"]
 

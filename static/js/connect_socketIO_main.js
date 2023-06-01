@@ -200,12 +200,13 @@ $(document).ready(function(){
 
     
     socket.on('ex', function(data) {
-        logjs(data, 'scrollbox_debug_0')
-        if (logAll && data.usr == uid)
-        {
+        logjs(data, 'scrollbox_debug_0');
+         
+        //if (logAll && data.usr == uid)
+        //{
             console.log("server returned: " + JSON.stringify(data));
 
-        }
+        //}
 
         switch(data.fn)
         {   
@@ -297,7 +298,7 @@ $(document).ready(function(){
                 }
                 break;
             case "colorbox":
-                document.getElementById(data.id).shadowRoot.getElementById("color").style.backgroundColor = 'rgba(' + data.r + ',' + data.g + ',' + data.b +',' + data.a + ')';
+                document.getElementById(data.id).shadowRoot.getElementById("color").style.backgroundColor = 'rgba(' + data.r + ',' + data.g + ',' + data.b +',' + data.a*255 + ')';
                 break;
 
             case "updateTempTex":
