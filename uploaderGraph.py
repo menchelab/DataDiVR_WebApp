@@ -1,6 +1,9 @@
 
 # use functions from CSV-based uploader 
 from matplotlib.colors import hex2color
+import re 
+import math 
+
 from uploader import *
 
 
@@ -10,16 +13,14 @@ def hex_to_rgb(hx):
     hlen = len(hx)
     return tuple(int(hx[i:i+hlen//3], 16) for i in range(0, hlen, hlen//3))
 
+
+
 def upload_filesJSON(request):
-    #print("C_DEBUG:namespace", request.args.get("namespace"))
     form = request.form.to_dict()
     prolist = GD.plist
 
     namespace = form["namespaceJSON"]
-    #if form["namespaceJSON"]:
-    #    namespace = form["namespaceJSON"]
-    #else:
-    #    namespace = form["existing_namespace"]
+    
     if not namespace:
         return "namespace fail"
     
@@ -76,11 +77,7 @@ def upload_filesJSON(request):
     else:
         descr_of_graph = "Graph decription not specified."
 
-
-
     numnodes = len(nodepositions[0]["data"])
-    #print("C_DEBUG for node info: ", nodeinfo)
-
 
     # generate node.json
     for i in range(len(nodepositions[0]["data"])):
@@ -240,8 +237,6 @@ def upload_filesJSON(request):
     pfile["legendfiles"] = legendfiles
 
 
-
-
     with open(folder + '/pfile.json', 'w') as outfile:
         json.dump(pfile, outfile)
 
@@ -268,16 +263,22 @@ def parseGraphJSON_nodepositions(files,target):
     if len(files) > 0: 
         for idx,file in enumerate(files):
 
-            name_of_file = "nodepositions"+str(idx)
-
-            # TO DO : catch if name+idx already exists (this could happen if layouts added to project instead of new uploaded) 
-            # or consider removing "add to project" option
+            if "layoutname" in file["graph"].keys():
+                name_of_file = file["graph"]["layoutname"] #[idx]
+            else:
+                name_of_file = "nodepositions"+str(idx)
 
             num_of_nodes = len(file["nodes"])
 
             nodepositions = []
             for i in range(0,num_of_nodes):
-                nodepositions.append(file["nodes"][i]["pos"])
+                pos = file["nodes"][i]["pos"]
+                # catch if positions contain "nan" values
+                if math.isnan(pos[0]) or math.isnan(pos[1]) or math.isnan(pos[2]):
+                    nodepositions.append([0,0,0])
+                else: 
+                    nodepositions.append(file["nodes"][i]["pos"])
+
             vecList = {}
             vecList["data"] = nodepositions
             vecList["name"] = name_of_file
@@ -293,7 +294,11 @@ def parseGraphJSON_links(files, target):
         all_lists = []  
         for idx,file in enumerate(files):
 
-            name_of_file = "links"+str(idx)
+            if "layoutname" in file["graph"].keys():
+                name_of_file = file["graph"]["layoutname"] #[idx]
+            else:
+                name_of_file = "links"+str(idx)
+
             num_of_links = len(file["links"])
 
             links = []
@@ -317,7 +322,11 @@ def parseGraphJSON_links_wip(files, target):
 
         for idx,file in enumerate(files):
 
-            name_of_file = "links"+str(idx)
+            if "layoutname" in file["graph"].keys():
+                name_of_file = file["graph"]["layoutname"] #[idx]
+            else:
+                name_of_file = "links"+str(idx)
+                
             num_of_links = len(file["links"])
 
             links = []
@@ -335,23 +344,33 @@ def parseGraphJSON_linkcolors(files,target):
         #for file in files: 
         for idx,file in enumerate(files):
 
-            name_of_file = "linkcolors"+str(idx)
+            if "layoutname" in file["graph"].keys():
+                name_of_file = file["graph"]["layoutname"] #[idx]
+            else:
+                name_of_file = "linkcolors"+str(idx)
             num_of_links = len(file["links"])
 
-            linkcolor_pre = []
+            linkcolor_rgba = []
             for i in range(0,num_of_links):
-                linkcolor_pre.append(file["links"][i]["linkcolor"])
+                color = file["links"][i]["linkcolor"]
 
-            # linkcolors = [(*hex_to_rgb(color),100) for color in linkcolor_hex]
-            linkcolors = []
-            for linkcol in linkcolor_pre:
-                if '#' in linkcol:
-                    linkcolors.append((*hex_to_rgb(linkcol),100))
+                if isinstance(color, str):
+                    # if HEX FORMAT
+                    if re.match(r'^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$', color):
+                        rgba_color = (*hex_to_rgb(color), 100)
+                        linkcolor_rgba.append(rgba_color)
+                    # if RGBA FORMAT
+                    elif re.match(r'^rgba\((\d+),(\d+),(\d+),(\d+)\)$', color) or re.match(r'^\((\d+),(\d+),(\d+),(\d+)\)$', color):
+                        rgba = re.findall(r'\d+', color)
+                        rgba_color = tuple(map(int, rgba))
+                        linkcolor_rgba.append(rgba_color)
+                elif isinstance(color, list) and len(color) == 4:
+                    linkcolor_rgba.append(tuple(color))
                 else:
-                    linkcolors.append(linkcol)
+                    linkcolor_rgba.append((255, 0, 255, 100))
 
             vecList = {}
-            vecList["data"] = linkcolors
+            vecList["data"] = linkcolor_rgba
             vecList["name"] = name_of_file
             target.append(vecList)
             #print("C_DEBUG: LINKCOLORS:", vecList)
@@ -362,8 +381,11 @@ def parseGraphJSON_nodeinfo(files,target):
         #for file in files: 
         for idx,file in enumerate(files):
 
-            name_of_file = "nodeinfo"+str(idx)
-            
+            if "layoutname" in file["graph"].keys():
+                name_of_file = file["graph"]["layoutname"] #[idx]
+            else:
+                name_of_file = "nodeinfo"+str(idx)
+                            
             name_of_file = "nodeinfo"          
             num_of_nodes = len(file["nodes"])
 
@@ -379,19 +401,35 @@ def parseGraphJSON_nodeinfo(files,target):
 
 def parseGraphJSON_nodecolors(files,target):
     if len(files) > 0: 
-        #for file in files: 
         for idx,file in enumerate(files):
 
-            name_of_file = "nodecolors"+str(idx)
+            if "layoutname" in file["graph"].keys():
+                name_of_file = file["graph"]["layoutname"] #[idx]
+            else:
+                name_of_file = "nodecolors"+str(idx)
+                
             num_of_nodes = len(file["nodes"])
 
-            nodecolor_hex = []
+            nodecolor_rgba = []
             for i in range(0,num_of_nodes):
-                nodecolor_hex.append(file["nodes"][i]["nodecolor"])
-            nodecolor = [(*hex_to_rgb(color),100) for color in nodecolor_hex]
+                color = file["nodes"][i]["nodecolor"]
+                # if HEX FORMAT
+                if re.match(r'^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$', color):
+                    rgba_color = (*hex_to_rgb(color), 100)
+                    nodecolor_rgba.append(rgba_color)
+                    
+                # if RGBA FORMAT
+                elif re.match(r'^rgba\((\d+),(\d+),(\d+),(\d+)\)$', color) or re.match(r'^\((\d+),(\d+),(\d+),(\d+)\)$', color):
+                    rgba = re.findall(r'\d+', color)
+                    rgba_color = tuple(map(int, rgba))
+                    nodecolor_rgba.append(rgba_color)
+                else:
+                    nodecolor_rgba.append((255, 0, 255, 100))           
+
+            #print("C_DEBUG in parseGraphJSON - nodecolor_rgba: ", nodecolor_rgba)
 
             vecList = {}
-            vecList["data"] = nodecolor
+            vecList["data"] = nodecolor_rgba
             vecList["name"] = name_of_file
             target.append(vecList)
             #print("C_DEBUG: NODECOLORS:", vecList)
@@ -405,7 +443,10 @@ def parseGraphJSON_labels(files,target):
             # get cluster labels from one file only (file i.e. layout)
             one_file = files[0]
 
-            name_of_file = "labels" #+str(idx)         
+            if "layoutname" in file["graph"].keys():
+                name_of_file = file["graph"]["layoutname"] #[idx]
+            else:
+                name_of_file = "labels" #+str(idx)         
             num_of_nodes = len(one_file["nodes"])
 
             nodeclus = []
@@ -442,7 +483,6 @@ def parseGraphJSON_labels(files,target):
             target = list(target[0])# use only one file (i.e.layout) to create labels from / not per layout yet
 
 
-# FOR GRAPH NAME 
 def parseGraphJSON_graphtitle(files,target):
     if len(files) > 0: 
         for file in files:
@@ -452,7 +492,6 @@ def parseGraphJSON_graphtitle(files,target):
             target.append(vecList)
 
 
-# FOR GRAPH DESCRIPTION
 def parseGraphJSON_graphdesc(files,target):
     if len(files) > 0: 
         for file in files:
@@ -461,10 +500,11 @@ def parseGraphJSON_graphdesc(files,target):
             elif "graphdesc" in file["graph"].keys():
                 descr_of_graph = file["graph"]["graphdesc"]
             else: 
-                descr_of_graph = "Graph description not specified."
+                descr_of_graph = ""
             vecList = {}
             vecList["graphdesc"] = descr_of_graph 
             target.append(vecList)
+
 
 def parseGraphJSON_textureNames(files):
     out = []

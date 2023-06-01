@@ -20,10 +20,12 @@ scikit-learn
 pymysql
 shapely
 cartoGRAPHs
-torch
+--find-links https://download.pytorch.org/whl/torch_stable.html
+torch==1.13.1+cu116
 whisper
 openai-whisper
 playsound
 PyDub 
 pyttsx3
 openai
+igraph

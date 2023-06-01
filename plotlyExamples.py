@@ -203,6 +203,7 @@ def sankeyGraph():
         )
     ))
     fig.update_layout(font_color = 'rgb(200,200,200)', paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=10, r=10, t=10, b=10))
+    
     return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
 
 

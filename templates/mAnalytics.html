@@ -1,12 +1,10 @@
-<!-- Analytics box -->
+<!-- Analytics Module -->
 
 
 <div class="gradientBox">
     <div class='swagBox' style="width:420px; background-color: rgba(16, 3, 0, 0.3);">
          
-        <mc-dropdown id="analytics" class="GD" type="dropdown" fn="dropdown"
-        name="ANALYTICS">
-        </mc-dropdown>
+        <mc-dropdown id="analytics" class="GD" type="dropdown" fn="dropdown" name="ANALYTICS"></mc-dropdown>
 
         <!-- Analytics modules -->
         <div id="analyticsSelectedDegree" style="display: none;" class="analyticsOption"> 
@@ -33,8 +31,48 @@
             <mc-button1 name="RUN" id="analyticsPathRun" fn="analytics"></mc-button1>
         </div>
         
-        <!-- plotly iframe -->
-        <iframe id="analyticsIFrame" src="" frameborder="0" style="display: none;"></iframe>
-        
+        <div id="analyticsSelectedEigenvector" style="display: none;" class="analyticsOption">
+            <mc-button1 name="RUN" id="analyticsEigenvectorRun" fn="analytics"></mc-button1>
+        </div>
+
+        <div id="analyticsSelectedModcommunity" style="display: none;" class="analyticsOption">
+            <mc-button1 name="Apply Coloring" id="analyticsModcommunityRun" fn="analytics"></mc-button1>
+            <mc-button1 name="Apply Layout" id="analyticsModcommunityLayout" fn="analytics"></mc-button1>
+        </div>
+
+        <div id="analyticsSelectedClusteringCoeff" style="display: none;" class="analyticsOption">
+            <mc-button1 name="RUN" id="analyticsClusteringCoeffRun" fn="analytics"></mc-button1>
+        </div>
+
+
+
+        <!-- plotly container-->
+        <div id="analyticsContainer" frameborder="0" style="display: none;"></div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                let plotlyDiv = document.getElementById('analyticsContainer');
+
+                // add here all run buttons which does not use the analyticsContainer
+
+                let clearButton0 = document.getElementById('analyticsPathRun');
+                clearButton0.addEventListener('click', function() {
+                    plotlyDiv.innerHTML = '';
+                });
+
+                let clearButton1 = document.getElementById('analyticsModcommunityRun');
+                clearButton1.addEventListener('click', function() {
+                    plotlyDiv.innerHTML = '';
+                });
+
+                let clearButton2 = document.getElementById('analyticsModcommunityLayout');
+                clearButton2.addEventListener('click', function() {
+                    plotlyDiv.innerHTML = '';
+                });
+
+
+            });
+        </script>
     </div>
+
+    
 </div>

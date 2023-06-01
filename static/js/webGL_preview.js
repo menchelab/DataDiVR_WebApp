@@ -156,6 +156,110 @@ function updateLinkColors(data) {
   console.log("link colors updated");
 }
 
+async function updateLayoutTemp(path_low, path_hi) {
+  function getPositionFromTemp(index, temp_low, temp_hi) {
+    var i = index * 4;
+    var positionX = (temp_hi[i] * 255 + temp_low[i]) / 65536 - 0.5;
+    var positionY = (temp_hi[i + 1] * 255 + temp_low[i + 1]) / 65536 - 0.5;
+    var positionZ = (temp_hi[i + 2] * 255 + temp_low[i + 2]) / 65536 - 0.5;
+    var position = [positionX, positionY, positionZ];
+    return position;
+  }
+
+  if (initialized) {
+    let layout_hi = await DownloadImage(path_hi);
+    let layout_low = await DownloadImage(path_low);
+
+    //delete everything but sphere
+    console.log("update network");
+    const n = scene.children.length - 1;
+    for (var i = n; i > -1; i--) {
+      if (scene.children[i] != indexsphere) {
+        scene.remove(scene.children[i]);
+      }
+    }
+
+    const elements = document.getElementsByClassName("label");
+    while (elements.length > 0) {
+      elements[0].parentNode.removeChild(elements[0]);
+    }
+
+    nodemeshes = [];
+    linkmeshes = [];
+    labels = [];
+
+    // make new nodes from temp files
+
+    for (let i = 0; i < pfile["nodecount"] + pfile["labelcount"]; i++) {
+      if (i < 10000) {
+        const ngeometry = new THREE.BoxGeometry(nscale, nscale, nscale);
+        var color = getNColor(i);
+        const nmaterial = new THREE.MeshBasicMaterial({
+          color: RGB2HTML(color[0], color[1], color[2]),
+        }); //"rgb(155, 102, 102)"
+        const cube = new THREE.Mesh(ngeometry, nmaterial);
+        cube.name = i; //;
+        cube.layers.set(0);
+        nodemeshes.push(cube);
+
+        scene.add(cube);
+        var nodepos = getPositionFromTemp(i, layout_low, layout_hi);
+        cube.position.set(
+          nodepos[1] * -1 * scale,
+          nodepos[2] * scale,
+          nodepos[0] * scale
+        ); //0x00ff00
+
+        // MAKE LABELS
+        if (i >= pfile["nodecount"]) {
+          var name = pfile["selections"][i - pfile["nodecount"]]["name"];
+          $("body").append(
+            '<div id="lab' +
+              i +
+              '"class="label" text="label"style="z-index: 1; position: absolute; top: 389px; left: 271px; margin-left: 10px; font-size: 20px;">' +
+              name +
+              "</div>"
+          );
+          labels.push("lab" + i);
+        }
+      }
+    }
+
+    // Draw Links
+    maxl = 10000;
+    if (pfile["linkcount"] > maxl) {
+      document.getElementById("warning").innerHTML =
+        "TOO MANY LINKS<br>FOR PREVIEW";
+    } else {
+      maxl = pfile["linkcount"];
+    }
+    count = 0;
+    for (let l = 0; l < maxl; l++) {
+      var link = getLink(l);
+      var color = getLColor(l);
+      const material1 = new THREE.LineBasicMaterial({
+        color: RGB2HTML(color[0], color[1], color[2]),
+        transparent: true,
+        opacity: 0.2,
+      });
+      const points = [];
+      const start = link["start"];
+      const end = link["end"];
+
+      points.push(nodemeshes[start].position);
+      points.push(nodemeshes[end].position);
+      const geometry1 = new THREE.BufferGeometry().setFromPoints(points);
+      const line = new THREE.Line(geometry1, material1);
+      line.layers.set(1);
+      line.linewidth;
+      line.name = "line";
+      scene.add(line);
+      linkmeshes.push(line);
+      count = l;
+    }
+  }
+}
+
 function makeNetwork() {
   if (initialized) {
     //delete everything but sphere
@@ -437,6 +541,7 @@ function clearProject() {
 async function downloadProjectTextures() {
   clearProject();
   console.log("downloading project maps " + pfile["name"]);
+
   for (let index = 0; index < pfile["layouts"].length; index++) {
     var path =
       "/static/projects/" +
@@ -494,12 +599,12 @@ async function downloadProjectTextures() {
 async function downloadTempTexture(path, channel) {
   switch (channel) {
     case "nodeRGB":
-      nodesTempRGB = await DownloadImage(path);
+      let nodesTempRGB = await DownloadImage(path);
       console.log(nodesTempRGB[0], nodesTempRGB[1], nodesTempRGB[2]);
       updateNodeColors(nodesTempRGB);
       break;
     case "linkRGB":
-      linksTempRGB = await DownloadImage(path);
+      let linksTempRGB = await DownloadImage(path);
       console.log(linksTempRGB[0], linksTempRGB[1], linksTempRGB[2]);
       updateLinkColors(linksTempRGB);
       break;

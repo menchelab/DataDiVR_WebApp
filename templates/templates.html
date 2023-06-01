@@ -19,6 +19,7 @@
             name_button.textContent = this.getAttribute('name');
             name_button.style.width = this.getAttribute('w') + "px";
             name_button.style.background = this.getAttribute('color');
+            //name_button.style.background = url('images/NotR;ecording.png')
             var fun = this.getAttribute('fn');
 
             name_button.addEventListener('click', () => {
@@ -66,7 +67,7 @@
     }
 </style>
     <div id="container" style="width: auto; height: 30p0x; display: inline-block; padding: 4px 2px">
-        <button id="name"></button>
+        <button id="name"><img src="static/css/images/NotRecording.png"></img></button>
     </div>
 
 </template>
@@ -90,7 +91,10 @@
         let name_button = this.shadowRoot.querySelector("#name");
 
         name_button.textContent = this.getAttribute('name');
-
+        if (this.getAttribute('img')){
+            name_button.innerHTML ='<img src="static/css/images/'+ this.getAttribute('img') +'" />';
+        }
+        //
         var fun = this.getAttribute('fn');
         //console.log('create: '+ this.getAttribute('data'));
 
@@ -578,17 +582,53 @@
         }
 
         connectedCallback() {
-        let template = document.querySelector('#mcColorBox-template').content;
-        this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
+            let template = document.querySelector('#mcColorBox-template').content;
+            this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
+            let outer = this.shadowRoot.querySelector("container");
+            let colorbox = this.shadowRoot.querySelector("#color");
+            let colorfield = this.shadowRoot.querySelector("#colorfield");
+            let sliders = this.shadowRoot.querySelector("#sliders");
+            let sliderR = this.shadowRoot.querySelector("#red");
+            let sliderG = this.shadowRoot.querySelector("#green");
+            let sliderB = this.shadowRoot.querySelector("#blue");
+            let sliderA = this.shadowRoot.querySelector("#alpha");
+            let [r,g,b,a] = [0,0,0,0];
 
-        let colorbox = this.shadowRoot.querySelector("#color");
-
-        
-
-        colorbox.addEventListener('change', () => {
-            console.log(colorbox.value);
-            socket.emit('ex', {usr:uid, id: this.getAttribute('id'), val: colorbox.value, fn: "col"});
-        });
+            sliderR.addEventListener('input', () => {
+                let color = colorbox.style.backgroundColor;
+                [r,g,b,a] = color.match(/\d+/g).map(Number);
+                colorbox.style.backgroundColor = 'rgba(' + sliderR.value + ',' + g + ',' + b +',' + sliderA.value / 255 + ')'; 
+            });
+            sliderG.addEventListener('input', () => { 
+                let color = colorbox.style.backgroundColor;
+                [r,g,b,a] = color.match(/\d+/g).map(Number);
+                colorbox.style.backgroundColor = 'rgba(' + r + ',' + sliderG.value + ',' + b +',' + sliderA.value / 255 + ')';  
+            
+            });
+            sliderB.addEventListener('input', () => {
+                let color = colorbox.style.backgroundColor;
+                [r,g,b,a] = color.match(/\d+/g).map(Number);
+                colorbox.style.backgroundColor = 'rgba(' + r + ',' + g + ',' + sliderB.value +',' + sliderA.value / 255+ ')';  
+            });
+            sliderA.addEventListener('input', () => {
+                a = sliderA.value / 255;
+                colorbox.style.backgroundColor = 'rgba(' + r + ',' + g + ',' + b +',' + sliderA.value / 255 + ')';   
+            });
+                
+            colorbox.addEventListener('change', () => {
+                //console.log(colorbox.value);
+                //socket.emit('ex', {usr:uid, id: this.getAttribute('id'), val: colorbox.value, fn: "col"});
+            });
+            colorbox.addEventListener('change', () => {
+                //socket.emit('ex', { id: this.getAttribute('id'), fn: fn, val: select.selectedIndex});
+                    if (!colorbox.checked){
+                        sliders.style.display = "none";
+                        socket.emit('ex', { usr:uid, id: this.getAttribute('id'), r: r, g:g,b:b,a:a, fn: "colorbox"});
+                        console.log(r + " " + g + " "+ b +" "+a);
+                    }else{
+                        sliders.style.display = "contents";
+                    }
+            });
 
         }
     }
@@ -602,10 +642,16 @@
     <style>
 
     </style>
-<div id="container" style="width: auto; height: 30px; display: inline-block; padding: 4px 2px">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
-    <input type="Color" id="color" class="swagButton" style="height:40px;"></input>
-</div>
+    <div id="container" calss="swagBox" style="width: 200px; display: inline-block; padding: 4px 2px;">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
+        <input type="checkbox" id="color" class="swagButton" style="height:40px; width:80px; appearance:none; background-color: rgba(128,0,0,0.5);"></input>
+        <div id="sliders"  style="display:none;">
+            <input type="range" min="0" max="255" value="128" class="slider" id="red" style="display: inline-block; width:100%; position:relative; ; Z-index: 1;background-image: linear-gradient(270deg,rgba(255, 0, 0, 0.3),rgba(255, 0, 0, 0.05),rgba(0,0,0,0)); "></input>
+            <input type="range" min="0" max="255" value="128" class="slider" id="green" style="display: inline-block; width:100%; position:relative; ; Z-index: 1; background-image: linear-gradient(270deg,rgba( 0,255, 0, 0.3),rgba(0, 255, 0, 0.05),rgba(0,0,0,0));"></input>
+            <input type="range" min="0" max="255" value="128" class="slider" id="blue" style="display: inline-block; width:100%; position:relative; ; Z-index: 1; background-image: linear-gradient(270deg,rgba( 0, 0,255, 0.3),rgba(0, 0, 255, 0.05),rgba(0,0,0,0));"></input>
+            <input type="range" min="0" max="255" value="128" class="slider" id="alpha" style="display: inline-block; width:100%; position:relative; ; Z-index: 1;"></input>
+        </div>
+    </div>
 </template>
 
 
