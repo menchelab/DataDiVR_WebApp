@@ -4,7 +4,6 @@ import json
 import logging
 import os
 import os.path
-
 # import preview as pre
 # import preview as pre
 import random
@@ -18,21 +17,10 @@ from os import path
 import flask
 import numpy as np
 import requests
-
 # from flask_session import Session
 from engineio.payload import Payload
-from flask import (
-    Flask,
-    abort,
-    current_app,
-    jsonify,
-    make_response,
-    redirect,
-    render_template,
-    request,
-    session,
-    url_for,
-)
+from flask import (Flask, abort, current_app, jsonify, make_response, redirect,
+                   render_template, request, session, url_for)
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from PIL import Image, ImageColor
 from werkzeug.utils import secure_filename
@@ -46,7 +34,6 @@ import GlobalData as GD
 import load_extensions
 import plotlyExamples as PE
 import search
-
 # load audio and pad/trim it to fit 30 seconds
 import TextToSpeech
 import uploader
@@ -1015,25 +1002,27 @@ def ex(message):
         response["nch"] = len(GD.nchildren[int(message["val"])])
         response["val"] = GD.nodes["nodes"][int(message["val"])]
         GD.pdata["activeNode"] = message["val"]
-
         if "protein_info" in GD.nodes["nodes"][int(message["val"])]:
-            if (
-                not "protstyle" in GD.pdata.keys()
-            ):  # check if selection exists in pdata.json
-                GD.pdata["protstyle"] = ""
-            GD.pdata["protstyle"] = list(
-                GD.nodes["nodes"][int(message["val"])]["protein_info"][0].keys()
-            )[1]
+            # TODO: Check this hack
+            # protein_info is sometimes a empty list thus:
+            if len(GD.nodes["nodes"][int(message["val"])]["protein_info"]) > 0:
+                if (
+                    not "protstyle" in GD.pdata.keys()
+                ):  # check if selection exists in pdata.json
+                    GD.pdata["protstyle"] = ""
+                GD.pdata["protstyle"] = list(
+                    GD.nodes["nodes"][int(message["val"])]["protein_info"][0].keys()
+                )[1]
 
-            if (
-                not "protnamedown" in GD.pdata.keys()
-            ):  # check if selection exists in pdata.json
-                GD.pdata["protstyle"] = ""
-            GD.pdata["protnamedown"] = GD.nodes["nodes"][int(message["val"])][
-                "uniprot"
-            ][0]
+                if (
+                    not "protnamedown" in GD.pdata.keys()
+                ):  # check if selection exists in pdata.json
+                    GD.pdata["protstyle"] = ""
+                GD.pdata["protnamedown"] = GD.nodes["nodes"][int(message["val"])][
+                    "uniprot"
+                ][0]
 
-            GD.savePD()
+                GD.savePD()
 
         # print(response)
         emit("ex", response, room=room)
