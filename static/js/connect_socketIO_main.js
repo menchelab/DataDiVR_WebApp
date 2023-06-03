@@ -497,7 +497,11 @@ $(document).ready(function(){
 
                     // init analytics container
                     document.getElementById('analyticsContainer').innerHTML = '';
+                    document.getElementById('nodecounter').innerHTML = pfile['nodecount']+' NODES';
+                    document.getElementById('linkcounter').innerHTML = pfile['linkcount']+' LINKS';
 
+                    var content = document.getElementById('cbscrollbox').shadowRoot.getElementById("box");
+                    removeAllChildNodes(content);
                     //--------------------------------
                     // initial inf on L E G E N D P A N E L 
                     Legend_displayGraphInfo(pfile.name);
@@ -519,6 +523,15 @@ $(document).ready(function(){
             
             case "cnl":
                 ue4(data["fn"], data);    
+                break;
+
+            case "checkbox":
+                if(document.getElementById(data["id"])){
+                    document.getElementById(data["id"]).shadowRoot.getElementById("box").checked = data["val"];
+                }
+                if(data["id"]=="linkblendCHK"){
+                    ue4("linkblend", data);
+                }
                 break;
             
             case "ue4":

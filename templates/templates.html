@@ -72,6 +72,41 @@
 
 </template>
         
+<script>
+    class mcCheckbox extends HTMLElement {
+        constructor() {
+        super();
+        }
+        connectedCallback() {
+        let template = document.querySelector('#mcCb-template').content;
+        this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
+        let checkbox = this.shadowRoot.querySelector("#box");
+      
+
+        //name_button.style.background = url('images/NotR;ecording.png')
+        //var fun = this.getAttribute('fn');
+
+        checkbox.addEventListener('click', () => {
+            console.log('select '+ checkbox.val);
+            socket.emit('ex', { usr:uid, id: this.getAttribute('id'), val: checkbox.checked, fn: "checkbox"});
+        });
+
+        }
+
+    }
+    customElements.define('mc-checkbox', mcCheckbox);
+</script>
+
+<template id="mcCb-template">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
+        <div id="container" style="width: auto; height: 30p0x; display: inline-block; padding: 4px 2px">
+           <input type="checkbox" class="check_box" id="box"></input>
+           <label for="box"></label>
+
+        </div>
+    
+</template>
+
 
 
 
