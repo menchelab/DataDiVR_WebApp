@@ -535,6 +535,7 @@ def upload_filesNew(request):
         if len(color["data"]) == 0:
             color["data"] = [[255,0,255,100]] * numnodes
             color["name"] = "nan"
+
         state =  state + makeNodeRGBTexture(namespace, color) + '<br>'
         pfile["layoutsRGB"].append(color["name"]+ "RGB")
 
@@ -686,7 +687,7 @@ def upload_files(request):
     prolist = GD.plist
     namespace = '' 
     if form["namespace"] == "New":
-        namespace = form["namespace"]   
+        namespace = form["new_name"]    #namespace
     else:
         namespace = form["existing_namespace"]
     if not namespace:
