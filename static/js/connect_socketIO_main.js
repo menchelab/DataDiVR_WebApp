@@ -423,7 +423,6 @@ $(document).ready(function(){
                     var count = document.getElementById(data.id).shadowRoot.querySelector("#count");
                     var content = document.getElementById(data.id).shadowRoot.getElementById("content");
 
-
                     if(data.hasOwnProperty('opt')){
                     
                         removeAllChildNodes(content);
@@ -496,11 +495,7 @@ $(document).ready(function(){
                         LegendnextButton.setAttribute('val',data.sel);                        
                         const LegendbackButton = document.getElementById('backwardstep');
                         LegendbackButton.setAttribute('val',data.sel);
-
-                        Legend_displayGraphLayoutbyID(pfile.name, data.sel);
-                        Legend_displayNodeInfobyID(pfile.name, data.sel);
-                        Legend_displayLinkInfobyID(pfile.name, data.sel);
-                    
+                
                         // adapt new index to all DD (except links - since there can only be one link list per project)
                         layouts_DD = document.getElementById("layoutsDD").shadowRoot.getElementById("sel");
                         layouts_DD.setAttribute("sel", parseInt(data.sel));
@@ -514,20 +509,15 @@ $(document).ready(function(){
                             linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
                             linksRGB_DD.setAttribute("sel", parseInt(0));
                             linksRGB_DD.setAttribute("value", pfile.linksRGB[0]);
-                        
-                            
                         } else {
                             linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
                             linksRGB_DD.setAttribute("sel", parseInt(data.sel));
                             linksRGB_DD.setAttribute("value", pfile.linksRGB[data.sel]);
-                        
-                        }
-
-                    }
-
-
+                        }  
+                    } 
                 }
-   
+
+
                 ue4(data["fn"], data);    
                 break;
             
@@ -542,14 +532,18 @@ $(document).ready(function(){
                     document.getElementById('nodecounter').innerHTML = pfile['nodecount']+' NODES';
                     document.getElementById('linkcounter').innerHTML = pfile['linkcount']+' LINKS';
 
-                    // Legend panel project specific info 
                     var content = document.getElementById('cbscrollbox').shadowRoot.getElementById("box");
                     removeAllChildNodes(content);
-                    //--------------------------------
-                    // initial inf on L E G E N D P A N E L 
+
+                    // initial info on L E G E N D P A N E L 
                     Legend_displayGraphInfo(pfile.name);
                     Legend_displayfirstFile(pfile.name);
 
+                    //console.log("C_DEBUG in case PROJECT", pfile.layouts); 
+                    Legend_displayGraphLayoutbyID(pfile.name, 0);
+                    Legend_displayNodeInfobyID(pfile.name, 0);
+                    Legend_displayLinkInfobyID(pfile.name, 0);
+                    
                     if (isPreview){
                         
                         downloadProjectTextures(); // download textures for preview, report when done
