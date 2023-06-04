@@ -200,12 +200,13 @@ $(document).ready(function(){
 
     
     socket.on('ex', function(data) {
-        logjs(data, 'scrollbox_debug_0')
-        if (logAll && data.usr == uid)
-        {
+        logjs(data, 'scrollbox_debug_0');
+         
+        //if (logAll && data.usr == uid)
+        //{
             console.log("server returned: " + JSON.stringify(data));
 
-        }
+        //}
 
         switch(data.fn)
         {   
@@ -295,6 +296,9 @@ $(document).ready(function(){
                 for (let i = 0; i < data.val.length; i++) {
                     $(content).append("<mc-button id = 'button"+ i + " 'val= '"+ data.val[i].id + "' name = '"+ data.val[i].name +  "' w = '118' fn = 'node' color = '" + rgbToHex(data.val[i].color[0]*0.5,data.val[i].color[1]*0.5,data.val[i].color[2]*0.5) + "' ></mc-button>");
                 }
+                break;
+            case "colorbox":
+                document.getElementById(data.id).shadowRoot.getElementById("color").style.backgroundColor = 'rgba(' + data.r + ',' + data.g + ',' + data.b +',' + data.a*255 + ')';
                 break;
 
             case "updateTempTex":
@@ -535,8 +539,14 @@ $(document).ready(function(){
 
                     // init analytics container
                     document.getElementById('analyticsContainer').innerHTML = '';
+                    document.getElementById('nodecounter').innerHTML = pfile['nodecount']+' NODES';
+                    document.getElementById('linkcounter').innerHTML = pfile['linkcount']+' LINKS';
 
                     // Legend panel project specific info 
+                    var content = document.getElementById('cbscrollbox').shadowRoot.getElementById("box");
+                    removeAllChildNodes(content);
+                    //--------------------------------
+                    // initial inf on L E G E N D P A N E L 
                     Legend_displayGraphInfo(pfile.name);
                     Legend_displayfirstFile(pfile.name);
 
@@ -550,6 +560,15 @@ $(document).ready(function(){
             
             case "cnl":
                 ue4(data["fn"], data);    
+                break;
+
+            case "checkbox":
+                if(document.getElementById(data["id"])){
+                    document.getElementById(data["id"]).shadowRoot.getElementById("box").checked = data["val"];
+                }
+                if(data["id"]=="linkblendCHK"){
+                    ue4("linkblend", data);
+                }
                 break;
             
             case "ue4":

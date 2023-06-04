@@ -285,7 +285,7 @@ def makeNodeRGBTexture(project, pixeldata, name=None):
         #tex[i] = (int(pixeldata["data"][i][0]), int(pixeldata["data"][i][1]),int(pixeldata["data"][i][2]),int(pixeldata["data"][i][3]))
         tex[i] = (int(rgba_colors[i][0]), int(rgba_colors[i][1]),int(rgba_colors[i][2]),int(rgba_colors[i][3]))
 
-    new_img = Image.new('RGB', (128, hight))
+    new_img = Image.new('RGBA', (128, hight))
     new_img.putdata(tex)
     pathXYZ = path + '/layoutsRGB/' +  pixeldata["name"] + 'RGB.png'
     if name is not None:
@@ -512,7 +512,7 @@ def upload_filesNew(request):
                 layout["data"].append(pos)
 
             for color in nodecolors:
-                color["data"].append([255,0,0,255])
+                color["data"].append([255,0,0,100])
             i += 1
 
 
@@ -950,7 +950,7 @@ def makeNodeTex(project, name, file, labelfile):
 
           
             nodepos.append([float(row[0]),float(row[1]),float(row[2])])
-            nodecol.append([float(row[3]),float(row[4]),float(row[5])])
+            nodecol.append([float(row[3]),float(row[4]),float(row[5]),100])
             #print(row)
             i += 1
 
@@ -1008,7 +1008,7 @@ def makeNodeTex(project, name, file, labelfile):
             r = int(thiscolor[0])
             g = int(thiscolor[1])
             b = int(thiscolor[2])
-            a = 255
+            a = 127
             xh = int(x / 255)
             yh = int(y / 255)
             zh = int(z / 255)

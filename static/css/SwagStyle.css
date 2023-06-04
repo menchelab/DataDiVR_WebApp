@@ -796,6 +796,29 @@ input[type=checkbox] {
     background-color: rgba(77, 77, 77, 0);
 }
 
+
+.check_box {
+    display:none;
+}
+
+.check_box + label{
+    background:url('images/cboxOff.png') no-repeat;
+    height: 32px;
+    width: 64px;
+    display:inline-block;
+    padding: 0 0 0 0px;
+}
+
+.check_box:checked + label{
+    background:url('images/cboxON.png') no-repeat;
+    height: 32px;
+    width: 64px;
+    display:inline-block;
+    padding: 0 0 0 0px;
+}
+
+
+
 .cornerBox {
     /*--b:2px;  
   --c:#688b9e;  

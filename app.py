@@ -362,35 +362,37 @@ def ex(message):
         
         emit("ex", response, room=room)  # send to all clients
         
-    elif message["id"] == "cbColorInput":
-        # copy active color texture 
-        im1 = Image.open("static/projects/"+ GD.data["actPro"]  + "/layoutsRGB/"+ GD.pfile["layoutsRGB"][int(GD.pdata["layoutsRGBDD"])]+".png","r")
-        im2 = im1.copy()
-        # convert rgb to hex string
-        color = (message["r"],message["g"],message["b"])
-        pix_val = list(im1.getdata())
+    elif message["fn"] == "colorbox":
+        if message["id"] == "cbColorInput":
+            # copy active color texture 
+            im1 = Image.open("static/projects/"+ GD.data["actPro"]  + "/layoutsRGB/"+ GD.pfile["layoutsRGB"][int(GD.pdata["layoutsRGBDD"])]+".png","r")
+            im2 = im1.copy()
+            # convert rgb to hex string
+            color = (int(message["r"]),int(message["g"]),int(message["b"]),int(message["a"]*255))
+            pix_val = list(im1.getdata())
 
-        # colorize clipboard selection
-        for n in GD.pdata["cbnode"]:
-            id = int(n["id"])
-            pix_val[id] = color
-        im2.putdata(pix_val)
+            # colorize clipboard selection
+            for n in GD.pdata["cbnode"]:
+                id = int(n["id"])
+                pix_val[id] = color
+            im2.putdata(pix_val)
 
-        # save temp texture 
-        
-        path = "static/projects/"+ GD.data["actPro"]  + "/layoutsRGB/temp1.png"
-        im2.save(path)
-        im1.close()
-        im2.close()
-        # send update signal to clients
+            # save temp texture 
+            
+            path = "static/projects/"+ GD.data["actPro"]  + "/layoutsRGB/temp1.png"
+            im2.save(path)
+            im1.close()
+            im2.close()
+            # send update signal to clients
 
-        response = {}
-        response["usr"] = message["usr"]
-        response["fn"] = "updateTempTex"
-        response["channel"] = "nodeRGB"
-        response["path"] = "static/projects/"+ GD.data["actPro"]  + "/layoutsRGB/temp1.png"
-        emit("ex", response, room=room)
-    
+            response = {}
+            response["usr"] = message["usr"]
+            response["fn"] = "updateTempTex"
+            response["channel"] = "nodeRGB"
+            response["path"] = "static/projects/"+ GD.data["actPro"]  + "/layoutsRGB/temp1.png"
+            emit("ex", response, room=room)
+        emit("ex", message, room=room)
+
     elif message['fn'] == "analytics":
         project = GD.data["actPro"]
 
