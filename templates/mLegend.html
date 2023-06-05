@@ -14,7 +14,7 @@
 
         <br>
 
-        <div style="margin-bottom:6px;"> LAYOUT TITLE : : <span style="font-weight:bold;" id='graphlayout'><spanv> </spanv></div>
+        <div style="margin-bottom:6px;"> LAYOUT TITLE : : <span style="font-weight:bold;" id='graphlayout' val=""><span> </span></div>
         
         <br>
 
@@ -83,32 +83,6 @@
     //-------------------------------------------------------
     // GRAPH LAYOUT DISPLAY 
     //-------------------------------------------------------
-    function Legend_displayfirstGraphLayout(project_selected) {
-        if (document.getElementById('graphlayout')) {
-            const graphname_file = 'static/projects/' + project_selected + '/pfile.json';
-            $.getJSON(graphname_file)
-                .done(function(pfiledata) {
-
-                    if (pfiledata.hasOwnProperty('layouts')) {
-                        // if json uploaded has "layouts" key
-                        graphlayout_pre = pfiledata.layouts[0];
-                        graphlayout = graphlayout_pre.slice(0, -3);
-                    } else {
-                        // if not just use file name of json file directly
-                        graphlayout = pfiledata.name;
-                        console.log("pfilename");
-                    }
-                    const myDiv = document.getElementById("graphlayout");
-                    myDiv.innerHTML = graphlayout;
-                })
-                .fail(function() {
-                    const myDiv = document.getElementById("graphlayout");
-                    myDiv.style.display = "none";
-                    myDiv.innerHTML = "";
-                });
-        }
-    }
-
     function Legend_displayGraphLayoutbyID(project_selected, selected_id) {
         if (document.getElementById('graphlayout')) {
             const graphname_file = 'static/projects/' + project_selected + '/pfile.json';
@@ -120,6 +94,7 @@
                         graphlayout = graphlayout_pre.slice(0, -3);
                     }
                     const myDiv = document.getElementById("graphlayout");
+                    myDiv.setAttribute("val", graphlayout_pre);
                     myDiv.innerHTML = graphlayout;
                 })
                 .fail(function() {
@@ -358,6 +333,7 @@
             });
         }
     }
+
 
 
     // Link Info by selected ID 
@@ -985,7 +961,6 @@
             });
         }
     }
-
 
     
     //-------------------------------------------------------

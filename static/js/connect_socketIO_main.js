@@ -422,7 +422,7 @@ $(document).ready(function(){
                     var select = document.getElementById(data.id).shadowRoot.getElementById("sel");
                     var count = document.getElementById(data.id).shadowRoot.querySelector("#count");
                     var content = document.getElementById(data.id).shadowRoot.getElementById("content");
-
+                    
                     if(data.hasOwnProperty('opt')){
                     
                         removeAllChildNodes(content);
@@ -488,67 +488,81 @@ $(document).ready(function(){
                         }
                     }
 
-                    if (data.id == "layoutsDD" || data.id == "layoutsRGBDD" || data.id == "linksRGBDD"){
+                    if(data.id == "layoutsDD" || data.id == "layoutsRGBDD" || data.id == "linksRGBDD") {  
+                        if (data.sel != parseInt(select.getAttribute("sel"))) {
                         
-                        // set legend buttons to same Id as dropdown and update legend based on new ID                         
-                        const LegendnextButton = document.getElementById('forwardstep');
-                        LegendnextButton.setAttribute('val',data.sel);                        
-                        const LegendbackButton = document.getElementById('backwardstep');
-                        LegendbackButton.setAttribute('val',data.sel);
-                
-                        // adapt new index to all DD (except links - since there can only be one link list per project)
-                        layouts_DD = document.getElementById("layoutsDD").shadowRoot.getElementById("sel");
-                        layouts_DD.setAttribute("sel", parseInt(data.sel));
-                        layouts_DD.setAttribute("value", pfile.layouts[data.sel]);
-                    
-                        layoutsRGB_DD = document.getElementById("layoutsRGBDD").shadowRoot.getElementById("sel");
-                        layoutsRGB_DD.setAttribute("sel", parseInt(data.sel));
-                        layoutsRGB_DD.setAttribute("value", pfile.layoutsRGB[data.sel]);
+                            console.log("C_DEBUG in CASE Dropdown.", parseInt(select.getAttribute("sel")));
 
-                        if (pfile.linksRGB.length <= data.sel) {
-                            linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
-                            linksRGB_DD.setAttribute("sel", parseInt(0));
-                            linksRGB_DD.setAttribute("value", pfile.linksRGB[0]);
-                        } else {
-                            linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
-                            linksRGB_DD.setAttribute("sel", parseInt(data.sel));
-                            linksRGB_DD.setAttribute("value", pfile.linksRGB[data.sel]);
-                        }  
-                    } 
+                            // set legend buttons to same Id as dropdown and update legend based on new ID                         
+                            const LegendnextButton = document.getElementById('forwardstep');
+                            LegendnextButton.setAttribute('val',data.sel);                        
+                            const LegendbackButton = document.getElementById('backwardstep');
+                            LegendbackButton.setAttribute('val',data.sel);
+                            
+                            // update layout title and node/link legend
+                            Legend_displayGraphLayoutbyID(pfile.name, data.sel);
+                            Legend_displayNodeInfobyID(pfile.name, data.sel);
+                            Legend_displayLinkInfobyID(pfile.name, data.sel);
+                            
+                            // adapt new index to all DD (except links - since there can only be one link list per project)
+                            layouts_DD = document.getElementById("layoutsDD").shadowRoot.getElementById("sel");
+                            layouts_DD.setAttribute("sel", parseInt(data.sel));
+                            layouts_DD.setAttribute("value", pfile.layouts[data.sel]);
+                        
+                            layoutsRGB_DD = document.getElementById("layoutsRGBDD").shadowRoot.getElementById("sel");
+                            layoutsRGB_DD.setAttribute("sel", parseInt(data.sel));
+                            layoutsRGB_DD.setAttribute("value", pfile.layoutsRGB[data.sel]);
+
+                            if (pfile.linksRGB.length <= data.sel) {
+                                linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
+                                linksRGB_DD.setAttribute("sel", parseInt(0));
+                                linksRGB_DD.setAttribute("value", pfile.linksRGB[0]);
+                            } else {
+                                linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
+                                linksRGB_DD.setAttribute("sel", parseInt(data.sel));
+                                linksRGB_DD.setAttribute("value", pfile.linksRGB[data.sel]);
+                            }  
+                        }
+                    }
                 }
-
-
+                    
                 ue4(data["fn"], data);    
-                break;
+            break;
             
             case "project":
 
                 //clearProject();
                 //if (data["usr"]==uid){
-                    pfile = data["val"];
+                pfile = data["val"];
 
-                    // init analytics container
-                    document.getElementById('analyticsContainer').innerHTML = '';
-                    document.getElementById('nodecounter').innerHTML = pfile['nodecount']+' NODES';
-                    document.getElementById('linkcounter').innerHTML = pfile['linkcount']+' LINKS';
+                // init analytics container
+                document.getElementById('analyticsContainer').innerHTML = '';
+                document.getElementById('nodecounter').innerHTML = pfile['nodecount']+' NODES';
+                document.getElementById('linkcounter').innerHTML = pfile['linkcount']+' LINKS';
 
-                    var content = document.getElementById('cbscrollbox').shadowRoot.getElementById("box");
-                    removeAllChildNodes(content);
+                var content = document.getElementById('cbscrollbox').shadowRoot.getElementById("box");
+                removeAllChildNodes(content);
 
-                    // initial info on L E G E N D P A N E L 
-                    Legend_displayGraphInfo(pfile.name);
-                    Legend_displayfirstFile(pfile.name);
+                // initial info on L E G E N D P A N E L 
+                Legend_displayGraphInfo(pfile.name);
+                Legend_displayfirstFile(pfile.name);
 
-                    //console.log("C_DEBUG in case PROJECT", pfile.layouts); 
-                    Legend_displayGraphLayoutbyID(pfile.name, 0);
-                    Legend_displayNodeInfobyID(pfile.name, 0);
-                    Legend_displayLinkInfobyID(pfile.name, 0);
+                console.log("C_DEBUG : INIT LEGEND");
+                Legend_displayGraphLayoutbyID(pfile.name, 0);
+                Legend_displayNodeInfobyID(pfile.name, 0);
+                Legend_displayLinkInfobyID(pfile.name, 0);
+
+                // set val of node/link prop legend elements
+                legend_nodeprop = document.getElementById('legend_node_all');
+                legend_nodeprop.setAttribute('val', 0);
+
+
+
+                if (isPreview){
                     
-                    if (isPreview){
-                        
-                        downloadProjectTextures(); // download textures for preview, report when done
-                    }
-                    ue4(data["fn"], data);   
+                    downloadProjectTextures(); // download textures for preview, report when done
+                }
+                ue4(data["fn"], data);   
                 //}    
             break;
             
@@ -641,10 +655,8 @@ $(document).ready(function(){
                         actLinks = 0;
                         makeNetwork();
                     }
-
-                }
-
-                break;
+            }
+            break;
 
             case "textinput":
                 console.log(data.val + " --- " + data.id);
