@@ -571,12 +571,12 @@ $(document).ready(function(){
                 Legend_displayfirstFile(pfile.name);
 
                 // console.log("C_DEBUG : INIT LEGEND");
-                Legend_displayGraphLayoutbyID(pfile.name, 0, "layouts", "graphlayout");
-                Legend_displayGraphLayoutbyID(pfile.name, 0, "layouts", "graphlayout_nodecolors");
-                Legend_displayGraphLayoutbyID(pfile.name, 0, "layouts", "graphlayout_linkcolors");
+                // Legend_displayGraphLayoutbyID(pfile.name, 0, "layouts", "graphlayout");
+                // Legend_displayGraphLayoutbyID(pfile.name, 0, "layouts", "graphlayout_nodecolors");
+                // Legend_displayGraphLayoutbyID(pfile.name, 0, "layouts", "graphlayout_linkcolors");
 
-                Legend_displayNodeInfobyID(pfile.name, 0);
-                Legend_displayLinkInfobyID(pfile.name, 0);
+                // Legend_displayNodeInfobyID(pfile.name, 0);
+                // Legend_displayLinkInfobyID(pfile.name, 0);
 
                 if (isPreview){
                     
