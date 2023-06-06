@@ -388,8 +388,9 @@ def ex(message):
             response = {}
             response["usr"] = message["usr"]
             response["fn"] = "updateTempTex"
-            response["channel"] = "nodeRGB"
-            response["path"] = "static/projects/"+ GD.data["actPro"]  + "/layoutsRGB/temp1.png"
+            response["textures"] = []
+            response["textures"].append({"channel": "nodeRGB", "path": "static/projects/"+ GD.data["actPro"]  + "/layoutsRGB/temp1.png"})
+
             emit("ex", response, room=room)
         emit("ex", message, room=room)
 
@@ -431,19 +432,14 @@ def ex(message):
                 print("Failed to create textures for Analytics/Shortest Path.")
                 return
         
-            response_nodes = {}
-            response_nodes["usr"] = message["usr"]
-            response_nodes["fn"] = "updateTempTex"
-            response_nodes["channel"] = "nodeRGB"
-            response_nodes["path"] = degree_distribution_textures["path_nodes"]
-            emit("ex", response_nodes, room=room)
+            response = {}
+            response["usr"] = message["usr"]
+            response["fn"] = "updateTempTex"
+            response["textures"] = []
+            response["textures"].append({"channel": "nodeRGB", "path": degree_distribution_textures["path_nodes"]})
+            response["textures"].append({"channel": "linkRGB", "path": degree_distribution_textures["path_links"]})
+            emit("ex", response, room=room)
 
-            response_links = {}
-            response_links["usr"] = message["usr"]
-            response_links["fn"] = "updateTempTex"
-            response_links["channel"] = "linkRGB"
-            response_links["path"] = degree_distribution_textures["path_links"]
-            emit("ex", response_links, room=room)
 
 
         if message['id'] == "analyticsClosenessRun":
@@ -482,19 +478,13 @@ def ex(message):
                 print("Failed to create textures for Analytics/Closeness.")
                 return
         
-            response_nodes = {}
-            response_nodes["usr"] = message["usr"]
-            response_nodes["fn"] = "updateTempTex"
-            response_nodes["channel"] = "nodeRGB"
-            response_nodes["path"] = closeness_textures["path_nodes"]
-            emit("ex", response_nodes, room=room)
-
-            response_links = {}
-            response_links["usr"] = message["usr"]
-            response_links["fn"] = "updateTempTex"
-            response_links["channel"] = "linkRGB"
-            response_links["path"] = closeness_textures["path_links"]
-            emit("ex", response_links, room=room)
+            response = {}
+            response["usr"] = message["usr"]
+            response["fn"] = "updateTempTex"
+            response["textures"] = []
+            response["textures"].append({"channel": "nodeRGB", "path": closeness_textures["path_nodes"]})
+            response["textures"].append({"channel": "linkRGB", "path": closeness_textures["path_links"]})
+            emit("ex", response, room=room)
 
 
         if message["id"] == "analyticsPathNode1":
@@ -565,19 +555,13 @@ def ex(message):
             if shortest_path_textures["textures_created"] is False:
                 print("Failed to create textures for Analytics/Shortest Path.")
                 return
-            response_nodes = {}
-            response_nodes["usr"] = message["usr"]
-            response_nodes["fn"] = "updateTempTex"
-            response_nodes["channel"] = "nodeRGB"
-            response_nodes["path"] = shortest_path_textures["path_nodes"]
-            emit("ex", response_nodes, room=room)
-
-            response_links = {}
-            response_links["usr"] = message["usr"]
-            response_links["fn"] = "updateTempTex"
-            response_links["channel"] = "linkRGB"
-            response_links["path"] = shortest_path_textures["path_links"]
-            emit("ex", response_links, room=room)
+            response = {}
+            response["usr"] = message["usr"]
+            response["fn"] = "updateTempTex"
+            response["textures"] = []
+            response["textures"].append({"channel": "nodeRGB", "path": shortest_path_textures["path_nodes"]})
+            response["textures"].append({"channel": "linkRGB", "path": shortest_path_textures["path_links"]})
+            emit("ex", response, room=room)
 
 
         if message['id'] == "analyticsEigenvectorRun":
@@ -614,19 +598,13 @@ def ex(message):
                 print("Failed to create textures for Analytics/Eigenvector.")
                 return
         
-            response_nodes = {}
-            response_nodes["usr"] = message["usr"]
-            response_nodes["fn"] = "updateTempTex"
-            response_nodes["channel"] = "nodeRGB"
-            response_nodes["path"] = closeness_textures["path_nodes"]
-            emit("ex", response_nodes, room=room)
-
-            response_links = {}
-            response_links["usr"] = message["usr"]
-            response_links["fn"] = "updateTempTex"
-            response_links["channel"] = "linkRGB"
-            response_links["path"] = closeness_textures["path_links"]
-            emit("ex", response_links, room=room)
+            response = {}
+            response["usr"] = message["usr"]
+            response["fn"] = "updateTempTex"
+            response["textures"] = []
+            response["textures"].append({"channel": "nodeRGB", "path": closeness_textures["path_nodes"]})
+            response["textures"].append({"channel": "linkRGB", "path": closeness_textures["path_links"]})
+            emit("ex", response, room=room)
 
 
         if message['id'] == "analyticsClusteringCoeffRun":
@@ -663,20 +641,13 @@ def ex(message):
                 print("Failed to create textures for Analytics/Clustering Coefficient.")
                 return
         
-            response_nodes = {}
-            response_nodes["usr"] = message["usr"]
-            response_nodes["fn"] = "updateTempTex"
-            response_nodes["channel"] = "nodeRGB"
-            response_nodes["path"] = closeness_textures["path_nodes"]
-            emit("ex", response_nodes, room=room)
-
-            response_links = {}
-            response_links["usr"] = message["usr"]
-            response_links["fn"] = "updateTempTex"
-            response_links["channel"] = "linkRGB"
-            response_links["path"] = closeness_textures["path_links"]
-            emit("ex", response_links, room=room)
-
+            response = {}
+            response["usr"] = message["usr"]
+            response["fn"] = "updateTempTex"
+            response["textures"] = []
+            response["textures"].append({"channel": "nodeRGB", "path": closeness_textures["path_nodes"]})
+            response["textures"].append({"channel": "linkRGB", "path": closeness_textures["path_links"]})
+            emit("ex", response, room=room)
 
 
         if message['id'] == "analyticsModcommunityRun":
@@ -695,19 +666,13 @@ def ex(message):
             if generated_textures["textures_created"] is False:
                 print("Failed to create textures for Analytics/Mod-based Communities")
                 return
-            response_nodes = {}
-            response_nodes["usr"] = message["usr"]
-            response_nodes["fn"] = "updateTempTex"
-            response_nodes["channel"] = "nodeRGB"
-            response_nodes["path"] = generated_textures["path_nodes"]
-            emit("ex", response_nodes, room=room)
-
-            response_links = {}
-            response_links["usr"] = message["usr"]
-            response_links["fn"] = "updateTempTex"
-            response_links["channel"] = "linkRGB"
-            response_links["path"] = generated_textures["path_links"]
-            emit("ex", response_links, room=room)
+            response = {}
+            response["usr"] = message["usr"]
+            response["fn"] = "updateTempTex"
+            response["textures"] = []
+            response["textures"].append({"channel": "nodeRGB", "path": generated_textures["path_nodes"]})
+            response["textures"].append({"channel": "linkRGB", "path": generated_textures["path_links"]})
+            emit("ex", response, room=room)
 
 
         if message['id'] == "analyticsModcommunityLayout":
@@ -734,9 +699,10 @@ def ex(message):
                 return
             response = {}
             response["usr"] = message["usr"]
-            response["fn"] = "updateTempLayout"
-            response["path_hi"] = generated_layout["layout_hi"]
-            response["path_low"] = generated_layout["layout_low"]
+            response["fn"] = "updateTempTex"  # updateTempLayout
+            response["textures"] = []
+            response["textures"].append({"channel": "layoutNodesHi", "path": generated_layout["layout_hi"]})
+            response["textures"].append({"channel": "layoutNodesLow", "path": generated_layout["layout_low"]})
             emit("ex", response, room=room)
 
 
@@ -797,20 +763,13 @@ def ex(message):
             if generated_annotation_textures["generated_texture"] is False:
                 print("Failed to create textures for Annotation")
                 return
-            response_nodes = {}
-            response_nodes["usr"] = message["usr"]
-            response_nodes["fn"] = "updateTempTex"
-            response_nodes["channel"] = "nodeRGB"
-            response_nodes["path"] = generated_annotation_textures["path_nodes"]
-            emit("ex", response_nodes, room=room)
-
-            response_links = {}
-            response_links["usr"] = message["usr"]
-            response_links["fn"] = "updateTempTex"
-            response_links["channel"] = "linkRGB"
-            response_links["path"] = generated_annotation_textures["path_links"]
-            emit("ex", response_links, room=room)
-
+            response = {}
+            response["usr"] = message["usr"]
+            response["fn"] = "updateTempTex"
+            response["textures"] = []
+            response["textures"].append({"channel": "nodeRGB", "path": generated_annotation_textures["path_nodes"]})
+            response["textures"].append({"channel": "linkRGB", "path": generated_annotation_textures["path_links"]})
+            emit("ex", response, room=room)
 
     elif message["fn"] == "dropdown":
         response = {}

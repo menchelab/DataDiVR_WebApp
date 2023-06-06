@@ -57,8 +57,8 @@ def plotly_degree_distribution(degrees, highlighted_bar=None):
         colors = ['#636efa' if i != highlighted_bar else 'orange' for i in x]
         
         layout = go.Layout(
-            xaxis=dict(title='Degree'),
-            yaxis=dict(title='Number of Nodes'),
+            xaxis=dict(title='Degree', fixedrange=True),
+            yaxis=dict(title='Number of Nodes', fixedrange=True),
             bargap=0.1,
             title=None if highlighted_bar is None else f"Selected Node Degree: {highlighted_bar}",
             title_y=0.97
@@ -83,8 +83,8 @@ def plotly_degree_distribution(degrees, highlighted_bar=None):
             highlighted_degrees = list(range(min_degree_selected, max_degree_selected + 1))
 
         layout = go.Layout(
-            xaxis=dict(title='Degree Range'),
-            yaxis=dict(title='Number of Nodes'),
+            xaxis=dict(title='Degree Range', fixedrange=True),
+            yaxis=dict(title='Number of Nodes', fixedrange=True),
             bargap=0.1,
             title=None if highlighted_bar is None else f"Selected Node Degrees: {min_degree_selected} to {max_degree_selected}",
             title_y=0.97
@@ -366,8 +366,8 @@ def plotly_eigenvector(assignment_list, highlighted_bar=None):
         highlighted_assignments = [min_assignment_selected, max_assignment_selected]
 
     layout = go.Layout(
-        xaxis=dict(title='Eigenvector Value Range'),
-        yaxis=dict(title='Number of Nodes'),
+        xaxis=dict(title='Eigenvector Value Range', fixedrange=True),
+        yaxis=dict(title='Number of Nodes', fixedrange=True),
         bargap=0.1,
         title=None if highlighted_bar is None else f"Selected Node Eigenvector: {min_assignment_selected:.3f} to {max_assignment_selected:.3f}",
         title_y=0.97
@@ -401,8 +401,8 @@ def plotly_closeness(assignment_list, highlighted_bar=None):
         highlighted_assignments = [min_assignment_selected, max_assignment_selected]
 
     layout = go.Layout(
-        xaxis=dict(title='Closeness Range'),
-        yaxis=dict(title='Number of Nodes'),
+        xaxis=dict(title='Closeness Range', fixedrange=True),
+        yaxis=dict(title='Number of Nodes', fixedrange=True),
         bargap=0.1,
         title=None if highlighted_bar is None else f"Selected Node Closeness: {min_assignment_selected:.3f} to {max_assignment_selected:.3f}",
         title_y=0.97
@@ -566,7 +566,7 @@ def plotly_clustering_coefficient(assignment_list, highlighted_bar=None):
         highlighted_assignments = [min_assignment_selected, max_assignment_selected]
 
     layout = go.Layout(
-        xaxis=dict(title='Clustering Coefficient Range'),
+        xaxis=dict(title='Clustering Coefficient Range', fixedrange=True),
         yaxis=dict(title='Number of Nodes'),
         bargap=0.1,
         title=None if highlighted_bar is None else f"Selected Cluster Coefficients: {min_assignment_selected:.3f} to {max_assignment_selected:.3f}",
