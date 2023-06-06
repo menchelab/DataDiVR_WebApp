@@ -290,7 +290,7 @@ def parseGraphJSON_links(files, target):
         all_lists = []  
         for idx,file in enumerate(files):
 
-            name_of_file = file["graph"]["name"]
+            name_of_file = file["graph"]["name"]+"_links"
             num_of_links = len(file["links"])
 
             links = []
@@ -314,7 +314,7 @@ def parseGraphJSON_links_wip(files, target):
 
         for idx,file in enumerate(files):
 
-            name_of_file = file["graph"]["name"]
+            name_of_file = file["graph"]["name"]+"_links"
             num_of_links = len(file["links"])
 
             links = []
@@ -332,7 +332,7 @@ def parseGraphJSON_linkcolors(files,target):
         #for file in files: 
         for idx,file in enumerate(files):
 
-            name_of_file = file["graph"]["name"]
+            name_of_file = file["graph"]["name"]+"_links"
             num_of_links = len(file["links"])
 
             linkcolor_rgba = []
@@ -357,6 +357,7 @@ def parseGraphJSON_linkcolors(files,target):
             vecList = {}
             vecList["data"] = linkcolor_rgba
             vecList["name"] = name_of_file
+
             target.append(vecList)
             #print("C_DEBUG: LINKCOLORS:", vecList)
 
@@ -408,7 +409,7 @@ def parseGraphJSON_nodecolors(files,target):
                 else:
                     nodecolor_rgba.append((255, 0, 255, 100))           
 
-            print("C_DEBUG in parseGraphJSON - nodecolor_rgba: ", nodecolor_rgba)
+            #print("C_DEBUG in parseGraphJSON - nodecolor_rgba: ", nodecolor_rgba)
 
             vecList = {}
             vecList["data"] = nodecolor_rgba
@@ -425,7 +426,7 @@ def parseGraphJSON_labels(files,target):
             # get cluster labels from one file only (file i.e. layout)
             one_file = files[0]
 
-            name_of_file = file["graph"]["name"]
+            name_of_file = file["graph"]["name"]+"_labels"
             num_of_nodes = len(one_file["nodes"])
 
             nodeclus = []

@@ -441,13 +441,20 @@ $(document).ready(function(){
                     }
 
                     if(isPreview){
-                        if(data.id == "layoutsDD"  || data.id == "layoutsRGBDD" || data.id == "linksRGBDD"){                            
+                        if(data.id == "layoutsDD") { 
                             actLayout = data.sel;
+                            makeNetwork();
+                        }
+                        if(data.id == "layoutsRGBDD"){                            
                             actLayoutRGB = data.sel;
+                            makeNetwork();
+                        }
+                        if(data.id == "linksRGBDD"){                            
                             //actLinks = data.sel;
                             actLinksRGB = data.sel;
                             makeNetwork();
                         }
+
                         // else if(data.id == "layoutsRGBDD"){
                         //     actLayoutRGB = data.sel;
                         //     makeNetwork();
@@ -487,45 +494,61 @@ $(document).ready(function(){
 
                         }
                     }
+                    
 
-                    if(data.id == "layoutsDD" || data.id == "layoutsRGBDD" || data.id == "linksRGBDD") {  
-                        if (data.sel != parseInt(select.getAttribute("sel"))) {
-                        
-                            console.log("C_DEBUG in CASE Dropdown.", parseInt(select.getAttribute("sel")));
+                    if(data.id == "layoutsDD") {
+                        switch (data.id){
+                            case "layoutsDD": // if change in DD for layout = change layout title 
 
-                            // set legend buttons to same Id as dropdown and update legend based on new ID                         
-                            const LegendnextButton = document.getElementById('forwardstep');
-                            LegendnextButton.setAttribute('val',data.sel);                        
-                            const LegendbackButton = document.getElementById('backwardstep');
-                            LegendbackButton.setAttribute('val',data.sel);
-                            
-                            // update layout title and node/link legend
-                            Legend_displayGraphLayoutbyID(pfile.name, data.sel);
-                            Legend_displayNodeInfobyID(pfile.name, data.sel);
-                            Legend_displayLinkInfobyID(pfile.name, data.sel);
-                            
-                            // adapt new index to all DD (except links - since there can only be one link list per project)
-                            layouts_DD = document.getElementById("layoutsDD").shadowRoot.getElementById("sel");
-                            layouts_DD.setAttribute("sel", parseInt(data.sel));
-                            layouts_DD.setAttribute("value", pfile.layouts[data.sel]);
-                        
-                            layoutsRGB_DD = document.getElementById("layoutsRGBDD").shadowRoot.getElementById("sel");
-                            layoutsRGB_DD.setAttribute("sel", parseInt(data.sel));
-                            layoutsRGB_DD.setAttribute("value", pfile.layoutsRGB[data.sel]);
+                                Legend_displayGraphLayoutbyID(pfile.name, data.sel, "layouts", "graphlayout");
 
-                            if (pfile.linksRGB.length <= data.sel) {
-                                linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
-                                linksRGB_DD.setAttribute("sel", parseInt(0));
-                                linksRGB_DD.setAttribute("value", pfile.linksRGB[0]);
-                            } else {
-                                linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
-                                linksRGB_DD.setAttribute("sel", parseInt(data.sel));
-                                linksRGB_DD.setAttribute("value", pfile.linksRGB[data.sel]);
-                            }  
+                                layouts_DD = document.getElementById("layoutsDD").shadowRoot.getElementById("sel");
+                                layouts_DD.setAttribute("sel", parseInt(data.sel));
+                                layouts_DD.setAttribute("value", pfile.layouts[data.sel]);
+    
+                                break;
                         }
                     }
-                }
                     
+
+                    if(data.id == "layoutsRGBDD") {
+                        switch (data.id){
+                            case "layoutsRGBDD": // if change in DD for node colors = change node colors in network and legend
+                                
+                                Legend_displayGraphLayoutbyID(pfile.name, data.sel, "layoutsRGB", "graphlayout_nodecolors");
+                                
+                                Legend_displayNodeInfobyID(pfile.name, data.sel);
+                                                 
+                                layoutsRGB_DD = document.getElementById("layoutsRGBDD").shadowRoot.getElementById("sel");
+                                layoutsRGB_DD.setAttribute("sel", parseInt(data.sel));
+                                layoutsRGB_DD.setAttribute("value", pfile.layoutsRGB[data.sel]);
+
+                                break;
+                        }
+                    }
+
+                    if(data.id == "linksRGBDD") {
+                        switch (data.id){
+                            case "linksRGBDD": // if change in DD for link colors = change link colors in network and legend
+                                
+                                Legend_displayGraphLayoutbyID(pfile.name, data.sel, "linksRGB", "graphlayout_linkcolors");
+                                
+                                Legend_displayLinkInfobyID(pfile.name, data.sel);
+                                
+                                if (pfile.linksRGB.length <= data.sel) {
+                                    linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
+                                    linksRGB_DD.setAttribute("sel", parseInt(0));
+                                    linksRGB_DD.setAttribute("value", pfile.linksRGB[0]);
+                                } else {
+                                    linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
+                                    linksRGB_DD.setAttribute("sel", parseInt(data.sel));
+                                    linksRGB_DD.setAttribute("value", pfile.linksRGB[data.sel]);
+                                }
+                                break;
+                        }
+
+                    }
+                }
                 ue4(data["fn"], data);    
             break;
             
@@ -547,16 +570,13 @@ $(document).ready(function(){
                 Legend_displayGraphInfo(pfile.name);
                 Legend_displayfirstFile(pfile.name);
 
-                console.log("C_DEBUG : INIT LEGEND");
-                Legend_displayGraphLayoutbyID(pfile.name, 0);
+                // console.log("C_DEBUG : INIT LEGEND");
+                Legend_displayGraphLayoutbyID(pfile.name, 0, "layouts", "graphlayout");
+                Legend_displayGraphLayoutbyID(pfile.name, 0, "layouts", "graphlayout_nodecolors");
+                Legend_displayGraphLayoutbyID(pfile.name, 0, "layouts", "graphlayout_linkcolors");
+
                 Legend_displayNodeInfobyID(pfile.name, 0);
                 Legend_displayLinkInfobyID(pfile.name, 0);
-
-                // set val of node/link prop legend elements
-                legend_nodeprop = document.getElementById('legend_node_all');
-                legend_nodeprop.setAttribute('val', 0);
-
-
 
                 if (isPreview){
                     
@@ -584,10 +604,14 @@ $(document).ready(function(){
 
                 if (data.id == "forwardstep") {
                     
-                    Legend_displayNodeLinkInfo_forward(pfile.name);
-                    Legend_displayGraphLayout_forward(pfile.name);
-
                     forwardidx = NEWIndexforwardstep(pfile.layouts.length)
+ 
+                    Legend_displayNodeLinkInfo_forward(pfile.name);
+
+                    Legend_displayGraphLayout_forward(pfile.name, "layouts", "graphlayout");
+                    Legend_displayGraphLayout_forward(pfile.name, "layoutsRGB", "graphlayout_nodecolors");
+                    Legend_displayGraphLayout_forward(pfile.name, "linksRGB", "graphlayout_linkcolors");
+
      
                     if (pfile.linksRGB.length <= forwardidx) {
                         linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
@@ -616,13 +640,17 @@ $(document).ready(function(){
                         actLayout = forwardidx;
                         actLayoutRGB = forwardidx;
                         actLinks = 0;
+                        
                         makeNetwork();
                     }
 
                 } else if (data.id == "backwardstep") {
             
                     Legend_displayNodeLinkInfo_backward(pfile.name);
-                    Legend_displayGraphLayout_backward(pfile.name);
+
+                    Legend_displayGraphLayout_backward(pfile.name, "layouts", "graphlayout");
+                    Legend_displayGraphLayout_backward(pfile.name, "layoutsRGB", "graphlayout_nodecolors");
+                    Legend_displayGraphLayout_backward(pfile.name, "linksRGB", "graphlayout_linkcolors");
 
                     backwardidx = NEWIndexbackwardstep(pfile.layouts.length)
                    
@@ -655,7 +683,8 @@ $(document).ready(function(){
                         actLinks = 0;
                         makeNetwork();
                     }
-            }
+                }
+
             break;
 
             case "textinput":

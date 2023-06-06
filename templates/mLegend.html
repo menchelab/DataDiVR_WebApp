@@ -18,7 +18,7 @@
         
         <br>
 
-        <div style="margin-bottom:6px;"> NODE COLORS </div>
+        <div style="margin-bottom:6px;"> NODE COLORS : : <span style="font-weight:bold;" id='graphlayout_nodecolors' val=""><span> </span></div>
         
 
         <div id="legend_node_all" style="display:inline-flex;">
@@ -28,7 +28,7 @@
         
         <br><br>
 
-        <div style="margin-bottom:6px;"> LINK COLORS </div> <!-- clear:both-->
+        <div style="margin-bottom:6px;"> LINK COLORS : : <span style="font-weight:bold;" id='graphlayout_linkcolors' val=""><span> </span></div> <!-- clear:both-->
  
         
         <div id="legend_link_all" style="display:inline-flex;">
@@ -83,17 +83,19 @@
     //-------------------------------------------------------
     // GRAPH LAYOUT DISPLAY 
     //-------------------------------------------------------
-    function Legend_displayGraphLayoutbyID(project_selected, selected_id) {
-        if (document.getElementById('graphlayout')) {
+   
+    function Legend_displayGraphLayoutbyID(project_selected, selected_id, elementkey, htmlkey) {
+        if (document.getElementById(htmlkey)) {
             const graphname_file = 'static/projects/' + project_selected + '/pfile.json';
             $.getJSON(graphname_file)
                 .done(function(pfiledata) {
 
-                    if (pfiledata.hasOwnProperty('layouts')) {
+                    if (pfiledata.hasOwnProperty(elementkey)) {
                         graphlayout_pre = pfiledata.layouts[selected_id];
-                        graphlayout = graphlayout_pre.slice(0, -3);
-                    }
-                    const myDiv = document.getElementById("graphlayout");
+                        graphlayout = graphlayout_pre.slice(0, -3); //to remove XYZ or RGB appended in upload process
+                    } 
+                
+                    const myDiv = document.getElementById(htmlkey);
                     myDiv.setAttribute("val", graphlayout_pre);
                     myDiv.innerHTML = graphlayout;
                 })
@@ -105,46 +107,46 @@
         }
     }
 
-    function Legend_displayGraphLayout_backward(project_selected) {
-        if (document.getElementById('graphlayout')) {
+    function Legend_displayGraphLayout_backward(project_selected, elementkey, htmlkey) {
+        if (document.getElementById(htmlkey)) {
             const graphname_file = 'static/projects/' + project_selected + '/pfile.json';
             $.getJSON(graphname_file)
                 .done(function(pfiledata) {
 
                     backwardidx = getIndexbackwardstep(pfiledata.layouts.length);
 
-                    if (pfiledata.hasOwnProperty('layouts')) {
+                    if (pfiledata.hasOwnProperty(elementkey)) {
                         graphlayout_pre = pfiledata.layouts[backwardidx];
                         graphlayout = graphlayout_pre.slice(0, -3);
                     }
-                    const myDiv = document.getElementById("graphlayout");
+                    const myDiv = document.getElementById(htmlkey);
                     myDiv.innerHTML = graphlayout;
                 })
                 .fail(function() {
-                    const myDiv = document.getElementById("graphlayout");
+                    const myDiv = document.getElementById(htmlkey);
                     myDiv.style.display = "none";
                     myDiv.innerHTML = "";
                 });
         }
     }
 
-    function Legend_displayGraphLayout_forward(project_selected) {
-        if (document.getElementById('graphlayout')) {
+    function Legend_displayGraphLayout_forward(project_selected, elementkey, htmlkey) {
+        if (document.getElementById(htmlkey)) {
             const graphname_file = 'static/projects/' + project_selected + '/pfile.json';
             $.getJSON(graphname_file)
                 .done(function(pfiledata) {
 
                     forwardidx = getIndexforwardstep(pfiledata.layouts.length);
 
-                    if (pfiledata.hasOwnProperty('layouts')) {
+                    if (pfiledata.hasOwnProperty(elementkey)) {
                         graphlayout_pre = pfiledata.layouts[forwardidx];
                         graphlayout = graphlayout_pre.slice(0, -3)
                     }
-                    const myDiv = document.getElementById("graphlayout");
+                    const myDiv = document.getElementById(htmlkey);
                     myDiv.innerHTML = graphlayout;
                 })
                 .fail(function() {
-                    const myDiv = document.getElementById("graphlayout");
+                    const myDiv = document.getElementById(htmlkey);
                     myDiv.style.display = "none";
                     myDiv.innerHTML = "";
                 });
