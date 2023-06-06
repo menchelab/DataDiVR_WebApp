@@ -938,6 +938,14 @@ def ex(message):
                         response2["val"].append(node)
                     emit("ex", response2, room=room)
 
+                # clear analytics container
+                if message["id"] == "analytics":
+                    response_clear = {}
+                    response_clear["fn"] = "analytics"
+                    response_clear["id"] = "clearContainer"
+                    response_clear["usr"] = message["usr"]
+                    emit("ex", response_clear, room = room)
+
         emit("ex", response, room=room)
         print(response)
 
