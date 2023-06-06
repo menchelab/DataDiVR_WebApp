@@ -532,11 +532,11 @@ $(document).ready(function(){
 
                                 
                                 // update arrow buttons with new index
-                                nextButton = document.getElementById("forwardstep") 
-                                nextButton.setAttribute('val', data.sel);
-                                backButton = document.getElementById("backwardstep") 
-                                backButton.setAttribute('val', data.sel);
-                                console.log("C_DEBUG updating Buttons in layoutsRGBDD: ", nextButton.getAttribute("val"));
+                                // nextButton = document.getElementById("forwardstep") 
+                                // nextButton.setAttribute('val', data.sel);
+                                // backButton = document.getElementById("backwardstep") 
+                                // backButton.setAttribute('val', data.sel);
+                                // console.log("C_DEBUG updating Buttons in layoutsRGBDD: ", nextButton.getAttribute("val"));
 
                                 break;
                         }
@@ -561,11 +561,11 @@ $(document).ready(function(){
                                 }
 
                                 // update arrow buttons with new index
-                                nextButton = document.getElementById("forwardstep") 
-                                nextButton.setAttribute('val', data.sel);
-                                backButton = document.getElementById("backwardstep") 
-                                backButton.setAttribute('val', data.sel);
-                                console.log("C_DEBUG updating Buttons in linksRGBDD: ", nextButton.getAttribute("val"));
+                                // nextButton = document.getElementById("forwardstep") 
+                                // nextButton.setAttribute('val', data.sel);
+                                // backButton = document.getElementById("backwardstep") 
+                                // backButton.setAttribute('val', data.sel);
+                                // console.log("C_DEBUG updating Buttons in linksRGBDD: ", nextButton.getAttribute("val"));
 
                                 break;
                         }
@@ -622,20 +622,20 @@ $(document).ready(function(){
                 }
                 break;
             
-            case "ue4":
-                ue4(data["fn"], data);    
+            case "ue4":    
 
                 if (data.id == "forwardstep") {
-                    
-                    forwardidx = NEWIndexforwardstep(pfile.layouts.length)
- 
+                     
                     Legend_displayNodeLinkInfo_forward(pfile.name);
 
                     Legend_displayGraphLayout_forward(pfile.name, "layouts", "graphlayout");
                     Legend_displayGraphLayout_forward(pfile.name, "layoutsRGB", "graphlayout_nodecolors");
                     Legend_displayGraphLayout_forward(pfile.name, "linksRGB", "graphlayout_linkcolors");
 
-     
+                    ue4(data["fn"], data);
+                    
+                    forwardidx = NEWIndexforwardstep(pfile.layouts.length)
+
                     if (pfile.linksRGB.length <= forwardidx) {
                         linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
                         linksRGB_DD.setAttribute("sel", parseInt(0));
@@ -663,11 +663,12 @@ $(document).ready(function(){
                         actLayout = forwardidx;
                         actLayoutRGB = forwardidx;
                         actLinks = 0;
-                        
                         makeNetwork();
                     }
 
-                } else if (data.id == "backwardstep") {
+                } 
+
+                if (data.id == "backwardstep") {
             
                     Legend_displayNodeLinkInfo_backward(pfile.name);
 
@@ -706,8 +707,11 @@ $(document).ready(function(){
                         actLinks = 0;
                         makeNetwork();
                     }
+
+                    ue4(data["fn"], data);
                 }
 
+                //ue4(data["fn"], data);
             break;
 
             case "textinput":
