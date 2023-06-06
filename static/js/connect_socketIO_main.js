@@ -506,6 +506,13 @@ $(document).ready(function(){
                                 layouts_DD.setAttribute("sel", parseInt(data.sel));
                                 layouts_DD.setAttribute("value", pfile.layouts[data.sel]);
     
+                                // update arrow buttons with new index
+                                nextButton = document.getElementById("forwardstep") 
+                                nextButton.setAttribute('val', data.sel);
+                                backButton = document.getElementById("backwardstep") 
+                                backButton.setAttribute('val', data.sel);
+                                console.log("C_DEBUG updating Buttons in layoutsDD: ", nextButton.getAttribute("val"));
+                                
                                 break;
                         }
                     }
@@ -522,6 +529,14 @@ $(document).ready(function(){
                                 layoutsRGB_DD = document.getElementById("layoutsRGBDD").shadowRoot.getElementById("sel");
                                 layoutsRGB_DD.setAttribute("sel", parseInt(data.sel));
                                 layoutsRGB_DD.setAttribute("value", pfile.layoutsRGB[data.sel]);
+
+                                
+                                // update arrow buttons with new index
+                                nextButton = document.getElementById("forwardstep") 
+                                nextButton.setAttribute('val', data.sel);
+                                backButton = document.getElementById("backwardstep") 
+                                backButton.setAttribute('val', data.sel);
+                                console.log("C_DEBUG updating Buttons in layoutsRGBDD: ", nextButton.getAttribute("val"));
 
                                 break;
                         }
@@ -544,6 +559,14 @@ $(document).ready(function(){
                                     linksRGB_DD.setAttribute("sel", parseInt(data.sel));
                                     linksRGB_DD.setAttribute("value", pfile.linksRGB[data.sel]);
                                 }
+
+                                // update arrow buttons with new index
+                                nextButton = document.getElementById("forwardstep") 
+                                nextButton.setAttribute('val', data.sel);
+                                backButton = document.getElementById("backwardstep") 
+                                backButton.setAttribute('val', data.sel);
+                                console.log("C_DEBUG updating Buttons in linksRGBDD: ", nextButton.getAttribute("val"));
+
                                 break;
                         }
 
