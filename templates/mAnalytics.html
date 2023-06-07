@@ -29,6 +29,11 @@
                 
             </div>
             <mc-button1 name="RUN" id="analyticsPathRun" fn="analytics"></mc-button1>
+            <!-- hide them at init and show them on running path over backend only when shortest path is selected-->
+            <div id="analyticsPathButtons" style="display: inline-block;">
+                <mc-button1 id="analyticsPathBackw" name="&#60&#60" fn="analytics"></mc-button1>
+                <mc-button1 id="analyticsPathForw" name="&#62&#62" fn="analytics"></mc-button1>
+            </div>
         </div>
         
         <div id="analyticsSelectedEigenvector" style="display: none;" class="analyticsOption">
@@ -48,30 +53,6 @@
 
         <!-- plotly container-->
         <div id="analyticsContainer" frameborder="0" style="display: none;"></div>
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                let plotlyDiv = document.getElementById('analyticsContainer');
-
-                // add here all run buttons which does not use the analyticsContainer
-
-                let clearButton0 = document.getElementById('analyticsPathRun');
-                clearButton0.addEventListener('click', function() {
-                    plotlyDiv.innerHTML = '';
-                });
-
-                let clearButton1 = document.getElementById('analyticsModcommunityRun');
-                clearButton1.addEventListener('click', function() {
-                    plotlyDiv.innerHTML = '';
-                });
-
-                let clearButton2 = document.getElementById('analyticsModcommunityLayout');
-                clearButton2.addEventListener('click', function() {
-                    plotlyDiv.innerHTML = '';
-                });
-
-
-            });
-        </script>
     </div>
 
     

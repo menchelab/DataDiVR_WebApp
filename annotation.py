@@ -16,10 +16,10 @@ class AnnotationTextures:
         self.path_nodes = "static/projects/"+ self.project + "/layoutsRGB/temp.png"
         self.path_links = "static/projects/"+ self.project + "/linksRGB/temp.png"
         self.colors = {
-            "none": (66, 66, 66, 30),
-            "a1": (3, 218, 198, 100),
-            "a2": (55, 0, 179, 100),
-            "result": (187, 134, 252, 100)
+            "none": (55, 55, 55, 30),
+            "a1": (3, 218, 198, 150),
+            "a2": (55, 0, 179, 150),
+            "result": (187, 134, 252, 150)
         }
 
     def __set_union(self, set_a1, set_a2):
