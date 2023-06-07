@@ -1,0 +1,71 @@
+<div id="util_tab">
+    <div class="twelve columns">
+        <h2 class="lineglowslow" style="margin-bottom:20px;margin-top:30px;font-size: 80px;">HIGHLIGHT</h2>
+    </div>
+    <div class="frameBox">
+        <div id="util_highlight" class="twelve columns frameBox" style="display: none;">
+            <div class="highlight-row six columns">
+                <div class="highlight-label">
+                    <h4>Define Node Color</h4>
+                </div>
+                <div class="highlight-content">
+                    <input type="checkbox" id="util_use_node_highlight_color" class="vr_checkbox">
+                    <mc-colorbox id="util_highlight_node_color"></mc-colorbox>
+                </div>
+            </div>
+
+            <div class="highlight-row six columns">
+                <div class="highlight-label">
+                    <h4>Define Link Color</h4>
+                </div>
+                <div class="highlight-content">
+                    <input type="checkbox" id="util_use_link_highlight_color" class="vr_checkbox">
+
+                    <mc-colorbox id="util_highlight_link_color"></mc-colorbox>
+                </div>
+            </div>
+        </div>
+
+
+        <div clas="frameBox">
+            <div class="twelve columns">
+                <input id="util_highlight_bnt" type="button" value="Highlight selection" class="twelve columns">
+            </div>
+            <div class="twelve columns">
+                <input id="util_isolate_bnt" type="button" value="Isolate selection" class="twelve columns">
+            </div>
+            <div class="twelve columns">
+                <input id="util_bipartite_bnt" type="button" value="Bipartite selection" class="twelve columns">
+            </div>
+        </div>
+        <div class="twelve columns">
+            <div id="util_highlight_sm" class="updateMessage">
+            </div>
+        </div>
+        <div class="frameBox">
+            <div id="util_store_highlight" class="twelve columns">
+                <input id="util_store_highlight_btn" type="button" value="Store Highlight" class="twelve columns">
+            </div>
+            <div id="util_reset_highlight" class="twelve columns">
+                <input id="util_reset_highlight_btn" type="button" value="Reset Highlight" class="twelve columns">
+            </div>
+            <script>
+            </script>
+        </div>
+        {% if "UnrealEngine" not in request.user_agent|string%}
+        <div class="frameBox">
+            <div id="util_jump_to_tmp" class="twelve columns">
+                <input id="util_jump_to_preview_btn" type="button" value="Preview" class="twelve columns">
+            </div>
+        </div>
+        <script>
+            $("#util_jump_to_preview_btn").on("click", function() {
+                base_url = window.location.host
+                console.log(base_url)
+                window.open("/preview?project=tmp", '_blank');
+            });
+        </script>
+        {% endif %}
+    </div>
+
+</div>

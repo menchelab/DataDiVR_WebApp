@@ -1,0 +1,58 @@
+.util-selection-limited-selectmenu-button{
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-height: 58px;
+    padding: 0px;
+    margin: 0px;
+}
+.util-bool-list{
+list-style-type: none;
+margin: -20px 0 0 0;
+padding: 0;
+flex-grow: 1;
+display: flex;
+}
+  
+.util-bool-list li {
+float: left;
+margin: 0 5px 0 0;
+width: 100px;
+height: 40px;
+position: relative;
+min-width: fit-content;
+max-width: 100%;
+height:115px;
+}
+
+.util-bool-list label,
+.util-bool-listinput {
+display: block;
+position: absolute;
+top: 0;
+left: 0;
+right: 0;
+bottom: 0;
+text-align: center;
+font-size: calc(0.8vw + 1vh);
+line-height: 5;
+}
+
+.util-bool-list input[type="radio"] {
+opacity: 0.01;
+z-index: 100;
+}
+
+.util-bool-list input[type="radio"]:checked+label,
+.Checked+label {
+background: rgba(130,157,171,0.33)
+}
+
+.util-bool-list label {
+padding: 5px;
+border: 1px solid #CCC;
+border-radius: 5px;
+cursor: pointer;
+z-index: 90;
+
+}

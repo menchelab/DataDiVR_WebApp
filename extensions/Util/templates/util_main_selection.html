@@ -1,0 +1,94 @@
+<script src="{{ url_for('Util.static', filename='js/selectionTab.js') }}"></script>
+<style>
+    .logicOperator {
+        height: 30px;
+        font-family: 'Future', sans-serif;
+        overflow: hidden;
+        white-space: nowrap;
+        cursor: pointer;
+        box-sizing: border-box;
+        padding: 0px 6px;
+        text-align: left;
+        border-radius: 7px;
+        border-bottom-left-radius: 0px;
+        font-size: 24px;
+        color: rgb(255, 255, 255);
+        cursor: pointer;
+        background: rgba(66, 66, 66, 0);
+        border: 2px solid rgb(124, 124, 124);
+        text-transform: uppercase
+    }
+</style>
+
+<div class="gradientBox" id="util__highlight_module">
+    <div class='swagBox' id="util_highlight_content" style="width:420px; background-color: rgba(16, 3, 0, 0.3);">
+        <h5 class="util5">ANNOTATION SELECTION</h5>
+        <div class="gradient"> </div>
+        <br>
+        <div style="font-size: 25px; text-align:right; margin-bottom:20px;">
+        </div>
+        <div id="util_node_annot" style="margin-bottom:10px;">
+            <ext-dropdown id="util_nodeDD" type="dropdown" fn="dropdown" name="NODE ANNOTATIONS"
+                socketDomain="Util"></ext-dropdown>
+            <ext-dropdown id="util_nodeAnnoDD" type="dropdown" fn="dropdown" name="ANNOTATION"
+                socketDomain="Util"></ext-dropdown>
+
+            <div id="util_node_numeric_logic">
+                <ext-slider id="util_node_numeric_slider" min=0 max=100 value=50 label></ext-slider>
+                <div id="util_node_operators" style="display:flex">
+                    <div class="logicOperator" id="util_node_operator_seq" style="width:33%;text-align:center;">≤</div>
+                    <div class="logicOperator" id="util_node_operator_eq" style="width:33%;text-align:center;">=</div>
+                    <div class="logicOperator" id="util_node_operator_geq" style="width:33%;text-align:center;">≥</div>
+                </div>
+                <ext-slider id="util_node_logic_slider" min=0 max=2 value=1></ext-slider>
+            </div>
+            <div id="container" class="swagBox">
+                <div style="display: flex; align-items: center;">
+                    <div style="flex: 0;">
+                        <ext-button id="util_node_selection_reset" name="RESET" style="width:33%;" socketDomain="Util"
+                            type="node" fn="reset"></ext-button>
+                    </div>
+                    <div style="width:50%"></div>
+                    <div style="flex: 1;">
+                        <ext-button id="util_node_selection_select" name="SELECT" style="width:33%;" socketDomain="Util"
+                            fn="select"></ext-button>
+                    </div>
+                </div>
+                <hr>
+                <h5 class="util5" style="margin-left: 10px;"># SELECTED NODES: <span
+                        id="util_node_selection_count">0</span>
+            </div>
+        </div>
+
+        <div id="util_link_annot" style="margin-bottom:10px;">
+            <ext-dropdown id="util_linkDD" type="dropdown" fn="dropdown" name="LINK ANNOTATIONS"
+                socketDomain="Util"></ext-dropdown>
+            <ext-dropdown id="util_linkAnnoDD" type="dropdown" fn="dropdown" name="ANNOTATION"
+                socketDomain="Util"></ext-dropdown>
+            <div id="util_link_numeric_logic">
+                <ext-slider id="util_link_numeric_slider" min=0 max=100 value=50 label></ext-slider>
+                <div id="util_link_operators" style="display:flex">
+                    <div class="logicOperator" id="util_link_operator_seq" style="width:33%;text-align:center;">≤</div>
+                    <div class="logicOperator" id="util_link_operator_eq" style="width:33%;text-align:center;">=</div>
+                    <div class="logicOperator" id="util_link_operator_geq" style="width:33%;text-align:center;">≥</div>
+                </div>
+                <ext-slider id="util_link_logic_slider" min=0 max=2 value=1></ext-slider>
+            </div>
+            <div id="container" class="swagBox">
+                <div style="display: flex; align-items: center;">
+                    <div style="flex: 0;">
+                        <ext-button id="util_link_selection_reset" name="RESET" style="width:33%;" socketDomain="Util"
+                            type="link" fn="reset"></ext-button>
+                    </div>
+                    <div style="width:50%"></div>
+                    <div style="flex: 1;">
+                        <ext-button id="util_link_selection_select" name="SELECT" style="width:33%;" socketDomain="Util"
+                            fn="select"></ext-button>
+                    </div>
+                </div>
+                <hr>
+                <h5 class="util5" style="margin-left: 10px;"># SELECTED LINKS: <span
+                        id="util_link_selection_count">0</span>
+            </div>
+        </div>
+    </div>

@@ -1,0 +1,42 @@
+<script src="{{ url_for('Util.static', filename='js/highlightTab.js') }}"></script>
+
+<div class="gradientBox" id="util__highlight_module">
+    <div class='swagBox' id="util_highlight_content" style="width:420px; background-color: rgba(16, 3, 0, 0.3);">
+        <h5 style="  float:left; font-size: 25px;  color: rgb(102, 102, 102); margin-top:5px; margin-bottom:5px;">
+            SELECTION HIGHLIGHT</h5>
+        <br>
+        <div class="gradient"></div>
+        <div style="font-size: 25px; text-align:right; margin-bottom:20px;">
+            <ext-colorbox id="util_node_color_highlight" label="Node highlight color:"
+                socketDomain="util"></ext-colorbox>
+            <ext-colorbox id="util_link_color_highlight" label="Link highlight color:"
+                socketDomain="Util"></ext-colorbox>
+
+            <div id="container" class="swagBox" style="display: flex; align-items: center;">
+                <div style="flex: 1;">
+                    <ext-button id="util_highlight_bnt" name="HIGHLIGHT" style="width:33%;" socketDomain="Util"
+                        fn="highlight"></ext-button>
+                </div>
+                <div style="flex: 2;">
+                    <ext-button id="util_isolate_bnt" parent="clip-content" val="" name="ISOLATE" style="width:33%;"
+                        socketDomain="Util" fn="isolate"></ext-button>
+                </div>
+                <div style="flex: 3;">
+                    <ext-button id="util_bipartite_bnt" name="BIPARTITE" style="width:33%;" socketDomain="Util"
+                        fn="bipartite"></ext-button>
+                </div>
+            </div>
+            <div id="container" class="swagBox" style="display: flex; align-items: center;">
+                <div style="flex: 0;">
+                    <ext-button id="util_reset_bnt" name="RESET" style="width:50%;" socketDomain="Util" type="project"
+                        fn="reset"></ext-button>
+                </div>
+                <div style="flex: 1;">
+                    <ext-button id="util_sotre_bnt" name="STORE" style="width:50%;" socketDomain="Util"
+                        fn="store"></ext-button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

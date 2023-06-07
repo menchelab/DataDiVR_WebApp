@@ -13,4 +13,5 @@ logs/*
 extensions/*
 !extensions/documentation
 !extensions/whisperSpeechRecognition
+!extensions/Util
 extensions/whisperSpeechRecognition/static/WhisperAudio/

@@ -1,0 +1,47 @@
+<link rel="stylesheet" href="{{ url_for('Util.static', filename='css/utilStyle.css') }}">
+{% include 'extensionTemplates.html' %}
+<style>
+    input.loadingButton[type="button"] {
+        background-image: url("{{url_for('static', filename='/img/processing.gif')}}");
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: cover;
+        background-clip: padding-box;
+    }
+
+    #util_highlight.frameBox {
+        display: inline-flex;
+        align-items: center;
+        margin-left: 0.6%;
+        width: 99%;
+    }
+
+    .highlight-row {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .highlight-content {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .highlight-content input {
+        margin-right: 2%;
+    }
+
+    .highlight-content input[type="checkbox"] {
+        margin-right: 25px;
+    }
+
+    .highlight-label {
+        margin-bottom: 10px;
+    }
+
+    .util5 {
+        font-size: 25px;
+        color: rgb(102, 102, 102);
+    }
+</style>
