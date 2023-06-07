@@ -301,7 +301,7 @@ def analytics_color_shortest_path(path):
     node_colors = []
     for node in range(len(GD.pixel_valuesc)):
         if node in path:
-            node_colors.append((255, 166, 0, 100))
+            node_colors.append((255, 166, 0, 150))
             continue
         node_colors.append((55, 55, 55, 100))
     
@@ -313,7 +313,7 @@ def analytics_color_shortest_path(path):
         # set link colors
         for link in links["links"]:
             if int(link["s"]) in path and int(link["e"]) in path:
-                link_colors.append((244, 255, 89, 100))
+                link_colors.append((244, 255, 89, 150))
                 continue
             link_colors.append((55, 55, 55, 30))
         
@@ -346,14 +346,15 @@ def analytics_shortest_path_run(graph):
     # retreive GD node 1 and node 2 and modify session data
     if "analyticsData" not in GD.pdata.keys():
         ### FAIL
-        return {"suceess": False, "error": "'analyticsData' not in GD.pdata! Do you have 2 nodes from current Network selected?"}
+        return {"success": False, "error": "'analyticsData' not in GD.pdata! Do you have 2 nodes from current Network selected?"}
     if "shortestPathNode1" not in GD.pdata["analyticsData"]:
         ### FAIL
-        return {"suceess": False, "error": "'shortestPathNode1' not in GD.pdata! Do you have node 1 from current Network selected?"}
+        return {"success": False, "error": "'shortestPathNode1' not in GD.pdata! Do you have node 1 from current Network selected?"}
     if "shortestPathNode2" not in GD.pdata["analyticsData"]:
         ### FAIL
-        return {"suceess": False, "error": "'shortestPathNode2' not in GD.pdata! Do you have node 2 from current Network selected?"}
+        return {"success": False, "error": "'shortestPathNode2' not in GD.pdata! Do you have node 2 from current Network selected?"}
 
+    # write session data
     if "analyticsShortestPath" not in GD.session_data.keys():  
         GD.session_data["analyticsShortestPath"] = {}
     if "node1" not in GD.session_data["analyticsShortestPath"].keys():
@@ -391,11 +392,21 @@ def analytics_shortest_path_forward():
     GD.session_data["analyticsShortestPath"]["index"] = new_index
 
 
-def analytics_shortest_path_display():...
+def analytics_shortest_path_display():
     # modifies and retreive session data
-    # generate textures
-    # send display information
+    all_paths = GD.session_data["analyticsShortestPath"]["paths"]
+    current_index = GD.session_data["analyticsShortestPath"]["index"]
+    current_path = all_paths[current_index]
 
+    # generate textures
+    generated_textures = analytics_color_shortest_path(path=current_path)
+
+    # generate display information
+    generate_display = {"numPathsAll": len(all_paths), "numPathCurrent": current_index + 1, "pathLength": len(current_path) - 1}
+
+    # return bundled object 
+    generated_textures.update(generate_display)
+    return generated_textures
 
 def analytics_eigenvector(graph):
     def _compute_eigenvector_centrality_nx(graph):

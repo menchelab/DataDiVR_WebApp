@@ -535,7 +535,7 @@ def ex(message):
                     response["val"] = GD.pdata["analyticsData"]["shortestPathNode2"]
             emit("ex", response, room=room)
 
-        if message["id"] == "analyticsPathRun":
+        if message["id"] == "analyticsPathRunOLD":
             if "analyticsData" not in GD.pdata.keys():
                 print("[Fail] analytics shortest path run: 2 nodes have to be selected.")
                 return
@@ -562,6 +562,117 @@ def ex(message):
             response["textures"].append({"channel": "nodeRGB", "path": shortest_path_textures["path_nodes"]})
             response["textures"].append({"channel": "linkRGB", "path": shortest_path_textures["path_links"]})
             emit("ex", response, room=room)
+
+
+        # following 3 cases are for shortest Path buttons
+        if message["id"] == "analyticsPathRun":
+            # generate paths
+            graph = util.project_to_graph(project) 
+            shortest_path_result_obj = analytics.analytics_shortest_path_run(graph=graph)
+            if shortest_path_result_obj["success"] is False:
+                print("ERROR: analytics/shortest_path:", shortest_path_result_obj["error"])
+                return
+            # apply coloring and 
+            shortest_path_display_obj = analytics.analytics_shortest_path_display()
+            if shortest_path_display_obj["textures_created"] is False:
+                print("ERROR: analytics/shortest_path: Texture Generation Failed")
+                return
+            
+            # send to frontend
+            response_textures = {}
+            response_textures["usr"] = message["usr"]
+            response_textures["fn"] = "updateTempTex"
+            response_textures["textures"] = []
+            response_textures["textures"].append({"channel": "nodeRGB", "path": shortest_path_display_obj["path_nodes"]})
+            response_textures["textures"].append({"channel": "linkRGB", "path": shortest_path_display_obj["path_links"]})
+            emit("ex", response_textures, room=room)
+
+            response_info = {}
+            response_info["usr"] = message["usr"]
+            response_info["fn"] = "analytics"
+            response_info["id"] = "analyticsPathInfo"
+            response_info["val"] = {
+                "numPathsAll": shortest_path_display_obj["numPathsAll"], 
+                "numPathCurrent": shortest_path_display_obj["numPathCurrent"], 
+                "pathLength": shortest_path_display_obj["pathLength"]
+            }
+            emit("ex", response_info, room=room)
+
+
+        if message["id"] == "analyticsPathBackw":
+            # generate paths
+            graph = util.project_to_graph(project) 
+            shortest_path_result_obj = analytics.analytics_shortest_path_run(graph=graph)
+            if shortest_path_result_obj["success"] is False:
+                print("ERROR: analytics/shortest_path:", shortest_path_result_obj["error"])
+                return
+            
+            # step backwards
+            analytics.analytics_shortest_path_backward()
+
+            # apply coloring and 
+            shortest_path_display_obj = analytics.analytics_shortest_path_display()
+            if shortest_path_display_obj["textures_created"] is False:
+                print("ERROR: analytics/shortest_path: Texture Generation Failed")
+                return
+            
+            # send to frontend
+            response_textures = {}
+            response_textures["usr"] = message["usr"]
+            response_textures["fn"] = "updateTempTex"
+            response_textures["textures"] = []
+            response_textures["textures"].append({"channel": "nodeRGB", "path": shortest_path_display_obj["path_nodes"]})
+            response_textures["textures"].append({"channel": "linkRGB", "path": shortest_path_display_obj["path_links"]})
+            emit("ex", response_textures, room=room)
+
+            response_info = {}
+            response_info["usr"] = message["usr"]
+            response_info["fn"] = "analytics"
+            response_info["id"] = "analyticsPathInfo"
+            response_info["val"] = {
+                "numPathsAll": shortest_path_display_obj["numPathsAll"], 
+                "numPathCurrent": shortest_path_display_obj["numPathCurrent"], 
+                "pathLength": shortest_path_display_obj["pathLength"]
+            }
+            emit("ex", response_info, room=room)
+
+        if message["id"] == "analyticsPathForw":
+            # generate paths
+            graph = util.project_to_graph(project) 
+            shortest_path_result_obj = analytics.analytics_shortest_path_run(graph=graph)
+            if shortest_path_result_obj["success"] is False:
+                print("ERROR: analytics/shortest_path:", shortest_path_result_obj["error"])
+                return
+            
+            # step forwards
+            analytics.analytics_shortest_path_forward()
+
+            # apply coloring and 
+            shortest_path_display_obj = analytics.analytics_shortest_path_display()
+            if shortest_path_display_obj["textures_created"] is False:
+                print("ERROR: analytics/shortest_path: Texture Generation Failed")
+                return
+            
+            # send to frontend
+            response_textures = {}
+            response_textures["usr"] = message["usr"]
+            response_textures["fn"] = "updateTempTex"
+            response_textures["textures"] = []
+            response_textures["textures"].append({"channel": "nodeRGB", "path": shortest_path_display_obj["path_nodes"]})
+            response_textures["textures"].append({"channel": "linkRGB", "path": shortest_path_display_obj["path_links"]})
+            emit("ex", response_textures, room=room)
+
+            response_info = {}
+            response_info["usr"] = message["usr"]
+            response_info["fn"] = "analytics"
+            response_info["id"] = "analyticsPathInfo"
+            response_info["val"] = {
+                "numPathsAll": shortest_path_display_obj["numPathsAll"], 
+                "numPathCurrent": shortest_path_display_obj["numPathCurrent"], 
+                "pathLength": shortest_path_display_obj["pathLength"]
+            }
+            emit("ex", response_info, room=room)
+
 
 
         if message['id'] == "analyticsEigenvectorRun":

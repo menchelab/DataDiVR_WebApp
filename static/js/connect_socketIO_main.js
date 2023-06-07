@@ -882,6 +882,37 @@ $(document).ready(function(){
                     }
                 }
                 
+                if (data.id == "analyticsPathInfo"){
+                    let container = document.getElementById('analyticsContainer');
+                    // clear before refill
+                    document.getElementById('analyticsContainer').innerHTML = ""; 
+
+                    let numPathsAll = data.val.numPathsAll;
+                    let numPathCurrent = data.val.numPathCurrent;
+                    let pathLen = data.val.pathLength;
+
+                    // fill analytics container with usefull information
+                    // current path number
+                    let currentPathDiv = document.createElement('div');
+                    currentPathDiv.style.margin = "3px";
+                    currentPathDiv.innerHTML = `Current Path : : <span style="font-size:18px; font-weight:bold">${numPathCurrent}</span>`;
+                    container.appendChild(currentPathDiv);
+
+                    // number of all paths
+                    let numPathsDiv = document.createElement('div');
+                    numPathsDiv.style.margin = "3px"
+                    numPathsDiv.innerHTML = `Number of Paths : : <span style="font-size:18px; font-weight:bold">${numPathsAll}</span>`;
+                    container.appendChild(numPathsDiv);
+
+                    // path length
+                    let pathLenDiv = document.createElement('div');
+                    pathLenDiv.style.margin = "3px"
+                    pathLenDiv.innerHTML = `Path Length : : <span style="font-size:18px; font-weight:bold">${pathLen}</span>`;
+                    container.appendChild(pathLenDiv);
+
+                }
+
+
                 if (data.id == "clearAnalyticsContainer"){
                     // prevent if you havent switched !!!!
                     document.getElementById('analyticsContainer').innerHTML = ""; 
