@@ -4,7 +4,6 @@ import json
 import logging
 import os
 import os.path
-
 # import preview as pre
 # import preview as pre
 import random
@@ -18,21 +17,10 @@ from os import path
 import flask
 import numpy as np
 import requests
-
 # from flask_session import Session
 from engineio.payload import Payload
-from flask import (
-    Flask,
-    abort,
-    current_app,
-    jsonify,
-    make_response,
-    redirect,
-    render_template,
-    request,
-    session,
-    url_for,
-)
+from flask import (Flask, abort, current_app, jsonify, make_response, redirect,
+                   render_template, request, session, url_for)
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from PIL import Image, ImageColor
 from werkzeug.utils import secure_filename
@@ -46,7 +34,6 @@ import GlobalData as GD
 import load_extensions
 import plotlyExamples as PE
 import search
-
 # load audio and pad/trim it to fit 30 seconds
 import TextToSpeech
 import uploader
@@ -886,6 +873,7 @@ def ex(message):
 
                     response2["val"] = GD.pfile
                     response2["fn"] = "project"
+                    response2["pdata"] = GD.pdata
                     emit("ex", response2, room=room)
                 else:
                     if message["id"] not in GD.pdata:
@@ -956,6 +944,7 @@ def ex(message):
                     response2["usr"] = message["usr"]
                     response2["val"] = GD.pfile
                     response2["fn"] = "project"
+                    response2["pdata"] = GD.pdata
                     emit("ex", response2, room=room)
 
                 else:

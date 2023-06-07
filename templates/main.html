@@ -51,8 +51,8 @@
 
                 {% for ext in extensions["ext"] %}
                 {% if "column_1" in ext.keys() %}
-                {% for tab in ext["column_1"]%}
-                {% include tab %}
+                {% for module in ext["column_1"]%}
+                {% include module %}
                 {% endfor %}
                 {% endif %}
                 {% endfor %}
@@ -73,8 +73,8 @@
 
                 {% for ext in extensions["ext"] %}
                 {% if "column_2" in ext.keys() %}
-                {% for tab in ext["column_2"]%}
-                {% include tab %}
+                {% for module in ext["column_2"]%}
+                {% include module %}
                 {% endfor %}
                 {% endif %}
                 {% endfor %}
@@ -95,8 +95,8 @@
 
                 {% for ext in extensions["ext"] %}
                 {% if "column_3" in ext.keys() %}
-                {% for tab in ext["column_3"]%}
-                {% include tab %}
+                {% for module in ext["column_3"]%}
+                {% include module %}
                 {% endfor %}
                 {% endif %}
                 {% endfor %}
@@ -118,8 +118,8 @@
 
                 {% for ext in extensions["ext"] %}
                 {% if "column_4" in ext.keys() %}
-                {% for tab in ext["column_4"]%}
-                {% include tab %}
+                {% for module in ext["column_4"]%}
+                {% include module %}
                 {% endfor %}
                 {% endif %}
                 {% endfor %}

@@ -11,36 +11,36 @@ def projects(message: dict) -> None:
     Returns:
         None
     """
-    curr_project = GD.sessionData["actPro"]
-    curr_project = Project(curr_project)
-    state_data = GD.pfile.get("stateData")
-    if not state_data:
-        state_data = {}
-    curr_project.set_pfile_value("stateData", state_data)
-    for key, layout_list in zip(
-        ["layouts", "nodecolors", "links", "linkcolors"],
-        ["layouts", "layoutsRGB", "links", "linksRGB"],
-    ):
-        if key not in state_data:
-            curr_project.define_pfile_value(
-                "stateData", key, curr_project.pfile[layout_list][0]
-            )
-        for sel in ["selected", "selectedLinks"]:
-            if sel not in state_data:
-                curr_project.define_pfile_value("stateData", sel, [])
-    curr_project.write_pfile()
+    # curr_project = GD.pfile.get("name")
+    # curr_project = Project(curr_project)
+    # state_data = GD.pfile.get("stateData")
+    # if not state_data:
+    #     state_data = {}
+    # curr_project.set_pfile_value("stateData", state_data)
+    # for key, layout_list in zip(
+    #     ["layouts", "nodecolors", "links", "linkcolors"],
+    #     ["layouts", "layoutsRGB", "links", "linksRGB"],
+    # ):
+    #     if key not in state_data:
+    #         curr_project.define_pfile_value(
+    #             "stateData", key, curr_project.pfile[layout_list][0]
+    #         )
+    #     for sel in ["selected", "selectedLinks"]:
+    #         if sel not in state_data:
+    #             curr_project.define_pfile_value("stateData", sel, [])
+    # curr_project.write_pfile()
 
-    GD.sessionData["actPro"] = message["opt"]
-    project = Project(GD.sessionData["actPro"])
-    project.read_names()
-    GD.pfile = project.pfile
-    if "stateData" not in GD.pfile:
-        GD.pfile["stateData"] = {}
-    GD.names = project.names
+    # GD.sessionData["actPro"] = message["opt"]
+    # project = Project(GD.sessionData["actPro"])
+    # project.read_names()
+    # GD.pfile = project.pfile
+    # if "stateData" not in GD.pfile:
+    #     GD.pfile["stateData"] = {}
+    # GD.names = project.names
 
-    print("changed project to " + GD.sessionData["actPro"])
-    # print("names_files to " + str(GD.names))
-    print("changed activ project " + message["opt"])
+    # print("changed project to " + GD.sessionData["actPro"])
+    # # print("names_files to " + str(GD.names))
+    # print("changed activ project " + message["opt"])
     print(message)
 
 

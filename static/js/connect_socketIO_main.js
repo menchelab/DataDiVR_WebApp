@@ -13,6 +13,7 @@ if (String(navigator.userAgent).includes("UnrealEngine")) {
 }
 
 let pfile = new VariableListener(new Object());
+let pdata = new VariableListener(new Object());
 
 function makeid(length) {
   let result = "";
@@ -185,10 +186,8 @@ $(document).ready(function () {
   }
 
   ///set up and connect to socket
-  console.log("http://" + document.domain + ":" + location.port + "/main");
-  socket = io.connect(
-    "http://" + document.domain + ":" + location.port + "/main"
-  );
+  console.log("http://" + location.host + "/main");
+  socket = io.connect("http://" + location.host + "/main");
   socket.io.opts.transports = ["websocket"];
 
   socket.on("connect", function () {
@@ -206,6 +205,7 @@ $(document).ready(function () {
       document.getElementById("outer").style.backgroundColor =
         "rgb(239 0 0 / 34%)";
     }
+    location.reload();
   });
 
   socket.on("status", function (data) {
@@ -673,7 +673,8 @@ $(document).ready(function () {
       case "project":
         //clearProject();
         //if (data["usr"]==uid){
-        pfile = data["val"];
+        pfile.update(data["val"]);
+        pdata.update(data["pdata"]);
         let legendcount = 0;
 
         // init analytics container

@@ -12,7 +12,6 @@
 <script src="{{ url_for('static', filename='js/three.js') }}"></script>
 <script src="{{ url_for('static', filename='js/OrbitControls.js') }}"></script>
 <script src="{{ url_for('static', filename='js/webGL_preview.js') }}"></script>
-<script src="{{ url_for('static', filename='js/extensions.js') }}"></script>
 {% include 'templates.html' %}
 <html>
 
@@ -37,8 +36,8 @@
             {% for ext in extensions["ext"] %}
             {% for key in ext.keys() %}
             {% if "column" in key %}
-            {% for tab in ext[key]%}
-            {% include tab %}
+            {% for module in ext[key]%}
+            {% include module %}
             {% endfor %}
             {% endif %}
             {% endfor %}

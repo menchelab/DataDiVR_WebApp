@@ -43,8 +43,8 @@ class VariableListener {
     }
     this[key + "Internal"] = value;
     this[key + "Listener"] = function (val) {
-      console.log("updated:\n");
-      console.log(val);
+      // console.log("updated:\n");
+      // console.log(val);
     };
     Object.defineProperty(this, key, {
       get() {
@@ -89,6 +89,7 @@ class VariableListener {
       var key = this.keys[i];
       if (!keys.includes(key)) {
         this[key] = "";
+        keys.push(key);
       }
     }
   }

@@ -279,9 +279,7 @@ function makeNetwork() {
     nodemeshes = [];
     linkmeshes = [];
     labels = [];
-
     // MAKE NODES
-
     for (let i = 0; i < pfile["nodecount"] + pfile["labelcount"]; i++) {
       if (i < 10000) {
         const ngeometry = new THREE.BoxGeometry(nscale, nscale, nscale);

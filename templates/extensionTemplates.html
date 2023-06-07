@@ -1,0 +1,354 @@
+<!-- BUTTON -->
+<script>
+    class extButton extends HTMLElement {
+        constructor() {
+            super();
+        }
+        connectedCallback() {
+            let template = document.querySelector('#extButton-template').content;
+            this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
+            let name_button = this.shadowRoot.querySelector("#name");
+            name_button.textContent = this.getAttribute('name');
+            name_button.style.width = this.getAttribute('width')
+            name_button.style.background = this.getAttribute('color');
+            var id = this.getAttribute('id');
+            var parent = this.getAttribute('parent');
+            if (parent == undefined) {
+                parent = id
+            }
+            //name_button.style.background = url('images/NotR;ecording.png')
+            var socketDomain = this.getAttribute('socketDomain');
+            if (socketDomain == null) {
+                socketDomain = "Main";
+            }
+
+            var thisSocket = io.connect(
+                "http://" + location.host + "/" + this.getAttribute('socketDomain')
+            );
+
+            name_button.addEventListener('click', () => {
+                console.log('select ' + name_button.textContent);
+                thisSocket.emit('ex', {
+                    usr: uid,
+                    msg: this.getAttribute('name'),
+                    id: parent,
+                    val: this.getAttribute('val'),
+                    fn: this.getAttribute('fn'),
+                    type: this.getAttribute('type'),
+                });
+            });
+
+        }
+
+    }
+    customElements.define('ext-button', extButton);
+</script>
+
+
+<template id="extButton-template">
+    <style>
+        button {
+            height: 30px;
+            font-family: 'Future', sans-serif;
+            overflow: hidden;
+            white-space: nowrap;
+            cursor: pointer;
+            box-sizing: border-box;
+            padding: 0px 6px;
+            text-align: left;
+            border-radius: 7px;
+
+            border-bottom-left-radius: 0px;
+            font-size: 24px;
+
+            color: rgb(255, 255, 255);
+            cursor: pointer;
+            background: rgba(66, 66, 66, 0);
+            border: 2px solid rgb(124, 124, 124);
+            text-transform: uppercase;
+        }
+
+        button:hover {
+            border: 2px solid rgb(124, 124, 124);
+            background: rgba(66, 66, 66, 1);
+
+
+        }
+    </style>
+    <div id="container" style="width: auto; height: 30p0x; display: inline-block; padding: 4px 2px">
+        <button id="name"><img src="static/css/images/NotRecording.png"></button>
+    </div>
+
+</template>
+
+<!-- COLOR PICKER -->
+<script>
+    class extColorBox extends HTMLElement {
+
+        constructor() {
+            super();
+        }
+
+        connectedCallback() {
+            let template = document.querySelector('#extColorBox-template').content;
+            this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
+            let outer = this.shadowRoot.querySelector("container");
+            let colorbox = this.shadowRoot.querySelector("#color");
+            let colorfield = this.shadowRoot.querySelector("#colorfield");
+            let sliders = this.shadowRoot.querySelector("#sliders");
+            let sliderR = this.shadowRoot.querySelector("#red");
+            let sliderG = this.shadowRoot.querySelector("#green");
+            let sliderB = this.shadowRoot.querySelector("#blue");
+            let sliderA = this.shadowRoot.querySelector("#alpha");
+            let [r, g, b, a] = [0, 0, 0, 0];
+            let label = this.shadowRoot.querySelector("#label");
+            label.innerHTML = this.getAttribute('label');
+
+            sliderR.addEventListener('input', () => {
+                let color = colorbox.style.backgroundColor;
+                [r, g, b, a] = color.match(/\d+/g).map(Number);
+                colorbox.style.backgroundColor = 'rgba(' + sliderR.value + ',' + g + ',' + b + ',' + sliderA.value / 255 + ')';
+            });
+            sliderG.addEventListener('input', () => {
+                let color = colorbox.style.backgroundColor;
+                [r, g, b, a] = color.match(/\d+/g).map(Number);
+                colorbox.style.backgroundColor = 'rgba(' + r + ',' + sliderG.value + ',' + b + ',' + sliderA.value / 255 + ')';
+
+            });
+            sliderB.addEventListener('input', () => {
+                let color = colorbox.style.backgroundColor;
+                [r, g, b, a] = color.match(/\d+/g).map(Number);
+                colorbox.style.backgroundColor = 'rgba(' + r + ',' + g + ',' + sliderB.value + ',' + sliderA.value / 255 + ')';
+            });
+            sliderA.addEventListener('input', () => {
+                a = sliderA.value / 255;
+                colorbox.style.backgroundColor = 'rgba(' + r + ',' + g + ',' + b + ',' + sliderA.value / 255 + ')';
+            });
+
+            colorbox.addEventListener('change', () => {
+                //console.log(colorbox.value);
+                //socket.emit('ex', {usr:uid, id: this.getAttribute('id'), val: colorbox.value, fn: "col"});
+            });
+            colorbox.addEventListener('change', () => {
+                //socket.emit('ex', { id: this.getAttribute('id'), fn: fn, val: select.selectedIndex});
+                var socketDomain = this.getAttribute('socketDomain');
+                if (socketDomain == null) {
+                    socketDomain = "Main";
+                }
+                var thisSocket = io.connect(
+                    "http://" + location.host + "/" + this.getAttribute('socketDomain')
+                );
+                if (!colorbox.checked) {
+                    sliders.style.display = "none";
+                    thisSocket.emit('ex', { usr: uid, id: this.getAttribute('id'), r: r, g: g, b: b, a: a, fn: "colorbox" });
+                    console.log(r + " " + g + " " + b + " " + a);
+                } else {
+                    sliders.style.display = "contents";
+                }
+            });
+
+        }
+    }
+
+    customElements.define('ext-colorbox', extColorBox);
+
+</script>
+
+<template id="extColorBox-template">
+
+    <style>
+        input.util-cslider {
+            background-color: rgba(20, 20, 20, 1);
+            border: 10px solid transparent;
+            display: inline-block;
+            width: 100%;
+            position: relative;
+            Z-index: 1;
+        }
+    </style>
+    <div id="container" calss="swagBox" style="width: 100%; display: inline-block; padding: 4px 2px;">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
+        <div id="container" class="swagBox" style="display: flex; align-items: center;">
+            <div style="flex: 1;">
+                <h5 id="label"
+                    style="font-size: 25px; color: rgb(102, 102, 102); margin-top:5px; margin-bottom:5px;text-align:left">
+                </h5>
+            </div>
+            <div style="flex: 0;">
+                <input type="checkbox" id="color" class="swagButton"
+                    style="height:40px; width:80px; appearance:none; background-color: rgba(128,0,0,0.5);">
+            </div>
+        </div>
+        <div id="sliders" style="display:none;">
+            <div>
+                <input type="range" min="0" max="255" value="128" class="slider util-cslider" id="red"
+                    style="background-image: linear-gradient(270deg,rgba(255, 0, 0, 0.3),rgba(255, 0, 0, 0.05),rgba(0,0,0,0));">
+                <input type="range" min="0" max="255" value="128" class="slider util-cslider" id="green"
+                    style="background-image: linear-gradient(270deg,rgba( 0,255, 0, 0.3),rgba(0, 255, 0, 0.05),rgba(0,0,0,0));">
+                <input type="range" min="0" max="255" value="128" class="slider util-cslider" id="blue"
+                    style="background-image: linear-gradient(270deg,rgba( 0, 0,255, 0.3),rgba(0, 0, 255, 0.05),rgba(0,0,0,0));">
+                <input type="range" min="0" max="255" value="128" class="slider util-cslider" id="alpha">
+            </div>
+        </div>
+</template>
+
+
+<!--DROPDOWN Menu-->
+<script>
+    class extDropdown extends HTMLElement {
+
+
+        constructor() {
+            super();
+        }
+
+        connectedCallback() {
+            let template = document.querySelector('#extdropdown-template').content;
+            this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
+            let select = this.shadowRoot.querySelector("#sel");
+            let content = this.shadowRoot.querySelector("#content");
+
+            let label = this.shadowRoot.querySelector("#label");
+            label.innerHTML = this.getAttribute('name');
+
+
+            // let newOption = new Option('Option Text','Option Value');
+            // select.add(newOption,undefined);
+            // select.add(new Option('Option2','Option2Value'));
+            // select.add(new Option('Option3'));
+            // select.value="Option3"
+            //name_button.textContent = this.getAttribute('name');
+            //name_button.style.background = this.getAttribute('color');//("background",);
+            //console.log( select.options[select.selectedIndex].text);
+
+            select.addEventListener('click', () => {
+                //socket.emit('ex', { id: this.getAttribute('id'), fn: fn, val: select.selectedIndex});
+
+                //console.log(this.getAttribute('opt'));
+                //console.log(select.value);
+                //console.log(select.options[select.selectedIndex].text);
+                if (content.style.display === "none") {
+                    content.style.display = "block";
+                } else {
+                    content.style.display = "none";
+                }
+                //socket.emit('ex', { id: this.getAttribute('id'), parent: this.getAttribute('container'), fn: this.getAttribute('fn'), val: text.value});
+
+
+            });
+
+        }
+
+
+    }
+
+    customElements.define('ext-dropdown', extDropdown);
+</script>
+
+<template id="extdropdown-template">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
+    <div id="container" style="display: inline-block; width:auto;  padding: 3px 3px">
+        <h5 id="label"
+            style="float:left; font-size: 25px;  color: rgb(102, 102, 102); margin-top:5px; margin-bottom:5px;">PROJECT
+        </h5>
+        <p id="count"
+            style="font-size: 15px; color: rgb(255, 255, 255); margin-top:0px; padding-left:10px ; margin-bottom: 0px; text-indent: 10px;  ">
+        </p>
+
+        <div class="gradient"></div>
+        <input type="button" id="sel" style="width:400px; height:50px; font-family: future; font-size: 25px; " />
+        <div id="content" class="swagBoxT"
+            style="width:400px; max-height: 600px; height:auto; overflow-y: auto; overflow-x: hidden;">
+        </div>
+    </div>
+</template>
+
+<!-- SLIDER -->
+
+<script>
+    class extSlider extends HTMLElement {
+
+
+        constructor() {
+            super();
+        }
+
+        connectedCallback() {
+            let template = document.querySelector('#extSlider-template').content;
+            this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
+
+            let slider = this.shadowRoot.querySelector("#myRange");
+            slider.min = this.getAttribute('min');
+            slider.max = this.getAttribute('max');
+            slider.value = this.getAttribute('val');
+            let label = this.shadowRoot.querySelector("#label");
+            let value = this.shadowRoot.querySelector("#value");
+            value.textContent = slider.value;
+            if (this.hasAttribute('label')) {
+                value.style.display = "block";
+            }
+
+            label.textContent = this.getAttribute('name');
+            //name_button.style.background = this.getAttribute('color');//("background",);
+            console.log('create: ' + this.getAttribute('container'));
+
+            var socketDomain = this.getAttribute('socketDomain');
+            if (socketDomain == null) {
+                socketDomain = "Main";
+            }
+            var thisSocket = io.connect(
+                "http://" + location.host + "/" + socketDomain
+            );
+
+
+            slider.addEventListener('input', () => {
+                console.log(slider.value);
+                value.textContent = slider.value;
+                //socket.emit('ex', { id: this.getAttribute('id'), parent: this.getAttribute('container'), fn: "submit_butt", val: text.value});
+            });
+
+            slider.addEventListener('change', () => {
+                console.log(slider.value);
+                socket.emit('ex', { usr: uid, id: this.getAttribute('id'), fn: "sli", val: slider.value });
+            });
+
+        }
+
+
+    }
+
+    customElements.define('ext-slider', extSlider);
+</script>
+
+<template id="extSlider-template">
+    <style>
+        .valueLabel {
+            text-align: center;
+            margin: 24px 0 0 0;
+            height: 30px;
+            font-family: 'Future', sans-serif;
+            box-sizing: border-box;
+            padding: 0px 6px;
+            border-radius: 7px;
+
+            border-bottom-left-radius: 0px;
+            font-size: 24px;
+
+            color: rgb(255, 255, 255);
+            cursor: pointer;
+            background: rgba(66, 66, 66, 0);
+            border: 2px solid rgb(124, 124, 124);
+            text-transform: uppercase;
+        }
+    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
+    <div id="container" style="position:relative; display: inline-block; width:100%; padding: 0px 0px">
+        <span id="value" style="display:none;" class="valueLabel"></span>
+        <input type="range" min="0" max="1000" value="500" class="slider" id="myRange"
+            style="display: inline-block; width:100%; position:relative; ; Z-index: 1;">
+        <h5 id="label"
+            style="margin-top:2px; color: rgb(100, 100, 100); position:absolute; top: 0 ; Z-index: 0; text-align: right; font-size: 20px;">
+        </h5>
+
+    </div>
+</template>
