@@ -793,7 +793,7 @@ def ex(message):
                 # dropdown for fixed selections, might need a better solution to hardcode them in HTML / JS
                 if message["id"] == "analytics":
                     response["opt"] = ["Degree Distribution", "Closeness", "Shortest Path", "Eigenvector", "Mod-based Communities", "Clustering Coefficient"]
-                    response["sel"] = 0
+                    response["sel"] = "0"
 
                 # dropdown for visualization type selection 
                 vis_selected = 0
@@ -848,6 +848,17 @@ def ex(message):
                     response["sel"] = 0 if "annotation-Operations" not in GD.pdata.keys() else GD.pdata["annotation-Operations"]
 
             else:# user input message
+                # clear analytics container
+                if message["id"] == "analytics":
+                    # check if you actually switch
+                    if message["val"] != GD.pdata["analytics"]:
+                        response_clear = {}
+                        response_clear["fn"] = "analytics"
+                        response_clear["id"] = "clearAnalyticsContainer"
+                        response_clear["usr"] = message["usr"]
+                        emit("ex", response_clear, room = room)
+
+
                 if message["id"] == "projDD": # PROJECT CHANGE
                     GD.data["actPro"] = GD.plist[int(message["val"])]
                     GD.saveGD()
@@ -897,13 +908,6 @@ def ex(message):
                         response2["val"].append(node)
                     emit("ex", response2, room=room)
 
-                # clear analytics container
-                if message["id"] == "analytics":
-                    response_clear = {}
-                    response_clear["fn"] = "analytics"
-                    response_clear["id"] = "clearContainer"
-                    response_clear["usr"] = message["usr"]
-                    emit("ex", response_clear, room = room)
 
         emit("ex", response, room=room)
         print(response)

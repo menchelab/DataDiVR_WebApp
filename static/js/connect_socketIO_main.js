@@ -881,12 +881,17 @@ $(document).ready(function(){
                     }
                 }
                 
+                if (data.id == "clearAnalyticsContainer"){
+                    // prevent if you havent switched !!!!
+                    document.getElementById('analyticsContainer').innerHTML = ""; 
+                }
+
                 break;
 
             case "annotation":
                 if (data.id == "annotationOperation"){
                     let value = data.val;
-                    if (value == "init"){return}
+                    if (value == "init"){return;}
                     let button = document.getElementById("annotationOperation").shadowRoot.getElementById("name");
                     if (value == true){
                         button.innerHTML = "[-]";

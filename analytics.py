@@ -567,7 +567,7 @@ def plotly_clustering_coefficient(assignment_list, highlighted_bar=None):
 
     layout = go.Layout(
         xaxis=dict(title='Clustering Coefficient Range', fixedrange=True),
-        yaxis=dict(title='Number of Nodes'),
+        yaxis=dict(title='Number of Nodes', fixedrange=True),
         bargap=0.1,
         title=None if highlighted_bar is None else f"Selected Cluster Coefficients: {min_assignment_selected:.3f} to {max_assignment_selected:.3f}",
         title_y=0.97

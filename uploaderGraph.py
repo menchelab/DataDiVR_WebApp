@@ -50,6 +50,15 @@ def upload_filesJSON(request):
     linkcolors = []
     labels = []
     
+
+
+
+    # implement a way to set name as key for node and kill annotation-defined node names
+    # assign/polish meta data (internal and external information)
+
+
+
+
     loadGraphJSON(request.files.getlist("graphJSON"), jsonfiles)
     parseGraphJSON_nodepositions(jsonfiles, nodepositions)    
     parseGraphJSON_nodeinfo(jsonfiles, nodeinfo)
@@ -499,5 +508,4 @@ def parseGraphJSON_textureNames(files):
             out.append(None)
             continue    
         out.append(file["textureName"])
-    print(files, out)
     return out
