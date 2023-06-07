@@ -358,19 +358,31 @@ def analytics_shortest_path_run(graph):
     if "analyticsShortestPath" not in GD.session_data.keys():  
         GD.session_data["analyticsShortestPath"] = {}
     if "node1" not in GD.session_data["analyticsShortestPath"].keys():
-        GD.session_data["analyticsShortestPath"]["node1"] = GD.pdata["analyticsData"]["shortestPathNode1"]
+        GD.session_data["analyticsShortestPath"]["node1"] = GD.pdata["analyticsData"]["shortestPathNode1"]["id"]
     if "node2" not in GD.session_data["analyticsShortestPath"].keys():
-        GD.session_data["analyticsShortestPath"]["node2"] = GD.pdata["analyticsData"]["shortestPathNode2"]
+        GD.session_data["analyticsShortestPath"]["node2"] = GD.pdata["analyticsData"]["shortestPathNode2"]["id"]
     if "paths" not in GD.session_data["analyticsShortestPath"].keys():
         GD.session_data["analyticsShortestPath"]["paths"] = []
     if "index" not in GD.session_data["analyticsShortestPath"].keys():
         GD.session_data["analyticsShortestPath"]["index"] = 0
 
     # run shortest paths algorithm and check if a path is existing
-    node_1 = GD.session_data["analyticsShortestPath"]["node1"]["id"]
-    node_2 = GD.session_data["analyticsShortestPath"]["node2"]["id"]
-    path_data = analytics_shortest_paths(graph=graph, node_1=node_1, node_2=node_2)
-    GD.session_data["analyticsShortestPath"]["paths"] = path_data
+
+    # check if node has changed or paths is empty -> new run
+    if GD.pdata["analyticsData"]["shortestPathNode1"]["id"] != GD.session_data["analyticsShortestPath"]["node1"] or GD.pdata["analyticsData"]["shortestPathNode2"]["id"] != GD.session_data["analyticsShortestPath"]["node2"] or GD.session_data["analyticsShortestPath"]["paths"] == []:
+        # update session data from pdata
+        GD.session_data["analyticsShortestPath"]["node1"] = GD.pdata["analyticsData"]["shortestPathNode1"]["id"]
+        GD.session_data["analyticsShortestPath"]["node2"] = GD.pdata["analyticsData"]["shortestPathNode2"]["id"]
+        # run 
+        node_1 = GD.session_data["analyticsShortestPath"]["node1"]
+        node_2 = GD.session_data["analyticsShortestPath"]["node2"]
+        path_data = analytics_shortest_paths(graph=graph, node_1=node_1, node_2=node_2)
+        # write results in session data
+        GD.session_data["analyticsShortestPath"]["paths"] = path_data
+        GD.session_data["analyticsShortestPath"]["index"] = 0
+    path_data = GD.session_data["analyticsShortestPath"]["paths"]
+
+    # return results
     if len(path_data) == 0:
         return {"success": False, "error": "No Path found. If available check previous error message."}
     return {"success": True}
@@ -388,7 +400,7 @@ def analytics_shortest_path_forward():
     # retrieve and modify session data
     current_index = GD.session_data["analyticsShortestPath"]["index"]
     path_count = len(GD.session_data["analyticsShortestPath"]["paths"])
-    new_index = current_index + 1 if current_index < path_count - 2 else 0
+    new_index = current_index + 1 if current_index < path_count - 1 else 0
     GD.session_data["analyticsShortestPath"]["index"] = new_index
 
 
