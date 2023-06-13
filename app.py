@@ -28,6 +28,7 @@ import numpy as np
 import random
 import analytics
 import annotation
+import layout_module
 
 import plotlyExamples as PE
 import os.path
@@ -402,7 +403,9 @@ def ex(message):
     
             if "analyticsDegreeRun" not in GD.session_data.keys():
                 ### "expensive" stuff
-                graph = util.project_to_graph(project)
+                if "graph" not in GD.session_data.keys():
+                    GD.session_data["graph"] = util.project_to_graph(project)
+                graph = GD.session_data["graph"] 
                 result = analytics.analytics_degree_distribution(graph)
                 ###
                 GD.session_data["analyticsDegreeRun"] = result
@@ -447,7 +450,9 @@ def ex(message):
 
             if "analyticsClosenessRun" not in GD.session_data.keys():
                 ### "expensive" stuff
-                graph = util.project_to_graph(project)
+                if "graph" not in GD.session_data.keys():
+                    GD.session_data["graph"] = util.project_to_graph(project)
+                graph = GD.session_data["graph"] 
                 result = analytics.analytics_closeness(graph)
                 print(result)
                 ###
@@ -548,7 +553,9 @@ def ex(message):
             
             node_1 = GD.pdata["analyticsData"]["shortestPathNode1"]["id"]
             node_2 = GD.pdata["analyticsData"]["shortestPathNode2"]["id"]
-            graph = util.project_to_graph(project) 
+            if "graph" not in GD.session_data.keys():
+                GD.session_data["graph"] = util.project_to_graph(project)
+            graph = GD.session_data["graph"] 
             path = analytics.analytics_shortest_path(graph, node_1, node_2)
             shortest_path_textures = analytics.analytics_color_shortest_path(path)
 
@@ -567,7 +574,9 @@ def ex(message):
         # following 3 cases are for shortest Path buttons
         if message["id"] == "analyticsPathRun":
             # generate paths
-            graph = util.project_to_graph(project) 
+            if "graph" not in GD.session_data.keys():
+                GD.session_data["graph"] = util.project_to_graph(project)
+            graph = GD.session_data["graph"] 
             shortest_path_result_obj = analytics.analytics_shortest_path_run(graph=graph)
             if shortest_path_result_obj["success"] is False:
                 print("ERROR: analytics/shortest_path:", shortest_path_result_obj["error"])
@@ -601,7 +610,9 @@ def ex(message):
 
         if message["id"] == "analyticsPathBackw":
             # generate paths
-            graph = util.project_to_graph(project) 
+            if "graph" not in GD.session_data.keys():
+                GD.session_data["graph"] = util.project_to_graph(project)
+            graph = GD.session_data["graph"] 
             shortest_path_result_obj = analytics.analytics_shortest_path_run(graph=graph)
             if shortest_path_result_obj["success"] is False:
                 print("ERROR: analytics/shortest_path:", shortest_path_result_obj["error"])
@@ -638,7 +649,9 @@ def ex(message):
 
         if message["id"] == "analyticsPathForw":
             # generate paths
-            graph = util.project_to_graph(project) 
+            if "graph" not in GD.session_data.keys():
+                GD.session_data["graph"] = util.project_to_graph(project)
+            graph = GD.session_data["graph"] 
             shortest_path_result_obj = analytics.analytics_shortest_path_run(graph=graph)
             if shortest_path_result_obj["success"] is False:
                 print("ERROR: analytics/shortest_path:", shortest_path_result_obj["error"])
@@ -679,7 +692,9 @@ def ex(message):
 
             if "analyticsEigenvectorRun" not in GD.session_data.keys():
                 ### "expensive" stuff
-                graph = util.project_to_graph(project)
+                if "graph" not in GD.session_data.keys():
+                    GD.session_data["graph"] = util.project_to_graph(project)
+                graph = GD.session_data["graph"] 
                 result = analytics.analytics_eigenvector(graph)
                 ###
                 GD.session_data["analyticsEigenvectorRun"] = result
@@ -722,7 +737,9 @@ def ex(message):
 
             if "analyticsClusteringCoeffRun" not in GD.session_data.keys():
                 ### "expensive" stuff
-                graph = util.project_to_graph(project)
+                if "graph" not in GD.session_data.keys():
+                    GD.session_data["graph"] = util.project_to_graph(project)
+                graph = GD.session_data["graph"] 
                 result = analytics.analytics_clustering_coefficient(graph)  
                 ###
                 GD.session_data["analyticsClusteringCoeffRun"] = result
@@ -765,7 +782,9 @@ def ex(message):
 
             if "analyticsModcommunityRun" not in GD.session_data.keys():
                 ### "expensive" stuff
-                graph = util.project_to_graph(project)
+                if "graph" not in GD.session_data.keys():
+                    GD.session_data["graph"] = util.project_to_graph(project)
+                graph = GD.session_data["graph"] 
                 result = analytics.modularity_community_detection(graph)
                 ###
                 GD.session_data["analyticsModcommunityRun"] = result
@@ -790,7 +809,9 @@ def ex(message):
 
             if "analyticsModcommunityRun" not in GD.session_data.keys():
                 ### "expensive" stuff
-                graph = util.project_to_graph(project)
+                if "graph" not in GD.session_data.keys():
+                    GD.session_data["graph"] = util.project_to_graph(project)
+                graph = GD.session_data["graph"] 
                 result = analytics.modularity_community_detection(graph)
                 ###
                 GD.session_data["analyticsModcommunityRun"] = result
@@ -798,7 +819,9 @@ def ex(message):
 
             if "analyticsModcommunityLayout" not in GD.session_data.keys():
                 ### "expensive" stuff
-                graph = util.project_to_graph(project)
+                if "graph" not in GD.session_data.keys():
+                    GD.session_data["graph"] = util.project_to_graph(project)
+                graph = GD.session_data["graph"] 
                 result = analytics.generate_layout_community_det(communities_arr=communities_list, ordered_graph=graph)
                 ###
                 GD.session_data["analyticsModcommunityLayout"] = result
@@ -882,6 +905,161 @@ def ex(message):
             response["textures"].append({"channel": "linkRGB", "path": generated_annotation_textures["path_links"]})
             emit("ex", response, room=room)
 
+
+    elif message["fn"] == "layout":
+
+        if message["id"] == "layoutInit":
+            if message["val"] != "init":
+                return
+            # session data initialisation
+            check_log = layout_module.init_client_display_log()
+            # check if selected layout type already exists in session_data to handle button display
+            # use sel from global data on drop down and use it as key to store and check for layout results
+            check_existing_layout = layout_module.init_client_layout_exists()
+            
+            response = {}
+            response["usr"] = message["usr"]
+            response["id"] = message["id"]
+            response["fn"] = "layout"
+            response["val"] = {
+                "showLog": check_log,
+                "selectedLayoutGenerated": check_existing_layout
+            }
+            emit("ex", response, room=room)
+
+        # handle log display 
+        if message["id"] == "layoutLogShow":
+            layout_module.show_log()
+            response = {}
+            response["usr"] = message["usr"]
+            response["id"] = "showLog"
+            response["fn"] = "layout"
+            response["val"] = True
+            emit("ex", response, room=room)
+
+        if message["id"] == "layoutLogHide":
+            layout_module.show_log()
+            response = {}
+            response["usr"] = message["usr"]
+            response["id"] = "showLog"
+            response["fn"] = "layout"
+            response["val"] = False
+            emit("ex", response, room=room)
+
+        # layout algorithms
+        if message["id"] == "layoutRandomApply":
+            layout_id = layout_module.LAYOUT_IDS[0] # 0 -> random layout
+
+            # write log starting
+            response_log = {}
+            response_log["usr"] = message["usr"]
+            response_log["id"] = "addLog"
+            response_log["fn"] = "layout"
+            response_log["log"] = {"type": "log", "msg": "Random layout generation running ..."}
+            emit("ex", response_log, room=room)
+
+            # retreive data and get layout positions
+            if layout_id not in GD.session_data["layout"]["results"].keys():
+                if "graph" not in GD.session_data.keys():
+                    GD.session_data["graph"] = util.project_to_graph(GD.data["actPro"])
+                graph = GD.session_data["graph"] 
+                result_obj = layout_module.layout_random(ordered_graph=graph)
+                if result_obj["success"] is False:
+                    print("ERROR: ", result_obj["error"])
+                    response_log["log"] = result_obj["log"]
+                    emit("ex", response_log, room=room)
+                    return
+                                
+                GD.session_data["layout"]["results"][layout_id] = result_obj["content"]
+
+            # generate layout textures
+            positions = GD.session_data["layout"]["results"][layout_id]
+            result_obj = layout_module.pos_to_textures(positions)
+            if result_obj["success"] is False:
+                print("ERROR: ", result_obj["error"])
+            
+                response_log["log"] = result_obj["log"]
+                emit("ex", response_log, room=room)
+                return
+            
+            # write log finish
+            response_log["log"] = {"type": "log", "msg": "Random layout generation successful."}
+            emit("ex", response_log, room=room)
+
+            # display rerun and save buttons
+            response_layout_exists = {}
+            response_layout_exists["usr"] = message["usr"]
+            response_layout_exists["fn"] = "layout"
+            response_layout_exists["id"] = "layoutExists"
+            response_layout_exists["val"] = layout_module.check_layout_exists()
+            emit("ex", response_layout_exists, room=room)           
+
+            # update temp layout
+            response = {}
+            response["usr"] = message["usr"]
+            response["fn"] = "updateTempTex"
+            response["textures"] = result_obj["textures"]
+            emit("ex", response, room=room)
+            return
+
+
+        if message["id"] == "layoutEigenApply":
+            layout_id = layout_module.LAYOUT_IDS[1] # 1 -> eigen layout
+
+            # write log starting
+            response_log = {}
+            response_log["usr"] = message["usr"]
+            response_log["id"] = "addLog"
+            response_log["fn"] = "layout"
+            response_log["log"] = {"type": "log", "msg": "Eigenlayout generation running ..."}
+            emit("ex", response_log, room=room)
+
+            # retreive data and get layout positions
+            if layout_id not in GD.session_data["layout"]["results"].keys():
+                if "graph" not in GD.session_data.keys():
+                    GD.session_data["graph"] = util.project_to_graph(GD.data["actPro"])
+                graph = GD.session_data["graph"] 
+                result_obj = layout_module.layout_eigen(ordered_graph=graph)
+                if result_obj["success"] is False:
+                    print("ERROR: ", result_obj["error"])
+                    response_log["log"] = result_obj["log"]
+                    emit("ex", response_log, room=room)
+                    return
+                                
+                GD.session_data["layout"]["results"][layout_id] = result_obj["content"]
+
+            # generate layout textures
+            positions = GD.session_data["layout"]["results"][layout_id]
+            result_obj = layout_module.pos_to_textures(positions)
+            if result_obj["success"] is False:
+                print("ERROR: ", result_obj["error"])
+            
+                response_log["log"] = result_obj["log"]
+                emit("ex", response_log, room=room)
+                return
+            
+            # write log finish
+            response_log["log"] = {"type": "log", "msg": "Eigenlayout generation successful."}
+            emit("ex", response_log, room=room)
+
+            # display rerun and save buttons
+            response_layout_exists = {}
+            response_layout_exists["usr"] = message["usr"]
+            response_layout_exists["fn"] = "layout"
+            response_layout_exists["id"] = "layoutExists"
+            response_layout_exists["val"] = layout_module.check_layout_exists()
+            emit("ex", response_layout_exists, room=room)           
+
+            # update temp layout
+            response = {}
+            response["usr"] = message["usr"]
+            response["fn"] = "updateTempTex"
+            response["textures"] = result_obj["textures"]
+            emit("ex", response, room=room)
+            return
+
+
+
     elif message["fn"] == "dropdown":
         response = {}
         response["usr"] = message["usr"]
@@ -905,6 +1083,11 @@ def ex(message):
                 if message["id"] == "analytics":
                     response["opt"] = ["Degree Distribution", "Closeness", "Shortest Path", "Eigenvector", "Mod-based Communities", "Clustering Coefficient"]
                     response["sel"] = "0"
+
+                if message["id"] == "layoutModule":
+                    response["opt"] = layout_module.LAYOUT_TABS
+                    response["sel"] = "0"
+                    
 
                 # dropdown for visualization type selection 
                 vis_selected = 0
@@ -979,7 +1162,7 @@ def ex(message):
                     GD.loadColor() 
                     GD.loadLinks()
                     GD.load_annotations()
-                    
+
                     response["sel"] = message["val"]
                     response["name"] = message["msg"]
                     print("changed Project to " + str(GD.plist[int(message["val"])]))
@@ -990,6 +1173,8 @@ def ex(message):
                     response2["fn"] = "project"
                     emit("ex", response2, room=room)
 
+                    # display rerun and save buttons for layout module
+                    emit("ex", {"usr": message["usr"], "fn": "layout", "id": "layoutExists", "val": False}, room=room)
 
                 else:
                     response["sel"] = message["val"] 
@@ -1019,6 +1204,15 @@ def ex(message):
                         response2["val"].append(node)
                     emit("ex", response2, room=room)
 
+                if message["id"] == "layoutModule":
+                    # check for layout switch
+                    # display rerun and save buttons
+                    response_layout_exists = {}
+                    response_layout_exists["usr"] = message["usr"]
+                    response_layout_exists["fn"] = "layout"
+                    response_layout_exists["id"] = "layoutExists"
+                    response_layout_exists["val"] = layout_module.check_layout_exists()
+                    emit("ex", response_layout_exists, room=room)
 
         emit("ex", response, room=room)
         print(response)

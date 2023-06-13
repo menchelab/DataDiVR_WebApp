@@ -107,6 +107,7 @@ function updateMcElements(){
     socket.emit('ex', { usr:uid, id: "analyticsPathNode2", fn: "analytics", val:"init"});
     socket.emit('ex', { usr:uid, id: "annotationOperation", fn: "annotation", val:"init"});
     socket.emit('ex', { usr:uid, id: "annotationRun", fn: "annotation", val:"init"});
+    socket.emit('ex', { usr:uid, id: "layoutInit", fn: "layout", val:"init"});
 }
 
 function reconnect(){
@@ -495,7 +496,18 @@ $(document).ready(function(){
 
                         }
                     }
-                    
+                    if (data.id == "layoutModule"){
+                        $('.layoutOption').css('display', 'none');
+                        switch (data.name){
+                            case "Random":
+                                $("#layoutSelectRandom").css('display', 'inline-block');
+                            break;
+                            case "Eigenlayout":
+                                $("#layoutSelectEigen").css('display', 'inline-block');
+                            break;
+                            // add bindings for options display here
+                        }
+                    }
 
                     if(data.id == "layoutsDD") {
                         switch (data.id){
@@ -923,7 +935,7 @@ $(document).ready(function(){
             case "annotation":
                 if (data.id == "annotationOperation"){
                     let value = data.val;
-                    if (value == "init"){return;}
+                    if (value == "init") {return;}
                     let button = document.getElementById("annotationOperation").shadowRoot.getElementById("name");
                     if (value == true){
                         button.innerHTML = "[-]";
@@ -948,6 +960,60 @@ $(document).ready(function(){
                     Legend_switchingFiles_backward(pfile.name);
 
                 }
+                break
+
+
+            case "layout":
+                if (data.id == "layoutInit"){
+                    if (data.val == "init"){return;}
+
+                    // display log
+                    let logContainer = document.getElementById("layoutLog");
+                    let logBtnShow = document.getElementById("layoutLogShow");
+                    let logBtnHide = document.getElementById("layoutLogHide")
+                    if (data.val === true){
+                        logContainer.style.display = "block";
+                        logBtnHide.style.display = "block";
+                        logBtnShow.style.display = "none";
+                    } 
+                    else {
+                        logContainer.style.display = "none";
+                        logBtnHide.style.display = "none";
+                        logBtnShow.style.display = "block";
+                    }
+
+                    // display buttons
+                    handleLayoutExistsDisplay(data.val.selectedLayoutGenerated);
+                }
+                
+                if (data.id == "showLog"){
+                    let logContainer = document.getElementById("layoutLog");
+                    let logBtnShow = document.getElementById("layoutLogShow");
+                    let logBtnHide = document.getElementById("layoutLogHide")
+                    if (data.val === true){
+                        logContainer.style.display = "block";
+                        logBtnHide.style.display = "block";
+                        logBtnShow.style.display = "none";
+                    } 
+                    else {
+                        logContainer.style.display = "none";
+                        logBtnHide.style.display = "none";
+                        logBtnShow.style.display = "block";
+                    }
+                }
+
+                if (data.id == "addLog"){
+                    let layoutLog = log2HTML(data.log);
+                    let layoutLogContainer = $("#layoutLog");
+                    layoutLogContainer.append(layoutLog);
+
+                }
+
+                if (data.id == "layoutExists"){
+                    handleLayoutExistsDisplay(data.val);
+                }
+
+                break
 
         } 
     });
@@ -990,5 +1056,34 @@ function removeOptions(selectElement) {
     for(i = L; i >= 0; i--) {
        selectElement.remove(i);
     }
- }
+}
 
+function log2HTML(logObj){
+    let obj = document.createElement('div');
+    obj.style.margin = "3px";
+
+    if (logObj.type == "log"){
+        obj.innerHTML = `Log : : <span style="font-size:16px; font-weight:bold; color:rgb(200,200,200);">${logObj.msg}</span>`;
+    }
+    if (logObj.type == "warning"){
+        obj.style.color = "rgb(250,0,0)";
+        obj.innerHTML = `Warning : : <span style="font-size:16px; font-weight:bold; color:rgb(200,200,200);">${logObj.msg}</span>`;
+    }
+    return obj;
+}
+
+function handleLayoutExistsDisplay(exists){
+    // function to handle rerun and save button display in front end
+    // exists: bool, if True: btns are displayed, false: btns are hidden
+    // called on layout tab switch, layout run, init
+    let layoutExistsBtns = document.getElementsByClassName("layoutExists");
+    if (exists === true){
+        Array.prototype.forEach.call(layoutExistsBtns, function(element){
+            element.style.display = "inline-block";
+        });
+    } else {
+        Array.prototype.forEach.call(layoutExistsBtns, function(element){
+            element.style.display = "none";
+        });
+    }
+}

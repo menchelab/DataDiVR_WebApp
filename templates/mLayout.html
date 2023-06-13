@@ -1,0 +1,30 @@
+<!-- Layout Module -->
+
+
+<div class="gradientBox">
+    <div class='swagBox' style="width:420px; background-color: rgba(16, 3, 0, 0.3); overflow: auto">
+        <mc-dropdown id="layoutModule" class="GD" type="dropdown" fn="dropdown" name="LAYOUT"></mc-dropdown>
+
+        <!-- Layout modules -->
+        <div id="layoutSelectRandom" style="display: none;" class="layoutOption"> 
+            <mc-button1 name="APPLY" id="layoutRandomApply" fn="layout"></mc-button1>
+            <mc-button1 name="RERUN" id="layoutRandomRerun" class="layoutExists" fn="layout"></mc-button1>
+            <mc-button1 name="SAVE" id="layoutRandomSave" class="layoutExists" fn="layout"></mc-button1>
+        </div>
+
+        <div id="layoutSelectEigen" style="display: none;" class="layoutOption"> 
+            <mc-button1 name="APPLY" id="layoutEigenApply" fn="layout"></mc-button1>
+            <mc-button1 name="RERUN" id="layoutEigenRerun" class="layoutExists" fn="layout"></mc-button1>
+            <mc-button1 name="SAVE" id="layoutEigenSave" class="layoutExists" fn="layout"></mc-button1>
+        </div>
+
+
+        <!-- Log -->
+        <mc-button1 name="LOG" id="layoutLogShow" class="GD" fn="layout" style="float: right; display: block;"></mc-button1>
+        <mc-button1 name="[-]" id="layoutLogHide" fn="layout" style="float: right;"></mc-button1>
+        <pre id='layoutLog' style="width: 398px; max-width:398px; word-wrap: auto; max-height: 300px; overflow-x: hidden; word-break: break-word; white-space: pre-wrap;"></pre>
+
+    </div>
+
+    
+</div>
