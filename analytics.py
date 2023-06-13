@@ -313,7 +313,7 @@ def analytics_color_shortest_path(path):
         # set link colors
         for link in links["links"]:
             if int(link["s"]) in path and int(link["e"]) in path:
-                link_colors.append((244, 255, 89, 150))
+                link_colors.append((255, 166, 0, 150))
                 continue
             link_colors.append((55, 55, 55, 30))
         
