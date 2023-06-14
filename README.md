@@ -29,8 +29,7 @@ To run the Module download the folder and execute the .exe file.
      * for CSV file upload go to [127.0.0.1:5000/upload](http://127.0.0.1:5000/upload) / [127.0.0.1:3000/upload](http://127.0.0.1:3000/upload)(mac)
      * for JSON file upload go to [127.0.0.1:5000/uploadJSON](http://127.0.0.1:5000/uploadJSON) / [127.0.0.1:3000/uploadJSON](http://127.0.0.1:3000/uploadJSON)(mac)
    - make sure "create new project" is checked and assign a name to your project
-   - choose a layout file from "static/examplefiles" (or more) or use your own
-   - pick a link file from "static/examplefiles" (same name as above) or use your own
+   - choose one of the provided examples files (available via download on the uploader webpages) or use your own
    - click upload
 
    After a success message was shown, the uploader has now created a new folder in "static/projects/yourprojectname" containing all the data in the DataDiVR format.
