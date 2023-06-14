@@ -322,8 +322,9 @@ def layout_carto_local(ordered_graph)->dict:
         return {"success": False, "error": "Graph is not instance of OrderedGraph class."}
     
     # boundary checks
-    # no check set yet
-
+    if len(ordered_graph.nodes()) >= 15000 or len(ordered_graph.edges()) >= 80000:
+        return {"success": False, "error": "Network too large for real-time computation of cartoGRAPHs Importance layout. (No error!)", "log": {"type": "warning", "msg": "Network too large for real-time computation of cartoGRAPHs Importance layout."}}
+    
     # actual layout to get node positions
     try:
         raw_pos = carto_gen_layout(ordered_graph, dim = 3, layoutmethod = 'local', dimred_method='umap')
@@ -335,7 +336,7 @@ def layout_carto_local(ordered_graph)->dict:
         # return positions
         return {"success": True, "content": scaled_pos}
     except:
-        return {"success": False, "error": "cartoGRAPHS Local layout algorithm failed.", "log": {"type": "warning", "msg": "cartoGRAPHS Local layout generation failed."}}
+        return {"success": False, "error": "cartoGRAPHs Local layout algorithm failed.", "log": {"type": "warning", "msg": "cartoGRAPHs Local layout generation failed."}}
     
 
 
@@ -348,7 +349,8 @@ def layout_carto_global(ordered_graph)->dict:
         return {"success": False, "error": "Graph is not instance of OrderedGraph class."}
     
     # boundary checks
-    # no check set yet
+    if len(ordered_graph.nodes()) >= 15000 or len(ordered_graph.edges()) >= 80000:
+        return {"success": False, "error": "Network too large for real-time computation of cartoGRAPHs Importance layout. (No error!)", "log": {"type": "warning", "msg": "Network too large for real-time computation of cartoGRAPHs Importance layout."}}
 
     # actual layout to get node positions
     try:
@@ -361,7 +363,7 @@ def layout_carto_global(ordered_graph)->dict:
         # return positions
         return {"success": True, "content": scaled_pos}
     except:
-        return {"success": False, "error": "cartoGRAPHS Global layout algorithm failed.", "log": {"type": "warning", "msg": "cartoGRAPHS Global layout generation failed."}}
+        return {"success": False, "error": "cartoGRAPHs Global layout algorithm failed.", "log": {"type": "warning", "msg": "cartoGRAPHs Global layout generation failed."}}
     
 
 
@@ -375,8 +377,9 @@ def layout_carto_importance(ordered_graph)->dict:
         return {"success": False, "error": "Graph is not instance of OrderedGraph class."}
     
     # boundary checks
-    # no check set yet
-
+    if len(ordered_graph.nodes()) >= 15000 or len(ordered_graph.edges()) >= 80000:
+        return {"success": False, "error": "Network too large for real-time computation of cartoGRAPHs Importance layout. (No error!)", "log": {"type": "warning", "msg": "Network too large for real-time computation of cartoGRAPHs Importance layout."}}
+    
     # actual layout to get node positions
     try:
         raw_pos = carto_gen_layout(ordered_graph, dim = 3, layoutmethod = 'importance', dimred_method='umap')
@@ -388,4 +391,4 @@ def layout_carto_importance(ordered_graph)->dict:
         # return positions
         return {"success": True, "content": scaled_pos}
     except:
-        return {"success": False, "error": "cartoGRAPHS Importance layout algorithm failed.", "log": {"type": "warning", "msg": "cartoGRAPHS Importance layout generation failed."}}
+        return {"success": False, "error": "cartoGRAPHs Importance layout algorithm failed.", "log": {"type": "warning", "msg": "cartoGRAPHs Importance layout generation failed."}}
