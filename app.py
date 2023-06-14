@@ -454,7 +454,6 @@ def ex(message):
                     GD.session_data["graph"] = util.project_to_graph(project)
                 graph = GD.session_data["graph"] 
                 result = analytics.analytics_closeness(graph)
-                print(result)
                 ###
                 GD.session_data["analyticsClosenessRun"] = result
             arr = GD.session_data["analyticsClosenessRun"]
@@ -477,6 +476,8 @@ def ex(message):
             # setup new texture
             if highlight is None:
                 return
+
+            print(">", highlighted_closeness, min(arr), max(arr), sum(arr)/len(arr))
 
             closeness_textures = analytics.analytics_color_continuous(arr, highlighted_closeness)
             if closeness_textures["textures_created"] is False:

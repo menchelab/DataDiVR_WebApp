@@ -166,7 +166,6 @@ def project_to_graph(project):
 
 
 def rgb_to_hex(color):
-    print(color)
     if len(color) == 3:
         r, g, b = color
     if len(color) == 4:

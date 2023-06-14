@@ -24,7 +24,7 @@ def __compute_histogram_bins(values, min_bins=2, max_bins=15):
     
     num_bins = max(min_bins, min(max_bins, num_bins))
     
-    return (num_bins, bin_width)
+    return (num_bins, bin_width, min_value)
 
 
 def analytics_degree_distribution(graph):
@@ -447,27 +447,26 @@ def analytics_eigenvector(graph):
 
 
 def plotly_eigenvector(assignment_list, highlighted_bar=None):
-    
-    num_bins, bin_width = __compute_histogram_bins(assignment_list)
+    num_bins, bin_width, min_value = __compute_histogram_bins(assignment_list)
 
     highlighted_assignments = [highlighted_bar]
 
     # convert highlighted_bar to bin boundaries
     if highlighted_bar is not None:
-        highlighted_bar = math.floor(highlighted_bar / bin_width)
+        highlighted_bar = math.floor((highlighted_bar - min_value) / bin_width)
 
     colors = ['#636efa' if i != highlighted_bar else 'orange' for i in range(num_bins)]  # i/10 to iter over 0 to 1 in 0.1 steps
 
     if highlighted_bar is not None:
-        min_assignment_selected = highlighted_bar * bin_width
-        max_assignment_selected = (highlighted_bar + 1) * bin_width
+        min_assignment_selected = (highlighted_bar * bin_width) + min_value
+        max_assignment_selected = ((highlighted_bar + 1) * bin_width) + min_value
         highlighted_assignments = [min_assignment_selected, max_assignment_selected]
 
     layout = go.Layout(
         xaxis=dict(title='Eigenvector Value Range', fixedrange=True),
         yaxis=dict(title='Number of Nodes', fixedrange=True),
         bargap=0.1,
-        title=None if highlighted_bar is None else f"Selected Node Eigenvector: {min_assignment_selected:.3f} to {max_assignment_selected:.3f}",
+        title=None if highlighted_bar is None else f"Selected Eigenvector: {min_assignment_selected:.3f} to {max_assignment_selected:.3f}",
         title_y=0.97
     )
     
@@ -483,26 +482,26 @@ def plotly_eigenvector(assignment_list, highlighted_bar=None):
 
 
 def plotly_closeness(assignment_list, highlighted_bar=None):
-    num_bins, bin_width = __compute_histogram_bins(assignment_list)
-
+    num_bins, bin_width, min_value = __compute_histogram_bins(assignment_list)
+    print(">>",num_bins, bin_width, min_value)
     highlighted_assignments = [highlighted_bar]
 
     # convert highlighted_bar to bin boundaries
     if highlighted_bar is not None:
-        highlighted_bar = math.floor(highlighted_bar / bin_width)
+        highlighted_bar = math.floor((highlighted_bar - min_value) / bin_width)
 
     colors = ['#636efa' if i != highlighted_bar else 'orange' for i in range(num_bins)]  # i/10 to iter over 0 to 1 in 0.1 steps
 
     if highlighted_bar is not None:
-        min_assignment_selected = highlighted_bar * bin_width
-        max_assignment_selected = (highlighted_bar + 1) * bin_width
+        min_assignment_selected = (highlighted_bar * bin_width) + min_value
+        max_assignment_selected = ((highlighted_bar + 1) * bin_width) + min_value
         highlighted_assignments = [min_assignment_selected, max_assignment_selected]
 
     layout = go.Layout(
         xaxis=dict(title='Closeness Range', fixedrange=True),
         yaxis=dict(title='Number of Nodes', fixedrange=True),
         bargap=0.1,
-        title=None if highlighted_bar is None else f"Selected Node Closeness: {min_assignment_selected:.3f} to {max_assignment_selected:.3f}",
+        title=None if highlighted_bar is None else f"Selected Closeness: {min_assignment_selected:.3f} to {max_assignment_selected:.3f}",
         title_y=0.97
     )
     
@@ -648,19 +647,19 @@ def analytics_clustering_coefficient(ordered_graph):
 
 
 def plotly_clustering_coefficient(assignment_list, highlighted_bar=None):
-    num_bins, bin_width = __compute_histogram_bins(assignment_list)
+    num_bins, bin_width, min_value = __compute_histogram_bins(assignment_list)
 
     highlighted_assignments = [highlighted_bar]
 
     # convert highlighted_bar to bin boundaries
     if highlighted_bar is not None:
-        highlighted_bar = math.floor(highlighted_bar / bin_width)
+        highlighted_bar = math.floor((highlighted_bar - min_value) / bin_width)
 
     colors = ['#636efa' if i != highlighted_bar else 'orange' for i in range(num_bins)]  # i/10 to iter over 0 to 1 in 0.1 steps
 
     if highlighted_bar is not None:
-        min_assignment_selected = highlighted_bar * bin_width
-        max_assignment_selected = (highlighted_bar + 1) * bin_width
+        min_assignment_selected = (highlighted_bar * bin_width) + min_value
+        max_assignment_selected = ((highlighted_bar + 1) * bin_width) + min_value
         highlighted_assignments = [min_assignment_selected, max_assignment_selected]
 
     layout = go.Layout(
