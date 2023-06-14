@@ -27,6 +27,7 @@ To run the Module download the folder and execute the .exe file.
    - choose which file format you would like to use (CSV tables or JSON files) 
    - open a browser (Chrome or Firefox)
          for CSV file upload go to [127.0.0.1:5000/upload](http://127.0.0.1:5000/upload) / [127.0.0.1:3000/upload](http://127.0.0.1:3000/upload)(mac)
+
          for JSON file upload go to [127.0.0.1:5000/uploadJSON](http://127.0.0.1:5000/uploadJSON) / [127.0.0.1:3000/uploadJSON](http://127.0.0.1:3000/uploadJSON)(mac)
    - make sure "create new project" is checked and assign a name to your project
    - choose a layout file from "static/examplefiles" (or more) or use your own
