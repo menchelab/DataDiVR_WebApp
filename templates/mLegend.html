@@ -173,7 +173,6 @@
         return div;
     }
 
-
     // Node Info by selected ID 
     function Legend_displayNodeInfobyID_old(project_selected, selected_id) {
         if (document.getElementById('legendpanel')) {
@@ -336,8 +335,6 @@
         }
     }
 
-
-
     function Legend_displayNodeInfobyID(project_selected, selected_id) {
         if (document.getElementById('legendpanel')) {
             const p_file = 'static/projects/'+project_selected+'/pfile.json';
@@ -491,9 +488,6 @@
         }
     }
 
-
-
-
     // Link Info by selected ID 
     function Legend_displayLinkInfobyID(project_selected, selected_id) {
         if (document.getElementById('legendpanel')) {
@@ -588,7 +582,6 @@
         }
     }
 
-
     // forward button adding index
     function NEWIndexforwardstep(data){
         const nextButton = document.getElementById('forwardstep');
@@ -670,7 +663,6 @@
         return 'unknown';
     }
 
-
     function Legend_changeImage(project_selected, currentIndex, imageSources) {
         //console.log("C_DEBUG: IN changeImage - pfile :", project_selected);
 
@@ -701,7 +693,6 @@
         }
     }
 
-
     function Legend_switchforward(responseData){
         const nextButton = document.getElementById('legend_forward');
         const backButton = document.getElementById('legend_backward');
@@ -715,7 +706,6 @@
         backButton.setAttribute('val',currentIndex);
     }
 
-
     function Legend_switchbackward(responseData) {
         const backButton = document.getElementById('legend_backward');
         const nextButton = document.getElementById('legend_forward');
@@ -728,8 +718,6 @@
         // also set nextButton to have same val : 
         nextButton.setAttribute('val',currentIndex);
         }
-
-
 
     function Legend_switchingFiles_forward(project_selected) {
         if (document.getElementById('legend_image') && document.getElementById('legend_html')) {
@@ -757,7 +745,6 @@
         }
     }
 
-
     function Legend_switchingFiles_backward(project_selected) {
         if (document.getElementById('legend_image') && document.getElementById('legend_html')) {
 
@@ -783,7 +770,6 @@
                 });
         }
     }
-
 
     function Legend_displayfirstFile(project_selected) {
         
