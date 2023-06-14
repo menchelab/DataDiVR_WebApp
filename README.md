@@ -25,8 +25,11 @@ To run the Module download the folder and execute the .exe file.
 
 2. upload data and create new project
 
-   - open a browser (Chrome or Firefox) and go to [127.0.0.1:5000/upload](http://127.0.0.1:5000/upload) / [127.0.0.1:3000/upload](http://127.0.0.1:3000/upload)(mac)
-   - make sure "create new project" is checked and assign a name
+2a. choose which file format you would like to use (CSV tables or JSON files) 
+   - open a browser (Chrome or Firefox)
+   - for CSV file upload go to [127.0.0.1:5000/upload](http://127.0.0.1:5000/upload) / [127.0.0.1:3000/upload](http://127.0.0.1:3000/upload)(mac)
+   - for JSON file upload go to [127.0.0.1:5000/upload](http://127.0.0.1:5000/uploadJSON) / [127.0.0.1:3000/upload](http://127.0.0.1:3000/uploadJSON)(mac)
+   - make sure "create new project" is checked and assign a name to your project
    - choose a layout file from "static/examplefiles" (or more) or use your own
    - pick a link file from "static/examplefiles" (same name as above) or use your own
    - click upload
