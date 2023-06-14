@@ -107,6 +107,7 @@ function updateMcElements(){
     socket.emit('ex', { usr:uid, id: "analyticsPathNode2", fn: "analytics", val:"init"});
     socket.emit('ex', { usr:uid, id: "annotationOperation", fn: "annotation", val:"init"});
     socket.emit('ex', { usr:uid, id: "annotationRun", fn: "annotation", val:"init"});
+    socket.emit('ex', { usr:uid, id: "layoutInit", fn: "layout", val:"init"});
 }
 
 function reconnect(){
@@ -303,20 +304,21 @@ $(document).ready(function(){
 
             case "updateTempTex":
                 if(isPreview){
-                    downloadTempTexture(data["path"], data["channel"])
-                }else{
-                    ue4(data["fn"], data);
-                }
-                break;
+                    // predefine layoutpaths here to send them afterwards to webgl if both are set within one socket connection
+                    let layoutNodesHiPath, layoutNodesLowPath;
+                    for (let i = 0; i < data.textures.length; i++) {
+                        let textureData = data.textures[i];
+                        if (textureData.channel === "layoutNodesHi"){layoutNodesHiPath = textureData.path; continue;} 
+                        if (textureData.channel === "layoutNodesLow"){layoutNodesLowPath = textureData.path; continue;} 
+                        downloadTempTexture(textureData.path, textureData.channel);     
+                    }
+                    if (layoutNodesHiPath !== undefined && layoutNodesLowPath !== undefined){updateLayoutTemp(layoutNodesLowPath, layoutNodesHiPath);}
 
-            case "updateTempLayout":
-                if(isPreview){
-                    updateLayoutTemp(data["path_low"], data["path_hi"])
                 }else{
                     ue4(data["fn"], data);
                 }
                 break;
-    
+  
 
 
             case 'node':
@@ -494,7 +496,27 @@ $(document).ready(function(){
 
                         }
                     }
-                    
+                    if (data.id == "layoutModule"){
+                        $('.layoutOption').css('display', 'none');
+                        switch (data.name){
+                            case "Random":
+                                $("#layoutSelectRandom").css('display', 'inline-block');
+                            break;
+                            case "Eigenlayout":
+                                $("#layoutSelectEigen").css('display', 'inline-block');
+                            break;
+                            case "cartoGRAPHs Local":
+                                $("#layoutSelectCartoLocal").css('display', 'inline-block');
+                            break;
+                            case "cartoGRAPHs Global":
+                                $("#layoutSelectCartoGlobal").css('display', 'inline-block');
+                            break;
+                            case "cartoGRAPHs Importance":
+                                $("#layoutSelectCartoImportance").css('display', 'inline-block');
+                            break;
+                            // add bindings for options display here
+                        }
+                    }
 
                     if(data.id == "layoutsDD") {
                         switch (data.id){
@@ -888,12 +910,48 @@ $(document).ready(function(){
                     }
                 }
                 
+                if (data.id == "analyticsPathInfo"){
+                    let container = document.getElementById('analyticsContainer');
+                    // clear before refill
+                    document.getElementById('analyticsContainer').innerHTML = ""; 
+
+                    let numPathsAll = data.val.numPathsAll;
+                    let numPathCurrent = data.val.numPathCurrent;
+                    let pathLen = data.val.pathLength;
+
+                    // fill analytics container with usefull information
+                    // current path number
+                    let currentPathDiv = document.createElement('div');
+                    currentPathDiv.style.margin = "3px";
+                    currentPathDiv.innerHTML = `Current Path : : <span style="font-size:18px; font-weight:bold">${numPathCurrent}</span>`;
+                    container.appendChild(currentPathDiv);
+
+                    // number of all paths
+                    let numPathsDiv = document.createElement('div');
+                    numPathsDiv.style.margin = "3px"
+                    numPathsDiv.innerHTML = `Number of Paths : : <span style="font-size:18px; font-weight:bold">${numPathsAll}</span>`;
+                    container.appendChild(numPathsDiv);
+
+                    // path length
+                    let pathLenDiv = document.createElement('div');
+                    pathLenDiv.style.margin = "3px"
+                    pathLenDiv.innerHTML = `Path Length : : <span style="font-size:18px; font-weight:bold">${pathLen}</span>`;
+                    container.appendChild(pathLenDiv);
+
+                }
+
+
+                if (data.id == "clearAnalyticsContainer"){
+                    // prevent if you havent switched !!!!
+                    document.getElementById('analyticsContainer').innerHTML = ""; 
+                }
+
                 break;
 
             case "annotation":
                 if (data.id == "annotationOperation"){
                     let value = data.val;
-                    if (value == "init"){return}
+                    if (value == "init") {return;}
                     let button = document.getElementById("annotationOperation").shadowRoot.getElementById("name");
                     if (value == true){
                         button.innerHTML = "[-]";
@@ -918,6 +976,60 @@ $(document).ready(function(){
                     Legend_switchingFiles_backward(pfile.name);
 
                 }
+                break
+
+
+            case "layout":
+                if (data.id == "layoutInit"){
+                    if (data.val == "init"){return;}
+
+                    // display log
+                    let logContainer = document.getElementById("layoutLog");
+                    let logBtnShow = document.getElementById("layoutLogShow");
+                    let logBtnHide = document.getElementById("layoutLogHide")
+                    if (data.val === true){
+                        logContainer.style.display = "block";
+                        logBtnHide.style.display = "block";
+                        logBtnShow.style.display = "none";
+                    } 
+                    else {
+                        logContainer.style.display = "none";
+                        logBtnHide.style.display = "none";
+                        logBtnShow.style.display = "block";
+                    }
+
+                    // display buttons
+                    handleLayoutExistsDisplay(data.val.selectedLayoutGenerated);
+                }
+                
+                if (data.id == "showLog"){
+                    let logContainer = document.getElementById("layoutLog");
+                    let logBtnShow = document.getElementById("layoutLogShow");
+                    let logBtnHide = document.getElementById("layoutLogHide")
+                    if (data.val === true){
+                        logContainer.style.display = "block";
+                        logBtnHide.style.display = "block";
+                        logBtnShow.style.display = "none";
+                    } 
+                    else {
+                        logContainer.style.display = "none";
+                        logBtnHide.style.display = "none";
+                        logBtnShow.style.display = "block";
+                    }
+                }
+
+                if (data.id == "addLog"){
+                    let layoutLog = log2HTML(data.log);
+                    let layoutLogContainer = $("#layoutLog");
+                    layoutLogContainer.append(layoutLog);
+
+                }
+
+                if (data.id == "layoutExists"){
+                    handleLayoutExistsDisplay(data.val);
+                }
+
+                break
 
         } 
     });
@@ -960,5 +1072,34 @@ function removeOptions(selectElement) {
     for(i = L; i >= 0; i--) {
        selectElement.remove(i);
     }
- }
+}
 
+function log2HTML(logObj){
+    let obj = document.createElement('div');
+    obj.style.margin = "3px";
+
+    if (logObj.type == "log"){
+        obj.innerHTML = `Log : : <span style="font-size:16px; font-weight:bold; color:rgb(200,200,200);">${logObj.msg}</span>`;
+    }
+    if (logObj.type == "warning"){
+        obj.style.color = "rgb(250,0,0)";
+        obj.innerHTML = `Warning : : <span style="font-size:16px; font-weight:bold; color:rgb(200,200,200);">${logObj.msg}</span>`;
+    }
+    return obj;
+}
+
+function handleLayoutExistsDisplay(exists){
+    // function to handle rerun and save button display in front end
+    // exists: bool, if True: btns are displayed, false: btns are hidden
+    // called on layout tab switch, layout run, init
+    let layoutExistsBtns = document.getElementsByClassName("layoutExists");
+    if (exists === true){
+        Array.prototype.forEach.call(layoutExistsBtns, function(element){
+            element.style.display = "inline-block";
+        });
+    } else {
+        Array.prototype.forEach.call(layoutExistsBtns, function(element){
+            element.style.display = "none";
+        });
+    }
+}

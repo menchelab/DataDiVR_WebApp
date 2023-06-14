@@ -24,7 +24,7 @@ def __compute_histogram_bins(values, min_bins=2, max_bins=15):
     
     num_bins = max(min_bins, min(max_bins, num_bins))
     
-    return (num_bins, bin_width)
+    return (num_bins, bin_width, min_value)
 
 
 def analytics_degree_distribution(graph):
@@ -57,8 +57,8 @@ def plotly_degree_distribution(degrees, highlighted_bar=None):
         colors = ['#636efa' if i != highlighted_bar else 'orange' for i in x]
         
         layout = go.Layout(
-            xaxis=dict(title='Degree'),
-            yaxis=dict(title='Number of Nodes'),
+            xaxis=dict(title='Degree', fixedrange=True),
+            yaxis=dict(title='Number of Nodes', fixedrange=True),
             bargap=0.1,
             title=None if highlighted_bar is None else f"Selected Node Degree: {highlighted_bar}",
             title_y=0.97
@@ -83,8 +83,8 @@ def plotly_degree_distribution(degrees, highlighted_bar=None):
             highlighted_degrees = list(range(min_degree_selected, max_degree_selected + 1))
 
         layout = go.Layout(
-            xaxis=dict(title='Degree Range'),
-            yaxis=dict(title='Number of Nodes'),
+            xaxis=dict(title='Degree Range', fixedrange=True),
+            yaxis=dict(title='Number of Nodes', fixedrange=True),
             bargap=0.1,
             title=None if highlighted_bar is None else f"Selected Node Degrees: {min_degree_selected} to {max_degree_selected}",
             title_y=0.97
@@ -276,13 +276,32 @@ def analytics_shortest_path(graph, node_1, node_2):
         return []
 
 
+# function to retreive all shortest paths
+def analytics_shortest_paths(graph, node_1, node_2):
+    node_1, node_2 = str(node_1), str(node_2)
+    if not graph.has_node(node_1):
+        print(f"ERROR: Node {GD.nodes['nodes'][int(node_1)]} not in network.")
+        return []
+    if not graph.has_node(node_2):
+        print(f"ERROR: Node {GD.nodes['nodes'][int(node_2)]} not in network.")
+        return []
+    try:
+        paths = list(nx.all_shortest_paths(graph, source=node_1, target=node_2, method="dijkstra"))
+        return paths
+    except nx.exception.NetworkXNoPath:
+        print(f"ERROR: Node {GD.nodes['nodes'][int(node_1)]} and node {GD.nodes['nodes'][int(node_2)]} are not connected.")
+        return []
+
+
+
+
 def analytics_color_shortest_path(path):
     # might include this into shortest_path function
     path = [int(node) for node in path]
     node_colors = []
     for node in range(len(GD.pixel_valuesc)):
         if node in path:
-            node_colors.append((255, 166, 0, 100))
+            node_colors.append((255, 166, 0, 150))
             continue
         node_colors.append((55, 55, 55, 100))
     
@@ -294,7 +313,7 @@ def analytics_color_shortest_path(path):
         # set link colors
         for link in links["links"]:
             if int(link["s"]) in path and int(link["e"]) in path:
-                link_colors.append((244, 255, 89, 150))
+                link_colors.append((255, 166, 0, 150))
                 continue
             link_colors.append((55, 55, 55, 30))
         
@@ -321,6 +340,85 @@ def analytics_color_shortest_path(path):
     except:
         return {"textures_created": False}
 
+
+# wrapper functions for bundling
+def analytics_shortest_path_run(graph):
+    # retreive GD node 1 and node 2 and modify session data
+    if "analyticsData" not in GD.pdata.keys():
+        ### FAIL
+        return {"success": False, "error": "'analyticsData' not in GD.pdata! Do you have 2 nodes from current Network selected?"}
+    if "shortestPathNode1" not in GD.pdata["analyticsData"]:
+        ### FAIL
+        return {"success": False, "error": "'shortestPathNode1' not in GD.pdata! Do you have node 1 from current Network selected?"}
+    if "shortestPathNode2" not in GD.pdata["analyticsData"]:
+        ### FAIL
+        return {"success": False, "error": "'shortestPathNode2' not in GD.pdata! Do you have node 2 from current Network selected?"}
+
+    # write session data
+    if "analyticsShortestPath" not in GD.session_data.keys():  
+        GD.session_data["analyticsShortestPath"] = {}
+    if "node1" not in GD.session_data["analyticsShortestPath"].keys():
+        GD.session_data["analyticsShortestPath"]["node1"] = GD.pdata["analyticsData"]["shortestPathNode1"]["id"]
+    if "node2" not in GD.session_data["analyticsShortestPath"].keys():
+        GD.session_data["analyticsShortestPath"]["node2"] = GD.pdata["analyticsData"]["shortestPathNode2"]["id"]
+    if "paths" not in GD.session_data["analyticsShortestPath"].keys():
+        GD.session_data["analyticsShortestPath"]["paths"] = []
+    if "index" not in GD.session_data["analyticsShortestPath"].keys():
+        GD.session_data["analyticsShortestPath"]["index"] = 0
+
+    # run shortest paths algorithm and check if a path is existing
+
+    # check if node has changed or paths is empty -> new run
+    if GD.pdata["analyticsData"]["shortestPathNode1"]["id"] != GD.session_data["analyticsShortestPath"]["node1"] or GD.pdata["analyticsData"]["shortestPathNode2"]["id"] != GD.session_data["analyticsShortestPath"]["node2"] or GD.session_data["analyticsShortestPath"]["paths"] == []:
+        # update session data from pdata
+        GD.session_data["analyticsShortestPath"]["node1"] = GD.pdata["analyticsData"]["shortestPathNode1"]["id"]
+        GD.session_data["analyticsShortestPath"]["node2"] = GD.pdata["analyticsData"]["shortestPathNode2"]["id"]
+        # run 
+        node_1 = GD.session_data["analyticsShortestPath"]["node1"]
+        node_2 = GD.session_data["analyticsShortestPath"]["node2"]
+        path_data = analytics_shortest_paths(graph=graph, node_1=node_1, node_2=node_2)
+        # write results in session data
+        GD.session_data["analyticsShortestPath"]["paths"] = path_data
+        GD.session_data["analyticsShortestPath"]["index"] = 0
+    path_data = GD.session_data["analyticsShortestPath"]["paths"]
+
+    # return results
+    if len(path_data) == 0:
+        return {"success": False, "error": "No Path found. If available check previous error message."}
+    return {"success": True}
+
+
+def analytics_shortest_path_backward():
+    # retrieve and modify session data
+    current_index = GD.session_data["analyticsShortestPath"]["index"]
+    path_count = len(GD.session_data["analyticsShortestPath"]["paths"])
+    new_index = max(0, current_index - 1 if current_index > 0 else path_count - 1)
+    GD.session_data["analyticsShortestPath"]["index"] = new_index
+
+
+def analytics_shortest_path_forward():
+    # retrieve and modify session data
+    current_index = GD.session_data["analyticsShortestPath"]["index"]
+    path_count = len(GD.session_data["analyticsShortestPath"]["paths"])
+    new_index = current_index + 1 if current_index < path_count - 1 else 0
+    GD.session_data["analyticsShortestPath"]["index"] = new_index
+
+
+def analytics_shortest_path_display():
+    # modifies and retreive session data
+    all_paths = GD.session_data["analyticsShortestPath"]["paths"]
+    current_index = GD.session_data["analyticsShortestPath"]["index"]
+    current_path = all_paths[current_index]
+
+    # generate textures
+    generated_textures = analytics_color_shortest_path(path=current_path)
+
+    # generate display information
+    generate_display = {"numPathsAll": len(all_paths), "numPathCurrent": current_index + 1, "pathLength": len(current_path) - 1}
+
+    # return bundled object 
+    generated_textures.update(generate_display)
+    return generated_textures
 
 def analytics_eigenvector(graph):
     def _compute_eigenvector_centrality_nx(graph):
@@ -349,27 +447,26 @@ def analytics_eigenvector(graph):
 
 
 def plotly_eigenvector(assignment_list, highlighted_bar=None):
-    
-    num_bins, bin_width = __compute_histogram_bins(assignment_list)
+    num_bins, bin_width, min_value = __compute_histogram_bins(assignment_list)
 
     highlighted_assignments = [highlighted_bar]
 
     # convert highlighted_bar to bin boundaries
     if highlighted_bar is not None:
-        highlighted_bar = math.floor(highlighted_bar / bin_width)
+        highlighted_bar = math.floor((highlighted_bar - min_value) / bin_width)
 
     colors = ['#636efa' if i != highlighted_bar else 'orange' for i in range(num_bins)]  # i/10 to iter over 0 to 1 in 0.1 steps
 
     if highlighted_bar is not None:
-        min_assignment_selected = highlighted_bar * bin_width
-        max_assignment_selected = (highlighted_bar + 1) * bin_width
+        min_assignment_selected = (highlighted_bar * bin_width) + min_value
+        max_assignment_selected = ((highlighted_bar + 1) * bin_width) + min_value
         highlighted_assignments = [min_assignment_selected, max_assignment_selected]
 
     layout = go.Layout(
-        xaxis=dict(title='Eigenvector Value Range'),
-        yaxis=dict(title='Number of Nodes'),
+        xaxis=dict(title='Eigenvector Value Range', fixedrange=True),
+        yaxis=dict(title='Number of Nodes', fixedrange=True),
         bargap=0.1,
-        title=None if highlighted_bar is None else f"Selected Node Eigenvector: {min_assignment_selected:.3f} to {max_assignment_selected:.3f}",
+        title=None if highlighted_bar is None else f"Selected Eigenvector: {min_assignment_selected:.3f} to {max_assignment_selected:.3f}",
         title_y=0.97
     )
     
@@ -385,26 +482,26 @@ def plotly_eigenvector(assignment_list, highlighted_bar=None):
 
 
 def plotly_closeness(assignment_list, highlighted_bar=None):
-    num_bins, bin_width = __compute_histogram_bins(assignment_list)
-
+    num_bins, bin_width, min_value = __compute_histogram_bins(assignment_list)
+    print(">>",num_bins, bin_width, min_value)
     highlighted_assignments = [highlighted_bar]
 
     # convert highlighted_bar to bin boundaries
     if highlighted_bar is not None:
-        highlighted_bar = math.floor(highlighted_bar / bin_width)
+        highlighted_bar = math.floor((highlighted_bar - min_value) / bin_width)
 
     colors = ['#636efa' if i != highlighted_bar else 'orange' for i in range(num_bins)]  # i/10 to iter over 0 to 1 in 0.1 steps
 
     if highlighted_bar is not None:
-        min_assignment_selected = highlighted_bar * bin_width
-        max_assignment_selected = (highlighted_bar + 1) * bin_width
+        min_assignment_selected = (highlighted_bar * bin_width) + min_value
+        max_assignment_selected = ((highlighted_bar + 1) * bin_width) + min_value
         highlighted_assignments = [min_assignment_selected, max_assignment_selected]
 
     layout = go.Layout(
-        xaxis=dict(title='Closeness Range'),
-        yaxis=dict(title='Number of Nodes'),
+        xaxis=dict(title='Closeness Range', fixedrange=True),
+        yaxis=dict(title='Number of Nodes', fixedrange=True),
         bargap=0.1,
-        title=None if highlighted_bar is None else f"Selected Node Closeness: {min_assignment_selected:.3f} to {max_assignment_selected:.3f}",
+        title=None if highlighted_bar is None else f"Selected Closeness: {min_assignment_selected:.3f} to {max_assignment_selected:.3f}",
         title_y=0.97
     )
     
@@ -424,11 +521,6 @@ def modularity_community_detection(ordered_graph):
         raise TypeError("The graph should be an instance of OrderedGraph.")
 
     communities = nx.algorithms.community.modularity_max.greedy_modularity_communities(ordered_graph)
-    # some alternatives:
-    # communities = nx.algorithms.community.girvan_newman(ordered_graph)
-    # communities = nx.algorithms.community.community_louvain(ordered_graph)
-    # communities = nx.algorithms.community.label_propagation_communities(ordered_graph)
-    # communities = nx.algorithms.community.modularity_max.greedy_modularity_communities(ordered_graph)
 
     community_assignment = [0] * len(ordered_graph.node_order)
 
@@ -443,7 +535,7 @@ def modularity_community_detection(ordered_graph):
 def color_mod_community_det(communities_arr):
     num_communities = max(communities_arr)
     colors = util.generate_colors(n=num_communities)
-    colors.insert(0, (55, 55, 55))  # grey out all non community nodes
+    colors.insert(0, (55, 55, 55, 100))  # grey out all non community nodes
     node_colors = [colors[community] for community in communities_arr]
     return node_colors
 
@@ -550,24 +642,24 @@ def analytics_clustering_coefficient(ordered_graph):
 
 
 def plotly_clustering_coefficient(assignment_list, highlighted_bar=None):
-    num_bins, bin_width = __compute_histogram_bins(assignment_list)
+    num_bins, bin_width, min_value = __compute_histogram_bins(assignment_list)
 
     highlighted_assignments = [highlighted_bar]
 
     # convert highlighted_bar to bin boundaries
     if highlighted_bar is not None:
-        highlighted_bar = math.floor(highlighted_bar / bin_width)
+        highlighted_bar = math.floor((highlighted_bar - min_value) / bin_width)
 
     colors = ['#636efa' if i != highlighted_bar else 'orange' for i in range(num_bins)]  # i/10 to iter over 0 to 1 in 0.1 steps
 
     if highlighted_bar is not None:
-        min_assignment_selected = highlighted_bar * bin_width
-        max_assignment_selected = (highlighted_bar + 1) * bin_width
+        min_assignment_selected = (highlighted_bar * bin_width) + min_value
+        max_assignment_selected = ((highlighted_bar + 1) * bin_width) + min_value
         highlighted_assignments = [min_assignment_selected, max_assignment_selected]
 
     layout = go.Layout(
-        xaxis=dict(title='Clustering Coefficient Range'),
-        yaxis=dict(title='Number of Nodes'),
+        xaxis=dict(title='Clustering Coefficient Range', fixedrange=True),
+        yaxis=dict(title='Number of Nodes', fixedrange=True),
         bargap=0.1,
         title=None if highlighted_bar is None else f"Selected Cluster Coefficients: {min_assignment_selected:.3f} to {max_assignment_selected:.3f}",
         title_y=0.97

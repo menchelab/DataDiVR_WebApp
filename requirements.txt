@@ -30,3 +30,4 @@ pyttsx3
 openai
 igraph
 uvicorn
+umap-learn
