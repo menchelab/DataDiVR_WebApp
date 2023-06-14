@@ -984,7 +984,7 @@ def ex(message):
                 return
             
             # write log finish
-            response_log["log"] = {"type": "log", "msg": "Random layout generation successful."}
+            response_log["log"] = {"type": "log", "msg": "Generated random layout successfully."}
             emit("ex", response_log, room=room)
 
             # display rerun and save buttons
@@ -1040,7 +1040,7 @@ def ex(message):
                 return
             
             # write log finish
-            response_log["log"] = {"type": "log", "msg": "Eigenlayout generation successful."}
+            response_log["log"] = {"type": "log", "msg": "Generated Eigenlayout successfully."}
             emit("ex", response_log, room=room)
 
             # display rerun and save buttons
@@ -1095,7 +1095,7 @@ def ex(message):
                 return
             
             # write log finish
-            response_log["log"] = {"type": "log", "msg": "cartoGRAPHS Local layout generation successful."}
+            response_log["log"] = {"type": "log", "msg": "Generated cartoGRAPHS Local layout successfully."}
             emit("ex", response_log, room=room)
 
             # display rerun and save buttons
@@ -1150,7 +1150,7 @@ def ex(message):
                 return
             
             # write log finish
-            response_log["log"] = {"type": "log", "msg": "cartoGRAPHS Global layout generation successful."}
+            response_log["log"] = {"type": "log", "msg": "Generated cartoGRAPHS Global layout successfully."}
             emit("ex", response_log, room=room)
 
             # display rerun and save buttons
@@ -1205,7 +1205,7 @@ def ex(message):
                 return
             
             # write log finish
-            response_log["log"] = {"type": "log", "msg": "cartoGRAPHS Importance layout generation successful."}
+            response_log["log"] = {"type": "log", "msg": "Generated cartoGRAPHS Importance layout successfully."}
             emit("ex", response_log, room=room)
 
             # display rerun and save buttons
