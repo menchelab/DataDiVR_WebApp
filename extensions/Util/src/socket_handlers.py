@@ -6,6 +6,7 @@ import GlobalData as GD
 
 import socket_handlers as sh
 
+from .. import settings
 from . import anntoation_scraper
 from . import extension_data as ED
 from . import util
@@ -90,8 +91,9 @@ def setup(bp):
     ED.annotationScraper = anntoation_scraper.AnnotationScraper(
         send_result=send_result, bp=bp
     )
-    threading.Thread(target=ED.annotationScraper.start, args=(2,)).start()
-    ...
+    if settings.activate:
+        threading.Thread(target=ED.annotationScraper.start, args=(2,)).start()
+        ...
 
 
 def select(bp, message):
