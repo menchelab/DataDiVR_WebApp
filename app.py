@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import os.path
+
 # import preview as pre
 # import preview as pre
 import random
@@ -17,10 +18,21 @@ from os import path
 import flask
 import numpy as np
 import requests
+
 # from flask_session import Session
 from engineio.payload import Payload
-from flask import (Flask, abort, current_app, jsonify, make_response, redirect,
-                   render_template, request, session, url_for)
+from flask import (
+    Flask,
+    abort,
+    current_app,
+    jsonify,
+    make_response,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+)
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from PIL import Image, ImageColor
 from werkzeug.utils import secure_filename
@@ -31,9 +43,11 @@ import cartographs_func as CG
 import chat
 import chatGPTTest
 import GlobalData as GD
+import layout_module
 import load_extensions
 import plotlyExamples as PE
 import search
+
 # load audio and pad/trim it to fit 30 seconds
 import TextToSpeech
 import uploader
@@ -322,43 +336,56 @@ def ex(message):
 
         emit("ex", response, room=room)  # send to all clients
 
-    elif message["id"] == "cbColorInput":
-        # copy active color texture
-        im1 = Image.open(
-            "static/projects/"
-            + GD.data["actPro"]
-            + "/layoutsRGB/"
-            + GD.pfile["layoutsRGB"][int(GD.pdata["layoutsRGBDD"])]
-            + ".png",
-            "r",
-        )
-        im2 = im1.copy()
-        # convert rgb to hex string
-        color = (message["r"], message["g"], message["b"])
-        pix_val = list(im1.getdata())
+    elif message["fn"] == "colorbox":
+        if message["id"] == "cbColorInput":
+            # copy active color texture
+            im1 = Image.open(
+                "static/projects/"
+                + GD.data["actPro"]
+                + "/layoutsRGB/"
+                + GD.pfile["layoutsRGB"][int(GD.pdata["layoutsRGBDD"])]
+                + ".png",
+                "r",
+            )
+            im2 = im1.copy()
+            # convert rgb to hex string
+            color = (
+                int(message["r"]),
+                int(message["g"]),
+                int(message["b"]),
+                int(message["a"] * 255),
+            )
+            pix_val = list(im1.getdata())
 
-        # colorize clipboard selection
-        for n in GD.pdata["cbnode"]:
-            id = int(n["id"])
-            pix_val[id] = color
-        im2.putdata(pix_val)
+            # colorize clipboard selection
+            for n in GD.pdata["cbnode"]:
+                id = int(n["id"])
+                pix_val[id] = color
+            im2.putdata(pix_val)
 
-        # save temp texture
+            # save temp texture
 
-        path = "static/projects/" + GD.data["actPro"] + "/layoutsRGB/temp1.png"
-        im2.save(path)
-        im1.close()
-        im2.close()
-        # send update signal to clients
+            path = "static/projects/" + GD.data["actPro"] + "/layoutsRGB/temp1.png"
+            im2.save(path)
+            im1.close()
+            im2.close()
+            # send update signal to clients
 
-        response = {}
-        response["usr"] = message["usr"]
-        response["fn"] = "updateTempTex"
-        response["channel"] = "nodeRGB"
-        response["path"] = (
-            "static/projects/" + GD.data["actPro"] + "/layoutsRGB/temp1.png"
-        )
-        emit("ex", response, room=room)
+            response = {}
+            response["usr"] = message["usr"]
+            response["fn"] = "updateTempTex"
+            response["textures"] = []
+            response["textures"].append(
+                {
+                    "channel": "nodeRGB",
+                    "path": "static/projects/"
+                    + GD.data["actPro"]
+                    + "/layoutsRGB/temp1.png",
+                }
+            )
+
+            emit("ex", response, room=room)
+        emit("ex", message, room=room)
 
     elif message["fn"] == "analytics":
         project = GD.data["actPro"]
@@ -366,7 +393,9 @@ def ex(message):
         if message["id"] == "analyticsDegreeRun":
             if "analyticsDegreeRun" not in GD.session_data.keys():
                 ### "expensive" stuff
-                graph = util.project_to_graph(project)
+                if "graph" not in GD.session_data.keys():
+                    GD.session_data["graph"] = util.project_to_graph(project)
+                graph = GD.session_data["graph"]
                 result = analytics.analytics_degree_distribution(graph)
                 ###
                 GD.session_data["analyticsDegreeRun"] = result
@@ -399,26 +428,31 @@ def ex(message):
                 print("Failed to create textures for Analytics/Shortest Path.")
                 return
 
-            response_nodes = {}
-            response_nodes["usr"] = message["usr"]
-            response_nodes["fn"] = "updateTempTex"
-            response_nodes["channel"] = "nodeRGB"
-            response_nodes["path"] = degree_distribution_textures["path_nodes"]
-            emit("ex", response_nodes, room=room)
-
-            response_links = {}
-            response_links["usr"] = message["usr"]
-            response_links["fn"] = "updateTempTex"
-            response_links["channel"] = "linkRGB"
-            response_links["path"] = degree_distribution_textures["path_links"]
-            emit("ex", response_links, room=room)
+            response = {}
+            response["usr"] = message["usr"]
+            response["fn"] = "updateTempTex"
+            response["textures"] = []
+            response["textures"].append(
+                {
+                    "channel": "nodeRGB",
+                    "path": degree_distribution_textures["path_nodes"],
+                }
+            )
+            response["textures"].append(
+                {
+                    "channel": "linkRGB",
+                    "path": degree_distribution_textures["path_links"],
+                }
+            )
+            emit("ex", response, room=room)
 
         if message["id"] == "analyticsClosenessRun":
             if "analyticsClosenessRun" not in GD.session_data.keys():
                 ### "expensive" stuff
-                graph = util.project_to_graph(project)
+                if "graph" not in GD.session_data.keys():
+                    GD.session_data["graph"] = util.project_to_graph(project)
+                graph = GD.session_data["graph"]
                 result = analytics.analytics_closeness(graph)
-                print(result)
                 ###
                 GD.session_data["analyticsClosenessRun"] = result
             arr = GD.session_data["analyticsClosenessRun"]
@@ -443,6 +477,8 @@ def ex(message):
             if highlight is None:
                 return
 
+            print(">", highlighted_closeness, min(arr), max(arr), sum(arr) / len(arr))
+
             closeness_textures = analytics.analytics_color_continuous(
                 arr, highlighted_closeness
             )
@@ -450,19 +486,17 @@ def ex(message):
                 print("Failed to create textures for Analytics/Closeness.")
                 return
 
-            response_nodes = {}
-            response_nodes["usr"] = message["usr"]
-            response_nodes["fn"] = "updateTempTex"
-            response_nodes["channel"] = "nodeRGB"
-            response_nodes["path"] = closeness_textures["path_nodes"]
-            emit("ex", response_nodes, room=room)
-
-            response_links = {}
-            response_links["usr"] = message["usr"]
-            response_links["fn"] = "updateTempTex"
-            response_links["channel"] = "linkRGB"
-            response_links["path"] = closeness_textures["path_links"]
-            emit("ex", response_links, room=room)
+            response = {}
+            response["usr"] = message["usr"]
+            response["fn"] = "updateTempTex"
+            response["textures"] = []
+            response["textures"].append(
+                {"channel": "nodeRGB", "path": closeness_textures["path_nodes"]}
+            )
+            response["textures"].append(
+                {"channel": "linkRGB", "path": closeness_textures["path_links"]}
+            )
+            emit("ex", response, room=room)
 
         if message["id"] == "analyticsPathNode1":
             # set server data: node +  hex color
@@ -524,7 +558,7 @@ def ex(message):
                     response["val"] = GD.pdata["analyticsData"]["shortestPathNode2"]
             emit("ex", response, room=room)
 
-        if message["id"] == "analyticsPathRun":
+        if message["id"] == "analyticsPathRunOLD":
             if "analyticsData" not in GD.pdata.keys():
                 print(
                     "[Fail] analytics shortest path run: 2 nodes have to be selected."
@@ -543,31 +577,171 @@ def ex(message):
 
             node_1 = GD.pdata["analyticsData"]["shortestPathNode1"]["id"]
             node_2 = GD.pdata["analyticsData"]["shortestPathNode2"]["id"]
-            graph = util.project_to_graph(project)
+            if "graph" not in GD.session_data.keys():
+                GD.session_data["graph"] = util.project_to_graph(project)
+            graph = GD.session_data["graph"]
             path = analytics.analytics_shortest_path(graph, node_1, node_2)
             shortest_path_textures = analytics.analytics_color_shortest_path(path)
 
             if shortest_path_textures["textures_created"] is False:
                 print("Failed to create textures for Analytics/Shortest Path.")
                 return
-            response_nodes = {}
-            response_nodes["usr"] = message["usr"]
-            response_nodes["fn"] = "updateTempTex"
-            response_nodes["channel"] = "nodeRGB"
-            response_nodes["path"] = shortest_path_textures["path_nodes"]
-            emit("ex", response_nodes, room=room)
+            response = {}
+            response["usr"] = message["usr"]
+            response["fn"] = "updateTempTex"
+            response["textures"] = []
+            response["textures"].append(
+                {"channel": "nodeRGB", "path": shortest_path_textures["path_nodes"]}
+            )
+            response["textures"].append(
+                {"channel": "linkRGB", "path": shortest_path_textures["path_links"]}
+            )
+            emit("ex", response, room=room)
 
-            response_links = {}
-            response_links["usr"] = message["usr"]
-            response_links["fn"] = "updateTempTex"
-            response_links["channel"] = "linkRGB"
-            response_links["path"] = shortest_path_textures["path_links"]
-            emit("ex", response_links, room=room)
+        # following 3 cases are for shortest Path buttons
+        if message["id"] == "analyticsPathRun":
+            # generate paths
+            if "graph" not in GD.session_data.keys():
+                GD.session_data["graph"] = util.project_to_graph(project)
+            graph = GD.session_data["graph"]
+            shortest_path_result_obj = analytics.analytics_shortest_path_run(
+                graph=graph
+            )
+            if shortest_path_result_obj["success"] is False:
+                print(
+                    "ERROR: analytics/shortest_path:", shortest_path_result_obj["error"]
+                )
+                return
+            # apply coloring and
+            shortest_path_display_obj = analytics.analytics_shortest_path_display()
+            if shortest_path_display_obj["textures_created"] is False:
+                print("ERROR: analytics/shortest_path: Texture Generation Failed")
+                return
+
+            # send to frontend
+            response_textures = {}
+            response_textures["usr"] = message["usr"]
+            response_textures["fn"] = "updateTempTex"
+            response_textures["textures"] = []
+            response_textures["textures"].append(
+                {"channel": "nodeRGB", "path": shortest_path_display_obj["path_nodes"]}
+            )
+            response_textures["textures"].append(
+                {"channel": "linkRGB", "path": shortest_path_display_obj["path_links"]}
+            )
+            emit("ex", response_textures, room=room)
+
+            response_info = {}
+            response_info["usr"] = message["usr"]
+            response_info["fn"] = "analytics"
+            response_info["id"] = "analyticsPathInfo"
+            response_info["val"] = {
+                "numPathsAll": shortest_path_display_obj["numPathsAll"],
+                "numPathCurrent": shortest_path_display_obj["numPathCurrent"],
+                "pathLength": shortest_path_display_obj["pathLength"],
+            }
+            emit("ex", response_info, room=room)
+
+        if message["id"] == "analyticsPathBackw":
+            # generate paths
+            if "graph" not in GD.session_data.keys():
+                GD.session_data["graph"] = util.project_to_graph(project)
+            graph = GD.session_data["graph"]
+            shortest_path_result_obj = analytics.analytics_shortest_path_run(
+                graph=graph
+            )
+            if shortest_path_result_obj["success"] is False:
+                print(
+                    "ERROR: analytics/shortest_path:", shortest_path_result_obj["error"]
+                )
+                return
+
+            # step backwards
+            analytics.analytics_shortest_path_backward()
+
+            # apply coloring and
+            shortest_path_display_obj = analytics.analytics_shortest_path_display()
+            if shortest_path_display_obj["textures_created"] is False:
+                print("ERROR: analytics/shortest_path: Texture Generation Failed")
+                return
+
+            # send to frontend
+            response_textures = {}
+            response_textures["usr"] = message["usr"]
+            response_textures["fn"] = "updateTempTex"
+            response_textures["textures"] = []
+            response_textures["textures"].append(
+                {"channel": "nodeRGB", "path": shortest_path_display_obj["path_nodes"]}
+            )
+            response_textures["textures"].append(
+                {"channel": "linkRGB", "path": shortest_path_display_obj["path_links"]}
+            )
+            emit("ex", response_textures, room=room)
+
+            response_info = {}
+            response_info["usr"] = message["usr"]
+            response_info["fn"] = "analytics"
+            response_info["id"] = "analyticsPathInfo"
+            response_info["val"] = {
+                "numPathsAll": shortest_path_display_obj["numPathsAll"],
+                "numPathCurrent": shortest_path_display_obj["numPathCurrent"],
+                "pathLength": shortest_path_display_obj["pathLength"],
+            }
+            emit("ex", response_info, room=room)
+
+        if message["id"] == "analyticsPathForw":
+            # generate paths
+            if "graph" not in GD.session_data.keys():
+                GD.session_data["graph"] = util.project_to_graph(project)
+            graph = GD.session_data["graph"]
+            shortest_path_result_obj = analytics.analytics_shortest_path_run(
+                graph=graph
+            )
+            if shortest_path_result_obj["success"] is False:
+                print(
+                    "ERROR: analytics/shortest_path:", shortest_path_result_obj["error"]
+                )
+                return
+
+            # step forwards
+            analytics.analytics_shortest_path_forward()
+
+            # apply coloring and
+            shortest_path_display_obj = analytics.analytics_shortest_path_display()
+            if shortest_path_display_obj["textures_created"] is False:
+                print("ERROR: analytics/shortest_path: Texture Generation Failed")
+                return
+
+            # send to frontend
+            response_textures = {}
+            response_textures["usr"] = message["usr"]
+            response_textures["fn"] = "updateTempTex"
+            response_textures["textures"] = []
+            response_textures["textures"].append(
+                {"channel": "nodeRGB", "path": shortest_path_display_obj["path_nodes"]}
+            )
+            response_textures["textures"].append(
+                {"channel": "linkRGB", "path": shortest_path_display_obj["path_links"]}
+            )
+            emit("ex", response_textures, room=room)
+
+            response_info = {}
+            response_info["usr"] = message["usr"]
+            response_info["fn"] = "analytics"
+            response_info["id"] = "analyticsPathInfo"
+            response_info["val"] = {
+                "numPathsAll": shortest_path_display_obj["numPathsAll"],
+                "numPathCurrent": shortest_path_display_obj["numPathCurrent"],
+                "pathLength": shortest_path_display_obj["pathLength"],
+            }
+            emit("ex", response_info, room=room)
 
         if message["id"] == "analyticsEigenvectorRun":
             if "analyticsEigenvectorRun" not in GD.session_data.keys():
                 ### "expensive" stuff
-                graph = util.project_to_graph(project)
+                if "graph" not in GD.session_data.keys():
+                    GD.session_data["graph"] = util.project_to_graph(project)
+                graph = GD.session_data["graph"]
                 result = analytics.analytics_eigenvector(graph)
                 ###
                 GD.session_data["analyticsEigenvectorRun"] = result
@@ -602,24 +776,24 @@ def ex(message):
                 print("Failed to create textures for Analytics/Eigenvector.")
                 return
 
-            response_nodes = {}
-            response_nodes["usr"] = message["usr"]
-            response_nodes["fn"] = "updateTempTex"
-            response_nodes["channel"] = "nodeRGB"
-            response_nodes["path"] = closeness_textures["path_nodes"]
-            emit("ex", response_nodes, room=room)
-
-            response_links = {}
-            response_links["usr"] = message["usr"]
-            response_links["fn"] = "updateTempTex"
-            response_links["channel"] = "linkRGB"
-            response_links["path"] = closeness_textures["path_links"]
-            emit("ex", response_links, room=room)
+            response = {}
+            response["usr"] = message["usr"]
+            response["fn"] = "updateTempTex"
+            response["textures"] = []
+            response["textures"].append(
+                {"channel": "nodeRGB", "path": closeness_textures["path_nodes"]}
+            )
+            response["textures"].append(
+                {"channel": "linkRGB", "path": closeness_textures["path_links"]}
+            )
+            emit("ex", response, room=room)
 
         if message["id"] == "analyticsClusteringCoeffRun":
             if "analyticsClusteringCoeffRun" not in GD.session_data.keys():
                 ### "expensive" stuff
-                graph = util.project_to_graph(project)
+                if "graph" not in GD.session_data.keys():
+                    GD.session_data["graph"] = util.project_to_graph(project)
+                graph = GD.session_data["graph"]
                 result = analytics.analytics_clustering_coefficient(graph)
                 ###
                 GD.session_data["analyticsClusteringCoeffRun"] = result
@@ -652,24 +826,24 @@ def ex(message):
                 print("Failed to create textures for Analytics/Clustering Coefficient.")
                 return
 
-            response_nodes = {}
-            response_nodes["usr"] = message["usr"]
-            response_nodes["fn"] = "updateTempTex"
-            response_nodes["channel"] = "nodeRGB"
-            response_nodes["path"] = closeness_textures["path_nodes"]
-            emit("ex", response_nodes, room=room)
-
-            response_links = {}
-            response_links["usr"] = message["usr"]
-            response_links["fn"] = "updateTempTex"
-            response_links["channel"] = "linkRGB"
-            response_links["path"] = closeness_textures["path_links"]
-            emit("ex", response_links, room=room)
+            response = {}
+            response["usr"] = message["usr"]
+            response["fn"] = "updateTempTex"
+            response["textures"] = []
+            response["textures"].append(
+                {"channel": "nodeRGB", "path": closeness_textures["path_nodes"]}
+            )
+            response["textures"].append(
+                {"channel": "linkRGB", "path": closeness_textures["path_links"]}
+            )
+            emit("ex", response, room=room)
 
         if message["id"] == "analyticsModcommunityRun":
             if "analyticsModcommunityRun" not in GD.session_data.keys():
                 ### "expensive" stuff
-                graph = util.project_to_graph(project)
+                if "graph" not in GD.session_data.keys():
+                    GD.session_data["graph"] = util.project_to_graph(project)
+                graph = GD.session_data["graph"]
                 result = analytics.modularity_community_detection(graph)
                 ###
                 GD.session_data["analyticsModcommunityRun"] = result
@@ -683,24 +857,24 @@ def ex(message):
             if generated_textures["textures_created"] is False:
                 print("Failed to create textures for Analytics/Mod-based Communities")
                 return
-            response_nodes = {}
-            response_nodes["usr"] = message["usr"]
-            response_nodes["fn"] = "updateTempTex"
-            response_nodes["channel"] = "nodeRGB"
-            response_nodes["path"] = generated_textures["path_nodes"]
-            emit("ex", response_nodes, room=room)
-
-            response_links = {}
-            response_links["usr"] = message["usr"]
-            response_links["fn"] = "updateTempTex"
-            response_links["channel"] = "linkRGB"
-            response_links["path"] = generated_textures["path_links"]
-            emit("ex", response_links, room=room)
+            response = {}
+            response["usr"] = message["usr"]
+            response["fn"] = "updateTempTex"
+            response["textures"] = []
+            response["textures"].append(
+                {"channel": "nodeRGB", "path": generated_textures["path_nodes"]}
+            )
+            response["textures"].append(
+                {"channel": "linkRGB", "path": generated_textures["path_links"]}
+            )
+            emit("ex", response, room=room)
 
         if message["id"] == "analyticsModcommunityLayout":
             if "analyticsModcommunityRun" not in GD.session_data.keys():
                 ### "expensive" stuff
-                graph = util.project_to_graph(project)
+                if "graph" not in GD.session_data.keys():
+                    GD.session_data["graph"] = util.project_to_graph(project)
+                graph = GD.session_data["graph"]
                 result = analytics.modularity_community_detection(graph)
                 ###
                 GD.session_data["analyticsModcommunityRun"] = result
@@ -708,7 +882,9 @@ def ex(message):
 
             if "analyticsModcommunityLayout" not in GD.session_data.keys():
                 ### "expensive" stuff
-                graph = util.project_to_graph(project)
+                if "graph" not in GD.session_data.keys():
+                    GD.session_data["graph"] = util.project_to_graph(project)
+                graph = GD.session_data["graph"]
                 result = analytics.generate_layout_community_det(
                     communities_arr=communities_list, ordered_graph=graph
                 )
@@ -722,9 +898,14 @@ def ex(message):
                 return
             response = {}
             response["usr"] = message["usr"]
-            response["fn"] = "updateTempLayout"
-            response["path_hi"] = generated_layout["layout_hi"]
-            response["path_low"] = generated_layout["layout_low"]
+            response["fn"] = "updateTempTex"  # updateTempLayout
+            response["textures"] = []
+            response["textures"].append(
+                {"channel": "layoutNodesHi", "path": generated_layout["layout_hi"]}
+            )
+            response["textures"].append(
+                {"channel": "layoutNodesLow", "path": generated_layout["layout_low"]}
+            )
             emit("ex", response, room=room)
 
     elif message["fn"] == "annotation":
@@ -801,19 +982,368 @@ def ex(message):
             if generated_annotation_textures["generated_texture"] is False:
                 print("Failed to create textures for Annotation")
                 return
-            response_nodes = {}
-            response_nodes["usr"] = message["usr"]
-            response_nodes["fn"] = "updateTempTex"
-            response_nodes["channel"] = "nodeRGB"
-            response_nodes["path"] = generated_annotation_textures["path_nodes"]
-            emit("ex", response_nodes, room=room)
+            response = {}
+            response["usr"] = message["usr"]
+            response["fn"] = "updateTempTex"
+            response["textures"] = []
+            response["textures"].append(
+                {
+                    "channel": "nodeRGB",
+                    "path": generated_annotation_textures["path_nodes"],
+                }
+            )
+            response["textures"].append(
+                {
+                    "channel": "linkRGB",
+                    "path": generated_annotation_textures["path_links"],
+                }
+            )
+            emit("ex", response, room=room)
 
-            response_links = {}
-            response_links["usr"] = message["usr"]
-            response_links["fn"] = "updateTempTex"
-            response_links["channel"] = "linkRGB"
-            response_links["path"] = generated_annotation_textures["path_links"]
-            emit("ex", response_links, room=room)
+    elif message["fn"] == "layout":
+        if message["id"] == "layoutInit":
+            if message["val"] != "init":
+                return
+            # session data initialisation
+            check_log = layout_module.init_client_display_log()
+            # check if selected layout type already exists in session_data to handle button display
+            # use sel from global data on drop down and use it as key to store and check for layout results
+            check_existing_layout = layout_module.init_client_layout_exists()
+
+            response = {}
+            response["usr"] = message["usr"]
+            response["id"] = message["id"]
+            response["fn"] = "layout"
+            response["val"] = {
+                "showLog": check_log,
+                "selectedLayoutGenerated": check_existing_layout,
+            }
+            emit("ex", response, room=room)
+
+        # handle log display
+        if message["id"] == "layoutLogShow":
+            layout_module.show_log()
+            response = {}
+            response["usr"] = message["usr"]
+            response["id"] = "showLog"
+            response["fn"] = "layout"
+            response["val"] = True
+            emit("ex", response, room=room)
+
+        if message["id"] == "layoutLogHide":
+            layout_module.show_log()
+            response = {}
+            response["usr"] = message["usr"]
+            response["id"] = "showLog"
+            response["fn"] = "layout"
+            response["val"] = False
+            emit("ex", response, room=room)
+
+        # layout algorithms
+        if message["id"] == "layoutRandomApply":
+            layout_id = layout_module.LAYOUT_IDS[0]  # 0 -> random layout
+
+            # write log starting
+            response_log = {}
+            response_log["usr"] = message["usr"]
+            response_log["id"] = "addLog"
+            response_log["fn"] = "layout"
+            response_log["log"] = {
+                "type": "log",
+                "msg": "Random layout generation running ...",
+            }
+            emit("ex", response_log, room=room)
+
+            # retreive data and get layout positions
+            if layout_id not in GD.session_data["layout"]["results"].keys():
+                if "graph" not in GD.session_data.keys():
+                    GD.session_data["graph"] = util.project_to_graph(GD.data["actPro"])
+                graph = GD.session_data["graph"]
+                result_obj = layout_module.layout_random(ordered_graph=graph)
+                if result_obj["success"] is False:
+                    print("ERROR: ", result_obj["error"])
+                    response_log["log"] = result_obj["log"]
+                    emit("ex", response_log, room=room)
+                    return
+
+                GD.session_data["layout"]["results"][layout_id] = result_obj["content"]
+
+            # generate layout textures
+            positions = GD.session_data["layout"]["results"][layout_id]
+            result_obj = layout_module.pos_to_textures(positions)
+            if result_obj["success"] is False:
+                print("ERROR: ", result_obj["error"])
+
+                response_log["log"] = result_obj["log"]
+                emit("ex", response_log, room=room)
+                return
+
+            # write log finish
+            response_log["log"] = {
+                "type": "log",
+                "msg": "Random layout generation successful.",
+            }
+            emit("ex", response_log, room=room)
+
+            # display rerun and save buttons
+            response_layout_exists = {}
+            response_layout_exists["usr"] = message["usr"]
+            response_layout_exists["fn"] = "layout"
+            response_layout_exists["id"] = "layoutExists"
+            response_layout_exists["val"] = layout_module.check_layout_exists()
+            emit("ex", response_layout_exists, room=room)
+
+            # update temp layout
+            response = {}
+            response["usr"] = message["usr"]
+            response["fn"] = "updateTempTex"
+            response["textures"] = result_obj["textures"]
+            emit("ex", response, room=room)
+            return
+
+        if message["id"] == "layoutEigenApply":
+            layout_id = layout_module.LAYOUT_IDS[1]  # 1 -> eigen layout
+
+            # write log starting
+            response_log = {}
+            response_log["usr"] = message["usr"]
+            response_log["id"] = "addLog"
+            response_log["fn"] = "layout"
+            response_log["log"] = {
+                "type": "log",
+                "msg": "Eigenlayout generation running ...",
+            }
+            emit("ex", response_log, room=room)
+
+            # retreive data and get layout positions
+            if layout_id not in GD.session_data["layout"]["results"].keys():
+                if "graph" not in GD.session_data.keys():
+                    GD.session_data["graph"] = util.project_to_graph(GD.data["actPro"])
+                graph = GD.session_data["graph"]
+                result_obj = layout_module.layout_eigen(ordered_graph=graph)
+                if result_obj["success"] is False:
+                    print("ERROR: ", result_obj["error"])
+                    response_log["log"] = result_obj["log"]
+                    emit("ex", response_log, room=room)
+                    return
+
+                GD.session_data["layout"]["results"][layout_id] = result_obj["content"]
+
+            # generate layout textures
+            positions = GD.session_data["layout"]["results"][layout_id]
+            result_obj = layout_module.pos_to_textures(positions)
+            if result_obj["success"] is False:
+                print("ERROR: ", result_obj["error"])
+
+                response_log["log"] = result_obj["log"]
+                emit("ex", response_log, room=room)
+                return
+
+            # write log finish
+            response_log["log"] = {
+                "type": "log",
+                "msg": "Eigenlayout generation successful.",
+            }
+            emit("ex", response_log, room=room)
+
+            # display rerun and save buttons
+            response_layout_exists = {}
+            response_layout_exists["usr"] = message["usr"]
+            response_layout_exists["fn"] = "layout"
+            response_layout_exists["id"] = "layoutExists"
+            response_layout_exists["val"] = layout_module.check_layout_exists()
+            emit("ex", response_layout_exists, room=room)
+
+            # update temp layout
+            response = {}
+            response["usr"] = message["usr"]
+            response["fn"] = "updateTempTex"
+            response["textures"] = result_obj["textures"]
+            emit("ex", response, room=room)
+            return
+
+        if message["id"] == "layoutCartoLocalApply":
+            layout_id = layout_module.LAYOUT_IDS[2]  # 2 -> local layout
+
+            # write log starting
+            response_log = {}
+            response_log["usr"] = message["usr"]
+            response_log["id"] = "addLog"
+            response_log["fn"] = "layout"
+            response_log["log"] = {
+                "type": "log",
+                "msg": "cartoGRAPHS Local layout generation running ...",
+            }
+            emit("ex", response_log, room=room)
+
+            # retreive data and get layout positions
+            if layout_id not in GD.session_data["layout"]["results"].keys():
+                if "graph" not in GD.session_data.keys():
+                    GD.session_data["graph"] = util.project_to_graph(GD.data["actPro"])
+                graph = GD.session_data["graph"]
+                result_obj = layout_module.layout_carto_local(ordered_graph=graph)
+                if result_obj["success"] is False:
+                    print("ERROR: ", result_obj["error"])
+                    response_log["log"] = result_obj["log"]
+                    emit("ex", response_log, room=room)
+                    return
+
+                GD.session_data["layout"]["results"][layout_id] = result_obj["content"]
+
+            # generate layout textures
+            positions = GD.session_data["layout"]["results"][layout_id]
+            result_obj = layout_module.pos_to_textures(positions)
+            if result_obj["success"] is False:
+                print("ERROR: ", result_obj["error"])
+
+                response_log["log"] = result_obj["log"]
+                emit("ex", response_log, room=room)
+                return
+
+            # write log finish
+            response_log["log"] = {
+                "type": "log",
+                "msg": "cartoGRAPHS Local layout generation successful.",
+            }
+            emit("ex", response_log, room=room)
+
+            # display rerun and save buttons
+            response_layout_exists = {}
+            response_layout_exists["usr"] = message["usr"]
+            response_layout_exists["fn"] = "layout"
+            response_layout_exists["id"] = "layoutExists"
+            response_layout_exists["val"] = layout_module.check_layout_exists()
+            emit("ex", response_layout_exists, room=room)
+
+            # update temp layout
+            response = {}
+            response["usr"] = message["usr"]
+            response["fn"] = "updateTempTex"
+            response["textures"] = result_obj["textures"]
+            emit("ex", response, room=room)
+            return
+
+        if message["id"] == "layoutCartoGlobalApply":
+            layout_id = layout_module.LAYOUT_IDS[3]  # 3 -> global layout
+
+            # write log starting
+            response_log = {}
+            response_log["usr"] = message["usr"]
+            response_log["id"] = "addLog"
+            response_log["fn"] = "layout"
+            response_log["log"] = {
+                "type": "log",
+                "msg": "cartoGRAPHS Global layout generation running ...",
+            }
+            emit("ex", response_log, room=room)
+
+            # retreive data and get layout positions
+            if layout_id not in GD.session_data["layout"]["results"].keys():
+                if "graph" not in GD.session_data.keys():
+                    GD.session_data["graph"] = util.project_to_graph(GD.data["actPro"])
+                graph = GD.session_data["graph"]
+                result_obj = layout_module.layout_carto_global(ordered_graph=graph)
+                if result_obj["success"] is False:
+                    print("ERROR: ", result_obj["error"])
+                    response_log["log"] = result_obj["log"]
+                    emit("ex", response_log, room=room)
+                    return
+
+                GD.session_data["layout"]["results"][layout_id] = result_obj["content"]
+
+            # generate layout textures
+            positions = GD.session_data["layout"]["results"][layout_id]
+            result_obj = layout_module.pos_to_textures(positions)
+            if result_obj["success"] is False:
+                print("ERROR: ", result_obj["error"])
+
+                response_log["log"] = result_obj["log"]
+                emit("ex", response_log, room=room)
+                return
+
+            # write log finish
+            response_log["log"] = {
+                "type": "log",
+                "msg": "cartoGRAPHS Global layout generation successful.",
+            }
+            emit("ex", response_log, room=room)
+
+            # display rerun and save buttons
+            response_layout_exists = {}
+            response_layout_exists["usr"] = message["usr"]
+            response_layout_exists["fn"] = "layout"
+            response_layout_exists["id"] = "layoutExists"
+            response_layout_exists["val"] = layout_module.check_layout_exists()
+            emit("ex", response_layout_exists, room=room)
+
+            # update temp layout
+            response = {}
+            response["usr"] = message["usr"]
+            response["fn"] = "updateTempTex"
+            response["textures"] = result_obj["textures"]
+            emit("ex", response, room=room)
+            return
+
+        if message["id"] == "layoutCartoImportanceApply":
+            layout_id = layout_module.LAYOUT_IDS[4]  # 4 -> importance layout
+
+            # write log starting
+            response_log = {}
+            response_log["usr"] = message["usr"]
+            response_log["id"] = "addLog"
+            response_log["fn"] = "layout"
+            response_log["log"] = {
+                "type": "log",
+                "msg": "cartoGRAPHS Importance layout generation running ...",
+            }
+            emit("ex", response_log, room=room)
+
+            # retreive data and get layout positions
+            if layout_id not in GD.session_data["layout"]["results"].keys():
+                if "graph" not in GD.session_data.keys():
+                    GD.session_data["graph"] = util.project_to_graph(GD.data["actPro"])
+                graph = GD.session_data["graph"]
+                result_obj = layout_module.layout_carto_importance(ordered_graph=graph)
+                if result_obj["success"] is False:
+                    print("ERROR: ", result_obj["error"])
+                    response_log["log"] = result_obj["log"]
+                    emit("ex", response_log, room=room)
+                    return
+
+                GD.session_data["layout"]["results"][layout_id] = result_obj["content"]
+
+            # generate layout textures
+            positions = GD.session_data["layout"]["results"][layout_id]
+            result_obj = layout_module.pos_to_textures(positions)
+            if result_obj["success"] is False:
+                print("ERROR: ", result_obj["error"])
+
+                response_log["log"] = result_obj["log"]
+                emit("ex", response_log, room=room)
+                return
+
+            # write log finish
+            response_log["log"] = {
+                "type": "log",
+                "msg": "cartoGRAPHS Importance layout generation successful.",
+            }
+            emit("ex", response_log, room=room)
+
+            # display rerun and save buttons
+            response_layout_exists = {}
+            response_layout_exists["usr"] = message["usr"]
+            response_layout_exists["fn"] = "layout"
+            response_layout_exists["id"] = "layoutExists"
+            response_layout_exists["val"] = layout_module.check_layout_exists()
+            emit("ex", response_layout_exists, room=room)
+
+            # update temp layout
+            response = {}
+            response["usr"] = message["usr"]
+            response["fn"] = "updateTempTex"
+            response["textures"] = result_obj["textures"]
+            emit("ex", response, room=room)
+            return
 
     elif message["fn"] == "dropdown":
         response = {}
@@ -846,7 +1376,11 @@ def ex(message):
                         "Mod-based Communities",
                         "Clustering Coefficient",
                     ]
-                    response["sel"] = 0
+                    response["sel"] = "0"
+
+                if message["id"] == "layoutModule":
+                    response["opt"] = layout_module.LAYOUT_TABS
+                    response["sel"] = "0"
 
                 # dropdown for visualization type selection
                 vis_selected = 0
@@ -927,6 +1461,16 @@ def ex(message):
                     )
 
             else:  # user input message
+                # clear analytics container
+                if message["id"] == "analytics":
+                    # check if you actually switch
+                    if message["val"] != GD.pdata["analytics"]:
+                        response_clear = {}
+                        response_clear["fn"] = "analytics"
+                        response_clear["id"] = "clearAnalyticsContainer"
+                        response_clear["usr"] = message["usr"]
+                        emit("ex", response_clear, room=room)
+
                 if message["id"] == "projDD":  # PROJECT CHANGE
                     GD.data["actPro"] = GD.plist[int(message["val"])]
                     GD.saveGD()
@@ -936,6 +1480,7 @@ def ex(message):
                     GD.loadColor()
                     GD.loadLinks()
                     GD.load_annotations()
+
                     response["sel"] = message["val"]
                     response["name"] = message["msg"]
                     print("changed Project to " + str(GD.plist[int(message["val"])]))
@@ -946,6 +1491,18 @@ def ex(message):
                     response2["fn"] = "project"
                     response2["pdata"] = GD.pdata
                     emit("ex", response2, room=room)
+
+                    # display rerun and save buttons for layout module
+                    emit(
+                        "ex",
+                        {
+                            "usr": message["usr"],
+                            "fn": "layout",
+                            "id": "layoutExists",
+                            "val": False,
+                        },
+                        room=room,
+                    )
 
                 else:
                     response["sel"] = message["val"]
@@ -973,6 +1530,16 @@ def ex(message):
                         node["id"] = d
                         response2["val"].append(node)
                     emit("ex", response2, room=room)
+
+                if message["id"] == "layoutModule":
+                    # check for layout switch
+                    # display rerun and save buttons
+                    response_layout_exists = {}
+                    response_layout_exists["usr"] = message["usr"]
+                    response_layout_exists["fn"] = "layout"
+                    response_layout_exists["id"] = "layoutExists"
+                    response_layout_exists["val"] = layout_module.check_layout_exists()
+                    emit("ex", response_layout_exists, room=room)
 
         emit("ex", response, room=room)
         print(response)

@@ -15,3 +15,4 @@ extensions/*
 !extensions/whisperSpeechRecognition
 !extensions/Util
 extensions/whisperSpeechRecognition/static/WhisperAudio/
+python_tools/data

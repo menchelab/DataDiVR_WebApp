@@ -166,7 +166,6 @@ def project_to_graph(project):
 
 
 def rgb_to_hex(color):
-    print(color)
     if len(color) == 3:
         r, g, b = color
     if len(color) == 4:
@@ -191,15 +190,17 @@ def sample_color_gradient(plt_color_map, values):
     return colors
 
 
-def generate_colors(n, s=None, v=None):
+def generate_colors(n, s=None, v=None, alpha=None):
     # n: int, number of colors to generate
     # s: float [0.0, 1.0] Saturation 
     # v: float [0.0, 1.0] Light value
 
     if s is None:
-        s = random.uniform(0.4, 1)
+        s = random.uniform(0.7, 1.0)
     if v is None:
-        v = random.uniform(0.5, 0.9)
+        v = random.uniform(0.7, 1.0)
+    if alpha is None:
+        alpha = 100
 
     if n <= 0:
         return []
@@ -210,11 +211,12 @@ def generate_colors(n, s=None, v=None):
     for i in range(n):
         hue = i * hue_increment
         rgb = colorsys.hsv_to_rgb(hue, s, v)
-        rgb_tuple = (
+        rgba_tuple = (
             int(rgb[0] * 255),
             int(rgb[1] * 255),
-            int(rgb[2] * 255)
+            int(rgb[2] * 255),
+            alpha
         )
-        colors.append(rgb_tuple)
+        colors.append(rgba_tuple)
 
     return colors
