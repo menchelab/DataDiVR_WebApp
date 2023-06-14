@@ -511,8 +511,9 @@ def upload_filesNew(request):
                 pos[2] = str(accPos[2] / len(row))
                 layout["data"].append(pos)
 
+            # label nodes to be black
             for color in nodecolors:
-                color["data"].append([255,0,0,100])
+                color["data"].append((0,0,0,0)) #255,0,0,100
             i += 1
 
 
@@ -612,7 +613,7 @@ def loadLegendFiles(files, legendfolder, target):
             print("C_DEBUG: Error - files list is empty.")
 
     except Exception as e:
-        print("C_DEBUG: Error in loadLegendFiles. ", e)
+        print("") #C_DEBUG: Error in loadLegendFiles. ", e)
 
 
 

@@ -301,6 +301,7 @@
 
                         //children[start].push(end);
                         //children[end].push(start);
+
                         points.push(nodemeshes[start].position);
                         points.push(nodemeshes[end].position);
                         const geometry1 = new THREE.BufferGeometry().setFromPoints(points);

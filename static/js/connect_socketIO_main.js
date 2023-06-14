@@ -506,12 +506,12 @@ $(document).ready(function(){
                                 layouts_DD.setAttribute("sel", parseInt(data.sel));
                                 layouts_DD.setAttribute("value", pfile.layouts[data.sel]);
     
-                                // update arrow buttons with new index
-                                nextButton = document.getElementById("forwardstep") 
-                                nextButton.setAttribute('val', data.sel);
-                                backButton = document.getElementById("backwardstep") 
-                                backButton.setAttribute('val', data.sel);
-                                console.log("C_DEBUG updating Buttons in layoutsDD: ", nextButton.getAttribute("val"));
+                                // // update arrow buttons with new index
+                                // nextButton = document.getElementById("forwardstep") 
+                                // nextButton.setAttribute('val', data.sel);
+                                // backButton = document.getElementById("backwardstep") 
+                                // backButton.setAttribute('val', data.sel);
+                                //console.log("C_DEBUG updating Buttons in layoutsDD: ", nextButton.getAttribute("val"));
                                 
                                 break;
                         }
@@ -626,14 +626,6 @@ $(document).ready(function(){
 
                 if (data.id == "forwardstep") {
                      
-                    Legend_displayNodeLinkInfo_forward(pfile.name);
-
-                    Legend_displayGraphLayout_forward(pfile.name, "layouts", "graphlayout");
-                    Legend_displayGraphLayout_forward(pfile.name, "layoutsRGB", "graphlayout_nodecolors");
-                    Legend_displayGraphLayout_forward(pfile.name, "linksRGB", "graphlayout_linkcolors");
-
-                    ue4(data["fn"], data);
-                    
                     forwardidx = NEWIndexforwardstep(pfile.layouts.length)
 
                     if (pfile.linksRGB.length <= forwardidx) {
@@ -666,16 +658,20 @@ $(document).ready(function(){
                         makeNetwork();
                     }
 
+                    Legend_displayNodeInfobyID(pfile.name, forwardidx);
+                    Legend_displayLinkInfobyID(pfile.name, forwardidx);
+                    Legend_displayGraphLayoutbyID(pfile.name, forwardidx, "layouts", "graphlayout");
+                    Legend_displayGraphLayoutbyID(pfile.name, forwardidx, "layouts", "graphlayout_nodecolors");
+                    Legend_displayGraphLayoutbyID(pfile.name, forwardidx, "layouts", "graphlayout_linkcolors");
+
+                    ue4(data["fn"], data);
+
+                    console.log("C_DEBUG : forwardidx = ", forwardidx);
+                    console.log("C_DEBUG : Data fn = ", data["fn"]);
                 } 
 
                 if (data.id == "backwardstep") {
             
-                    Legend_displayNodeLinkInfo_backward(pfile.name);
-
-                    Legend_displayGraphLayout_backward(pfile.name, "layouts", "graphlayout");
-                    Legend_displayGraphLayout_backward(pfile.name, "layoutsRGB", "graphlayout_nodecolors");
-                    Legend_displayGraphLayout_backward(pfile.name, "linksRGB", "graphlayout_linkcolors");
-
                     backwardidx = NEWIndexbackwardstep(pfile.layouts.length)
                    
                     if (pfile.linksRGB.length <= backwardidx) {
@@ -707,6 +703,17 @@ $(document).ready(function(){
                         actLinks = 0;
                         makeNetwork();
                     }
+
+                    // Legend_displayNodeLinkInfo_backward(pfile.name);
+                    // Legend_displayGraphLayout_backward(pfile.name, "layouts", "graphlayout");
+                    // Legend_displayGraphLayout_backward(pfile.name, "layoutsRGB", "graphlayout_nodecolors");
+                    // Legend_displayGraphLayout_backward(pfile.name, "linksRGB", "graphlayout_linkcolors");
+                    
+                    Legend_displayNodeInfobyID(pfile.name, backwardidx);
+                    Legend_displayLinkInfobyID(pfile.name, backwardidx);
+                    Legend_displayGraphLayoutbyID(pfile.name, backwardidx, "layouts", "graphlayout");
+                    Legend_displayGraphLayoutbyID(pfile.name, backwardidx, "layouts", "graphlayout_nodecolors");
+                    Legend_displayGraphLayoutbyID(pfile.name, backwardidx, "layouts", "graphlayout_linkcolors");
 
                     ue4(data["fn"], data);
                 }
