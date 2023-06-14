@@ -8,12 +8,15 @@ import util
 import numpy as np
 import scipy.sparse as sp_sp
 import umap
+from cartoGRAPHs import generate_layout as carto_gen_layout
+import random
+
 
 
 # constants, important to keep the order
-LAYOUT_IDS = ["random", "eigen"] # ids used in session data
-LAYOUT_NAMES = ["Random Layout", "EigenUMAP Layout"] # names used for texture generation
-LAYOUT_TABS = ["Random", "Eigenlayout"] # names used in panel display and in connect_socketIO_main.js to switch tabs
+LAYOUT_IDS = ["random", "eigen", "local", "global", "importance"] # ids used in session data
+LAYOUT_NAMES = ["Random Layout", "EigenUMAPLayout", "cartoGRAPHsLocal", "cartoGRAPHsImportance"] # names used for texture generation
+LAYOUT_TABS = ["Random", "Eigenlayout", "cartoGRAPHs Local", "cartoGRAPHs Global", "cartoGRAPHs Importance"] # names used in panel display and in connect_socketIO_main.js to switch tabs
 
 
 
@@ -94,18 +97,25 @@ def hide_log():
 def save_layout_temp():...
 
 
-def scale_positions(positions, node_order)->list:
+def adjust_point_positions(points, displacement_factor=3e-2):
+    return {key: [coord + random.gauss(0, displacement_factor) for coord in coords]
+            for key, coords in points.items()}
+
+
+def scale_positions(positions, node_order: list, pos_type: type = int)->list:
     """ 
     function to scale positions of nodes based on their order into [0, 1] space
-    positions: dict, key: int, node_id; value: list(floats), x, y, z coordiantes
+    positions: dict, key: pos_type, node_id; value: list(floats), x, y, z coordiantes
     node_order: list, order of nodes in graph
+    pos_type: type, optional, default = int, how to handle keying for positions
     returns: list(lists(floats)), scaled positions in order of graph
     """
     x, y, z = [], [], []
+
     for node_id in node_order:
-        x.append(positions[int(node_id)][0])
-        y.append(positions[int(node_id)][1])
-        z.append(positions[int(node_id)][2])
+        x.append(positions[pos_type(node_id)][0])
+        y.append(positions[pos_type(node_id)][1])
+        z.append(positions[pos_type(node_id)][2])
     max_x, min_x = max(x), min(x)
     max_y, min_y = max(y), min(y)
     max_z, min_z = max(z), min(z)
@@ -301,3 +311,81 @@ def layout_eigen(ordered_graph)->dict:
         return {"success": True, "content": scaled_pos}
     except:
         return {"success": False, "error": "Eigenlayout algorithm failed.", "log": {"type": "warning", "msg": "Eigenlayout generation failed."}}
+    
+
+def layout_carto_local(ordered_graph)->dict:
+    """
+    local layout from cartoGRAPHs
+    """
+    # integrety checks
+    if not isinstance(ordered_graph, util.OrderedGraph):
+        return {"success": False, "error": "Graph is not instance of OrderedGraph class."}
+    
+    # boundary checks
+    # no check set yet
+
+    # actual layout to get node positions
+    try:
+        raw_pos = carto_gen_layout(ordered_graph, dim = 3, layoutmethod = 'local', dimred_method='umap')
+        jiter_pos = adjust_point_positions(raw_pos, 0.03)
+
+        # scale positions
+        scaled_pos = scale_positions(positions=jiter_pos, node_order=ordered_graph.node_order, pos_type=str)
+
+        # return positions
+        return {"success": True, "content": scaled_pos}
+    except:
+        return {"success": False, "error": "cartoGRAPHS Local layout algorithm failed.", "log": {"type": "warning", "msg": "cartoGRAPHS Local layout generation failed."}}
+    
+
+
+def layout_carto_global(ordered_graph)->dict:
+    """
+    global layout from cartoGRAPHs
+    """
+    # integrety checks
+    if not isinstance(ordered_graph, util.OrderedGraph):
+        return {"success": False, "error": "Graph is not instance of OrderedGraph class."}
+    
+    # boundary checks
+    # no check set yet
+
+    # actual layout to get node positions
+    try:
+        raw_pos = carto_gen_layout(ordered_graph, dim = 3, layoutmethod = 'global', dimred_method='umap')
+        jiter_pos = adjust_point_positions(raw_pos, 0.03)
+
+        # scale positions
+        scaled_pos = scale_positions(positions=jiter_pos, node_order=ordered_graph.node_order, pos_type=str)
+
+        # return positions
+        return {"success": True, "content": scaled_pos}
+    except:
+        return {"success": False, "error": "cartoGRAPHS Global layout algorithm failed.", "log": {"type": "warning", "msg": "cartoGRAPHS Global layout generation failed."}}
+    
+
+
+
+def layout_carto_importance(ordered_graph)->dict:
+    """
+    importance layout from cartoGRAPHs
+    """
+    # integrety checks
+    if not isinstance(ordered_graph, util.OrderedGraph):
+        return {"success": False, "error": "Graph is not instance of OrderedGraph class."}
+    
+    # boundary checks
+    # no check set yet
+
+    # actual layout to get node positions
+    try:
+        raw_pos = carto_gen_layout(ordered_graph, dim = 3, layoutmethod = 'importance', dimred_method='umap')
+        jiter_pos = adjust_point_positions(raw_pos, 0.03)
+
+        # scale positions
+        scaled_pos = scale_positions(positions=jiter_pos, node_order=ordered_graph.node_order, pos_type=str)
+
+        # return positions
+        return {"success": True, "content": scaled_pos}
+    except:
+        return {"success": False, "error": "cartoGRAPHS Importance layout algorithm failed.", "log": {"type": "warning", "msg": "cartoGRAPHS Importance layout generation failed."}}

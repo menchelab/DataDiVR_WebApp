@@ -505,6 +505,15 @@ $(document).ready(function(){
                             case "Eigenlayout":
                                 $("#layoutSelectEigen").css('display', 'inline-block');
                             break;
+                            case "cartoGRAPHs Local":
+                                $("#layoutSelectCartoLocal").css('display', 'inline-block');
+                            break;
+                            case "cartoGRAPHs Global":
+                                $("#layoutSelectCartoGlobal").css('display', 'inline-block');
+                            break;
+                            case "cartoGRAPHs Importance":
+                                $("#layoutSelectCartoImportance").css('display', 'inline-block');
+                            break;
                             // add bindings for options display here
                         }
                     }

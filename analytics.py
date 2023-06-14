@@ -521,11 +521,6 @@ def modularity_community_detection(ordered_graph):
         raise TypeError("The graph should be an instance of OrderedGraph.")
 
     communities = nx.algorithms.community.modularity_max.greedy_modularity_communities(ordered_graph)
-    # some alternatives:
-    # communities = nx.algorithms.community.girvan_newman(ordered_graph)
-    # communities = nx.algorithms.community.community_louvain(ordered_graph)
-    # communities = nx.algorithms.community.label_propagation_communities(ordered_graph)
-    # communities = nx.algorithms.community.modularity_max.greedy_modularity_communities(ordered_graph)
 
     community_assignment = [0] * len(ordered_graph.node_order)
 

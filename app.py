@@ -1059,6 +1059,171 @@ def ex(message):
             emit("ex", response, room=room)
             return
 
+        if message["id"] == "layoutCartoLocalApply":
+            layout_id = layout_module.LAYOUT_IDS[2] # 2 -> local layout
+
+            # write log starting
+            response_log = {}
+            response_log["usr"] = message["usr"]
+            response_log["id"] = "addLog"
+            response_log["fn"] = "layout"
+            response_log["log"] = {"type": "log", "msg": "cartoGRAPHS Local layout generation running ..."}
+            emit("ex", response_log, room=room)
+
+            # retreive data and get layout positions
+            if layout_id not in GD.session_data["layout"]["results"].keys():
+                if "graph" not in GD.session_data.keys():
+                    GD.session_data["graph"] = util.project_to_graph(GD.data["actPro"])
+                graph = GD.session_data["graph"] 
+                result_obj = layout_module.layout_carto_local(ordered_graph=graph)
+                if result_obj["success"] is False:
+                    print("ERROR: ", result_obj["error"])
+                    response_log["log"] = result_obj["log"]
+                    emit("ex", response_log, room=room)
+                    return
+                                
+                GD.session_data["layout"]["results"][layout_id] = result_obj["content"]
+
+            # generate layout textures
+            positions = GD.session_data["layout"]["results"][layout_id]
+            result_obj = layout_module.pos_to_textures(positions)
+            if result_obj["success"] is False:
+                print("ERROR: ", result_obj["error"])
+            
+                response_log["log"] = result_obj["log"]
+                emit("ex", response_log, room=room)
+                return
+            
+            # write log finish
+            response_log["log"] = {"type": "log", "msg": "cartoGRAPHS Local layout generation successful."}
+            emit("ex", response_log, room=room)
+
+            # display rerun and save buttons
+            response_layout_exists = {}
+            response_layout_exists["usr"] = message["usr"]
+            response_layout_exists["fn"] = "layout"
+            response_layout_exists["id"] = "layoutExists"
+            response_layout_exists["val"] = layout_module.check_layout_exists()
+            emit("ex", response_layout_exists, room=room)           
+
+            # update temp layout
+            response = {}
+            response["usr"] = message["usr"]
+            response["fn"] = "updateTempTex"
+            response["textures"] = result_obj["textures"]
+            emit("ex", response, room=room)
+            return
+
+        if message["id"] == "layoutCartoGlobalApply":
+            layout_id = layout_module.LAYOUT_IDS[3] # 3 -> global layout
+
+            # write log starting
+            response_log = {}
+            response_log["usr"] = message["usr"]
+            response_log["id"] = "addLog"
+            response_log["fn"] = "layout"
+            response_log["log"] = {"type": "log", "msg": "cartoGRAPHS Global layout generation running ..."}
+            emit("ex", response_log, room=room)
+
+            # retreive data and get layout positions
+            if layout_id not in GD.session_data["layout"]["results"].keys():
+                if "graph" not in GD.session_data.keys():
+                    GD.session_data["graph"] = util.project_to_graph(GD.data["actPro"])
+                graph = GD.session_data["graph"] 
+                result_obj = layout_module.layout_carto_global(ordered_graph=graph)
+                if result_obj["success"] is False:
+                    print("ERROR: ", result_obj["error"])
+                    response_log["log"] = result_obj["log"]
+                    emit("ex", response_log, room=room)
+                    return
+                                
+                GD.session_data["layout"]["results"][layout_id] = result_obj["content"]
+
+            # generate layout textures
+            positions = GD.session_data["layout"]["results"][layout_id]
+            result_obj = layout_module.pos_to_textures(positions)
+            if result_obj["success"] is False:
+                print("ERROR: ", result_obj["error"])
+            
+                response_log["log"] = result_obj["log"]
+                emit("ex", response_log, room=room)
+                return
+            
+            # write log finish
+            response_log["log"] = {"type": "log", "msg": "cartoGRAPHS Global layout generation successful."}
+            emit("ex", response_log, room=room)
+
+            # display rerun and save buttons
+            response_layout_exists = {}
+            response_layout_exists["usr"] = message["usr"]
+            response_layout_exists["fn"] = "layout"
+            response_layout_exists["id"] = "layoutExists"
+            response_layout_exists["val"] = layout_module.check_layout_exists()
+            emit("ex", response_layout_exists, room=room)           
+
+            # update temp layout
+            response = {}
+            response["usr"] = message["usr"]
+            response["fn"] = "updateTempTex"
+            response["textures"] = result_obj["textures"]
+            emit("ex", response, room=room)
+            return
+
+        if message["id"] == "layoutCartoImportanceApply":
+            layout_id = layout_module.LAYOUT_IDS[4] # 4 -> importance layout
+
+            # write log starting
+            response_log = {}
+            response_log["usr"] = message["usr"]
+            response_log["id"] = "addLog"
+            response_log["fn"] = "layout"
+            response_log["log"] = {"type": "log", "msg": "cartoGRAPHS Importance layout generation running ..."}
+            emit("ex", response_log, room=room)
+
+            # retreive data and get layout positions
+            if layout_id not in GD.session_data["layout"]["results"].keys():
+                if "graph" not in GD.session_data.keys():
+                    GD.session_data["graph"] = util.project_to_graph(GD.data["actPro"])
+                graph = GD.session_data["graph"] 
+                result_obj = layout_module.layout_carto_importance(ordered_graph=graph)
+                if result_obj["success"] is False:
+                    print("ERROR: ", result_obj["error"])
+                    response_log["log"] = result_obj["log"]
+                    emit("ex", response_log, room=room)
+                    return
+                                
+                GD.session_data["layout"]["results"][layout_id] = result_obj["content"]
+
+            # generate layout textures
+            positions = GD.session_data["layout"]["results"][layout_id]
+            result_obj = layout_module.pos_to_textures(positions)
+            if result_obj["success"] is False:
+                print("ERROR: ", result_obj["error"])
+            
+                response_log["log"] = result_obj["log"]
+                emit("ex", response_log, room=room)
+                return
+            
+            # write log finish
+            response_log["log"] = {"type": "log", "msg": "cartoGRAPHS Importance layout generation successful."}
+            emit("ex", response_log, room=room)
+
+            # display rerun and save buttons
+            response_layout_exists = {}
+            response_layout_exists["usr"] = message["usr"]
+            response_layout_exists["fn"] = "layout"
+            response_layout_exists["id"] = "layoutExists"
+            response_layout_exists["val"] = layout_module.check_layout_exists()
+            emit("ex", response_layout_exists, room=room)           
+
+            # update temp layout
+            response = {}
+            response["usr"] = message["usr"]
+            response["fn"] = "updateTempTex"
+            response["textures"] = result_obj["textures"]
+            emit("ex", response, room=room)
+            return
+
 
 
     elif message["fn"] == "dropdown":
