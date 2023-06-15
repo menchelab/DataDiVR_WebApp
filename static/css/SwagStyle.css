@@ -1185,3 +1185,12 @@ code {
 }
 
 
+.updateMessage{
+    color:rgb(42, 113, 148);
+    min-width: 20px;
+    height: 5vh;
+    opacity: 0;
+    transition: opacity 2s;
+    transition-timing-function: cubic-bezier(0, 2, 1, 0.58);
+    overflow: hidden;
+}

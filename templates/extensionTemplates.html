@@ -352,3 +352,89 @@
 
     </div>
 </template>
+
+<!-- Checkbox -->
+<style>
+    button {
+        width: 380px;
+        height: 30px;
+        font-family: 'Future', sans-serif;
+        overflow: hidden;
+        white-space: nowrap;
+        cursor: pointer;
+        box-sizing: border-box;
+        padding: 0px 6px;
+        text-align: left;
+        border-radius: 7px;
+
+        border-bottom-left-radius: 0px;
+        font-size: 24px;
+
+        color: rgb(255, 255, 255);
+        cursor: pointer;
+        background: rgba(66, 66, 66, 0);
+        border: 2px solid transparent;
+
+        text-transform: uppercase;
+    }
+
+    button:hover {
+        border: 2px solid rgb(124, 124, 124);
+        background: rgba(66, 66, 66, 1);
+
+
+    }
+</style>
+<div id="container" style="width: auto; height: 30p0x; display: inline-block; padding: 4px 2px">
+    <button id="name"><img src="static/css/images/NotRecording.png"></button>
+</div>
+
+</template>
+
+<script>
+    class extCheckBox extends HTMLElement {
+        constructor() {
+            super();
+        }
+        connectedCallback() {
+            let template = document.querySelector('#extCb-template').content;
+            this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
+            let checkbox = this.shadowRoot.querySelector("#box");
+            let label = this.shadowRoot.querySelector("#label");
+            label.innerHTML = this.getAttribute('name');
+            //name_button.style.background = url('images/NotR;ecording.png')
+            //var fun = this.getAttribute('fn');
+            var socketDomain = this.getAttribute('socketDomain');
+            if (socketDomain == null) {
+                socketDomain = "Main";
+            }
+
+            var thisSocket = io.connect(
+                "http://" + location.host + "/" + this.getAttribute('socketDomain')
+            );
+
+            checkbox.addEventListener('click', () => {
+                console.log('select ' + checkbox.checked);
+                thisSocket.emit('ex', { usr: uid, id: this.getAttribute('id'), val: checkbox.checked, fn: "checkbox" });
+            });
+
+        }
+
+    }
+    customElements.define('ext-checkbox', extCheckBox);
+</script>
+
+<template id="extCb-template">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
+    <div id="container" style="width: auto; height: auto; display: inline-block; padding: 4px 2px">
+        <div style="display:flex">
+            <input type="checkbox" class="check_box" id="box" style="flex:0;">
+            <label for="box" style="margin-top:3px;"></label>
+            <div style="flex:1;width:20px"></div>
+            <h5 id="label"
+                style=" float:left; font-size: 25px;  color: rgb(102, 102, 102); margin-top:5px; margin-bottom:5px;flex:2">
+            </h5>
+        </div>
+    </div>
+
+</template>
