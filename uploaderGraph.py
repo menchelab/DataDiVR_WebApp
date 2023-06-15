@@ -473,7 +473,7 @@ def parseGraphJSON_nodecolors(files,target):
                         rgba_color = tuple(map(int, rgba))
                         nodecolor_rgba.append(rgba_color)
                 # if list of rgba int values (like for CSV upload)
-                elif isinstance(color,list): 
+                elif isinstance(color,list) and len(color) == 4:
                     nodecolor_rgba.append(color)
                 else:
                     nodecolor_rgba.append((255, 0, 255, 100))           
