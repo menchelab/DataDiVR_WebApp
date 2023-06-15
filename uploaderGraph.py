@@ -13,6 +13,10 @@ def hex_to_rgb(hx):
     hlen = len(hx)
     return tuple(int(hx[i:i+hlen//3], 16) for i in range(0, hlen, hlen//3))
 
+def hex_to_rgba(hex_color):
+    hex_color = hex_color.lstrip('#')
+    rgba_color = tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4, 6))
+    return rgba_color
 
 
 def upload_filesJSON(request):
@@ -410,9 +414,13 @@ def parseGraphJSON_linkcolors(files,target):
                 color = file["links"][i]["linkcolor"]
 
                 if isinstance(color, str):
-                    # if HEX FORMAT
+                    # if HEX FORMAT (without alpha)
                     if re.match(r'^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$', color):
                         rgba_color = (*hex_to_rgb(color), 100)
+                        linkcolor_rgba.append(rgba_color)
+                    # if HEX FORMAT with alpha
+                    elif re.match(r'^#([A-Fa-f0-9]{8})$', color):
+                        rgba_color = (hex_to_rgba(color))
                         linkcolor_rgba.append(rgba_color)
                     # if RGBA FORMAT
                     elif re.match(r'^rgba\((\d+),(\d+),(\d+),(\d+)\)$', color) or re.match(r'^\((\d+),(\d+),(\d+),(\d+)\)$', color):
@@ -466,6 +474,11 @@ def parseGraphJSON_nodecolors(files,target):
                     # if HEX FORMAT
                     if re.match(r'^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$', color):                        
                         rgba_color = (*hex_to_rgb(color), 100)
+                        nodecolor_rgba.append(rgba_color)
+                    # if HEX FORMAT with alpha
+                    elif re.match(r'^#([A-Fa-f0-9]{8})$', color):
+                        print("C_DEBUG in hex-with alpha.")
+                        rgba_color = (hex_to_rgba(color))
                         nodecolor_rgba.append(rgba_color)
                     # if RGBA FORMAT
                     elif re.match(r'^rgba\((\d+),(\d+),(\d+),(\d+)\)$', color):
