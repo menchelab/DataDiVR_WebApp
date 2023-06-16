@@ -191,7 +191,9 @@
             
                     // MAKE LABELS
                         if (i >= pfile["nodecount"]){
+
                             var name = pfile["selections"][(i - pfile["nodecount"])]["name"];
+                        
                             $('body').append('<div id="lab'+i+'"class="label" text="label"style="z-index: 1; position: absolute; top: 389px; left: 271px; margin-left: 10px; font-size: 20px;">'+ name +'</div>');
                             labels.push("lab" + i);
                         }
@@ -271,9 +273,34 @@
             
                     // MAKE LABELS
                         if (i >= pfile["nodecount"]){
-                            var name = pfile["selections"][(i - pfile["nodecount"])]["name"];
-                            $('body').append('<div id="lab'+i+'"class="label" text="label"style="z-index: 1; position: absolute; top: 389px; left: 271px; margin-left: 10px; font-size: 20px;">'+ name +'</div>');
-                            labels.push("lab" + i);
+
+                            
+                            //////////////////////////////////////////////////////////////
+                            // match label with layout to show only for specific layout
+                            var selected_layout_index = getIndexforwardstep(pfile["layouts"].length);
+                            var selected_layout = pfile["layouts"][selected_layout_index];
+
+                            var layoutname_pfile = pfile["selections"][0]["layoutname"]+"XYZ"
+                            console.log("C_DEBUG selected_layout = ",selected_layout);
+                            console.log("C_DEBUG layoutname = ", layoutname_pfile);
+
+                            if (selected_layout === layoutname_pfile) {
+
+                                console.log("C_DEBUG match");
+                                var name = pfile["selections"][(i - pfile["nodecount"])]["name"];
+                                console.log("C_DEBUG name = ", name);
+
+                                $('body').append('<div id="lab'+i+'"class="label" text="label"style="z-index: 1; position: absolute; top: 389px; left: 271px; margin-left: 10px; font-size: 20px;">'+ name +'</div>');
+                                labels.push("lab" + i);
+                                //break; // If you want to stop the iteration after finding the first match
+                    
+                            }
+                            //////////////////////////////////////////////////////////////
+
+
+                            //var name = pfile["selections"][(i - pfile["nodecount"])]["name"];
+                            //$('body').append('<div id="lab'+i+'"class="label" text="label"style="z-index: 1; position: absolute; top: 389px; left: 271px; margin-left: 10px; font-size: 20px;">'+ name +'</div>');
+                            //labels.push("lab" + i);
                         }
                     
                     }

@@ -280,10 +280,10 @@
     
                 } else if (layout_with_clusters === layoutname) {
                     // W I T H   D E F I N E D   C L U S T E R S 
-                    console.log("C_DEBUG - in clusters found.");
+                    //console.log("C_DEBUG - in clusters found.");
     
                     const clusterlist = pfiledata["selections"];
-                    console.log("C_DEBUG - clusterlist = ", clusterlist); //.reverse());
+                    //console.log("C_DEBUG - clusterlist = ", clusterlist); //.reverse());
                     
                     const allnode_Div = document.getElementById("legend_node_all");
 
@@ -300,7 +300,7 @@
                         const name = value.name;
                         labelColorDict[labelColor] = name;
                         }
-                    console.log("C_DEBUG: labelColorDict = ", labelColorDict);
+                    //console.log("C_DEBUG: labelColorDict = ", labelColorDict);
             
                     let idx = 0;
                     for (const color in labelColorDict) { 

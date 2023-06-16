@@ -18,7 +18,6 @@ def hex_to_rgba(hex_color):
     rgba_color = tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4, 6))
     return rgba_color
 
-
 def upload_filesJSON(request):
     form = request.form.to_dict()
     prolist = GD.plist
@@ -55,12 +54,8 @@ def upload_filesJSON(request):
     labels = []
     
 
-
-
     # implement a way to set name as key for node and kill annotation-defined node names
     # assign/polish meta data (internal and external information)
-
-
 
 
     loadGraphJSON(request.files.getlist("graphJSON"), jsonfiles)
@@ -131,7 +126,7 @@ def upload_filesJSON(request):
 
                 #add to pfile
                 pfile["selections"].append({"name":name, "nodes":row, "layoutname": labellist["name"]})               
-                print("C_DEBUG : pfile selections= ", pfile["selections"])
+                #print("C_DEBUG : pfile selections= ", pfile["selections"])
 
 
                 # get average pos for Each layout            
@@ -162,7 +157,6 @@ def upload_filesJSON(request):
                     color["data"].append((0,0,0,0)) # 60,60,60,60
 
                 i += 1
-
         else: 
             pass
         
@@ -194,10 +188,6 @@ def upload_filesJSON(request):
 
         else: state = "upload must contain at least 1 node position list"
         
-
-    #print("C_DEBUG : pfile[selections] = ", pfile["selections"])
-    #print("C_DEBUG : len pfile[selections] = ", len(pfile["selections"]))
-
     # match labels to respective layout to get label colors for legend
     if len(pfile["selections"]) > 0:
         all_layouts = pfile["layouts"]
@@ -205,22 +195,18 @@ def upload_filesJSON(request):
 
         for x,i in enumerate(all_layouts):        
             if i == layoutname_pfile:     
-                #print("C_DEBUG : match layoutnames = ", i)
 
                 # get unique cluster values :
                 unique_clusters_firstnode = []
                 for lab in labels[x]["data"]:
-                    print("C_DEBUG: lab =", lab)
                     if lab not in unique_clusters_firstnode:
                         unique_clusters_firstnode.append(lab[0]) # get id of first node in cluster to match with color 
-                #print("C_DEBUG : unique cluster len = ", len(unique_clusters_firstnode))
-
+                
                 # get cluster colors based on first node id in cluster 
                 clustercolors = []
-                for nodeid in unique_clusters_firstnode:                
+                for nodeid in unique_clusters_firstnode:             
                     if nodeid == str(nodelist["nodes"][int(nodeid)]["id"]):
                         nodecol = nodecolors[x]["data"][int(nodeid)]
-                        #print("C_DEBUG nodecol = ", nodecol)
                         clustercolors.append(nodecol)
 
                 clusternames = []
@@ -466,28 +452,33 @@ def parseGraphJSON_nodecolors(files,target):
             num_of_nodes = len(file["nodes"])
 
             nodecolor_rgba = []
+
             for i in range(0,num_of_nodes):
                 color = file["nodes"][i]["nodecolor"]
                 
                 # if color is string 
                 if isinstance(color, str):
+
                     # if HEX FORMAT
                     if re.match(r'^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$', color):                        
                         rgba_color = (*hex_to_rgb(color), 100)
                         nodecolor_rgba.append(rgba_color)
+
                     # if HEX FORMAT with alpha
                     elif re.match(r'^#([A-Fa-f0-9]{8})$', color):
-                        print("C_DEBUG in hex-with alpha.")
                         rgba_color = (hex_to_rgba(color))
                         nodecolor_rgba.append(rgba_color)
+
                     # if RGBA FORMAT
                     elif re.match(r'^rgba\((\d+),(\d+),(\d+),(\d+)\)$', color):
                         rgba = re.findall(r'\d+', color)
                         rgba_color = tuple(map(int, rgba))
                         nodecolor_rgba.append(rgba_color)
+
                 # if list of rgba int values (like for CSV upload)
                 elif isinstance(color,list) and len(color) == 4:
                     nodecolor_rgba.append(color)
+                   
                 else:
                     nodecolor_rgba.append((255, 0, 255, 100))           
 
