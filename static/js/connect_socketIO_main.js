@@ -956,15 +956,21 @@ $(document).ready(function(){
                     let value = data.val;
                     if (value == "init") {return;}
                     let button = document.getElementById("annotationOperation").shadowRoot.getElementById("name");
+                    let annotationLegend2 = document.getElementById("annotationColorA2");
+                    let annotationLegendR = document.getElementById("annotationColorR");
                     if (value == true){
                         button.innerHTML = "[-]";
                         document.getElementById("annotation-2").style.display = "inline-block";
                         document.getElementById("annotation-Operations").style.display = "inline-block";
+                        annotationLegendR.style.display = "block";
+                        annotationLegend2.style.display = "block";
                     }
                     if (value == false){
                         button.innerHTML = "OPERATION";
                         document.getElementById("annotation-2").style.display = "none";
                         document.getElementById("annotation-Operations").style.display = "none";
+                        annotationLegendR.style.display = "none";
+                        annotationLegend2.style.display = "none";
                     }
                 }
                 

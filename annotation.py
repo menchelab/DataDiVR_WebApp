@@ -2,7 +2,6 @@
 Util for Annotation Module
 """
 from PIL import Image
-import math
 import GlobalData as GD
 
 
