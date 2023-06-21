@@ -514,6 +514,9 @@ $(document).ready(function(){
                             case "cartoGRAPHs Importance":
                                 $("#layoutSelectCartoImportance").css('display', 'inline-block');
                             break;
+                            case "Spectral":
+                                $("#layoutSelectSpectral").css('display', 'inline-block');
+                            break;
                             // add bindings for options display here
                         }
                     }

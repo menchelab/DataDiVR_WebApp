@@ -14,9 +14,9 @@ import random
 
 
 # constants, important to keep the order
-LAYOUT_IDS = ["random", "eigen", "local", "global", "importance"] # ids used in session data
-LAYOUT_NAMES = ["Random Layout", "EigenUMAPLayout", "cartoGRAPHsLocal", "cartoGRAPHsImportance"] # names used for texture generation
-LAYOUT_TABS = ["Random", "Eigenlayout", "cartoGRAPHs Local", "cartoGRAPHs Global", "cartoGRAPHs Importance"] # names used in panel display and in connect_socketIO_main.js to switch tabs
+LAYOUT_IDS = ["random", "eigen", "local", "global", "importance", "spectral"] # ids used in session data
+LAYOUT_NAMES = ["Random Layout", "EigenUMAPLayout", "cartoGRAPHsLocal", "cartoGRAPHsImportance", "Spectral"] # names used for texture generation  !!! not implemented yet !!!
+LAYOUT_TABS = ["Random", "Eigenlayout", "cartoGRAPHs Local", "cartoGRAPHs Global", "cartoGRAPHs Importance", "Spectral"] # names used in panel display and in connect_socketIO_main.js to switch tabs
 
 
 
@@ -355,10 +355,10 @@ def layout_carto_global(ordered_graph)->dict:
     # actual layout to get node positions
     try:
         raw_pos = carto_gen_layout(ordered_graph, dim = 3, layoutmethod = 'global', dimred_method='umap')
-        jiter_pos = adjust_point_positions(raw_pos, 0.03)
+        jitter_pos = adjust_point_positions(raw_pos, 0.03)
 
         # scale positions
-        scaled_pos = scale_positions(positions=jiter_pos, node_order=ordered_graph.node_order, pos_type=str)
+        scaled_pos = scale_positions(positions=jitter_pos, node_order=ordered_graph.node_order, pos_type=str)
 
         # return positions
         return {"success": True, "content": scaled_pos}
@@ -392,3 +392,33 @@ def layout_carto_importance(ordered_graph)->dict:
         return {"success": True, "content": scaled_pos}
     except:
         return {"success": False, "error": "cartoGRAPHs Importance layout algorithm failed.", "log": {"type": "warning", "msg": "cartoGRAPHs Importance layout generation failed."}}
+    
+
+
+
+def layout_spectral(ordered_graph: util.OrderedGraph)->dict:
+    """
+    Spectral Layout Generation Function
+    """
+    # integrety checks
+    if not isinstance(ordered_graph, util.OrderedGraph):
+        return {"success": False, "error": "Graph is not instance of OrderedGraph class."}
+    
+    # boundary checks
+    # no check set yet
+
+    # actual layout to get node positions
+    try:
+        layout = nx.spectral_layout(G=ordered_graph, dim=3)
+        positions = []
+        for node in ordered_graph.node_order:
+            pos = layout[node]
+            positions.append([pos[0], pos[1], pos[2]])
+        
+        # scale positions
+        scaled_pos = scale_positions(positions=positions, node_order=ordered_graph.node_order)
+        print(scaled_pos)
+        # return positions
+        return {"success": True, "content": scaled_pos}
+    except:
+        return {"success": False, "error": "Spectral layout algorithm failed.", "log": {"type": "log", "msg": "Spectral layout generation failed."}}

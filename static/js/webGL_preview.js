@@ -177,27 +177,18 @@
                 for (let i = 0; i < ( pfile["nodecount"]+ pfile["labelcount"]); i++){
                     if (i<10000){
 
-                    const ngeometry = new THREE.BoxGeometry(nscale, nscale, nscale);
-                    var color = getNColor(i);
-                    const nmaterial = new THREE.MeshBasicMaterial({ color: RGB2HTML(color[0], color[1], color[2])});//"rgb(155, 102, 102)" 
-                    const cube = new THREE.Mesh(ngeometry, nmaterial);
-                    cube.name = i;//;
-                    cube.layers.set(0);
-                    nodemeshes.push(cube);
+                        const ngeometry = new THREE.BoxGeometry(nscale, nscale, nscale);
+                        var color = getNColor(i);
+                        const nmaterial = new THREE.MeshBasicMaterial({ color: RGB2HTML(color[0], color[1], color[2])});//"rgb(155, 102, 102)" 
+                        const cube = new THREE.Mesh(ngeometry, nmaterial);
+                        cube.name = i;//;
+                        cube.layers.set(0);
+                        nodemeshes.push(cube);
 
-                    scene.add(cube);
-                    var nodepos = getPositionFromTemp(i, layout_low, layout_hi);
-                    cube.position.set((nodepos[1] * -1) * scale , nodepos[2] * scale, nodepos[0] * scale,); //0x00ff00
-            
-                    // MAKE LABELS
-                        if (i >= pfile["nodecount"]){
-
-                            var name = pfile["selections"][(i - pfile["nodecount"])]["name"];
-                        
-                            $('body').append('<div id="lab'+i+'"class="label" text="label"style="z-index: 1; position: absolute; top: 389px; left: 271px; margin-left: 10px; font-size: 20px;">'+ name +'</div>');
-                            labels.push("lab" + i);
-                        }
-                    
+                        scene.add(cube);
+                        var nodepos = getPositionFromTemp(i, layout_low, layout_hi);
+                        cube.position.set((nodepos[1] * -1) * scale , nodepos[2] * scale, nodepos[0] * scale,); //0x00ff00
+                   
                     }
                 }
                     
