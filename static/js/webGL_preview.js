@@ -23,6 +23,9 @@
         var children = [];
         var selNode = 0;
         var initialized = false; //block incoming socket messages from drawing the network multiple times on startup
+
+        const maxNodesPreview = 10000   // maximum amount of nodes to show in preview
+        const maxLinksPreview = 10000   // maximum amount of links to show in preview
         
         
         function init() {
@@ -175,7 +178,7 @@
  
  
                 for (let i = 0; i < ( pfile["nodecount"]+ pfile["labelcount"]); i++){
-                    if (i<10000){
+                    if (i<maxNodesPreview){
 
                         const ngeometry = new THREE.BoxGeometry(nscale, nscale, nscale);
                         var color = getNColor(i);
@@ -194,13 +197,12 @@
                     
                 
                 // Draw Links
-                maxl = 10000;
-                if (pfile["linkcount"] > maxl) {
+                if (pfile["linkcount"] > maxLinksPreview) {
                 document.getElementById("warning").innerHTML = "TOO MANY LINKS<br>FOR PREVIEW";
                 }
-                else{maxl = pfile["linkcount"];}
+                else{maxLinksPreview = pfile["linkcount"];}
                 count = 0;
-                for (let l = 0; l < maxl; l++) {
+                for (let l = 0; l < maxLinksPreview; l++) {
             
                         var link = getLink(l);
                         var color = getLColor(l);
@@ -208,6 +210,9 @@
                         const points = [];
                         const start = link["start"];
                         const end = link["end"];
+
+                        if (start > maxNodesPreview){continue;}
+                        if (end > maxNodesPreview){continue;}
                         
                         points.push(nodemeshes[start].position);
                         points.push(nodemeshes[end].position);
@@ -248,21 +253,21 @@
  
  
                 for (let i = 0; i < ( pfile["nodecount"]+ pfile["labelcount"]); i++){
-                    if (i<10000){
+                    if (i < maxNodesPreview){
 
-                    const ngeometry = new THREE.BoxGeometry(nscale, nscale, nscale);
-                    var color = getNColor(i);
-                    const nmaterial = new THREE.MeshBasicMaterial({ color: RGB2HTML(color[0], color[1], color[2])});//"rgb(155, 102, 102)" 
-                    const cube = new THREE.Mesh(ngeometry, nmaterial);
-                    cube.name = i;//;
-                    cube.layers.set(0);
-                    nodemeshes.push(cube);
-                    //console.log(data['nodes'][i]["n"]);
-                    scene.add(cube);
-                    var nodepos = getPosition(i);
-                    cube.position.set((nodepos[1] * -1) * scale , nodepos[2] * scale, nodepos[0] * scale,); //0x00ff00
-            
-                    // MAKE LABELS
+                        const ngeometry = new THREE.BoxGeometry(nscale, nscale, nscale);
+                        var color = getNColor(i);
+                        const nmaterial = new THREE.MeshBasicMaterial({ color: RGB2HTML(color[0], color[1], color[2])});//"rgb(155, 102, 102)" 
+                        const cube = new THREE.Mesh(ngeometry, nmaterial);
+                        cube.name = i;//;
+                        cube.layers.set(0);
+                        nodemeshes.push(cube);
+                        //console.log(data['nodes'][i]["n"]);
+                        scene.add(cube);
+                        var nodepos = getPosition(i);
+                        cube.position.set((nodepos[1] * -1) * scale , nodepos[2] * scale, nodepos[0] * scale,); //0x00ff00
+                
+                        // MAKE LABELS
                         if (i >= pfile["nodecount"]){
 
                             
@@ -293,7 +298,7 @@
                             //$('body').append('<div id="lab'+i+'"class="label" text="label"style="z-index: 1; position: absolute; top: 389px; left: 271px; margin-left: 10px; font-size: 20px;">'+ name +'</div>');
                             //labels.push("lab" + i);
                         }
-                    
+                        
                     }
 
                     //<div id="label" style="z-index: 2; position: absolute; top: 389px; left: 271px; color: white; margin-left: 10px; font-size: 30px;"></div>
@@ -301,13 +306,12 @@
                     
                 
                 // Draw Links
-                maxl = 10000;
-                if (pfile["linkcount"] > maxl) {
+                if (pfile["linkcount"] > maxLinksPreview) {
                 document.getElementById("warning").innerHTML = "TOO MANY LINKS<br>FOR PREVIEW";
                 }
-                else{maxl = pfile["linkcount"];}
+                else{maxLinksPreview = pfile["linkcount"];}
                 count = 0;
-                for (let l = 0; l < maxl; l++) {
+                for (let l = 0; l < maxLinksPreview; l++) {
             
                         var link = getLink(l);
                         var color = getLColor(l);
@@ -316,6 +320,10 @@
                         const start = link["start"];
                         const end = link["end"];
                         
+
+                        if (start > maxNodesPreview){continue;}
+                        if (end > maxNodesPreview){continue;}
+
 
                         //children[start].push(end);
                         //children[end].push(start);
