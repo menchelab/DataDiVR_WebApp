@@ -24,8 +24,8 @@
         var selNode = 0;
         var initialized = false; //block incoming socket messages from drawing the network multiple times on startup
 
-        const maxNodesPreview = 10000   // maximum amount of nodes to show in preview
-        const maxLinksPreview = 10000   // maximum amount of links to show in preview
+        let maxNodesPreview = 10000   // maximum amount of nodes to show in preview
+        let maxLinksPreview = 10000   // maximum amount of links to show in preview
         
         
         function init() {
@@ -178,7 +178,7 @@
  
  
                 for (let i = 0; i < ( pfile["nodecount"]+ pfile["labelcount"]); i++){
-                    if (i<maxNodesPreview){
+                    if (i < maxNodesPreview){
 
                         const ngeometry = new THREE.BoxGeometry(nscale, nscale, nscale);
                         var color = getNColor(i);
