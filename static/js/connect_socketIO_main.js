@@ -424,7 +424,8 @@ $(document).ready(function(){
                     var select = document.getElementById(data.id).shadowRoot.getElementById("sel");
                     var count = document.getElementById(data.id).shadowRoot.querySelector("#count");
                     var content = document.getElementById(data.id).shadowRoot.getElementById("content");
-                    
+                
+
                     if(data.hasOwnProperty('opt')){
                     
                         removeAllChildNodes(content);
@@ -456,6 +457,7 @@ $(document).ready(function(){
                             actLinksRGB = data.sel;
                             makeNetwork();
                         }
+
 
                         // else if(data.id == "layoutsRGBDD"){
                         //     actLayoutRGB = data.sel;
@@ -602,7 +604,7 @@ $(document).ready(function(){
                 //clearProject();
                 //if (data["usr"]==uid){
                 pfile = data["val"];
-
+                
                 // init analytics container
                 document.getElementById('analyticsContainer').innerHTML = '';
                 document.getElementById('nodecounter').innerHTML = pfile['nodecount']+' NODES';
@@ -615,19 +617,11 @@ $(document).ready(function(){
                 Legend_displayGraphInfo(pfile.name);
                 Legend_displayfirstFile(pfile.name);
 
-                // console.log("C_DEBUG : INIT LEGEND");
-                // Legend_displayGraphLayoutbyID(pfile.name, 0, "layouts", "graphlayout");
-                // Legend_displayGraphLayoutbyID(pfile.name, 0, "layouts", "graphlayout_nodecolors");
-                // Legend_displayGraphLayoutbyID(pfile.name, 0, "layouts", "graphlayout_linkcolors");
-
-                // Legend_displayNodeInfobyID(pfile.name, 0);
-                // Legend_displayLinkInfobyID(pfile.name, 0);
-
                 if (isPreview){
-                    
                     downloadProjectTextures(); // download textures for preview, report when done
                 }
                 ue4(data["fn"], data);   
+               
                 //}    
             break;
             
@@ -647,9 +641,10 @@ $(document).ready(function(){
             case "ue4":    
 
                 if (data.id == "forwardstep") {
-                     
-                    forwardidx = NEWIndexforwardstep(pfile.layouts.length)
 
+                    forwardidx = NEWIndexforwardstep(pfile.layouts.length); 
+                    console.log("C_DEBUG in ue4 forwardstep = ", forwardidx);
+                    
                     if (pfile.linksRGB.length <= forwardidx) {
                         linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
                         linksRGB_DD.setAttribute("sel", parseInt(0));
@@ -673,6 +668,12 @@ $(document).ready(function(){
                     layoutsRGB_DD.setAttribute("sel", parseInt(forwardidx));
                     layoutsRGB_DD.setAttribute("value", pfile.layoutsRGB[forwardidx]);
 
+                    Legend_displayNodeInfobyID(pfile.name, forwardidx);
+                    Legend_displayLinkInfobyID(pfile.name, forwardidx);
+                    Legend_displayGraphLayoutbyID(pfile.name, forwardidx, "layouts", "graphlayout");
+                    Legend_displayGraphLayoutbyID(pfile.name, forwardidx, "layouts", "graphlayout_nodecolors");
+                    Legend_displayGraphLayoutbyID(pfile.name, forwardidx, "layouts", "graphlayout_linkcolors");
+
                     if (isPreview){
                         actLayout = forwardidx;
                         actLayoutRGB = forwardidx;
@@ -680,22 +681,16 @@ $(document).ready(function(){
                         makeNetwork();
                     }
 
-                    Legend_displayNodeInfobyID(pfile.name, forwardidx);
-                    Legend_displayLinkInfobyID(pfile.name, forwardidx);
-                    Legend_displayGraphLayoutbyID(pfile.name, forwardidx, "layouts", "graphlayout");
-                    Legend_displayGraphLayoutbyID(pfile.name, forwardidx, "layouts", "graphlayout_nodecolors");
-                    Legend_displayGraphLayoutbyID(pfile.name, forwardidx, "layouts", "graphlayout_linkcolors");
 
-                    ue4(data["fn"], data);
-
-                    console.log("C_DEBUG : forwardidx = ", forwardidx);
-                    console.log("C_DEBUG : Data fn = ", data["fn"]);
                 } 
 
+
                 if (data.id == "backwardstep") {
-            
-                    backwardidx = NEWIndexbackwardstep(pfile.layouts.length)
-                   
+                    
+                    backwardidx = NEWIndexbackwardstep(pfile.layouts.length); 
+                    console.log("C_DEBUG in ue4 backwardidx = ", backwardidx);
+                    
+                    
                     if (pfile.linksRGB.length <= backwardidx) {
                         linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
                         linksRGB_DD.setAttribute("sel", parseInt(0));
@@ -719,6 +714,12 @@ $(document).ready(function(){
                     layoutsRGB_DD.setAttribute("sel", parseInt(backwardidx));
                     layoutsRGB_DD.setAttribute("value", pfile.layoutsRGB[backwardidx]);
 
+                    Legend_displayNodeInfobyID(pfile.name, backwardidx);
+                    Legend_displayLinkInfobyID(pfile.name, backwardidx);
+                    Legend_displayGraphLayoutbyID(pfile.name, backwardidx, "layouts", "graphlayout");
+                    Legend_displayGraphLayoutbyID(pfile.name, backwardidx, "layouts", "graphlayout_nodecolors");
+                    Legend_displayGraphLayoutbyID(pfile.name, backwardidx, "layouts", "graphlayout_linkcolors");
+
                     if (isPreview){
                         actLayout = backwardidx;
                         actLayoutRGB = backwardidx;
@@ -726,21 +727,10 @@ $(document).ready(function(){
                         makeNetwork();
                     }
 
-                    // Legend_displayNodeLinkInfo_backward(pfile.name);
-                    // Legend_displayGraphLayout_backward(pfile.name, "layouts", "graphlayout");
-                    // Legend_displayGraphLayout_backward(pfile.name, "layoutsRGB", "graphlayout_nodecolors");
-                    // Legend_displayGraphLayout_backward(pfile.name, "linksRGB", "graphlayout_linkcolors");
-                    
-                    Legend_displayNodeInfobyID(pfile.name, backwardidx);
-                    Legend_displayLinkInfobyID(pfile.name, backwardidx);
-                    Legend_displayGraphLayoutbyID(pfile.name, backwardidx, "layouts", "graphlayout");
-                    Legend_displayGraphLayoutbyID(pfile.name, backwardidx, "layouts", "graphlayout_nodecolors");
-                    Legend_displayGraphLayoutbyID(pfile.name, backwardidx, "layouts", "graphlayout_linkcolors");
 
-                    ue4(data["fn"], data);
-                }
-
-                //ue4(data["fn"], data);
+                } 
+                ue4(data["fn"], data);
+            
             break;
 
             case "textinput":
