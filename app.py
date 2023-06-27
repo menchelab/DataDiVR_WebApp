@@ -1344,6 +1344,71 @@ def ex(message):
             emit("ex", response, room=room)
             return
 
+        if message["id"] == "layoutSpectralApply":
+            layout_id = layout_module.LAYOUT_IDS[5]  # 5 -> random layout
+
+            # write log starting
+            response_log = {}
+            response_log["usr"] = message["usr"]
+            response_log["id"] = "addLog"
+            response_log["fn"] = "layout"
+            response_log["log"] = {
+                "type": "log",
+                "msg": "Spectral layout generation running ...",
+            }
+            emit("ex", response_log, room=room)
+
+            # retreive data and get layout positions
+            if layout_id not in GD.session_data["layout"]["results"].keys():
+                if "graph" not in GD.session_data.keys():
+                    GD.session_data["graph"] = util.project_to_graph(GD.data["actPro"])
+                graph = GD.session_data["graph"]
+                result_obj = layout_module.layout_spectral(ordered_graph=graph)
+                if result_obj["success"] is False:
+                    print("ERROR: ", result_obj["error"])
+                    response_log["log"] = result_obj["log"]
+                    emit("ex", response_log, room=room)
+                    return
+
+                GD.session_data["layout"]["results"][layout_id] = result_obj["content"]
+
+            # generate layout textures
+            positions = GD.session_data["layout"]["results"][layout_id]
+            result_obj = layout_module.pos_to_textures(positions)
+            if result_obj["success"] is False:
+                print("ERROR: ", result_obj["error"])
+
+                response_log["log"] = result_obj["log"]
+                emit("ex", response_log, room=room)
+                return
+
+            # write log finish
+            response_log["log"] = {
+                "type": "log",
+                "msg": "Generated spectral layout successfully.",
+            }
+            emit("ex", response_log, room=room)
+
+            # display rerun and save buttons
+            response_layout_exists = {}
+            response_layout_exists["usr"] = message["usr"]
+            response_layout_exists["fn"] = "layout"
+            response_layout_exists["id"] = "layoutExists"
+            response_layout_exists["val"] = layout_module.check_layout_exists()
+            emit("ex", response_layout_exists, room=room)
+
+            # update temp layout
+            response = {}
+            response["usr"] = message["usr"]
+            response["fn"] = "updateTempTex"
+            response["textures"] = result_obj["textures"]
+            emit("ex", response, room=room)
+            return
+
+
+
+
+
     elif message["fn"] == "dropdown":
         response = {}
         response["usr"] = message["usr"]

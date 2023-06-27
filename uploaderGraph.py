@@ -509,15 +509,16 @@ def parseGraphJSON_labels(files,target):
                 if "cluster" in node and node["cluster"] is not None:
                     nodeclus.append(node["cluster"])
                     nodeids.append(node["id"])
-                    set_nodeclus = list(set(nodeclus))
+                    
+            set_nodeclus = list(set(nodeclus))
 
-                    for cluster in set_nodeclus:
-                        sublist = [] 
-                        for k,v in zip(nodeids,nodeclus):
-                            if cluster == v:
-                                sublist.append(str(k))
-                        sublist.insert(0,cluster)
-                        labels.append(sublist)
+            for cluster in set_nodeclus:
+                sublist = [] 
+                for k,v in zip(nodeids,nodeclus):
+                    if cluster == v:
+                        sublist.append(str(k))
+                sublist.insert(0,cluster)
+                labels.append(sublist)
             
             vecList = {}
             vecList["data"] = labels
