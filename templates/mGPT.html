@@ -1,5 +1,5 @@
 <div class="gradientBox">
-    <audio id="GPTAudio"  src="http://127.0.0.1:5000/static/TTSaudio/speech.ogg" type="audio/ogg">
+    <audio id="GPTAudio"  src="" type="audio/ogg">
     <source id = "GPTAudioS">
         Your browser does not support the audio element.
     </audio>
@@ -22,7 +22,7 @@ function clearChat(){
 function gptQuery(){
     var text = document.getElementById("gptText1").shadowRoot.getElementById("text").value;
     var chatwin = document.getElementById("gptscrollbox").shadowRoot.getElementById("box");
-    var chat = chatwin.innerHTML +" HUMAN: " +text+" AI: ";
+    var chat = chatwin.innerHTML + " HUMAN: " + text + 'and format it in the following way: ["aaa","bbb","ccc"]'+" AI: ";
    
     fetch("{{ url_for('GPT') }}", {
             method: "POST",
