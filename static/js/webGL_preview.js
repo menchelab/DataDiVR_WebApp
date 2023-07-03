@@ -151,12 +151,10 @@
         }
 
         function updateLinkColors(data){
-            console.log(data)
             console.log("uopdate")
             //console.log(linkmeshes);
             for (let i = 0; i < (linkmeshes.length); i++){
                 color = [data[i*4], data[i*4+1], data[i*4+2], data[i*4 + 3]];
-                console.log(color)
                 if (color[3] > 100) {
                     // if alpha is greater than 100, create emissive material
                     var material1 = new THREE.LineBasicMaterial({ 
@@ -164,7 +162,6 @@
                         opacity: 0.6,
                         transparent: false
                     })
-                    console.log("emissive link")
                 } else {
                     // if alpha is not greater than 100, create regular material
                     var material1 = new THREE.LineBasicMaterial({
@@ -365,6 +362,7 @@
                 
                         // MAKE LABELS
                         if (i >= pfile["nodecount"]){
+
 
                             
                             // match label with layout to show only for specific layout
