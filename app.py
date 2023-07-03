@@ -1492,6 +1492,13 @@ def ex(message):
                         response["opt"] = options
                         print(options)
 
+
+                    if "opt" in response.keys():
+                        # dirty fix that sel of pdata layoutsDD is somwhow always = 2
+                        response["sel"] = str(min(len(response["opt"]) - 1, int(response["sel"])))
+
+
+
                 # dropdown for annotations
                 if message["id"] == "annotation-1":
                     response["opt"] = (
@@ -1602,7 +1609,6 @@ def ex(message):
                     response_layout_exists["id"] = "layoutExists"
                     response_layout_exists["val"] = layout_module.check_layout_exists()
                     emit("ex", response_layout_exists, room=room)
-
         emit("ex", response, room=room)
         print(response)
 

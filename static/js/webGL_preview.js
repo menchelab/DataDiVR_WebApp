@@ -92,6 +92,7 @@
         function getPosition(index){
             var i = index * 4;
             var scene = actLayout;
+
             var positionX = (layouts[scene][i]*255 + layoutsl[scene][i])/ 65536 - 0.5;
             var positionY = (layouts[scene][i+1]*255 + layoutsl[scene][i+1])/ 65536 - 0.5;
             var positionZ = (layouts[scene][i+2]*255 + layoutsl[scene][i+2])/ 65536 - 0.5;
@@ -304,7 +305,7 @@
                 }
                 else{maxLinksPreview = pfile["linkcount"];}
                 count = 0;
-                for (let l = 0; l < maxLinksPreview; l++) {
+                for (let l = 0; l < maxLinksPreview - 1; l++) {
             
                         var link = getLink(l);
                         var color = getLColor(l);
@@ -314,8 +315,8 @@
                         const end = link["end"];
                         
 
-                        if (start > maxNodesPreview){continue;}
-                        if (end > maxNodesPreview){continue;}
+                        if (start >= maxNodesPreview){continue;}
+                        if (end >= maxNodesPreview){continue;}
 
 
                         //children[start].push(end);
