@@ -103,14 +103,14 @@
         function getNColor(index){
             var i = index * 4;
             var scene = actLayoutRGB;
-            var color = [layoutsRGB[scene][i], layoutsRGB[scene][i+1], layoutsRGB[scene][i+2]];
+            var color = [layoutsRGB[scene][i], layoutsRGB[scene][i+1], layoutsRGB[scene][i+2], layoutsRGB[scene][i+3]];
             return color;
         }
         
         function getLColor(index){
             var i = index * 4;
             var scene = actLinksRGB;
-            var color = [linksRGB[scene][i], linksRGB[scene][i+1], linksRGB[scene][i+2]];
+            var color = [linksRGB[scene][i], linksRGB[scene][i+1], linksRGB[scene][i+2], linksRGB[scene][i+3]];
             return color;
         }
         
@@ -126,17 +126,56 @@
         function updateNodeColors(data){
 
             for (let i = 0; i < (nodemeshes.length); i++){
-                color = [data[i*4], data[i*4+1], data[i*4+2]];
-                nodemeshes[i].material.color.set(RGB2HTML(color[0],color[1],color[2]))  
+                color = [data[i*4], data[i*4+1], data[i*4+2], data[i*4 + 3]];
+
+                if (color[3] > 100) {
+                    // If alpha is greater than 100, create a glowing material
+                    var nmaterial = new THREE.MeshStandardMaterial({
+                        color: hexToTHREEColor(RGB2HTML(color[0], color[1], color[2])),
+                        emissive: hexToTHREEColor(RGB2HTML(color[0], color[1], color[2])),
+                        emissiveIntensity: 1.0,
+                        transparent: false
+                      });
+                } else {
+                    // If alpha is not greater than 100, create a regular material
+                    var nmaterial = new THREE.MeshBasicMaterial({
+                        color: RGB2HTML(color[0], color[1], color[2]),
+                        opacity: 0.8,
+                        transparent: true
+                    });
+                }
+
+                nodemeshes[i].material = nmaterial;  
             }
             console.log("node colors updated")
         }
 
         function updateLinkColors(data){
+            console.log(data)
+            console.log("uopdate")
             //console.log(linkmeshes);
             for (let i = 0; i < (linkmeshes.length); i++){
-                color = [data[i*4], data[i*4+1], data[i*4+2]];
-                linkmeshes[i].material.color.set(RGB2HTML(color[0], color[1], color[2]));
+                color = [data[i*4], data[i*4+1], data[i*4+2], data[i*4 + 3]];
+                console.log(color)
+                if (color[3] > 100) {
+                    // if alpha is greater than 100, create emissive material
+                    var material1 = new THREE.LineBasicMaterial({ 
+                        color: RGB2HTML(color[0], color[1], color[2]), 
+                        opacity: 0.6,
+                        transparent: false
+                    })
+                    console.log("emissive link")
+                } else {
+                    // if alpha is not greater than 100, create regular material
+                    var material1 = new THREE.LineBasicMaterial({
+                        color: RGB2HTML(color[0], color[1], color[2]),
+                        opacity: 0.15,
+                        transparent: true
+                    });
+                }
+
+
+                linkmeshes[i].material = material1;
             }
             //console.log(linkmeshes);
             console.log("link colors updated")
@@ -183,7 +222,25 @@
 
                         const ngeometry = new THREE.BoxGeometry(nscale, nscale, nscale);
                         var color = getNColor(i);
-                        const nmaterial = new THREE.MeshBasicMaterial({ color: RGB2HTML(color[0], color[1], color[2])});//"rgb(155, 102, 102)" 
+
+                        if (color[3] > 100) {
+                            // If alpha is greater than 100, create a glowing material
+                            var nmaterial = new THREE.MeshStandardMaterial({
+                                color: hexToTHREEColor(RGB2HTML(color[0], color[1], color[2])),
+                                emissive: hexToTHREEColor(RGB2HTML(color[0], color[1], color[2])),
+                                emissiveIntensity: 1.0,
+                                transparent: false
+                              });
+                        } else {
+                            // If alpha is not greater than 100, create a regular material
+                            var nmaterial = new THREE.MeshBasicMaterial({
+                                color: RGB2HTML(color[0], color[1], color[2]),
+                                opacity: 0.8,
+                                transparent: true
+                            });
+                        }
+
+                        //const nmaterial = new THREE.MeshBasicMaterial({ color: RGB2HTML(color[0], color[1], color[2])});//"rgb(155, 102, 102)" 
                         const cube = new THREE.Mesh(ngeometry, nmaterial);
                         cube.name = i;//;
                         cube.layers.set(0);
@@ -207,7 +264,24 @@
             
                         var link = getLink(l);
                         var color = getLColor(l);
-                        const material1 = new THREE.LineBasicMaterial({ color: RGB2HTML(color[0], color[1], color[2]), transparent: true, opacity: 0.2 });
+                        
+                        if (color[3] > 100) {
+                            // if alpha is greater than 100, create emissive material
+                            var material1 = new THREE.LineBasicMaterial({ 
+                                color: RGB2HTML(color[0], color[1], color[2]), 
+                                opacity: 0.6,
+                                transparent: false
+                            })
+                        } else {
+                            // if alpha is not greater than 100, create regular material
+                            var material1 = new THREE.LineBasicMaterial({
+                                color: RGB2HTML(color[0], color[1], color[2]),
+                                opacity: 0.15,
+                                transparent: true
+                            });
+                        }
+                        
+                        //const material1 = new THREE.LineBasicMaterial({ color: RGB2HTML(color[0], color[1], color[2]), transparent: true, opacity: 0.2 });
                         const points = [];
                         const start = link["start"];
                         const end = link["end"];
@@ -258,7 +332,28 @@
 
                         const ngeometry = new THREE.BoxGeometry(nscale, nscale, nscale);
                         var color = getNColor(i);
-                        const nmaterial = new THREE.MeshBasicMaterial({ color: RGB2HTML(color[0], color[1], color[2])});//"rgb(155, 102, 102)" 
+
+
+                        if (color[3] > 100) {
+                            // If alpha is greater than 100, create a glowing material
+                            var nmaterial = new THREE.MeshStandardMaterial({
+                                color: hexToTHREEColor(RGB2HTML(color[0], color[1], color[2])),
+                                emissive: hexToTHREEColor(RGB2HTML(color[0], color[1], color[2])),
+                                emissiveIntensity: 1.0,
+                                transparent: false
+                              });
+                        } else {
+                            // If alpha is not greater than 100, create a regular material
+                            var nmaterial = new THREE.MeshBasicMaterial({
+                                color: RGB2HTML(color[0], color[1], color[2]),
+                                opacity: 0.6,
+                                transparent: true,
+                            });
+                        }
+
+                        //const nmaterial = new THREE.MeshBasicMaterial({ color: RGB2HTML(color[0], color[1], color[2])});//"rgb(155, 102, 102)" 
+                        
+                        
                         const cube = new THREE.Mesh(ngeometry, nmaterial);
                         cube.name = i;//;
                         cube.layers.set(0);
@@ -309,7 +404,26 @@
             
                         var link = getLink(l);
                         var color = getLColor(l);
-                        const material1 = new THREE.LineBasicMaterial({ color: RGB2HTML(color[0], color[1], color[2]), transparent: true, opacity: 0.2 });
+
+
+                        if (color[3] > 100) {
+                            // if alpha is greater than 100, create emissive material
+                            var material1 = new THREE.LineBasicMaterial({ 
+                                color: RGB2HTML(color[0], color[1], color[2]),  
+                                opacity: 0.6,
+                                transparent: false
+                            })
+                        } else {
+                            // if alpha is not greater than 100, create regular material
+                            var material1 = new THREE.LineBasicMaterial({
+                                color: RGB2HTML(color[0], color[1], color[2]),
+                                opacity: 0.15,
+                                transparent: true
+                            });
+                        }
+
+
+                        //const material1 = new THREE.LineBasicMaterial({ color: RGB2HTML(color[0], color[1], color[2]), transparent: true, opacity: 0.2 });
                         const points = [];
                         const start = link["start"];
                         const end = link["end"];
@@ -568,6 +682,12 @@
                     break;
             }
         }
+
+        function hexToTHREEColor(hex) {
+            var color = new THREE.Color();
+            color.set(hex);
+            return color;
+          }
         
         document.addEventListener("DOMContentLoaded", function () {
             init();
