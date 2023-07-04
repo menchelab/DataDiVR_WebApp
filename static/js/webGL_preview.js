@@ -179,6 +179,7 @@
         }
 
         async function updateLayoutTemp(path_low, path_hi){
+
             function getPositionFromTemp(index, temp_low, temp_hi){
                 var i = index * 4;
                 var positionX = (temp_hi[i]*255 + temp_low[i]) / 65536 - 0.5;
@@ -363,7 +364,13 @@
                         // MAKE LABELS
                         if (i >= pfile["nodecount"]){
 
-                            
+
+
+                            var name = pfile["selections"][(i - pfile["nodecount"])]["name"];
+                            $('body').append('<div id="lab'+i+'"class="label" text="label"style="z-index: 1; position: absolute; top: 389px; left: 271px; margin-left: 10px; font-size: 20px;">'+ name +'</div>');
+                            labels.push("lab" + i);
+
+/*                             
                             // match label with layout to show only for specific layout
                             var selected_layout_index = getIndexforwardstep(pfile["layouts"].length);
                             var selected_layout = pfile["layouts"][selected_layout_index];
@@ -381,7 +388,7 @@
                                 labels.push("lab" + i);
                                 //break; // If you want to stop the iteration after finding the first match
                     
-                            }
+                            } */
               
                         }
                         
