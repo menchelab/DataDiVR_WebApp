@@ -91,6 +91,7 @@
 
                     if (pfiledata.hasOwnProperty(elementkey)) {
                         graphlayout_pre = pfiledata.layouts[selected_id];
+                        console.log(graphlayout_pre)
                         graphlayout = graphlayout_pre.slice(0, -3); //to remove XYZ or RGB appended in upload process
                     } 
                 
@@ -452,6 +453,7 @@
 
         backButton.setAttribute('val',currentIndex);
         nextButton.setAttribute('val',currentIndex);
+
         //console.log("C_DEBUG: NEWIndexbackwardstep value = ", currentIndex)
 
         return currentIndex;

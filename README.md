@@ -13,10 +13,10 @@ To run the Module download the folder and execute the .exe file.
 
 1. run backend
 
-   - install python 3.9
+   - install python 3.9 (for mac we recommend using brew and installing it like this: brew install python@3.9 if you use other ways you might need to change the mac_buildandrun.sh file accordingly)
    - windows: run `Buildandrun.ps1` in console
    - linux: run `linux_buildandrun.sh` in console
-   - mac: run `linux_buildandrun.sh` in console
+   - mac: run `mac_buildandrun.sh` in console
 
    If all dependencies installed correctly, the console should show </br>
    `The server is now running at 127.0.0.1:5000`
