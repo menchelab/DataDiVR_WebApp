@@ -16,7 +16,7 @@ To run the Module download the folder and execute the .exe file.
    - install python 3.9
    - windows: run `Buildandrun.ps1` in console
    - linux: run `linux_buildandrun.sh` in console
-   - mac: run `linux_buildandrun.sh` in console
+   - mac: run `mac_buildandrun.sh` in console
 
    If all dependencies installed correctly, the console should show </br>
    `The server is now running at 127.0.0.1:5000`
