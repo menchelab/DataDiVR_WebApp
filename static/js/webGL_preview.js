@@ -364,8 +364,7 @@
                         // MAKE LABELS
                         if (i >= pfile["nodecount"]){
 
-
-
+                            
                             var name = pfile["selections"][(i - pfile["nodecount"])]["name"];
                             $('body').append('<div id="lab'+i+'"class="label" text="label"style="z-index: 1; position: absolute; top: 389px; left: 271px; margin-left: 10px; font-size: 20px;">'+ name +'</div>');
                             labels.push("lab" + i);

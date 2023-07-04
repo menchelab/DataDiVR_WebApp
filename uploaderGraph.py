@@ -282,6 +282,9 @@ def upload_filesJSON(request):
     #pfile["labelcount"] = len(labels[0]["data"])
     pfile["linkcount"] = len(links[0]["data"]) 
 
+    # update new labels
+    pfile["labels"] = [pfile["nodecount"], pfile["labelcount"]]
+
     #----------------------------------
     # adding graph info to pfile 
     #----------------------------------
@@ -494,7 +497,7 @@ def parseGraphJSON_nodecolors(files,target):
 def parseGraphJSON_labels(files,target):
     if len(files) > 0: 
         # keep loop in case cluster labels per layout in update
-        for idx,file in enumerate(files):
+        for idx, file in enumerate(files):
             
             # get cluster labels from one file only (file i.e. layout)
             one_file = file #s[0]
