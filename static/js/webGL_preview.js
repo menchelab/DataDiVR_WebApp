@@ -363,7 +363,6 @@
                         // MAKE LABELS
                         if (i >= pfile["nodecount"]){
 
-
                             
                             // match label with layout to show only for specific layout
                             var selected_layout_index = getIndexforwardstep(pfile["layouts"].length);
