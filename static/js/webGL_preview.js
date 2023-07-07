@@ -17,11 +17,15 @@
         var scale = 20;
         const nscale = .02;
         var nodemeshes = [];
+        var linkmeshes = []
         var indexsphere;
         var labels = [];
         var children = [];
         var selNode = 0;
         var initialized = false; //block incoming socket messages from drawing the network multiple times on startup
+
+        let maxNodesPreview = 10000   // maximum amount of nodes to show in preview
+        let maxLinksPreview = 10000   // maximum amount of links to show in preview
         
         
         function init() {
@@ -75,28 +79,38 @@
                 var decColor = 0x1000000 + blue + 0x100 * green + 0x10000 * red;
                 return '#' + decColor.toString(16).substr(1);
         }
+
+        function RGBA2HTML(rgba) {
+            var r = rgba[0].toString(16).padStart(2, '0');
+            var g = rgba[1].toString(16).padStart(2, '0');
+            var b = rgba[2].toString(16).padStart(2, '0');
+            var a = Math.round(rgba[3] / 255 * 100) / 100;
+            a = Math.round(a * 255).toString(16).padStart(2, '0');
+            return "#" + r + g + b + a;
+          }
         
         function getPosition(index){
             var i = index * 4;
             var scene = actLayout;
+
             var positionX = (layouts[scene][i]*255 + layoutsl[scene][i])/ 65536 - 0.5;
             var positionY = (layouts[scene][i+1]*255 + layoutsl[scene][i+1])/ 65536 - 0.5;
             var positionZ = (layouts[scene][i+2]*255 + layoutsl[scene][i+2])/ 65536 - 0.5;
             var position = [positionX, positionY, positionZ];
             return position;
         }
-        
+
         function getNColor(index){
             var i = index * 4;
             var scene = actLayoutRGB;
-            var color = [layoutsRGB[scene][i], layoutsRGB[scene][i+1], layoutsRGB[scene][i+2]];
+            var color = [layoutsRGB[scene][i], layoutsRGB[scene][i+1], layoutsRGB[scene][i+2], layoutsRGB[scene][i+3]];
             return color;
         }
         
         function getLColor(index){
             var i = index * 4;
             var scene = actLinksRGB;
-            var color = [linksRGB[scene][i], linksRGB[scene][i+1], linksRGB[scene][i+2]];
+            var color = [linksRGB[scene][i], linksRGB[scene][i+1], linksRGB[scene][i+2], linksRGB[scene][i+3]];
             return color;
         }
         
@@ -112,12 +126,182 @@
         function updateNodeColors(data){
 
             for (let i = 0; i < (nodemeshes.length); i++){
-                color = [data[i*4], data[i*4+1], data[i*4+2]];
-                nodemeshes[i].material.color.set(RGB2HTML(color[0],color[1],color[2]))  
+                color = [data[i*4], data[i*4+1], data[i*4+2], data[i*4 + 3]];
+
+                if (color[3] > 100) {
+                    // If alpha is greater than 100, create a glowing material
+                    var nmaterial = new THREE.MeshStandardMaterial({
+                        color: hexToTHREEColor(RGB2HTML(color[0], color[1], color[2])),
+                        emissive: hexToTHREEColor(RGB2HTML(color[0], color[1], color[2])),
+                        emissiveIntensity: 1.0,
+                        transparent: false
+                      });
+                } else {
+                    // If alpha is not greater than 100, create a regular material
+                    var nmaterial = new THREE.MeshBasicMaterial({
+                        color: RGB2HTML(color[0], color[1], color[2]),
+                        opacity: 0.8,
+                        transparent: true
+                    });
+                }
+
+                nodemeshes[i].material = nmaterial;  
             }
             console.log("node colors updated")
         }
-        
+
+        function updateLinkColors(data){
+            console.log("uopdate")
+            //console.log(linkmeshes);
+            for (let i = 0; i < (linkmeshes.length); i++){
+                color = [data[i*4], data[i*4+1], data[i*4+2], data[i*4 + 3]];
+                if (color[3] > 100) {
+                    // if alpha is greater than 100, create emissive material
+                    var material1 = new THREE.LineBasicMaterial({ 
+                        color: RGB2HTML(color[0], color[1], color[2]), 
+                        opacity: 0.6,
+                        transparent: false
+                    })
+                } else {
+                    // if alpha is not greater than 100, create regular material
+                    var material1 = new THREE.LineBasicMaterial({
+                        color: RGB2HTML(color[0], color[1], color[2]),
+                        opacity: 0.15,
+                        transparent: true
+                    });
+                }
+
+
+                linkmeshes[i].material = material1;
+            }
+            //console.log(linkmeshes);
+            console.log("link colors updated")
+        }
+
+        async function updateLayoutTemp(path_low, path_hi){
+
+            function getPositionFromTemp(index, temp_low, temp_hi){
+                var i = index * 4;
+                var positionX = (temp_hi[i]*255 + temp_low[i]) / 65536 - 0.5;
+                var positionY = (temp_hi[i+1]*255 + temp_low[i+1]) / 65536 - 0.5;
+                var positionZ = (temp_hi[i+2]*255 + temp_low[i+2]) / 65536 - 0.5;
+                var position = [positionX, positionY, positionZ];
+                return position;
+            }
+
+            if (initialized){
+                let layout_hi = await DownloadImage(path_hi);
+                let layout_low = await DownloadImage(path_low);
+
+
+                //delete everything but sphere  
+                console.log("update network");      
+                const n = scene.children.length - 1; 
+                for (var i = n; i > -1; i--) {
+                    if (scene.children[i] != indexsphere){
+                        scene.remove(scene.children[i]);
+                    }    
+                }
+                
+                const elements = document.getElementsByClassName("label");
+                while(elements.length > 0){
+                    elements[0].parentNode.removeChild(elements[0]);
+                }
+                
+                nodemeshes=[];
+                linkmeshes = []
+                labels=[];
+            
+                // make new nodes from temp files
+ 
+ 
+                for (let i = 0; i < ( pfile["nodecount"]+ pfile["labelcount"]); i++){
+                    if (i < maxNodesPreview){
+
+                        const ngeometry = new THREE.BoxGeometry(nscale, nscale, nscale);
+                        var color = getNColor(i);
+
+                        if (color[3] > 100) {
+                            // If alpha is greater than 100, create a glowing material
+                            var nmaterial = new THREE.MeshStandardMaterial({
+                                color: hexToTHREEColor(RGB2HTML(color[0], color[1], color[2])),
+                                emissive: hexToTHREEColor(RGB2HTML(color[0], color[1], color[2])),
+                                emissiveIntensity: 1.0,
+                                transparent: false
+                              });
+                        } else {
+                            // If alpha is not greater than 100, create a regular material
+                            var nmaterial = new THREE.MeshBasicMaterial({
+                                color: RGB2HTML(color[0], color[1], color[2]),
+                                opacity: 0.8,
+                                transparent: true
+                            });
+                        }
+
+                        //const nmaterial = new THREE.MeshBasicMaterial({ color: RGB2HTML(color[0], color[1], color[2])});//"rgb(155, 102, 102)" 
+                        const cube = new THREE.Mesh(ngeometry, nmaterial);
+                        cube.name = i;//;
+                        cube.layers.set(0);
+                        nodemeshes.push(cube);
+
+                        scene.add(cube);
+                        var nodepos = getPositionFromTemp(i, layout_low, layout_hi);
+                        cube.position.set((nodepos[1] * -1) * scale , nodepos[2] * scale, nodepos[0] * scale,); //0x00ff00
+                   
+                    }
+                }
+                    
+                
+                // Draw Links
+                if (pfile["linkcount"] > maxLinksPreview) {
+                document.getElementById("warning").innerHTML = "TOO MANY LINKS<br>FOR PREVIEW";
+                }
+                else{maxLinksPreview = pfile["linkcount"];}
+                count = 0;
+                for (let l = 0; l < maxLinksPreview; l++) {
+            
+                        var link = getLink(l);
+                        var color = getLColor(l);
+                        
+                        if (color[3] > 100) {
+                            // if alpha is greater than 100, create emissive material
+                            var material1 = new THREE.LineBasicMaterial({ 
+                                color: RGB2HTML(color[0], color[1], color[2]), 
+                                opacity: 0.6,
+                                transparent: false
+                            })
+                        } else {
+                            // if alpha is not greater than 100, create regular material
+                            var material1 = new THREE.LineBasicMaterial({
+                                color: RGB2HTML(color[0], color[1], color[2]),
+                                opacity: 0.15,
+                                transparent: true
+                            });
+                        }
+                        
+                        //const material1 = new THREE.LineBasicMaterial({ color: RGB2HTML(color[0], color[1], color[2]), transparent: true, opacity: 0.2 });
+                        const points = [];
+                        const start = link["start"];
+                        const end = link["end"];
+
+                        if (start > maxNodesPreview){continue;}
+                        if (end > maxNodesPreview){continue;}
+                        
+                        points.push(nodemeshes[start].position);
+                        points.push(nodemeshes[end].position);
+                        const geometry1 = new THREE.BufferGeometry().setFromPoints(points);
+                        const line = new THREE.Line(geometry1, material1);
+                        line.layers.set(1);
+                        line.linewidth
+                        line.name = "line"
+                        scene.add(line);
+                        linkmeshes.push(line)
+                        count = l
+                }
+            }   
+        }
+
+
         function makeNetwork(){
             if (initialized){
                 //delete everything but sphere  
@@ -135,33 +319,78 @@
                 }
                 
                 nodemeshes=[];
+                linkmeshes = []
                 labels=[];
             
                 // MAKE NODES
  
  
                 for (let i = 0; i < ( pfile["nodecount"]+ pfile["labelcount"]); i++){
-                    if (i<10000){
+                    if (i < maxNodesPreview){
 
-                    const ngeometry = new THREE.BoxGeometry(nscale, nscale, nscale);
-                    var color = getNColor(i);
-                    const nmaterial = new THREE.MeshBasicMaterial({ color: RGB2HTML(color[0], color[1], color[2])});//"rgb(155, 102, 102)" 
-                    const cube = new THREE.Mesh(ngeometry, nmaterial);
-                    cube.name = i;//;
-                    cube.layers.set(0);
-                    nodemeshes.push(cube);
-                    //console.log(data['nodes'][i]["n"]);
-                    scene.add(cube);
-                    var nodepos = getPosition(i);
-                    cube.position.set((nodepos[1] * -1) * scale , nodepos[2] * scale, nodepos[0] * scale,); //0x00ff00
-            
-                    // MAKE LABELS
+                        const ngeometry = new THREE.BoxGeometry(nscale, nscale, nscale);
+                        var color = getNColor(i);
+
+
+                        if (color[3] > 100) {
+                            // If alpha is greater than 100, create a glowing material
+                            var nmaterial = new THREE.MeshStandardMaterial({
+                                color: hexToTHREEColor(RGB2HTML(color[0], color[1], color[2])),
+                                emissive: hexToTHREEColor(RGB2HTML(color[0], color[1], color[2])),
+                                emissiveIntensity: 1.0,
+                                transparent: false
+                              });
+                        } else {
+                            // If alpha is not greater than 100, create a regular material
+                            var nmaterial = new THREE.MeshBasicMaterial({
+                                color: RGB2HTML(color[0], color[1], color[2]),
+                                opacity: 0.6,
+                                transparent: true,
+                            });
+                        }
+
+                        //const nmaterial = new THREE.MeshBasicMaterial({ color: RGB2HTML(color[0], color[1], color[2])});//"rgb(155, 102, 102)" 
+                        
+                        
+                        const cube = new THREE.Mesh(ngeometry, nmaterial);
+                        cube.name = i;//;
+                        cube.layers.set(0);
+                        nodemeshes.push(cube);
+                        //console.log(data['nodes'][i]["n"]);
+                        scene.add(cube);
+                        var nodepos = getPosition(i);
+                        cube.position.set((nodepos[1] * -1) * scale , nodepos[2] * scale, nodepos[0] * scale,); //0x00ff00
+                
+                        // MAKE LABELS
                         if (i >= pfile["nodecount"]){
+
+                            
                             var name = pfile["selections"][(i - pfile["nodecount"])]["name"];
                             $('body').append('<div id="lab'+i+'"class="label" text="label"style="z-index: 1; position: absolute; top: 389px; left: 271px; margin-left: 10px; font-size: 20px;">'+ name +'</div>');
                             labels.push("lab" + i);
-                        }
+
+/*                             
+                            // match label with layout to show only for specific layout
+                            var selected_layout_index = getIndexforwardstep(pfile["layouts"].length);
+                            var selected_layout = pfile["layouts"][selected_layout_index];
+
+                            var layoutname_pfile = pfile["selections"][0]["layoutname"]+"XYZ"
+                            //console.log("C_DEBUG selected_layout = ",selected_layout);
+                            //console.log("C_DEBUG layoutname = ", layoutname_pfile);
+
+                            if (selected_layout === layoutname_pfile) {
+
+                                var name = pfile["selections"][(i - pfile["nodecount"])]["name"];
+                                //console.log("C_DEBUG name = ", name);
+
+                                $('body').append('<div id="lab'+i+'"class="label" text="label"style="z-index: 1; position: absolute; top: 389px; left: 271px; margin-left: 10px; font-size: 20px;">'+ name +'</div>');
+                                labels.push("lab" + i);
+                                //break; // If you want to stop the iteration after finding the first match
                     
+                            } */
+              
+                        }
+                        
                     }
 
                     //<div id="label" style="z-index: 2; position: absolute; top: 389px; left: 271px; color: white; margin-left: 10px; font-size: 30px;"></div>
@@ -169,24 +398,47 @@
                     
                 
                 // Draw Links
-                maxl = 10000;
-                if (pfile["linkcount"] > maxl) {
+                if (pfile["linkcount"] > maxLinksPreview) {
                 document.getElementById("warning").innerHTML = "TOO MANY LINKS<br>FOR PREVIEW";
                 }
-                else{maxl = pfile["linkcount"];}
+                else{maxLinksPreview = pfile["linkcount"];}
                 count = 0;
-                for (let l = 0; l < maxl; l++) {
+                for (let l = 0; l < maxLinksPreview - 1; l++) {
             
                         var link = getLink(l);
                         var color = getLColor(l);
-                        const material1 = new THREE.LineBasicMaterial({ color: RGB2HTML(color[0], color[1], color[2]), transparent: true, opacity: 0.2 });
+
+
+                        if (color[3] > 100) {
+                            // if alpha is greater than 100, create emissive material
+                            var material1 = new THREE.LineBasicMaterial({ 
+                                color: RGB2HTML(color[0], color[1], color[2]),  
+                                opacity: 0.6,
+                                transparent: false
+                            })
+                        } else {
+                            // if alpha is not greater than 100, create regular material
+                            var material1 = new THREE.LineBasicMaterial({
+                                color: RGB2HTML(color[0], color[1], color[2]),
+                                opacity: 0.15,
+                                transparent: true
+                            });
+                        }
+
+
+                        //const material1 = new THREE.LineBasicMaterial({ color: RGB2HTML(color[0], color[1], color[2]), transparent: true, opacity: 0.2 });
                         const points = [];
                         const start = link["start"];
                         const end = link["end"];
                         
 
+                        if (start >= maxNodesPreview){continue;}
+                        if (end >= maxNodesPreview){continue;}
+
+
                         //children[start].push(end);
                         //children[end].push(start);
+
                         points.push(nodemeshes[start].position);
                         points.push(nodemeshes[end].position);
                         const geometry1 = new THREE.BufferGeometry().setFromPoints(points);
@@ -195,11 +447,12 @@
                         line.linewidth
                         line.name = "line"
                         scene.add(line);
+                        linkmeshes.push(line)
                         count = l
                     //}
                 }
                
-
+                //console.log(linkmeshes);
             }   
         }
 
@@ -419,10 +672,25 @@
         }
         
         async function downloadTempTexture(path, channel) {
-            nodesTempRGB = await DownloadImage(path);
-            console.log(nodesTempRGB[0],nodesTempRGB[1],nodesTempRGB[2])
-            updateNodeColors(nodesTempRGB);
+            switch (channel){
+                case "nodeRGB":
+                    let nodesTempRGB = await DownloadImage(path);
+                    console.log(nodesTempRGB[0],nodesTempRGB[1],nodesTempRGB[2]);
+                    updateNodeColors(nodesTempRGB);
+                    break;
+                case "linkRGB":
+                    let linksTempRGB = await DownloadImage(path);
+                    console.log(linksTempRGB[0], linksTempRGB[1], linksTempRGB[2]);
+                    updateLinkColors(linksTempRGB);
+                    break;
+            }
         }
+
+        function hexToTHREEColor(hex) {
+            var color = new THREE.Color();
+            color.set(hex);
+            return color;
+          }
         
         document.addEventListener("DOMContentLoaded", function () {
             init();

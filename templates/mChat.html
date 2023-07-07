@@ -17,3 +17,13 @@
 
     </div>
 </div>
+
+<script>
+
+    function displayChatText(data) {
+        const chatOutput = document.getElementById("chatoutput");
+        chatOutput.innerHTML += `<div>${data.usr}: ${data.val}</div>`;
+        //console.log("C_DEBUG:", chatOutput.innerHTML);
+    }
+    
+</script>

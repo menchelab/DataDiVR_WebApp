@@ -10,12 +10,15 @@ from io import StringIO
 
 from distutils.dir_util import copy_tree
 
+import re
 
 # functions to calculate lon/lat to xyz for the DataDiVR 
 import numpy as np 
 from math import cos, radians, sin, sqrt
 from scipy.spatial.transform import Rotation as rot
 from sklearn import preprocessing
+
+
 
 
 def geodetic_to_geocentric(latitude, longitude):
@@ -56,7 +59,7 @@ def normalize_xyz(coords):
 
     return x_norm,y_norm,z_norm
 
-def hex_to_rgba(hx):
+def hex_to_rgb(hx):
     hx=hx.lstrip('#')
     hlen=len(hx)
     return tuple(int(hx[i:i+hlen//3], 16) for i in range(0,hlen//3))
@@ -80,8 +83,6 @@ def makeProjectFolders(name):
     pfile["links"] = []
     pfile["linksRGB"] = []
     pfile["selections"] = []
-   
-    graphinfofile = {}
 
     try:
         os.mkdir(path)
@@ -94,11 +95,6 @@ def makeProjectFolders(name):
 
         with open(path + '/pfile.json', 'w') as outfile:
             json.dump(pfile, outfile)
-
-        with open(path + '/graphinfofile.json', 'w') as outfile:
-            json.dump(graphinfofile, outfile)
-
-
 
     except OSError:
         print ("Creation of the directory %s failed" % path)
@@ -140,7 +136,7 @@ def loadAnnotations(name):
 
 
 
-def makeXYZTexture(project, pixeldata): 
+def makeXYZTexture(project, pixeldata, name=None): 
 
     hight = 128 * (int((len(pixeldata["data"])) / 16384) + 1)
 
@@ -255,7 +251,11 @@ def makeXYZTexture(project, pixeldata):
 
     pathXYZ = path + '/layouts/' +  pixeldata["name"] + 'XYZ.bmp'
     pathXYZl = path + '/layoutsl/' +  pixeldata["name"]  + 'XYZl.bmp' 
+    if name is not None:
+        pathXYZ = path + '/layouts/' +  name + '.bmp'
+        pathXYZl = path + '/layoutsl/' +  name  + 'l.bmp' 
 
+    ### integrate name 
     if os.path.exists(pathXYZ):
         return '<a style="color:red;">ERROR </a>' + pixeldata["name"]  + " Nodelist already in project"
     else:
@@ -263,15 +263,15 @@ def makeXYZTexture(project, pixeldata):
         new_imgl.save(pathXYZl)
         return '<a style="color:green;">SUCCESS </a>' + pixeldata["name"]  + " Node Textures Created"
 
-def makeNodeRGBTexture(project, pixeldata): 
+def makeNodeRGBTexture(project, pixeldata, name=None): 
 
     # check if data is rgba or hex string
     for i in (pixeldata["data"]):
         rgba_colors = []
         if type(i) is str and len(i) == 6 and i.startswith('#'):
-            rgba_converted = hex_to_rgba(pixeldata["data"][i]) 
+            rgba_converted = hex_to_rgb(pixeldata["data"][i]) 
             rgba_colors.append(rgba_converted)
-        else: 
+        else:
             rgba_colors = pixeldata["data"]
 
     hight = 128 * (int((len(pixeldata["data"])) / 16384) + 1)
@@ -285,9 +285,11 @@ def makeNodeRGBTexture(project, pixeldata):
         #tex[i] = (int(pixeldata["data"][i][0]), int(pixeldata["data"][i][1]),int(pixeldata["data"][i][2]),int(pixeldata["data"][i][3]))
         tex[i] = (int(rgba_colors[i][0]), int(rgba_colors[i][1]),int(rgba_colors[i][2]),int(rgba_colors[i][3]))
 
-    new_img = Image.new('RGB', (128, hight))
+    new_img = Image.new('RGBA', (128, hight))
     new_img.putdata(tex)
     pathXYZ = path + '/layoutsRGB/' +  pixeldata["name"] + 'RGB.png'
+    if name is not None:
+        pathXYZ = path + '/layoutsRGB/' +  name +  '.png'
 
     if os.path.exists(pathXYZ):
         return '<a style="color:red;">ERROR </a>' + pixeldata["name"]  + " colors already in project"
@@ -297,8 +299,8 @@ def makeNodeRGBTexture(project, pixeldata):
     
 
 
-def makeLinkTexNew(project, links): 
-    hight = 512
+def makeLinkTexNew(project, links, name=None): 
+    hight = 64 * (int((len(links["data"])) / 32768) + 1)
     print("image hight = " + str(hight))
     #hight = 512 #int(elem / 512)+1
     path = 'static/projects/' + project 
@@ -329,10 +331,10 @@ def makeLinkTexNew(project, links):
             pixell1 = (sx,syl,syh)
             pixell2 = (ex,eyl,eyh)
 
-            if i < 262144:
+            #if i < 262144:
 
-                texl[i*2] = pixell1
-                texl[i*2+1] = pixell2
+            texl[i*2] = pixell1
+            texl[i*2+1] = pixell2
 
             i += 1
 
@@ -344,6 +346,8 @@ def makeLinkTexNew(project, links):
 
     new_imgl.putdata(texl)
     pathl = path + '/links/' +  links["name"] + 'XYZ.bmp'
+    if name is not None:
+        pathl = path + '/links/' +  name +  '.bmp'
 
     if os.path.exists(pathl):
         return '<a style="color:red;">ERROR </a>' +  links["name"]  + " linklist already in project"
@@ -354,22 +358,23 @@ def makeLinkTexNew(project, links):
 
 
 
-def makeLinkRGBTex(project, linksRGB):
+def makeLinkRGBTex(project, linksRGB, name=None):
     
-
-    hight = 512
-    
+    hight = 64 * (int((len(linksRGB["data"])) / 32768) + 1)
     path = 'static/projects/' + project 
 
     # check if data is rgba or hex string
-    for i in (linksRGB["data"]):
-        rgba_colors = []
-        if type(i) is str and len(i) == 6 and i.startswith('#'):
-            rgba_converted = hex_to_rgba(linksRGB["data"][i]) 
-            rgba_colors.append(rgba_converted)
-        else: 
-            rgba_colors = linksRGB["data"]
-            #print("C_DEBUG: in else - colors are rgba already: ", rgba_colors)
+    try:
+        for i in (linksRGB["data"]):
+            rgba_colors = []
+            if type(i) is str and len(i) == 6 and i.startswith('#'):
+                rgba_converted = hex_to_rgb(linksRGB["data"][i]) 
+                rgba_colors.append(rgba_converted)
+            else: 
+                rgba_colors = linksRGB["data"]
+
+    except: # quick fix - if only point cloud upload and no links
+        rgba_colors = [[0,0,0,0]]
 
     texc = [(0,0,0,0)] * 512 * hight
 
@@ -380,8 +385,8 @@ def makeLinkRGBTex(project, linksRGB):
     linklist["links"] = []
     try:
         for row in rgba_colors: #linksRGB["data"]:
-            if i < 262144:
-                texc[i]  = (int(row[0]),int(row[1]),int(row[2]),int(row[3]))
+            #if i < 262144:
+            texc[i]  = (int(row[0]),int(row[1]),int(row[2]),int(row[3]))
             i += 1
 
     except (IndexError, ValueError):
@@ -389,6 +394,8 @@ def makeLinkRGBTex(project, linksRGB):
 
     new_imgc.putdata(texc)
     pathRGB = path + '/linksRGB/' +  linksRGB["name"] +  'RGB.png'
+    if name is not None:
+        pathRGB = path + '/linksRGB/' +  name +  '.png'
 
     if os.path.exists(pathRGB):
         return '<a style="color:red;">ERROR </a>' +  linksRGB["name"]  + " linklist already in project"
@@ -402,17 +409,13 @@ def makeLinkRGBTex(project, linksRGB):
 
 
 def upload_filesNew(request):
-    #print("namespace", request.args.get("namespace"))
+    #print("C_DEBUG: namespace", request.args.get("namespace"))
     form = request.form.to_dict()
     #print(request.files)
-    print(form)
+    #print(form)
     prolist = GD.plist
 
-    namespace = ''
-    if form["namespace"] == "New":
-        namespace = form["new_name"]
-    else:
-        namespace = form["existing_namespace"]
+    namespace = form["new_name"]
     if not namespace:
         return "namespace fail"
     
@@ -446,17 +449,13 @@ def upload_filesNew(request):
     parsefiles(request.files.getlist("nprop"), nodeinfo)
     parsefiles(request.files.getlist("labels"), labels)
 
-    # create Graph info 
-    graphinfofile = {}
-    with open(folder + 'graphinfofile.json', 'r') as json_file:
-        graphinfofile = json.load(json_file)
-    json_file.close()
-    d_graphtitle = {"graphtitle": namespace, "graphdesc": "Graph description not specified."}
-    with open(folder + '/graphinfofile.json', 'w') as outfile:
-        json.dump(d_graphtitle, outfile)
+    #----------------------------------
+    # FOR GRAPH TITLE + DESCRIPTION 
+    #----------------------------------
+    title_of_graph = namespace
+    descr_of_graph = ""
 
     numnodes = len(nodepositions[0]["data"])
-    #print("C_DEBUG for node info: ", nodeinfo)  
 
     # generate node.json
     for i in range(len(nodepositions[0]["data"])):
@@ -469,7 +468,6 @@ def upload_filesNew(request):
         if len(nodeinfo[0]["data"]) == len(nodepositions[0]["data"]):
             thisnode["attrlist"] = nodeinfo[0]["data"][i]
             thisnode["n"] = str(nodeinfo[0]["data"][i][0])
-
         else:
             thisnode["attrlist"] = ["node" + str(i)]
             thisnode["n"] = "node" + str(i)
@@ -494,28 +492,40 @@ def upload_filesNew(request):
             for layout in nodepositions:
                 accPos = [0,0,0]
                 pos = [0,0,0]
+                
                 for x in row:
-                    # filter out empty rows 
-                    if len(x) > 0: 
+
+                    # catch for 2D positions for labels and for empty rows
+                    if len(x) > 0 and len(layout["data"][int(x)]) == 3:
                         accPos[0] += float(layout["data"][int(x)][0])
                         accPos[1] += float(layout["data"][int(x)][1])
                         accPos[2] += float(layout["data"][int(x)][2])
-                    else:
-                        pass
+                    
+                    elif len(x) > 0 and len(layout["data"][int(x)]) == 2: 
+                        accPos[0] += float(layout["data"][int(x)][0])
+                        accPos[1] += float(layout["data"][int(x)][1])
+                        accPos[2] += 0.0
 
                 pos[0] = str(accPos[0] / len(row))
                 pos[1] = str(accPos[1] / len(row))
                 pos[2] = str(accPos[2] / len(row))
-                # add to nodepos
                 layout["data"].append(pos)
 
+            # label nodes to be black
             for color in nodecolors:
-                color["data"].append([255,0,0,255])
+                color["data"].append((0,0,0,0)) #255,0,0,100
             i += 1
 
 
     for layout in nodepositions:
         if len(layout["data"])> 0:
+            state =  state + makeXYZTexture(namespace, layout) + '<br>'
+            pfile["layouts"].append(layout["name"] + "XYZ")
+
+        # catch for 2D positions and for empty rows
+        elif len(layout["data"]) > 0 and len(layout["data"][int(x)]) == 2:
+            for i,xy in enumerate(layout["data"]):
+                layout["data"][i] = (xy[0],xy[1],0.0)
             state =  state + makeXYZTexture(namespace, layout) + '<br>'
             pfile["layouts"].append(layout["name"] + "XYZ")
 
@@ -526,6 +536,7 @@ def upload_filesNew(request):
         if len(color["data"]) == 0:
             color["data"] = [[255,0,255,100]] * numnodes
             color["name"] = "nan"
+
         state =  state + makeNodeRGBTexture(namespace, color) + '<br>'
         pfile["layoutsRGB"].append(color["name"]+ "RGB")
 
@@ -545,6 +556,20 @@ def upload_filesNew(request):
     pfile["nodecount"] = numnodes
     pfile["labelcount"] = len(labels[0]["data"])
     pfile["linkcount"] = len(links[0]["data"])
+
+    #----------------------------------
+    # adding graph info to pfile 
+    #----------------------------------
+    pfile["graphtitle"] = title_of_graph
+    pfile["graphdesc"] = descr_of_graph
+
+    #----------------------------------
+    # uploading and storing Legends files in folder
+    # and adding filenames to pfile 
+    #----------------------------------
+    legendfiles = []
+    loadLegendFiles(request.files.getlist("legendFiles"), folder+'legends/', legendfiles)
+    pfile["legendfiles"] = legendfiles
 
 
 
@@ -574,6 +599,21 @@ def parsefiles(files, target):
 
 
 
+# -------------------------------------------
+# upload Images via Uploader
+# -------------------------------------------
+def loadLegendFiles(files, legendfolder, target):
+    try: 
+        if len(files) > 0: 
+            path = legendfolder
+            for file in files:
+                file.save(os.path.join(path, file.filename))
+                target.append(file.filename)
+        else: 
+            print("C_DEBUG: Error - files list is empty.")
+
+    except Exception as e:
+        print("") #C_DEBUG: Error in loadLegendFiles. ", e)
 
 
 
@@ -643,15 +683,12 @@ def parsefiles(files, target):
 
 
 def upload_files(request):
-    #print("namespace", request.args.get("namespace"))
     form = request.form.to_dict()
-    #print(request.files)
-    print(form)
+
     prolist = GD.plist
-    namespace = ''
+    namespace = '' 
     if form["namespace"] == "New":
-        namespace = form["new_name"]
-        
+        namespace = form["new_name"]    #namespace
     else:
         namespace = form["existing_namespace"]
     if not namespace:
@@ -811,11 +848,11 @@ def makeLinkTex(project, name, file):
             pixell2 = (ex,eyl,eyh)
             pixelc = (r,g,b,a)
 
-            if i < 262144:
+            #if i < 262144:
 
-                texl[i*2] = pixell1
-                texl[i*2+1] = pixell2
-                texc[i] = pixelc
+            texl[i*2] = pixell1
+            texl[i*2+1] = pixell2
+            texc[i] = pixelc
 
             i += 1
 
@@ -914,7 +951,7 @@ def makeNodeTex(project, name, file, labelfile):
 
           
             nodepos.append([float(row[0]),float(row[1]),float(row[2])])
-            nodecol.append([float(row[3]),float(row[4]),float(row[5])])
+            nodecol.append([float(row[3]),float(row[4]),float(row[5]),100])
             #print(row)
             i += 1
 
@@ -972,7 +1009,7 @@ def makeNodeTex(project, name, file, labelfile):
             r = int(thiscolor[0])
             g = int(thiscolor[1])
             b = int(thiscolor[2])
-            a = 255
+            a = 127
             xh = int(x / 255)
             yh = int(y / 255)
             zh = int(z / 255)

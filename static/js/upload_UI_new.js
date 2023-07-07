@@ -7,7 +7,7 @@ $(document).ready(function () {
    
     //GetDbFileNames1();
     //console.log("this");
-    $("#new_namespace_name").hide();
+    $("#new_namespace_name").show();
     $(function () {
       $("#namespaces").selectmenu(
         {
@@ -33,25 +33,23 @@ $(document).ready(function () {
 
 
     $("#upload_button").button();
-    $("input:radio[name='namespace']").change( function() {
-        if ($(this).val() == "New") {
-            $("#new_namespace_name").show();
-        } else {
-            $("#new_namespace_name").hide();
-    
-        }
-    });
+    $("#new_namespace_name").show();
+    // $("input:radio[name='namespace']").change( function() {
+    //     if ($(this).val() == "New") {
+    //         $("#new_namespace_name").show();
+    //     } else {
+    //         $("#new_namespace_name").show();
+    //     }
+    // });
     
     $('#upload_form').on('change input', function() {
         console.log("changed!");
         var formData = new FormData(document.getElementById('upload_form'));
 
-
-
         for (var pair of formData.entries()) {
         console.log(pair[0]+ ', ' + pair[1]); 
         } 
-/*
+        /*
         let namespace = formData.get("namespace");
         if (namespace == "New") {
           existing_selections = allNamespaces.map(function(x) {return x.namespace});

@@ -1,0 +1,233 @@
+
+<!DOCTYPE html>
+<html>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}"></link>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/atelier-cave.min.css') }}"></link>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+
+<script src="{{ url_for('static', filename='js/mc_UI_Elements.js') }}"></script>
+
+
+{% include 'templates.html' %}
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<style>
+
+th, td {
+  border: 1px solid rgb(119, 119, 119);
+  min-width:600px;
+  max-width:600px;
+}
+</style>
+</head>
+
+<body>   
+    <div id="outer" style="width: auto; height: auto;">
+        <a href="/doku/">BACK</a><br>
+
+        
+        <h5 >INITIALIZATION</h5><br>
+Here is the order of steps performed when a new client joins a (multiplayer) session in form of a table to make it easier to track what is happening where:
+<br><br>
+
+        <table>
+            <tr>
+              <td >app.py - SERVER</td>
+              <td >connect_socketIO.js - CLIENT</td>
+              <td >UE4 VR Module / WebGl_preview.js - CLIENT</td>
+            </tr>
+            <tr>
+              <td></td>
+              <td><h5>[ 1 ]</h5>
+            As soon as a socketIO connection is established,<br>
+<pre><code class="javascript">socket.on('status', function(data) {
+    console.log(data)
+    if (data.usr == uid){
+        if(isMain || isPreview){
+            // START initialization routine
+            socket.emit('ex', { id: "projDD", fn: "dropdown", val:"init", usr:uid});
+        }
+    }
+});</code></pre> 
+                the following message is sent to the server:
+                <pre><code class="javascript">{ id: "projDD", fn: "dropdown", val:"init", usr:'gELGxqzbCZ' }</code></pre>
+                <i>usr </i>is a randomly generated string that is unique for each client.<br>
+                It can be used to execute commands only on the client that was sending a message.<br>
+                Here for example, we only want the newly joined client to load a project,
+                while the clients that are already connected should ignore the command.<br>
+              </td>
+              <td></td>
+            </tr>
+            <tr>
+                
+        <td>
+            <h5>[ 2 ]</h5>
+                The message is routed out and a response containing <br>the active projects <a href="/static/demo_project/Autocore/pfile.json" target="_blank">pfile.json</a> is sent to the clients
+    <pre><code class="language-python">elif message["fn"] == "dropdown":
+    ...
+    # init message called when socket connection is established
+    if message["val"] == "init":
+        ...
+        elif message["id"] == "projDD":
+            ...
+            response2 = {}
+            response2["usr"] = message["usr"]
+            response2["val"] = GD.pfile
+            response2["fn"] = "project"
+            emit("ex", response2, room=room)</code></pre>
+        </td>
+        <td> </td>
+        <td> </td>
+    </tr>
+
+            <tr>
+                <td ></td>
+                <td ><h5>[ 3 ]</h5>
+                    The message is passed on to the VR Module (or the WebGl Preview)
+<pre><code class="javascript">case "project":
+    //clearProject();
+    //if (data["usr"]==uid){
+        pfile = data["val"];
+        if (isPreview){
+            // download textures for preview
+            // report when done
+            downloadProjectTextures(); 
+        }
+        ue4(data["fn"], data);   
+    //}    
+break;</code></pre></td>
+                <td ></td>
+            </tr>
+
+            <tr>
+                <td ></td>
+                <td ></td>
+                <td ><h5>[ 4 ]</h5>
+                The project textures contained in the incoming pfile are downloaded and when finished a message is returned via the WebUi interface back to connect_socketIO.js
+                </td>
+            </tr>
+
+            <tr>
+                <td ></td>
+                <td ><h5>[ 5 ]</h5>
+                    The "project loaded" message is passed to the server
+                    <pre><code class="javascript">var uid = makeid(10);
+console.log("Logged in as " + uid);
+
+ue.interface.projectLoaded = function (data) {
+    console.log(data);
+    var text = '{"id":"x", "success": "true", "fn": "projectLoaded"}';
+    var out = JSON.parse(text);
+    out["usr"] = uid;
+    socket.emit('ex', out);
+    logjs(data, 'scrollbox_debug_1');
+};
+</code></pre></td>
+                <td ></td>
+            </tr>
+
+            <tr>
+                <td ><h5>[ 6 ]</h5>
+                The "project loaded" message is broadcasted to all clients</td>
+                <td >
+                   </td>
+                <td ></td>
+                <tr>
+                    <td ></td>
+                    <td ><h5>[ 7 ]</h5>
+                        In <i>updateMcElements()</i>
+                        <pre><code class="javascript">case 'projectLoaded':
+    if (data.usr == uid){
+        updateMcElements();
+    }
+</code></pre>
+For each Dom element with the <i> class = 'GD'</i> a SocketIO signal with <i>val:"init"</i> is sent to the server
+<pre><code class="javascript">function updateMcElements(){
+    dynelem = document.getElementsByClassName("GD");
+            
+    for (let i = 0; i < dynelem.length; i++) {
+        switch(dynelem[i].getAttribute('type'))
+        {
+            case 'textinput':
+                socket.emit('ex', { usr:uid, id: dynelem[i].getAttribute('id'), parent: dynelem[i].getAttribute('container'), fn: "submit_butt", val:"init"});
+                break;
+            case 'slider':
+                socket.emit('ex', { usr:uid, id: dynelem[i].getAttribute('id'), fn: "sli", val:"init"});
+                break;
+            case 'dropdown':
+                socket.emit('ex', { usr:uid, id: dynelem[i].getAttribute('id'), fn: "dropdown", val:"init"});
+                break;
+        }
+        //console.log(dynelem[i].getAttribute('container'));
+    }
+    socket.emit('ex', { usr:uid, id: "cbaddNode", fn: "addNode", val:"init"});
+}
+</code></pre>
+                       </td>
+                    <td ></td>
+                </tr>
+            </tr>
+
+                      
+    <tr> 
+        <td ><h5>[ 8 ]</h5>
+Because of the <i>val : "init"</i> the stored value of the specific UI element is retrieved from the GD.pdata file and sent back to the clients.<br>
+
+            <pre><code class="language-python">elif message["fn"] == "sli":
+    if message["val"] != "init":
+        if message["id"] not in GD.pdata:
+            GD.pdata[message["id"]] = ""
+            print("newGD Variable created")
+        GD.pdata[message["id"]] = message["val"]
+        GD.savePD()
+    response = {}
+    response["usr"] = message["usr"]
+    response["fn"] = "sli"
+    response["id"] = message["id"]
+    response["val"] = GD.pdata[message["id"]]
+    print(response)
+    emit("ex", response, room=room)</code></pre>
+
+
+    If a user moves the slider, "val" is a float value, that will then be stored as key 'thisUIobject id' in GD.pdata</td>
+        <td ></td>
+        <td ></td>
+    </tr>
+
+    <tr>
+        <td ></td>
+        <td ><h5>[ 9 ]</h5>
+            The slider custom element is set on the clients and the message is relayed to UE4
+            <pre><code class="javascript">case 'sli':
+    if(document.getElementById(data.id)){
+        var slider = document.getElementById(data.id).shadowRoot.getElementById("myRange");
+        slider.value= data.val;
+    }
+    ue4(data["fn"], data);
+    break;</code></pre>
+        </td>
+        <td ></td>
+      </tr>
+    </table>
+
+
+    
+
+
+
+</div>
+
+
+
+
+</body>
+
+</html>

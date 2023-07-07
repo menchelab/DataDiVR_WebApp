@@ -1,35 +1,38 @@
 <!DOCTYPE html>
 <html>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui.css') }}"></link>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}"></link>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui.css') }}">
+</link>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
+</link>
 
 
-    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-    <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
-    
-    <script src="{{ url_for('static', filename='js/connect_WebUI.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/connect_socketIO_main.js') }}"></script>
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
+<script src="{{ url_for('static', filename='js/variableListener.js') }}"></script>
+<script src="{{ url_for('static', filename='js/connect_WebUI.js') }}"></script>
+<script src="{{ url_for('static', filename='js/connect_socketIO_main.js') }}"></script>
 
-    {% include 'templates.html' %}
+{% include 'templates.html' %}
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 </head>
 <style>
-
     .row {
         display: flex;
     }
+
     .column {
         flex: 12%;
         padding: 1px;
     }
 
-    html,body { 
-    background-color: transparent;
-    overflow: hidden;
+    html,
+    body {
+        background-color: transparent;
+        overflow: hidden;
     }
 </style>
 
@@ -40,14 +43,21 @@
 
     <div id="main" class="row" style="background-color:rgba(170, 170, 170, 0); overflow: hidden;">
 
-        <div id = "outer"class="column">
+        <div id="outer" class="column">
             <div style="width: 426px; height:100vh; overflow-y:auto;  overflow-x:hidden">
-                
+
                 {% include 'mProject.html' %}
                 {% include 'mSliders.html' %}
-            
-                
-                
+
+
+                {% for ext in extensions["ext"] %}
+                {% if "column_1" in ext.keys() %}
+                {% for module in ext["column_1"]%}
+                {% include module %}
+                {% endfor %}
+                {% endif %}
+                {% endfor %}
+
             </div>
         </div>
 
@@ -55,9 +65,19 @@
 
             <div style="width: 426px; height:100vh; overflow-y:auto;  overflow-x:hidden">
                 <br>
+
                 {% include 'mLegend.html' %}
-                {% include 'mChat.html' %}
-                <!-- {% include 'mDebug.html' %} -->
+                <!-- {% include 'mChat.html' %} -->
+                {% include 'mDebug.html' %}
+
+                {% for ext in extensions["ext"] %}
+                {% if "column_2" in ext.keys() %}
+                {% for module in ext["column_2"]%}
+                {% include module %}
+                {% endfor %}
+                {% endif %}
+                {% endfor %}
+
             </div>
 
         </div>
@@ -66,9 +86,21 @@
 
             <div style="width: 426px; height:100vh; overflow-y:auto;  overflow-x:hidden">
                 <br>
-                {% include 'mCartographs.html' %}
+                {% include 'mAudio.html' %}
+                {% include 'mGPT.html' %}
+                <!--{% include 'mCartographs.html' %} -->
                 {% include 'mConnections.html' %}
-                
+                {% include 'mAnalytics.html' %}
+                {% include 'mAnnotations.html' %}
+
+                {% for ext in extensions["ext"] %}
+                {% if "column_3" in ext.keys() %}
+                {% for module in ext["column_3"]%}
+                {% include module %}
+                {% endfor %}
+                {% endif %}
+                {% endfor %}
+
             </div>
 
         </div>
@@ -80,32 +112,38 @@
 
                 {% include 'mSelections.html' %}
                 {% include 'mNodesearch.html' %}
-                {% include 'mClipboard.html' %}        
+                {% include 'mClipboard.html' %}
                 {% include 'mNodeinfo.html' %}
+                {% include 'mLayout.html' %}
+
+
+                {% for ext in extensions["ext"] %}
+                {% if "column_4" in ext.keys() %}
+                {% for module in ext["column_4"]%}
+                {% include module %}
+                {% endfor %}
+                {% endif %}
+                {% endfor %}
 
             </div>
 
         </div>
 
     </div>
-     
+
 </body>
 
 
 
-<script>
-    // MAKE TRANSPARENT BACKGROUND WHEN USER AGENT == UE4
-    console.log(navigator.userAgent)
-    document.getElementById("browser").innerHTML = String(navigator.userAgent)
-    
-    if (String(navigator.userAgent).includes("UnrealEngine")){
-        document.body.style.backgroundColor = "rgb(0 255 0 / 0%)";
-        
-    }else{
-        document.body.style.backgroundColor = "rgb(0 0 0 / 100%)"; 
-    }
-
-
-
-</script>
 </html>
+<script>
+
+    document.getElementById("browser").innerHTML = String(navigator.userAgent)
+
+    if (String(navigator.userAgent).includes("UnrealEngine")) {
+        document.body.style.backgroundColor = "rgb(0 255 0 / 0%)";
+
+    } else {
+        document.body.style.backgroundColor = "rgb(0 0 0 / 100%)";
+    }
+</script>

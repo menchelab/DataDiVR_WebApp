@@ -3,6 +3,7 @@ from PIL import Image
 import os.path
 from os import path
 import util
+from collections import OrderedDict
 
 # idata = {'mes': 'dfhdfhfh', 'usr': 'NaS7QA89nxLg9nKQAAAn', 'tag': 'flask'}
 
@@ -23,10 +24,18 @@ pdata = {}
 nodes = {}
 links = {}
 names = {}
+annotations = {}
 # todo deal with multiple linklists
 nchildren = []
 
 pixel_valuesc = []
+
+session_data = {}  # caching data computed in expensive algorithms once during session -> key: str of algorithm id, value result of algoriuthm/function
+# ideas to improve performance and avoid large data problems:
+# - cache size limit -> might rewrite all functions which use and produce this data to not store it and retreive it afterwards but skip this process if data size is to big
+# - LRU approach to kill things which are never used (maybe combine with first one) -> using ordered dict
+# - expiration limits to keep it lightweight using timestamps (might be hard since id need to regularly check it but maybe still useful)
+# - serialization like pickling big objects (maybe graph)
 
 
 def listProjects():
@@ -72,9 +81,13 @@ def loadPD():
     global pdata
     global nodes
     global links
+
+    global session_data
+    session_data = {} # empty session data on changing project
+
     if not path.exists("static/projects/" + data["actPro"] + "/pdata.json"):
         with open("static/projects/" + data["actPro"] + "/pdata.json", "w") as outfile:
-            json.dump(pdata, outfile)
+            json.dump(pdata, outfile, indent="\t")
             # print(data)
             outfile.close()
             print("pdata created")
@@ -105,21 +118,21 @@ def loadPD():
 def saveGD():
 
     with open("static/projects/GD.json", "w") as outfile:
-        json.dump(data, outfile)
+        json.dump(data, outfile, indent="\t")
         # print(data)
     outfile.close()
 
 
 def savePD():
     with open("static/projects/" + data["actPro"] + "/pdata.json", "w") as outfile:
-        json.dump(pdata, outfile)
+        json.dump(pdata, outfile, indent="\t")
         # print(data)
     outfile.close()
 
 
 def savePFile():
     with open("static/projects/" + data["actPro"] + "/pfile.json", "w") as outfile:
-        json.dump(pfile, outfile)
+        json.dump(pfile, outfile, indent="\t")
         # print(data)
     outfile.close()
 
@@ -176,20 +189,20 @@ def loadLinks():
     # print(nchildren)
 
 
+def load_annotations():
+    global annotations
+    temp_annotations = {}
+    for node in nodes["nodes"]:
+        if "attrlist" not in node.keys():
+            continue
+        
+        # efficient filtering of annotation which are not strings (i.e. json) or name of node 
+        valid_annotations = [annotation for annotation in node["attrlist"] if isinstance(annotation, str) and annotation != node["n"]]
 
-#----------------------------------
-# GRAPH TITLE + DESCRIPTION 
+        for annotation in valid_annotations:
+            if annotation not in temp_annotations:
+                temp_annotations[annotation] = []
+            temp_annotations[annotation].append(node["id"])
+    annotations = OrderedDict(sorted(temp_annotations.items(), key=lambda x: x[0].lower()))  # annotations initilized increasing alphabetically
 
-# loaded at start / page refresh 
-def loadGraphinfoFile(): 
-    if path.exists("static/projects/" + data["actPro"] + "/graphinfofile.json"):
-        with open("static/projects/" + data["actPro"] + "/graphinfofile.json", "r") as json_file:
-            global graphinfofile
-            graphinfofile = json.load(json_file)
-            #print("C_DEBUG in Globaldata: loadGraphInfoFile - loaded.")
-            json_file.close()
-    else:
-        graphinfofile = {"graphtitle":"Graph title not specified.", "graphdesc": "Graph description not specified."}
-        #print("C_DEBUG in Globaldata: loadGraphInfoFile - created.")
-
-#----------------------------------
+    

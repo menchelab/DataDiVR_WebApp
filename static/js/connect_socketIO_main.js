@@ -4,6 +4,16 @@ var newcon = true;
 var logAll = true;
 var isPreview = false;logjs
 var isMain = false;
+var isUE4 = false;
+
+    
+if (String(navigator.userAgent).includes("UnrealEngine")){
+    isUE4 = true;
+       
+}else{
+    console.log("not ue4") 
+}
+
 
 function makeid(length) {
     let result = '';
@@ -61,6 +71,17 @@ ue.interface.nodelabelclicked = function (data) {
 
 };
 
+ue.interface.spee = function (data) {
+    console.log(data);
+    var text = '{"id":"node", "val": -1, "fn": "textinput"}';
+    var out = JSON.parse(text);
+    x = JSON.parse(data)
+    out.id = x.id;
+    out.val = x.text;
+    socket.emit('ex', out);
+   
+};
+
 
 function updateMcElements(){
     dynelem = document.getElementsByClassName("GD");
@@ -80,15 +101,40 @@ function updateMcElements(){
         }
         //console.log(dynelem[i].getAttribute('container'));
     }
+    // add here init values for new joined client
     socket.emit('ex', { usr:uid, id: "cbaddNode", fn: "addNode", val:"init"});
+    socket.emit('ex', { usr:uid, id: "analyticsPathNode1", fn:"analytics", val:"init"});
+    socket.emit('ex', { usr:uid, id: "analyticsPathNode2", fn: "analytics", val:"init"});
+    socket.emit('ex', { usr:uid, id: "annotationOperation", fn: "annotation", val:"init"});
+    socket.emit('ex', { usr:uid, id: "annotationRun", fn: "annotation", val:"init"});
+    socket.emit('ex', { usr:uid, id: "layoutInit", fn: "layout", val:"init"});
 }
 
 function reconnect(){
     location.reload()
 }
 
+function speakNow(text) {
+    if ('speechSynthesis' in window) {
+        // Speech Synthesis supported 🎉
+        const message = new SpeechSynthesisUtterance(text);
+        message.lang = "en-US";
+        
+        const voices = speechSynthesis.getVoices().filter(voice => voice.lang === "en-US");
+        console.log(voices)
+        message.voice = voices[1];
+      
+        speechSynthesis.speak(message);
+       }else{
+         // Speech Synthesis Not Supported 😣
+         console.log("Sorry, your browser doesn't support text to speech!");
+       }
+
+   }
+
 $(document).ready(function(){
 
+    speakNow("Hello Human! Welcome to the data diver.")
 
     if(document.getElementById("preview")){
         isPreview = true;
@@ -108,12 +154,12 @@ $(document).ready(function(){
         document.getElementById("userid").innerHTML = uid;
     }
    
-    
+
     ///set up and connect to socket
     console.log('http://' + document.domain + ':' + location.port + '/main');
     socket = io.connect('http://' + document.domain + ':' + location.port + '/main');
     socket.io.opts.transports = ['websocket'];
-    
+
     socket.on('connect', function() {
         var msg = {usr:uid}
         socket.emit('join', msg);
@@ -146,7 +192,8 @@ $(document).ready(function(){
             }
             if(document.getElementById("outer")){
                 document.getElementById("outer").style.backgroundColor = "rgb(0 0 0 / 0%)"   
-            } 
+            }
+            socket.emit('ex', { usr:uid, id: "analytics", fn: "dropdown", val:"init"});
         }
         //CONNECTION Established - initialize the project (Ui elements initialize when project changes)
         
@@ -154,21 +201,20 @@ $(document).ready(function(){
 
     
     socket.on('ex', function(data) {
-        logjs(data, 'scrollbox_debug_0')
-        if (logAll && data.usr == uid)
-        {
+        logjs(data, 'scrollbox_debug_0');
+         
+        //if (logAll && data.usr == uid)
+        //{
             console.log("server returned: " + JSON.stringify(data));
 
-        }
-
-
-
+        //}
 
         switch(data.fn)
         {   
             case 'projectLoaded':
-                updateMcElements();
-  
+
+               updateMcElements();
+
                 if (data.usr == uid){
                     
                     if(isPreview){
@@ -178,8 +224,9 @@ $(document).ready(function(){
                             makeNetwork();
                           }, 1000);   
                     }
-                }
 
+                }
+ 
                 break;
 
             case 'mkB':
@@ -244,9 +291,6 @@ $(document).ready(function(){
                 }
                 break;
             
-            // ------------------------------------------------------------------------
-            // TO DO : fix error of "shadowRoot not open" (time delay did not work)
-            // ------------------------------------------------------------------------
             case "cbaddNode":
                 var content = document.getElementById('cbscrollbox').shadowRoot.getElementById("box");
                 removeAllChildNodes(content);
@@ -254,15 +298,28 @@ $(document).ready(function(){
                     $(content).append("<mc-button id = 'button"+ i + " 'val= '"+ data.val[i].id + "' name = '"+ data.val[i].name +  "' w = '118' fn = 'node' color = '" + rgbToHex(data.val[i].color[0]*0.5,data.val[i].color[1]*0.5,data.val[i].color[2]*0.5) + "' ></mc-button>");
                 }
                 break;
+            case "colorbox":
+                document.getElementById(data.id).shadowRoot.getElementById("color").style.backgroundColor = 'rgba(' + data.r + ',' + data.g + ',' + data.b +',' + data.a*255 + ')';
+                break;
 
             case "updateTempTex":
-                if(preview){
-                    downloadTempTexture(data["path"])
+                if(isPreview){
+                    // predefine layoutpaths here to send them afterwards to webgl if both are set within one socket connection
+                    let layoutNodesHiPath, layoutNodesLowPath;
+                    for (let i = 0; i < data.textures.length; i++) {
+                        let textureData = data.textures[i];
+                        if (textureData.channel === "layoutNodesHi"){layoutNodesHiPath = textureData.path; continue;} 
+                        if (textureData.channel === "layoutNodesLow"){layoutNodesLowPath = textureData.path; continue;} 
+                        downloadTempTexture(textureData.path, textureData.channel);     
+                    }
+                    if (layoutNodesHiPath !== undefined && layoutNodesLowPath !== undefined){updateLayoutTemp(layoutNodesLowPath, layoutNodesHiPath);}
+
                 }else{
                     ue4(data["fn"], data);
                 }
                 break;
-    
+  
+
 
             case 'node':
                 if(document.getElementById("nodeL2")){
@@ -363,12 +420,12 @@ $(document).ready(function(){
 
 
             case 'dropdown':
-
                 if(document.getElementById(data.id)){
                     var select = document.getElementById(data.id).shadowRoot.getElementById("sel");
                     var count = document.getElementById(data.id).shadowRoot.querySelector("#count");
                     var content = document.getElementById(data.id).shadowRoot.getElementById("content");
-                    
+                
+
                     if(data.hasOwnProperty('opt')){
                     
                         removeAllChildNodes(content);
@@ -386,67 +443,297 @@ $(document).ready(function(){
                         content.style.display = "none";
                     }
 
-                    if(isPreview){
-                        if(data.id == "layoutsDD"){
+                    if (isPreview){
+                        if(data.id == "layoutsDD") { 
                             actLayout = data.sel;
                             makeNetwork();
                         }
-                        else if(data.id == "layoutsRGBDD"){
+                        if(data.id == "layoutsRGBDD"){                            
                             actLayoutRGB = data.sel;
                             makeNetwork();
                         }
-                        else if(data.id == "linksDD"){
-                            actLinks = data.sel;
-                            makeNetwork();
-                        }
-                        else if(data.id == "linksRGBDD"){
+                        if(data.id == "linksRGBDD"){                            
+                            //actLinks = data.sel;
                             actLinksRGB = data.sel;
                             makeNetwork();
                         }
+
+
+                    }
+                    if (data.id == "analytics"){
+                        $('.analyticsOption').css('display', 'none');
+                        switch (data.name){
+                            case "Degree Distribution":
+                                $("#analyticsSelectedDegree").css('display', 'inline-block');
+                            break;
+                            case "Closeness":
+                                $("#analyticsSelectedCloseness").css('display', 'inline-block');
+                            break;
+                            case "Shortest Path":
+                                $("#analyticsSelectedPath").css('display', 'inline-block');
+                            break;
+                            case "Eigenvector":
+                                $("#analyticsSelectedEigenvector").css('display', 'inline-block');
+                            break;
+                            case "Mod-based Communities":
+                                $("#analyticsSelectedModcommunity").css('display', 'inline-block');
+                            break;
+                            case "Clustering Coefficient":
+                                $("#analyticsSelectedClusteringCoeff").css('display', 'inline-block');
+                            break;
+                            // add bindings for options display here
+
+                        }
+                    }
+                    if (data.id == "layoutModule"){
+                        $('.layoutOption').css('display', 'none');
+                        switch (data.name){
+                            case "Random":
+                                $("#layoutSelectRandom").css('display', 'inline-block');
+                            break;
+                            case "Eigenlayout":
+                                $("#layoutSelectEigen").css('display', 'inline-block');
+                            break;
+                            case "cartoGRAPHs Local":
+                                $("#layoutSelectCartoLocal").css('display', 'inline-block');
+                            break;
+                            case "cartoGRAPHs Global":
+                                $("#layoutSelectCartoGlobal").css('display', 'inline-block');
+                            break;
+                            case "cartoGRAPHs Importance":
+                                $("#layoutSelectCartoImportance").css('display', 'inline-block');
+                            break;
+                            case "Spectral":
+                                $("#layoutSelectSpectral").css('display', 'inline-block');
+                            break;
+                            // add bindings for options display here
+                        }
+                    }
+
+                    if(data.id == "layoutsDD") {
+                        switch (data.id){
+                            case "layoutsDD": // if change in DD for layout = change layout title 
+
+                                Legend_displayGraphLayoutbyID(pfile.name, data.sel, "layouts", "graphlayout");
+
+                                layouts_DD = document.getElementById("layoutsDD").shadowRoot.getElementById("sel");
+                                layouts_DD.setAttribute("sel", parseInt(data.sel));
+                                layouts_DD.setAttribute("value", pfile.layouts[data.sel]);
     
+                                // // update arrow buttons with new index
+                                nextButton = document.getElementById("forwardstep");
+                                nextButton.setAttribute('val', data.sel);
+                                backButton = document.getElementById("backwardstep"); 
+                                backButton.setAttribute('val', data.sel);
+                                //console.log("C_DEBUG updating Buttons in layoutsDD: ", nextButton.getAttribute("val"));
+
+
+                                break;
+                        }
+                    }
+                    
+
+                    if(data.id == "layoutsRGBDD") {
+                        switch (data.id){
+                            case "layoutsRGBDD": // if change in DD for node colors = change node colors in network and legend
+                                
+                                Legend_displayGraphLayoutbyID(pfile.name, data.sel, "layoutsRGB", "graphlayout_nodecolors");
+                                Legend_displayNodeInfobyID(pfile.name, data.sel);
+                                                 
+                                layoutsRGB_DD = document.getElementById("layoutsRGBDD").shadowRoot.getElementById("sel");
+                                layoutsRGB_DD.setAttribute("sel", parseInt(data.sel));
+                                layoutsRGB_DD.setAttribute("value", pfile.layoutsRGB[data.sel]);
+                                
+                                // update arrow buttons with new index
+                                nextButton = document.getElementById("forwardstep");
+                                nextButton.setAttribute('val', data.sel);
+                                backButton = document.getElementById("backwardstep"); 
+                                backButton.setAttribute('val', data.sel);
+                                //console.log("C_DEBUG updating Buttons in layoutsRGBDD: ", nextButton.getAttribute("val"));
+
+                                break;
+                        }
+                    }
+
+                    if(data.id == "linksRGBDD") {
+                        switch (data.id){
+                            case "linksRGBDD": // if change in DD for link colors = change link colors in network and legend
+                                
+                                Legend_displayGraphLayoutbyID(pfile.name, data.sel, "linksRGB", "graphlayout_linkcolors");
+                                Legend_displayLinkInfobyID(pfile.name, data.sel);
+                                
+                                if (pfile.linksRGB.length <= data.sel) {
+                                    linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
+                                    linksRGB_DD.setAttribute("sel", parseInt(0));
+                                    linksRGB_DD.setAttribute("value", pfile.linksRGB[0]);
+                                } else {
+                                    linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
+                                    linksRGB_DD.setAttribute("sel", parseInt(data.sel));
+                                    linksRGB_DD.setAttribute("value", pfile.linksRGB[data.sel]);
+                                }
+
+                                // update arrow buttons with new index
+                                nextButton = document.getElementById("forwardstep");
+                                nextButton.setAttribute('val', data.sel);
+                                backButton = document.getElementById("backwardstep");
+                                backButton.setAttribute('val', data.sel);
+                               //console.log("C_DEBUG updating Buttons in linksRGBDD: ", nextButton.getAttribute("val"));
+
+                                break;
+                        }
+
                     }
                 }
-   
                 ue4(data["fn"], data);    
-                break;
+            break;
             
             case "project":
+
                 //clearProject();
                 //if (data["usr"]==uid){
-                    pfile = data["val"];
+                pfile = data["val"];
+                
+                // init analytics container
+                document.getElementById('analyticsContainer').innerHTML = '';
+                document.getElementById('nodecounter').innerHTML = pfile['nodecount']+' NODES';
+                document.getElementById('linkcounter').innerHTML = pfile['linkcount']+' LINKS';
 
-                    //--------------------------------
-                    // L E G E N D P A N E L 
-                      
-                    // GRAPHINFO on legend panel
-                    displayGraphInfo(pfile.name);
+                var content = document.getElementById('cbscrollbox').shadowRoot.getElementById("box");
+                removeAllChildNodes(content);
 
-                    // NODE + LINK info on legend panel 
-                    displayNodeLegend(pfile.name);
-                    displayLinkLegend(pfile.name);
+                // initial info on L E G E N D P A N E L 
+                Legend_displayGraphInfo(pfile.name);
+                Legend_displayfirstFile(pfile.name);
 
-                    // IMAGE on legend panel
-                    displayImage(pfile.name);
-
-                    //HTMLPLOT on legend panel
-                    displayHTML(pfile.name);
-                    
-                    //--------------------------------
-
-                    if (isPreview){
-                        
-                        downloadProjectTextures(); // download textures for preview, report when done
-                    }
-                    ue4(data["fn"], data);   
+                if (isPreview){
+                    downloadProjectTextures(); // download textures for preview, report when done
+                }
+                ue4(data["fn"], data);   
+               
                 //}    
             break;
             
             case "cnl":
                 ue4(data["fn"], data);    
                 break;
+
+            case "checkbox":
+                if(document.getElementById(data["id"])){
+                    document.getElementById(data["id"]).shadowRoot.getElementById("box").checked = data["val"];
+                }
+                if(data["id"]=="linkblendCHK"){
+                    ue4("linkblend", data);
+                }
+                break;
             
-            case "ue4":
-                ue4(data["fn"], data);    
+            case "ue4":    
+
+                if (data.id == "forwardstep") {
+
+                    forwardidx = NEWIndexforwardstep(pfile.layouts.length); 
+                    //console.log("C_DEBUG in ue4 forwardstep = ", forwardidx);
+                    
+                    if (pfile.linksRGB.length <= forwardidx) {
+                        linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
+                        linksRGB_DD.setAttribute("sel", parseInt(0));
+                        linksRGB_DD.setAttribute("value", pfile.linksRGB[0]);
+                        actLinksRGB = 0;
+                    
+                    } else {
+                        linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
+                        linksRGB_DD.setAttribute("sel", parseInt(forwardidx));
+                        linksRGB_DD.setAttribute("value", pfile.linksRGB[forwardidx]);
+                        actLinksRGB = forwardidx;
+                    }
+                    
+                    // layouts
+                    layouts_DD = document.getElementById("layoutsDD").shadowRoot.getElementById("sel");
+                    layouts_DD.setAttribute("sel", parseInt(forwardidx));
+                    layouts_DD.setAttribute("value", pfile.layouts[forwardidx]);
+
+                    // layoutRGB
+                    layoutsRGB_DD = document.getElementById("layoutsRGBDD").shadowRoot.getElementById("sel");
+                    layoutsRGB_DD.setAttribute("sel", parseInt(forwardidx));
+                    layoutsRGB_DD.setAttribute("value", pfile.layoutsRGB[forwardidx]);
+
+                    Legend_displayNodeInfobyID(pfile.name, forwardidx);
+                    Legend_displayLinkInfobyID(pfile.name, forwardidx);
+                    Legend_displayGraphLayoutbyID(pfile.name, forwardidx, "layouts", "graphlayout");
+                    Legend_displayGraphLayoutbyID(pfile.name, forwardidx, "layouts", "graphlayout_nodecolors");
+                    Legend_displayGraphLayoutbyID(pfile.name, forwardidx, "layouts", "graphlayout_linkcolors");
+
+                    data["val"] = forwardidx;
+                    //console.log("C_DEBUG: data val forward = ", data["val"]);
+
+                    if (isPreview){
+                        actLayout = forwardidx;
+                        actLayoutRGB = forwardidx;
+                        actLinks = 0;
+                        makeNetwork();
+                    }
+
+
+                } 
+
+
+                if (data.id == "backwardstep") {
+                    
+                    backwardidx = NEWIndexbackwardstep(pfile.layouts.length); 
+                    //console.log("C_DEBUG in ue4 backwardidx = ", backwardidx);
+                    
+                    
+                    if (pfile.linksRGB.length <= backwardidx) {
+                        linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
+                        linksRGB_DD.setAttribute("sel", parseInt(0));
+                        linksRGB_DD.setAttribute("value", pfile.linksRGB[0]);
+                        actLinksRGB = 0;
+                        
+                    } else {
+                        linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
+                        linksRGB_DD.setAttribute("sel", parseInt(backwardidx));
+                        linksRGB_DD.setAttribute("value", pfile.linksRGB[backwardidx]);
+                        actLinksRGB = backwardidx;
+                    }
+
+                    // layouts
+                    layouts_DD = document.getElementById("layoutsDD").shadowRoot.getElementById("sel");
+                    layouts_DD.setAttribute("sel", parseInt(backwardidx));
+                    layouts_DD.setAttribute("value", pfile.layouts[backwardidx]);
+
+                    // layoutRGB
+                    layoutsRGB_DD = document.getElementById("layoutsRGBDD").shadowRoot.getElementById("sel");
+                    layoutsRGB_DD.setAttribute("sel", parseInt(backwardidx));
+                    layoutsRGB_DD.setAttribute("value", pfile.layoutsRGB[backwardidx]);
+
+                    Legend_displayNodeInfobyID(pfile.name, backwardidx);
+                    Legend_displayLinkInfobyID(pfile.name, backwardidx);
+                    Legend_displayGraphLayoutbyID(pfile.name, backwardidx, "layouts", "graphlayout");
+                    Legend_displayGraphLayoutbyID(pfile.name, backwardidx, "layouts", "graphlayout_nodecolors");
+                    Legend_displayGraphLayoutbyID(pfile.name, backwardidx, "layouts", "graphlayout_linkcolors");
+
+                    data["val"] = backwardidx;
+                    //console.log("C_DEBUG: data val back = ", data["val"]);
+
+                    if (isPreview){
+                        actLayout = backwardidx;
+                        actLayoutRGB = backwardidx;
+                        actLinks = 0;
+                        makeNetwork();
+                    }
+
+                } 
+                ue4(data["fn"], data);
+                //console.log("C_DEBUG: ue4 data = ", data);
+            
+                break;
+
+            case "textinput":
+                console.log(data.val + " --- " + data.id);
+                if(document.getElementById(data.id)){
+                    var content = document.getElementById(data.id).shadowRoot.getElementById("text");
+                    content.value = data.val;
+                }
+
                 break;
 
             case "chatmessage":
@@ -454,15 +741,293 @@ $(document).ready(function(){
                 // console.log("C_DEBUG: print text message")
                 // ue4(data["fn"], data); // NOT TESTED IF Username taken from ue4
                 break;
+            
+            case "analytics":
+
+                if (data.id == "analyticsDegreePlot") {
+                    const config = {displayModeBar: false};
+                    const layout = {};
+                    let plot_data = JSON.parse(data["val"]);
     
-        }
-        
-        
+                    Plotly.newPlot(data["target"], plot_data, layout, config);
+
+                    let plotIFrame = document.getElementById(data["target"]);
+
+                    let user = data.usr;
+                    let targetDiv = data.target;
+                    plotIFrame.on('plotly_click', function(data){
+                        if (data.event.button !== 0){return;}
+
+                        let clickedBarX = Math.floor(data.points[0].x);
+                        
+                        console.log(clickedBarX);
+
+                        let request = {
+                            fn: "analytics",
+                            id: "analyticsDegreeRun",
+                            highlight: clickedBarX,
+                            target: targetDiv,
+                            usr: user
+                        }
+
+                        socket.emit("ex", request);
+                    });
+                    
+                    plotIFrame.style.display = "inline-block";
+                    const NavBar = document.getElementsByClassName("modebar-container");
+                    for (let i = 0; i < NavBar.length; i++) {NavBar[i].style.visibility = "hidden";}
+                }
+
+                if (data.id == "analyticsClosenessPlot") {
+                    const config = {displayModeBar: false};
+                    const layout = {};
+                    let plot_data = JSON.parse(data["val"]);
+    
+                    Plotly.newPlot(data["target"], plot_data, layout, config);
+
+                    let plotIFrame = document.getElementById(data["target"]);
+
+                    let user = data.usr;
+                    let targetDiv = data.target;
+                    plotIFrame.on('plotly_click', function(data){
+                        if (data.event.button !== 0){return;}
+
+                        let clickedBarX = data.points[0].x;
+                        
+                        console.log(clickedBarX);
+
+                        let request = {
+                            fn: "analytics",
+                            id: "analyticsClosenessRun",
+                            highlight: clickedBarX,
+                            target: targetDiv,
+                            usr: user
+                        }
+
+                        socket.emit("ex", request);
+                    });
+                    
+                    plotIFrame.style.display = "inline-block";
+                    const NavBar = document.getElementsByClassName("modebar-container");
+                    for (let i = 0; i < NavBar.length; i++) {NavBar[i].style.visibility = "hidden";}
+                }
+
+                if (data.id == "analyticsEigenvectorPlot") {
+                    const config = {displayModeBar: false};
+                    const layout = {};
+                    let plot_data = JSON.parse(data["val"]);
+    
+                    Plotly.newPlot(data["target"], plot_data, layout, config);
+
+                    let plotIFrame = document.getElementById(data["target"]);
+
+                    let user = data.usr;
+                    let targetDiv = data.target;
+                    plotIFrame.on('plotly_click', function(data){
+                        if (data.event.button !== 0){return;}
+
+                        let clickedBarX = data.points[0].x;
+                        
+                        console.log(clickedBarX);
+
+                        let request = {
+                            fn: "analytics",
+                            id: "analyticsEigenvectorRun",
+                            highlight: clickedBarX,
+                            target: targetDiv,
+                            usr: user
+                        }
+
+                        socket.emit("ex", request);
+                    });
+                    
+                    plotIFrame.style.display = "inline-block";
+                    const NavBar = document.getElementsByClassName("modebar-container");
+                    for (let i = 0; i < NavBar.length; i++) {NavBar[i].style.visibility = "hidden";}
+                }
+
+                if (data.id == "analyticsClusteringCoeffPlot") {
+                    const config = {displayModeBar: false};
+                    const layout = {};
+                    let plot_data = JSON.parse(data["val"]);
+    
+                    Plotly.newPlot(data["target"], plot_data, layout, config);
+
+                    let plotIFrame = document.getElementById(data["target"]);
+
+                    let user = data.usr;
+                    let targetDiv = data.target;
+                    plotIFrame.on('plotly_click', function(data){
+                        if (data.event.button !== 0){return;}
+
+                        let clickedBarX = data.points[0].x;
+                        
+                        console.log(clickedBarX);
+
+                        let request = {
+                            fn: "analytics",
+                            id: "analyticsClusteringCoeffRun",
+                            highlight: clickedBarX,
+                            target: targetDiv,
+                            usr: user
+                        }
+
+                        socket.emit("ex", request);
+                    });
+                    
+                    plotIFrame.style.display = "inline-block";
+                    const NavBar = document.getElementsByClassName("modebar-container");
+                    for (let i = 0; i < NavBar.length; i++) {NavBar[i].style.visibility = "hidden";}
+                }
+                if (data.id == "analyticsPathNode1"){
+                    let button = document.getElementById("analyticsPathNode1").shadowRoot.getElementById("name");
+                    if (data.val != "init"){
+                        button.innerHTML = data.val.name;
+                        button.style.color = data.val.color;
+                    }
+                }
+                if (data.id == "analyticsPathNode2"){
+                    let button = document.getElementById("analyticsPathNode2").shadowRoot.getElementById("name");
+                    if (data.val != "init"){
+                        button.innerHTML = data.val.name;
+                        button.style.color = data.val.color;
+                    }
+                }
+                
+                if (data.id == "analyticsPathInfo"){
+                    let container = document.getElementById('analyticsContainer');
+                    // clear before refill
+                    document.getElementById('analyticsContainer').innerHTML = ""; 
+
+                    let numPathsAll = data.val.numPathsAll;
+                    let numPathCurrent = data.val.numPathCurrent;
+                    let pathLen = data.val.pathLength;
+
+                    // fill analytics container with usefull information
+                    // current path number
+                    let currentPathDiv = document.createElement('div');
+                    currentPathDiv.style.margin = "3px";
+                    currentPathDiv.innerHTML = `Current Path : : <span style="font-size:18px; font-weight:bold">${numPathCurrent}</span>`;
+                    container.appendChild(currentPathDiv);
+
+                    // number of all paths
+                    let numPathsDiv = document.createElement('div');
+                    numPathsDiv.style.margin = "3px"
+                    numPathsDiv.innerHTML = `Number of Paths : : <span style="font-size:18px; font-weight:bold">${numPathsAll}</span>`;
+                    container.appendChild(numPathsDiv);
+
+                    // path length
+                    let pathLenDiv = document.createElement('div');
+                    pathLenDiv.style.margin = "3px"
+                    pathLenDiv.innerHTML = `Path Length : : <span style="font-size:18px; font-weight:bold">${pathLen}</span>`;
+                    container.appendChild(pathLenDiv);
+
+                }
+
+
+                if (data.id == "clearAnalyticsContainer"){
+                    // prevent if you havent switched !!!!
+                    document.getElementById('analyticsContainer').innerHTML = ""; 
+                }
+
+                break;
+
+            case "annotation":
+                if (data.id == "annotationOperation"){
+                    let value = data.val;
+                    if (value == "init") {return;}
+                    let button = document.getElementById("annotationOperation").shadowRoot.getElementById("name");
+                    let annotationLegend2 = document.getElementById("annotationColorA2");
+                    let annotationLegendR = document.getElementById("annotationColorR");
+                    if (value == true){
+                        button.innerHTML = "[-]";
+                        document.getElementById("annotation-2").style.display = "inline-block";
+                        document.getElementById("annotation-Operations").style.display = "inline-block";
+                        annotationLegendR.style.display = "block";
+                        annotationLegend2.style.display = "block";
+                    }
+                    if (value == false){
+                        button.innerHTML = "OPERATION";
+                        document.getElementById("annotation-2").style.display = "none";
+                        document.getElementById("annotation-Operations").style.display = "none";
+                        annotationLegendR.style.display = "none";
+                        annotationLegend2.style.display = "none";
+                    }
+                }
+                
+                break;
+
+            case "legendfileswitch":
+
+                if (data.id == "legend_forward") {
+                    Legend_switchingFiles_forward(pfile.name);
+
+                } else if (data.id == "legend_backward") {
+                    Legend_switchingFiles_backward(pfile.name);
+
+                }
+                break
+
+
+            case "layout":
+                if (data.id == "layoutInit"){
+                    if (data.val == "init"){return;}
+
+                    // display log
+                    let logContainer = document.getElementById("layoutLog");
+                    let logBtnShow = document.getElementById("layoutLogShow");
+                    let logBtnHide = document.getElementById("layoutLogHide")
+                    if (data.val === true){
+                        logContainer.style.display = "block";
+                        logBtnHide.style.display = "block";
+                        logBtnShow.style.display = "none";
+                    } 
+                    else {
+                        logContainer.style.display = "none";
+                        logBtnHide.style.display = "none";
+                        logBtnShow.style.display = "block";
+                    }
+
+                    // display buttons
+                    handleLayoutExistsDisplay(data.val.selectedLayoutGenerated);
+                }
+                
+                if (data.id == "showLog"){
+                    let logContainer = document.getElementById("layoutLog");
+                    let logBtnShow = document.getElementById("layoutLogShow");
+                    let logBtnHide = document.getElementById("layoutLogHide")
+                    if (data.val === true){
+                        logContainer.style.display = "block";
+                        logBtnHide.style.display = "block";
+                        logBtnShow.style.display = "none";
+                    } 
+                    else {
+                        logContainer.style.display = "none";
+                        logBtnHide.style.display = "none";
+                        logBtnShow.style.display = "block";
+                    }
+                }
+
+                if (data.id == "addLog"){
+                    let layoutLog = log2HTML(data.log);
+                    let layoutLogContainer = $("#layoutLog");
+                    layoutLogContainer.append(layoutLog);
+
+                }
+
+                if (data.id == "layoutExists"){
+                    handleLayoutExistsDisplay(data.val);
+                }
+
+                break
+
+        } 
     });
 
 });
 
 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 function rgbToHex(red, green, blue) {
@@ -497,408 +1062,34 @@ function removeOptions(selectElement) {
     for(i = L; i >= 0; i--) {
        selectElement.remove(i);
     }
- }
+}
 
+function log2HTML(logObj){
+    let obj = document.createElement('div');
+    obj.style.margin = "3px";
 
- 
-//-------------------------------------------------------
-// I M A G E L O A D I N G functions
-//-------------------------------------------------------
-function checkImageExists(imgpath, callback) {
-    const img = new Image();
-    img.src = imgpath; 
-    if (img.complete) {   
-        callback(true);
+    if (logObj.type == "log"){
+        obj.innerHTML = `Log : : <span style="font-size:16px; font-weight:bold; color:rgb(200,200,200);">${logObj.msg}</span>`;
+    }
+    if (logObj.type == "warning"){
+        obj.style.color = "rgb(250,0,0)";
+        obj.innerHTML = `Warning : : <span style="font-size:16px; font-weight:bold; color:rgb(200,200,200);">${logObj.msg}</span>`;
+    }
+    return obj;
+}
+
+function handleLayoutExistsDisplay(exists){
+    // function to handle rerun and save button display in front end
+    // exists: bool, if True: btns are displayed, false: btns are hidden
+    // called on layout tab switch, layout run, init
+    let layoutExistsBtns = document.getElementsByClassName("layoutExists");
+    if (exists === true){
+        Array.prototype.forEach.call(layoutExistsBtns, function(element){
+            element.style.display = "inline-block";
+        });
     } else {
-        img.onload = () => {
-            callback(true);
-        };
-        img.onerror = () => {
-            callback(false);
-        };
-    }
-    return callback;
-}
-
-function displayImage(project_selected) {
-    if(document.getElementById('legend_image')) {
-        legend_source = 'static/projects/'+project_selected+'/legends/legend.png';
-        checkFileExists(legend_source, (exists) => { //checkImageExists
-            if (exists) {
-                console.log('C_DEBUG - displayImage: Image exists.');
-                legend_source = 'static/projects/'+project_selected+'/legends/legend.png';
-            } else {
-                console.log('C_DEBUG - displayImage: Image DOES NOT exist.');
-                legend_source = '';
-            } 
-            document.getElementById('legend_image').src=legend_source;
-        })        
-    }
-}
-
-
-//-------------------------------------------------------
-// H T M L  L O A D I N G functions
-//-------------------------------------------------------
-function checkFileExists(filepath, callback) {
-    fetch(filepath)
-      .then(response => {
-        if (response.ok) {
-          callback(true);
-        } else {
-          callback(false);
-        }
-      })
-      .catch(error => {
-        callback(false);
-      });
-    return callback;
-  }
-
-
-function displayHTML(project_selected) {
-    htmlPath = 'static/projects/' + project_selected + '/legends/legend_htmlplot.html';
-    plotlyFrame = document.getElementById('legend_htmlplot');   
-    
-    
-    checkFileExists(htmlPath, function(exists) {  
-      if (exists) {
-        fetch(htmlPath)
-          .then(response => response.text())
-          .then(html => {
-            plotlyFrame = document.getElementById('legend_htmlplot');
-            plotlyFrame.srcdoc = html;
-
-            plotlyFrame.style.display = 'block'; // show the iframe
-            plotlyFrame.style.width = plotlyFrame.parentElement.offsetWidth-18 + 'px'; // set width to match parent
-            
-            childBody = plotlyFrame.contentDocument.body;
-            plotlyFrame.style.height = childBody.scrollHeight+20 + 'px';
-            })
-
-          .catch(error => console.log(error));
-      } else {
-        plotlyFrame.style.display = 'none'; // hide the iframe
-        console.log('Error: HTML file not found.');
-      }
-    });
-}
-
-
-// function getFilesInDirectory(directory) {
-//     return fetch(directory)
-//       .then(response => response.text())
-//       .then(text => {
-//         const parser = new DOMParser();
-//         const html = parser.parseFromString(text, 'text/html');
-//         const files = Array.from(html.querySelectorAll('a')).map(a => a.href).filter(href => href.endsWith('.html'));
-//         return files;
-//       })
-//       .catch(error => console.log(error));
-// }
-
-
-
-//-------------------------------------------------------
-// GRAPH INFO DISPLAY 
-//-------------------------------------------------------
-function displayGraphInfo(project_selected) {
-    if (document.getElementById('graphinfo')) {
-        const graphname_file = 'static/projects/' + project_selected + '/graphinfofile.json';
-        $.getJSON(graphname_file)
-            .done(function(data) {
-                let graphtitle = "Graph title not specified.";
-                let graphdescription = "Graph description not specified.";
-
-                if (data.hasOwnProperty('graphtitle')) {
-                    graphtitle = data.graphtitle;
-                }
-
-                if (data.hasOwnProperty('graphdesc')) {
-                    graphdescription = data.graphdesc;
-                }
-
-                const myDiv = document.getElementById("graphinfo");
-                myDiv.innerHTML = "<span style='font-size:20px; font-weight:bold'>" + graphtitle +"</span>" + "<br>" + graphdescription;
-            })
-            .fail(function() {
-                const myDiv = document.getElementById("graphinfo");
-                myDiv.innerHTML = "<span style='font-size:20px; font-weight:bold'>Graph title not specified</span>" + "<br>" + "Graph description not specified.";
-            });
-    }
-}
-
-
-//-------------------------------------------------------
-// CHAT TEXT DISPLAY
-//-------------------------------------------------------
-function displayChatText(data) {
-    const chatOutput = document.getElementById("chatoutput");
-    chatOutput.innerHTML += `<div>${data.usr}: ${data.val}</div>`;
-    console.log("C_DEBUG:", chatOutput.innerHTML);
-}
-
-
-//-------------------------------------------------------
-// NODE/LINK COLOR DESCRIPTION IN LEGEND PANEL
-//-------------------------------------------------------
-function displayNodeLegend(project_selected) {
-    if (document.getElementById('legendpanel')) {
-        const p_file = 'static/projects/'+project_selected+'/pfile.json';
-
-        $.getJSON(p_file, (pfiledata) => {
-            
-            const clusterlist = pfiledata["selections"];
-
-            if (clusterlist.length === 0) {
-                // W I T H O U T   D E F I N E D   C L U S T E R S (in pfiledata["selectiond"])
-                //console.log("C_DEBUG: in clusterlist length is 0");
-
-                const allnode_Div = document.getElementById("legend_node_all");
-
-                const nodedesc_Div = document.getElementById("legend_nodedescription");
-                const nodecol_Div = document.getElementById("legend_nodecolor");
-                nodedesc_Div.innerHTML = "";
-                nodecol_Div.innerHTML = "";
-                
-                const img_name =  pfiledata["layoutsRGB"][0]; //"nodecolors0RGB";
-                const img = new Image();
-                img.src = 'static/projects/' + project_selected + '/layoutsRGB/'+ img_name+".png";
-        
-                const canvas = document.createElement('canvas');
-                img.onload = function() {
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0);
-                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                    const pixelData = imageData.data;
-                    
-                    // Loop through all the pixels in the image
-                    const colorsDict = {};
-                    const namesDict = {};
-                    let index = 1;
-
-                    for (let i = 0; i < pixelData.length; i += 4) {
-                        const r = pixelData[i];
-                        const g = pixelData[i + 1];
-                        const b = pixelData[i + 2];
-                        const a = pixelData[i + 3];
-                        const colorKey = `${r},${g},${b}`;
-                       
-                        // If the color key doesn't exist in the dictionary yet, add it
-                        if (!colorsDict.hasOwnProperty(colorKey)) {
-                            const pixelIndex = i / 4; // Get the pixel index
-                            namesDict[pixelIndex] = {"name":"Nodegroup "+index, "nodes": []} //, "color" : []}; // Set the index as the key
-                            colorsDict[colorKey] = pixelIndex; // Map the color key to the pixel index
-                            index += 1;
-                        }
-                        const pixelIndex = colorsDict[colorKey]; // Retrieve the pixel index from the color key mapping
-                        namesDict[pixelIndex]["nodes"].push(i / 4); 
-                    }
-                    // Create a new dictionary with the colorKey as the key
-                    const newNamesDict = {};
-                    for (const pixelIndex in namesDict) {
-                            const colorKey = `${pixelData[pixelIndex * 4]},${pixelData[pixelIndex * 4 + 1]},${pixelData[pixelIndex * 4 + 2]}`;
-                            newNamesDict[colorKey] = namesDict[pixelIndex];
-                        }
-                    console.log("C_DEBUG: newNamesDict: ", newNamesDict);
-                    
-                    // Loop through the namesDict and create an element for each node
-                    for (const color in newNamesDict) {
-                        //const [r, g, b] = color.split(',');
-                    
-                        // Check if the color is non-black
-                        if (color != "0,0,0") {
-                            console.log("C_DEBUG: color not black: ", color);
-                            const color_reformated = 'rgb(' + color + ')';                            
-                            const textdiv = document.createElement("div");
-                            const text = document.createTextNode(newNamesDict[color]["name"]);
-                            textdiv.style.fontSize="14px";
-                            textdiv.style.lineHeight="24px"; // this should be same as colorImg.height+colorImg.marginBottom
-                            textdiv.appendChild(text);
-                            nodedesc_Div.appendChild(textdiv);
-                            const colorImg = displayColorAsImage(color_reformated, 18.5, 18.5, 5.5, 0); 
-                            nodecol_Div.appendChild(colorImg);
-                        } 
-                    } 
-                    allnode_Div.appendChild(nodecol_Div);
-                    allnode_Div.appendChild(nodedesc_Div);  
-                    
-                };
-  
-            } else {
-                // W I T H   D E F I N E D   C L U S T E R S 
-                //console.log("C_DEBUG: in clusterlist length is: ", clusterlist.length);
-
-                const allnode_Div = document.getElementById("legend_node_all");
-
-                const nodedesc_Div = document.getElementById("legend_nodedescription");
-                const nodecol_Div = document.getElementById("legend_nodecolor");
-
-                nodedesc_Div.innerHTML = "";
-                nodecol_Div.innerHTML = "";
-
-                // Use Promise.all to wait for all images to load before processing them
-                Promise.all(clusterlist.map((cluster) => {
-                    const nodeID = cluster.nodes[0];
-                    const img_name =  pfiledata["layoutsRGB"][0]; //"nodecolors0RGB";
-                    const img = new Image();
-                    img.src = 'static/projects/' + project_selected + '/layoutsRGB/'+ img_name+".png";
-        
-                    return new Promise((resolve, reject) => {
-                        img.onload = () => {
-                            const canvas = document.createElement("canvas");
-                            canvas.width = img.width;
-                            canvas.height = img.height;
-                            const ctx = canvas.getContext("2d");
-                            ctx.drawImage(img, 0, 0);
-                            const imageData = ctx.getImageData(nodeID, 0, canvas.width, canvas.height); // x = nodeID, y = 0
-                            const colorData = imageData.data;
-                            const color = 'rgb(' + colorData[0] + ', ' + colorData[1] + ', ' + colorData[2] + ')';
-                            resolve({cluster: cluster, color: color});
-                        };
-                        img.onerror = reject;
-                    });
-                }))
-                .then((results) => {
-                    // sort the results by the order of clusterlist
-                    const sortedResults = results.sort((a, b) => {
-                        return clusterlist.indexOf(a.cluster) - clusterlist.indexOf(b.cluster);
-                    });
-                    sortedResults.forEach((result) => {
-                        const textdiv = document.createElement("div");
-                        textdiv.style.fontSize="14px";
-                        textdiv.style.lineHeight="24px"; 
-                        const text = document.createTextNode(result.cluster["name"]);
-                        textdiv.appendChild(text);
-                        nodedesc_Div.appendChild(textdiv);
-
-                        const colorImg = displayColorAsImage(result.color, 18.5,18.5, 5.5, 0);
-                        nodecol_Div.appendChild(colorImg);
-
-                    });
-                    allnode_Div.appendChild(nodecol_Div);
-                    allnode_Div.appendChild(nodedesc_Div);
-                })
-                .catch((err) => {
-                    console.log("Error: Could not load image: " + err);
-                });    
-            }
-        })
-        .fail(function() {
-            console.log("Error: Could not load JSON file");
+        Array.prototype.forEach.call(layoutExistsBtns, function(element){
+            element.style.display = "none";
         });
     }
 }
-
-
-
-  
-function displayLinkLegend(project_selected) {
-    if (document.getElementById('legendpanel')) {
-        const p_file = 'static/projects/'+project_selected+'/pfile.json';
-
-        const alllink_Div = document.getElementById("legend_link_all");
-
-        $.getJSON(p_file, (pfiledata) => {
-
-            const clusterlist = pfiledata["selections"];
-            const linkdesc_Div = document.getElementById("legend_linkdescription");
-            const linkcol_Div = document.getElementById("legend_linkcolor");
-            linkdesc_Div.innerHTML = "";
-            linkcol_Div.innerHTML = "";
-
-            const img_name =  pfiledata["linksRGB"][0]; 
-            const img = new Image();
-            img.src = 'static/projects/' + project_selected + '/linksRGB/'+ img_name+".png";
-    
-            const canvas = document.createElement('canvas');
-            img.onload = function() {
-                canvas.width = img.width;
-                canvas.height = img.height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0);
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                const pixelData = imageData.data;
-                
-                // Loop through all the pixels in the image
-                const colorsDict = {};
-                const namesDict = {};
-                let index = 1;
-
-                for (let i = 0; i < pixelData.length; i += 4) {
-                    const r = pixelData[i];
-                    const g = pixelData[i + 1];
-                    const b = pixelData[i + 2];
-                    const a = pixelData[i + 3];
-                    const colorKey = `${r},${g},${b}`;
-                    
-                    // If the color key doesn't exist in the dictionary yet, add it
-                    
-                    if (!colorsDict.hasOwnProperty(colorKey)) {
-                        const pixelIndex = i / 4; // Get the pixel index
-                        namesDict[pixelIndex] = {"name":"Connections ", //+index, 
-                                                "nodes": []} //, "color" : []}; // Set the index as the key
-                        colorsDict[colorKey] = pixelIndex; // Map the color key to the pixel index
-                        index += 1;
-                    }
-                    const pixelIndex = colorsDict[colorKey]; // Retrieve the pixel index from the color key mapping
-                    namesDict[pixelIndex]["nodes"].push(i / 4); 
-                }
-                // Create a new dictionary with the colorKey as the key
-                const newNamesDict = {};
-                for (const pixelIndex in namesDict) {
-                        const colorKey = `${pixelData[pixelIndex * 4]},${pixelData[pixelIndex * 4 + 1]},${pixelData[pixelIndex * 4 + 2]}`;
-                        newNamesDict[colorKey] = namesDict[pixelIndex];
-                    }
-                // console.log("C_DEBUG: newNamesDict: ", newNamesDict);
-                
-                // Loop through the namesDict and create an element for each node
-                for (const color in newNamesDict) {
-                       if (color != '0,0,0') {
-                        const color_reformated = 'rgb(' + color + ')';    
-
-                        const colorImg = displayColorAsImage(color_reformated,  18.5,18.5, 5.5, 0);//30, 5, 0, 0); // 20px 20px square
-                        linkcol_Div.appendChild(colorImg);
-                    
-                        const textdiv = document.createElement("div");
-                        textdiv.style.fontSize="14px";
-                        textdiv.style.lineHeight="24px"; // this should be same as colorImg.height+colorImg.marginBottom
-                        const text = document.createTextNode(newNamesDict[color]["name"]);
-                        textdiv.appendChild(text);
-                        linkdesc_Div.appendChild(textdiv);
-                    } 
-                    alllink_Div.appendChild(linkcol_Div);
-                    alllink_Div.appendChild(linkdesc_Div);
-                }
-            };
-
-        })
-        .fail(function() {
-            console.log("Error: Could not load JSON file");
-        });
-    }
-}
-
-
-
-
-//-------------------------------------------------------
-// display color as image
-//-------------------------------------------------------
-function displayColorAsImage(color, width, height, marginbottom, margintop) {
-    const div = document.createElement('div');
-    div.style.width = `${width}px`;
-    div.style.height = `${height}px`;
-    div.style.backgroundColor = color;
-
-    div.style.marginBottom =`${marginbottom}px`;
-    div.style.marginTop =`${margintop}px`;
-
-    div.style.marginRight =`10px`;
-    div.style.marginLeft =`10px`;
-    div.style.border = '1.5px solid grey';
-    return div;
-
-  }
