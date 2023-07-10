@@ -7,7 +7,7 @@ This is a flask server that provides the network data to the UnrealEngine DataDi
 # DataDiVR VR-Module 
 
 Please find the build of the newest DataDiVR VR Module <a style="font-size:14px" href="https://ucloud.univie.ac.at/index.php/s/kUNbOhrn8Bsl50d" target="_blank">here</a>.
-To run the Module download the folder and execute the .exe file. 
+To run the Module download the folder, extract it and execute the .exe file. 
 
 ## INSTALLATION
 
