@@ -58,7 +58,7 @@ def plotly_degree_distribution(degrees, highlighted_bar=None):
         
         layout = go.Layout(
             xaxis=dict(title='Degree', fixedrange=True),
-            yaxis=dict(title='Number of Nodes', fixedrange=True),
+            yaxis=dict(title='Number of Nodes', fixedrange=True, type='log'),
             bargap=0.1,
             title=None if highlighted_bar is None else f"Selected Node Degree: {highlighted_bar}",
             title_y=0.97
@@ -84,7 +84,7 @@ def plotly_degree_distribution(degrees, highlighted_bar=None):
 
         layout = go.Layout(
             xaxis=dict(title='Degree Range', fixedrange=True),
-            yaxis=dict(title='Number of Nodes', fixedrange=True),
+            yaxis=dict(title='Number of Nodes', fixedrange=True, type='log'),
             bargap=0.1,
             title=None if highlighted_bar is None else f"Selected Node Degrees: {min_degree_selected} to {max_degree_selected}",
             title_y=0.97
@@ -464,7 +464,7 @@ def plotly_eigenvector(assignment_list, highlighted_bar=None):
 
     layout = go.Layout(
         xaxis=dict(title='Eigenvector Value Range', fixedrange=True),
-        yaxis=dict(title='Number of Nodes', fixedrange=True),
+        yaxis=dict(title='Number of Nodes', fixedrange=True, type='log'),
         bargap=0.1,
         title=None if highlighted_bar is None else f"Selected Eigenvector: {min_assignment_selected:.3f} to {max_assignment_selected:.3f}",
         title_y=0.97
@@ -499,7 +499,7 @@ def plotly_closeness(assignment_list, highlighted_bar=None):
 
     layout = go.Layout(
         xaxis=dict(title='Closeness Range', fixedrange=True),
-        yaxis=dict(title='Number of Nodes', fixedrange=True),
+        yaxis=dict(title='Number of Nodes', fixedrange=True, type='log'),
         bargap=0.1,
         title=None if highlighted_bar is None else f"Selected Closeness: {min_assignment_selected:.3f} to {max_assignment_selected:.3f}",
         title_y=0.97
@@ -659,7 +659,7 @@ def plotly_clustering_coefficient(assignment_list, highlighted_bar=None):
 
     layout = go.Layout(
         xaxis=dict(title='Clustering Coefficient Range', fixedrange=True),
-        yaxis=dict(title='Number of Nodes', fixedrange=True),
+        yaxis=dict(title='Number of Nodes', fixedrange=True, type='log'),
         bargap=0.1,
         title=None if highlighted_bar is None else f"Selected Cluster Coefficients: {min_assignment_selected:.3f} to {max_assignment_selected:.3f}",
         title_y=0.97
