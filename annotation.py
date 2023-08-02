@@ -16,9 +16,9 @@ class AnnotationTextures:
         self.path_links = "static/projects/"+ self.project + "/linksRGB/temp.png"
         self.colors = {
             "none": (55, 55, 55, 30),
-            "a1": (3, 218, 198, 150),
-            "a2": (55, 0, 179, 150),
-            "result": (187, 134, 252, 150)
+            "a1": (3, 218, 198, 120),
+            "a2": (255, 132, 0, 120),
+            "result": (187, 134, 252, 120)
         }
 
     def __set_union(self, set_a1, set_a2):
@@ -103,4 +103,17 @@ class AnnotationTextures:
         # return dict as in shortest path
         return {"generated_texture": True, "path_nodes": self.path_nodes, "path_links": self.path_links}
 
-  
+def get_annotation_operation_clipboard(annotation_1, annotation_2, operation):
+    # generate sets
+    set_a1 = set(GD.annotations[annotation_1])
+    set_a2 = set(GD.annotations[annotation_2])
+
+    # perform operation
+    if operation == "union":
+        set_result = set_a1.union(set_a2)
+    elif operation == "intersection":
+        set_result = set_a1.intersection(set_a2)
+    elif operation == "subtraction":
+        set_result = set_a1.difference(set_a2)
+
+    return list(set_result)

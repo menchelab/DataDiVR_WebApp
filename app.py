@@ -315,15 +315,18 @@ def ex(message):
             # if not, create it
             exists = False  # check if node already exists in selection
             for n in GD.pdata["cbnode"]:
-                if n["id"] == GD.pdata["activeNode"]:
+                if int(n["id"]) == int(GD.pdata["activeNode"]):
                     exists = True
             if not exists:  # if not, add it
                 cbnode = {}
-                cbnode["id"] = GD.pdata["activeNode"]
-                cbnode["color"] = GD.pixel_valuesc[int(GD.pdata["activeNode"])]
-                cbnode["name"] = GD.nodes["nodes"][int(GD.pdata["activeNode"])]["n"]
-                GD.pdata["cbnode"].append(cbnode)
-                GD.savePD()
+                try:  ### improve this, runs sometimes into issues when activeNode is not valid
+                    cbnode["id"] = int(GD.pdata["activeNode"])
+                    cbnode["color"] = GD.pixel_valuesc[int(GD.pdata["activeNode"])]
+                    cbnode["name"] = GD.nodes["nodes"][int(GD.pdata["activeNode"])]["n"]
+                    GD.pdata["cbnode"].append(cbnode)
+                    GD.savePD()
+                except:
+                    print("Select node to copy to clipboard.")
             else:
                 print("already in selection")
 
@@ -385,6 +388,50 @@ def ex(message):
 
             emit("ex", response, room=room)
         emit("ex", message, room=room)
+
+    elif message["fn"] == "selections":
+        if message["id"] == "selectionsCb":
+            activeSelIndex = int(GD.pdata["selectionsDD"])
+            selectionNodes = GD.pfile["selections"][activeSelIndex]["nodes"]
+
+            if not "cbnode" in GD.pdata.keys():
+                GD.pdata["cbnode"] = []
+
+            exists = False  # check if node already exists in clipboard
+            for nodeID in selectionNodes:
+                if int(nodeID) == int(GD.pdata["activeNode"]):
+                    exists = True
+                if not exists: 
+                    cbnode = {}
+                    try:  ### improve this, runs sometimes into issues when activeNode is not valid
+                        cbnode["id"] = int(nodeID)
+                        cbnode["color"] = GD.pixel_valuesc[int(nodeID)]
+                        cbnode["name"] = GD.nodes["nodes"][int(nodeID)]["n"]
+                        GD.pdata["cbnode"].append(cbnode)
+                        GD.savePD()
+                    except:
+                        print("Select node to copy to clipboard.")
+
+            response = {}
+            response["usr"] = message["usr"]
+            response["id"] = message["id"]
+            response["fn"] = "cbaddNode"
+            response["val"] = GD.pdata["cbnode"]
+            emit("ex", response, room=room)
+
+
+    elif message["fn"] == "clipboard": 
+        if message["id"] == "cbClear":
+            # clear in backend
+            GD.pdata["cbnode"] = []
+            GD.savePD()
+            # tell frontend to remove all buttons
+            response = {}
+            response["usr"] = message["usr"]
+            response["id"] = message["id"]
+            response["fn"] = "cbaddNode"
+            response["val"] = GD.pdata["cbnode"]
+            emit("ex", response, room=room)
 
     elif message["fn"] == "analytics":
         project = GD.data["actPro"]
@@ -997,6 +1044,73 @@ def ex(message):
                     "path": generated_annotation_textures["path_links"],
                 }
             )
+            emit("ex", response, room=room)
+
+        if message["id"] == "annotationCb":
+
+            if "annotationOperationsActive" not in GD.pdata.keys():
+                GD.pdata["annotationOperationsActive"] = False
+
+            # single annotation case
+            if GD.pdata["annotationOperationsActive"] is False:
+                if "annotation-1" not in GD.pdata.keys():
+                    print(
+                        "ERROR: Select Annotation 1 to clipboard annotations."
+                    )
+                    return
+                selectionNodes = GD.annotations[list(GD.annotations.keys())[int(GD.pdata["annotation-1"])]]
+                print(selectionNodes)
+
+            # result case
+            else:
+                if "annotation-Operations" not in GD.pdata.keys():
+                    print(
+                        "ERROR: Select operation to clipboard annotations."
+                    )
+                    return
+                if "annotation-1" not in GD.pdata.keys():
+                    print(
+                        "ERROR: Select Annotation 1 to clipboard annotations."
+                    )
+                    return
+                if "annotation-2" not in GD.pdata.keys():
+                    print(
+                        "ERROR: Select Annotation 2 to clipboard annotations."
+                    )
+                    return
+
+                operations = ["union", "intersection", "subtraction"]
+                print(11111111)
+                selectionNodes = annotation.get_annotation_operation_clipboard(
+                    annotation_1 = list(GD.annotations.keys())[int(GD.pdata["annotation-1"])],
+                    annotation_2 = list(GD.annotations.keys())[int(GD.pdata["annotation-2"])],
+                    operation = operations[int(GD.pdata["annotation-Operations"])]
+                )
+
+
+            if not "cbnode" in GD.pdata.keys():
+                GD.pdata["cbnode"] = []
+
+            exists = False  # check if node already exists in clipboard
+            for nodeID in selectionNodes:
+                if int(nodeID) == int(GD.pdata["activeNode"]):
+                    exists = True
+                if not exists: 
+                    cbnode = {}
+                    try:  ### improve this, runs sometimes into issues when activeNode is not valid
+                        cbnode["id"] = int(nodeID)
+                        cbnode["color"] = GD.pixel_valuesc[int(nodeID)]
+                        cbnode["name"] = GD.nodes["nodes"][int(nodeID)]["n"]
+                        GD.pdata["cbnode"].append(cbnode)
+                        GD.savePD()
+                    except:
+                        print("Select node to copy to clipboard.")
+
+            response = {}
+            response["usr"] = message["usr"]
+            response["id"] = message["id"]
+            response["fn"] = "cbaddNode"
+            response["val"] = GD.pdata["cbnode"]
             emit("ex", response, room=room)
 
     elif message["fn"] == "layout":
