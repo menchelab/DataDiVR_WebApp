@@ -59,7 +59,6 @@ log.setLevel(logging.ERROR)
 
 Payload.max_decode_packets = 50
 
-
 app = Flask(__name__)
 app.debug = False
 app.config["SECRET_KEY"] = "secret"
@@ -978,7 +977,7 @@ def ex(message):
         if message["id"] == "annotationRun":
             if message["val"] == "init":
                 return
-            if "annotation-1" not in GD.pdata.keys():
+            if "annotation_1" not in GD.pdata.keys():
                 print(
                     "ERROR: Select Annotation 1 to perform set operation on annotations."
                 )
@@ -988,26 +987,34 @@ def ex(message):
                     "ERROR: Select operation to perform set operation on annotations."
                 )
                 return
-            if "annotation-1" not in GD.pdata.keys():
+            if "annotation_1" not in GD.pdata.keys():
                 print(
                     "ERROR: Select Annotation 1 to perform set operation on annotations."
                 )
                 return
-            if "annotation-2" not in GD.pdata.keys():
+            if "annotation_2" not in GD.pdata.keys():
                 print(
                     "ERROR: Select Annotation 2 to perform set operation on annotations."
                 )
                 return
-            if int(GD.pdata["annotation-1"]) >= len(list(GD.annotations.keys())):
-                print("ERROR: No annotation available.")
+            if "annotation_type_1" not in GD.pdata.keys():
+                print(
+                    "ERROR: Select Annotation 1 to perform set operation on annotations."
+                )
                 return
-            if int(GD.pdata["annotation-1"]) >= len(list(GD.annotations.keys())):
-                print("ERROR: No annotation available.")
+            if "annotation_type_2" not in GD.pdata.keys():
+                print(
+                    "ERROR: Select Annotation 2 to perform set operation on annotations."
+                )
                 return
-            annotation_1 = list(GD.annotations.keys())[int(GD.pdata["annotation-1"])]
-            annotation_2 = list(GD.annotations.keys())[int(GD.pdata["annotation-2"])]
+            
+            annotation_1 = GD.pdata["annotation_1"]
+            annotation_2 = GD.pdata["annotation_2"]
+            type_1 = GD.pdata["annotation_type_1"]
+            type_2 = GD.pdata["annotation_type_2"]
             operations = ["union", "intersection", "subtraction"]
             operation = operations[int(GD.pdata["annotation-Operations"])]
+
             if "annotationOperationsActive" in GD.pdata.keys():
                 # color only one type of annotation
                 if GD.pdata["annotationOperationsActive"] is False:
@@ -1022,6 +1029,8 @@ def ex(message):
             generated_annotation_textures = annotation_texture.gen_textures(
                 annotation_1=annotation_1,
                 annotation_2=annotation_2,
+                type_1 = type_1,
+                type_2 = type_2,
                 operation=operation,
             )
 
@@ -1053,13 +1062,18 @@ def ex(message):
 
             # single annotation case
             if GD.pdata["annotationOperationsActive"] is False:
-                if "annotation-1" not in GD.pdata.keys():
+                if "annotation_1" not in GD.pdata.keys():
                     print(
                         "ERROR: Select Annotation 1 to clipboard annotations."
                     )
                     return
-                selectionNodes = GD.annotations[list(GD.annotations.keys())[int(GD.pdata["annotation-1"])]]
-                print(selectionNodes)
+                if "annotation_type_1" not in GD.pdata.keys():
+                    print(
+                        "ERROR: Select Annotation 1 to clipboard annotations."
+                    )
+                    return
+                selectionNodes = GD.annotations[GD.pdata["annotation_type_1"]][GD.pdata["annotation_1"]]
+                
 
             # result case
             else:
@@ -1068,22 +1082,32 @@ def ex(message):
                         "ERROR: Select operation to clipboard annotations."
                     )
                     return
-                if "annotation-1" not in GD.pdata.keys():
+                if "annotation_1" not in GD.pdata.keys():
                     print(
                         "ERROR: Select Annotation 1 to clipboard annotations."
                     )
                     return
-                if "annotation-2" not in GD.pdata.keys():
+                if "annotation_2" not in GD.pdata.keys():
                     print(
                         "ERROR: Select Annotation 2 to clipboard annotations."
                     )
                     return
-
+                if "annotation_type_1" not in GD.pdata.keys():
+                    print(
+                        "ERROR: Select Annotation 1 to perform set operation on annotations."
+                    )
+                    return
+                if "annotation_type_2" not in GD.pdata.keys():
+                    print(
+                        "ERROR: Select Annotation 2 to perform set operation on annotations."
+                    )
+                    return
                 operations = ["union", "intersection", "subtraction"]
-                print(11111111)
                 selectionNodes = annotation.get_annotation_operation_clipboard(
-                    annotation_1 = list(GD.annotations.keys())[int(GD.pdata["annotation-1"])],
-                    annotation_2 = list(GD.annotations.keys())[int(GD.pdata["annotation-2"])],
+                    annotation_1 = GD.pdata["annotation_1"],
+                    annotation_2 = GD.pdata["annotation_2"],
+                    type_1 = GD.pdata["annotation_type_1"],
+                    type_2 = GD.pdata["annotation_type_2"],
                     operation = operations[int(GD.pdata["annotation-Operations"])]
                 )
 
@@ -1112,6 +1136,181 @@ def ex(message):
             response["fn"] = "cbaddNode"
             response["val"] = GD.pdata["cbnode"]
             emit("ex", response, room=room)
+
+        if message["id"] == "annotationInit":
+            emit("ex", {"fn": "annotation", "id": "initDD", "options": GD.annotation_types})
+            # send current annotation fields
+
+
+        if message["id"] == "annotation-dd-1":
+            sub_options = {
+                "A - E": {"a", "b", "c", "d", "e"}, 
+                "F - J": {"f", "g", "h", "i", "j"},
+                "K - P": {"k", "l", "m", "n", "o", "p"},
+                "Q - T": {"q", "r", "s", "t"},
+                "U - Z": {"u", "v", "w", "x", "y", "z"},
+                "0 - 4": {"1", "2", "3", "4", "0"},
+                "5 - 9": {"5", "6", "7", "8", "9"},
+                "! ... ?": {".", "!", "?", "ß", "ä", "ü", "ö", "+", "-", "*", ":"}
+            }
+
+            if message["val"] == "getSub":
+                annotation_type = message["valType"]
+                sub_options_rev = {item: key for key, value in sub_options.items() for item in value}
+                all_options = set(sub_options.keys())
+                valid_options = set()
+                for anno in GD.annotations[annotation_type].keys():
+                    if valid_options == all_options:
+                        break
+                    if anno[0].lower() in sub_options_rev.keys():
+                        valid_options.add(sub_options_rev[anno[0].lower()])
+                valid_options = sorted(list(valid_options))
+                response = {}
+                response["usr"] = message["usr"]
+                response["fn"] = message["fn"]
+                response["id"] = message["id"]
+                response["val"] = "sendSub"
+                response["options"] = valid_options
+                emit("ex", response, room = room)
+                return
+
+
+            if message["val"] == "getAnnotations":
+                annotation_type = message["valType"]
+                annotation_sub = message["valSub"]
+
+                # return all annotations here which matches the filters
+
+                # base case: default when only one type of annotations is available
+                filtered_annotations = GD.annotations[annotation_type]  # in this case its a dict
+                valid_annotations = []
+                valid_set = sub_options[annotation_sub]
+                for anno in filtered_annotations:
+                    if anno.lower()[0] in valid_set:
+                        valid_annotations.append(anno)
+                valid_annotations = sorted(valid_annotations, key = lambda x: x.upper())
+
+                response = {}
+                response["usr"] = message["usr"]
+                response["fn"] = message["fn"]
+                response["id"] = message["id"]
+                response["val"] = "sendAnnotations"
+                response["annotations"] = valid_annotations
+                emit("ex", response, room = room)
+                return
+            
+            if message["val"] == "setAnnotation":
+                print("Set annotation 1 :: ", message["valType"], " :: ", message["valAnnotation"])
+                GD.pdata["annotation_1"] = message["valAnnotation"]
+                GD.pdata["annotation_type_1"] = message["valType"]
+                GD.savePD()
+                return
+            
+            if message["val"] == "init":
+                print("send text to set")
+                # on init
+                anno = "Select Annotation"
+                anno_type = "-"
+                if "annotation_1" in GD.pdata.keys():
+                    anno = GD.pdata["annotation_1"]
+                if "annotation_type_1" in GD.pdata.keys():
+                    anno_type = GD.pdata["annotation_type_1"]
+                
+                response = {}
+                response["usr"] = message["usr"]
+                response["fn"] = message["fn"]
+                response["id"] = message["id"]
+                response["val"] = "setAnnotation"
+                response["annotation"] = anno
+                response["annotationType"] = anno_type
+                emit("ex", response, room = room)
+                return
+            
+
+        if message["id"] == "annotation-dd-2":
+            sub_options = {
+                "A - E": {"a", "b", "c", "d", "e"}, 
+                "F - J": {"f", "g", "h", "i", "j"},
+                "K - P": {"k", "l", "m", "n", "o", "p"},
+                "Q - T": {"q", "r", "s", "t"},
+                "U - Z": {"u", "v", "w", "x", "y", "z"},
+                "0 - 4": {"1", "2", "3", "4", "0"},
+                "5 - 9": {"5", "6", "7", "8", "9"},
+                "! ... ?": {".", "!", "?", "ß", "ä", "ü", "ö", "+", "-", "*", ":"}
+            }
+
+            if message["val"] == "getSub":
+                annotation_type = message["valType"]
+                sub_options_rev = {item: key for key, value in sub_options.items() for item in value}
+                all_options = set(sub_options.keys())
+                valid_options = set()
+                for anno in GD.annotations[annotation_type].keys():
+                    if valid_options == all_options:
+                        break
+                    if anno[0].lower() in sub_options_rev.keys():
+                        valid_options.add(sub_options_rev[anno[0].lower()])
+                valid_options = sorted(list(valid_options))
+                response = {}
+                response["usr"] = message["usr"]
+                response["fn"] = message["fn"]
+                response["id"] = message["id"]
+                response["val"] = "sendSub"
+                response["options"] = valid_options
+                emit("ex", response, room = room)
+                return
+
+
+            if message["val"] == "getAnnotations":
+                annotation_type = message["valType"]
+                annotation_sub = message["valSub"]
+
+                # return all annotations here which matches the filters
+
+                # base case: default when only one type of annotations is available
+                filtered_annotations = GD.annotations[annotation_type]  # in this case its a dict
+                valid_annotations = []
+                valid_set = sub_options[annotation_sub]
+                for anno in filtered_annotations:
+                    if anno.lower()[0] in valid_set:
+                        valid_annotations.append(anno)
+                valid_annotations = sorted(valid_annotations, key = lambda x: x.upper())
+
+                response = {}
+                response["usr"] = message["usr"]
+                response["fn"] = message["fn"]
+                response["id"] = message["id"]
+                response["val"] = "sendAnnotations"
+                response["annotations"] = valid_annotations
+                emit("ex", response, room = room)
+                return
+            
+            if message["val"] == "setAnnotation":
+                print("Set annotation 2 :: ", message["valType"], " :: ", message["valAnnotation"])
+                GD.pdata["annotation_2"] = message["valAnnotation"]
+                GD.pdata["annotation_type_2"] = message["valType"]
+                GD.savePD()
+                return
+            
+            if message["val"] == "init":
+
+                # on init
+                anno = "Select Annotation"
+                anno_type = "-"
+                if "annotation_2" in GD.pdata.keys():
+                    anno = GD.pdata["annotation_2"]
+                if "annotation_type_2" in GD.pdata.keys():
+                    anno_type = GD.pdata["annotation_type_2"]
+                
+                response = {}
+                response["usr"] = message["usr"]
+                response["fn"] = message["fn"]
+                response["id"] = message["id"]
+                response["val"] = "setAnnotation"
+                response["annotation"] = anno
+                response["annotationType"] = anno_type
+                emit("ex", response, room = room)
+                return
+
 
     elif message["fn"] == "layout":
         if message["id"] == "layoutInit":
@@ -1686,7 +1885,8 @@ def ex(message):
                         },
                         room=room,
                     )
-
+                    # update not self updating elements
+                    emit("ex", {"fn": "annotation", "id": "initDD", "options": GD.annotation_types})
                 else:
                     response["sel"] = message["val"]
                     response["name"] = message["msg"]

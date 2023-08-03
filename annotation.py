@@ -30,7 +30,7 @@ class AnnotationTextures:
     def __set_subtraction(self, set_a1, set_a2):
         return set_a1.difference(set_a2)
 
-    def gen_textures(self, annotation_1=None, annotation_2=None, operation=None) -> dict:
+    def gen_textures(self, annotation_1=None, annotation_2=None, type_1=None, type_2=None, operation=None) -> dict:
         # error handling
         if operation not in ("single", "union", "intersection", "subtraction"):
             return {"generated_texture": False}
@@ -38,10 +38,14 @@ class AnnotationTextures:
             return {"generated_texture": False}
         if annotation_2 is None:
             return {"generated_texture": False}
+        if type_1 is None:
+            return {"generated_texture": False}
+        if type_2 is None:
+            return {"generated_texture": False}
 
         # generate sets
-        set_a1 = set(self.annotations[annotation_1])
-        set_a2 = set(self.annotations[annotation_2])
+        set_a1 = set(self.annotations[type_1][annotation_1])
+        set_a2 = set(self.annotations[type_2][annotation_2])
 
         # perform operartion
         if operation == "union":
@@ -103,10 +107,10 @@ class AnnotationTextures:
         # return dict as in shortest path
         return {"generated_texture": True, "path_nodes": self.path_nodes, "path_links": self.path_links}
 
-def get_annotation_operation_clipboard(annotation_1, annotation_2, operation):
+def get_annotation_operation_clipboard(annotation_1, annotation_2, type_1, type_2, operation):
     # generate sets
-    set_a1 = set(GD.annotations[annotation_1])
-    set_a2 = set(GD.annotations[annotation_2])
+    set_a1 = set(GD.annotations[type_1][annotation_1])
+    set_a2 = set(GD.annotations[type_2][annotation_2])
 
     # perform operation
     if operation == "union":

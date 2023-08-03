@@ -108,6 +108,9 @@ function updateMcElements(){
     socket.emit('ex', { usr:uid, id: "annotationOperation", fn: "annotation", val:"init"});
     socket.emit('ex', { usr:uid, id: "annotationRun", fn: "annotation", val:"init"});
     socket.emit('ex', { usr:uid, id: "layoutInit", fn: "layout", val:"init"});
+    socket.emit('ex', { usr:uid, id: "annotationInit", fn: "annotation", val:"init"})
+    socket.emit('ex', {usr:uid,  val: "init", id: "annotation-dd-1", fn: "annotation"});
+    socket.emit('ex', {usr:uid,  val: "init", id: "annotation-dd-2", fn: "annotation"});
 }
 
 function reconnect(){
@@ -933,6 +936,10 @@ $(document).ready(function(){
                 break;
 
             case "annotation":
+
+                const annotationDD1 = document.getElementById("annotation-dd-1");
+                const annotationDD2 = document.getElementById("annotation-dd-2");
+                
                 if (data.id == "annotationOperation"){
                     let value = data.val;
                     if (value == "init") {return;}
@@ -941,20 +948,60 @@ $(document).ready(function(){
                     let annotationLegendR = document.getElementById("annotationColorR");
                     if (value == true){
                         button.innerHTML = "[-]";
-                        document.getElementById("annotation-2").style.display = "inline-block";
+                        annotationDD2.style.display = "inline-block";
                         document.getElementById("annotation-Operations").style.display = "inline-block";
                         annotationLegendR.style.display = "block";
                         annotationLegend2.style.display = "block";
                     }
                     if (value == false){
                         button.innerHTML = "OPERATION";
-                        document.getElementById("annotation-2").style.display = "none";
+                        annotationDD2.style.display = "none";
                         document.getElementById("annotation-Operations").style.display = "none";
                         annotationLegendR.style.display = "none";
                         annotationLegend2.style.display = "none";
                     }
                 }
-                
+
+                if (data.id == "initDD"){
+                    annotationDD1.updateOptions(data.options);
+                    annotationDD2.updateOptions(data.options);
+                }
+
+                if (data.id == "annotation-dd-1"){
+                    
+                    if (data.val == "sendAnnotations"){
+                        annotationDD1.openSelectionMain(data.annotations);
+                    }
+
+                    if (data.val == "sendSub"){
+                        annotationDD1.openSelectionSub(data.options);
+                    }
+
+                    if (data.val == "setAnnotation"){
+                        annotationDD1.select.setAttribute("value", data.annotation);
+                        annotationDD1.setAttribute('valType', data.annotationType)
+                    }
+
+                }
+
+                if (data.id == "annotation-dd-2"){
+                    
+                    if (data.val == "sendAnnotations"){
+                        annotationDD2.openSelectionMain(data.annotations);
+                    }
+
+                    if (data.val == "sendSub"){
+                        annotationDD2.openSelectionSub(data.options);
+                    }
+
+                    if (data.val == "setAnnotation"){
+                        annotationDD2.select.setAttribute("value", data.annotation);
+                        annotationDD2.setAttribute('valType', data.annotationType)
+                    }
+
+                }
+
+
                 break;
 
             case "legendfileswitch":

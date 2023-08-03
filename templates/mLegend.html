@@ -1,7 +1,7 @@
 
 
 <div class="gradientBox">
-    <div id="legendpanel" class='swagBox' style="width:420px; min-height:80vh;  background-color: rgba(16, 3, 0, 0.3);">
+    <div id="legendpanel" class='swagBox' style="width:420px; background-color: rgba(16, 3, 0, 0.3);">
          
         <h5 style="  float:left; font-size: 25px;  color: rgb(102, 102, 102); margin-top:5px; margin-bottom:5px;">
             NETWORK LEGEND</h5>
@@ -10,7 +10,10 @@
 
         <div class="gradient" ></div><br>
         
-        <div style="margin-bottom:6px;"> PROJECT TITLE : :  <span id='graphinfo'></span> </div>
+        <div style="margin-bottom:6px; overflow-y: auto; max-height: 150px; display: inline-block;""> 
+            PROJECT TITLE : :  
+            <span id='graphinfo'></span> 
+        </div>
 
         <br>
 
@@ -21,7 +24,7 @@
         <div style="margin-bottom:6px;"> NODE COLORS : : <span style="font-weight:bold;" id='graphlayout_nodecolors' val=""><span> </span></div>
         
 
-        <div id="legend_node_all" style="display:inline-flex;">
+        <div id="legend_node_all" style="display:inline-flex; overflow-y: auto; overflow-x: hidden; max-height: 150px; width: 398px;">
         <div id="legend_nodecolor"></div> 
         <div id="legend_nodedescription"></div> 
         </div> 
@@ -31,7 +34,7 @@
         <div style="margin-bottom:6px;"> LINK COLORS : : <span style="font-weight:bold;" id='graphlayout_linkcolors' val=""><span> </span></div> <!-- clear:both-->
  
         
-        <div id="legend_link_all" style="display:inline-flex;">
+        <div id="legend_link_all" style="display:inline-flex; overflow-y: auto; overflow-x: hidden;  overflow-x: hidden; max-height: 100px; width: 398px;">
         <div id="legend_linkcolor"></div> 
         <div id="legend_linkdescription"></div>
         </div>
@@ -91,8 +94,14 @@
 
                     if (pfiledata.hasOwnProperty(elementkey)) {
                         graphlayout_pre = pfiledata.layouts[selected_id];
-                        console.log(graphlayout_pre)
-                        graphlayout = graphlayout_pre.slice(0, -3); //to remove XYZ or RGB appended in upload process
+                        // console.log(graphlayout_pre)
+
+                        if (graphlayout_pre.endsWith("RGB") || graphlayout_pre.endsWith("XYZ")){
+                            graphlayout = graphlayout_pre.slice(0, -3); 
+                        } else {
+                            graphlayout = graphlayout_pre;
+                        }
+                        
                     } 
                 
                     const myDiv = document.getElementById(htmlkey);

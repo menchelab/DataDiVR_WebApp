@@ -54,13 +54,24 @@ def upload_filesJSON(request):
     labels = []
     
 
-    # implement a way to set name as key for node and kill annotation-defined node names
-    # assign/polish meta data (internal and external information)
-
-
     loadGraphJSON(request.files.getlist("graphJSON"), jsonfiles)
-    parseGraphJSON_nodepositions(jsonfiles, nodepositions)    
-    parseGraphJSON_nodeinfo(jsonfiles, nodeinfo)
+
+    # decide which annotation type to go with
+    # if complex_annotations is True it uses a dict to store annotations and their types
+    # referenced by "annotationTypes" as true in uploaded JSON
+    complex_annotations = False
+    if "annotationTypes" in jsonfiles[0].keys():
+        if jsonfiles[0]["annotationTypes"] is True:
+            complex_annotations = True
+
+
+    parseGraphJSON_nodepositions(jsonfiles, nodepositions)
+
+    if complex_annotations is False:    
+        parseGraphJSON_nodeinfo_simple(jsonfiles, nodeinfo)
+    else:  # complex_annotations is True
+        nodeinfo = parseGraphJSON_nodeinfo_complex(jsonfiles)
+    
     parseGraphJSON_nodecolors(jsonfiles, nodecolors)
     parseGraphJSON_links(jsonfiles, links)
     parseGraphJSON_linkcolors(jsonfiles, linkcolors)
@@ -88,22 +99,31 @@ def upload_filesJSON(request):
     numnodes = len(nodepositions[0]["data"])
 
     # generate node.json
-    for i in range(len(nodepositions[0]["data"])):
-        thisnode = {}
-        thisnode["id"] = i
-        if "_geo" in nodepositions[0]["name"]:
-            thisnode["lat"] = nodepositions[0]["data"][i][0]
-            thisnode["lon"] = nodepositions[0]["data"][i][1]
+    if complex_annotations is False:
+        for i in range(len(nodepositions[0]["data"])):
+            thisnode = {}
+            thisnode["id"] = i
+            if "_geo" in nodepositions[0]["name"]:
+                thisnode["lat"] = nodepositions[0]["data"][i][0]
+                thisnode["lon"] = nodepositions[0]["data"][i][1]
 
-        if len(nodeinfo[0]["data"]) == len(nodepositions[0]["data"]):
-            thisnode["attrlist"] = nodeinfo[0]["data"][i]
-            thisnode["n"] = str(nodeinfo[0]["data"][i][0]) #show first element in node annotation for node label
+            if len(nodeinfo[0]["data"]) == len(nodepositions[0]["data"]):
+                thisnode["attrlist"] = nodeinfo[0]["data"][i]
+                thisnode["n"] = str(nodeinfo[0]["data"][i][0]) # show first element in node annotation for node label
 
-        else:
-            thisnode["attrlist"] = ["node" + str(i)]
-            thisnode["n"] = "node" + str(i)
+            else:
+                thisnode["attrlist"] = ["node" + str(i)]
+                thisnode["n"] = "node" + str(i)
 
-        nodelist["nodes"].append(thisnode)
+            nodelist["nodes"].append(thisnode)
+    
+    else: # complex_annotations is True -> annotation types and name specified
+        for i in range(len(nodeinfo)):
+            this_node = {}
+            this_node["id"] = i
+            this_node["n"] = nodeinfo[i]["name"]
+            this_node["attrlist"] = nodeinfo[i]["annotation"]
+            nodelist["nodes"].append(this_node)
 
     
     for labellist in labels:   
@@ -290,6 +310,7 @@ def upload_filesJSON(request):
     #----------------------------------
     pfile["graphtitle"] = title_of_graph
     pfile["graphdesc"] = descr_of_graph
+    pfile["annotationTypes"] = complex_annotations    # define in pfile if you use annotation types or default flat annotation list
 
     #----------------------------------
     # uploading and storing Legends files in folder
@@ -429,7 +450,7 @@ def parseGraphJSON_linkcolors(files,target):
             #print("C_DEBUG: LINKCOLORS:", vecList)
 
 
-def parseGraphJSON_nodeinfo(files,target):
+def parseGraphJSON_nodeinfo_simple(files,target):
     if len(files) > 0: 
         #for file in files: 
         for idx,file in enumerate(files):
@@ -445,6 +466,23 @@ def parseGraphJSON_nodeinfo(files,target):
             vecList["name"] = name_of_file
             target.append(vecList)
             #print("C_DEBUG: NODEINFO:", vecList)
+
+
+def parseGraphJSON_nodeinfo_complex(files):
+    if len(files) <= 0:
+        return 
+    
+    out = []
+    file = files[0]  # no need to iter over all files since you have to set it for all files the same way 
+    num_of_nodes = len(file["nodes"])
+
+    for i in range(num_of_nodes):
+        node_info = {}
+        node_info["annotation"] = file["nodes"][i]["annotation"]
+        node_info["name"] = file["nodes"][i]["name"]
+        out.append(node_info)
+
+    return out
 
 
 def parseGraphJSON_nodecolors(files,target):
@@ -529,7 +567,6 @@ def parseGraphJSON_labels(files,target):
             
             target.append(vecList)
         
-    
 
 def parseGraphJSON_graphtitle(files,target):
     if len(files) > 0: 

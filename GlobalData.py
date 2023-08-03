@@ -24,7 +24,12 @@ pdata = {}
 nodes = {}
 links = {}
 names = {}
-annotations = {}
+
+
+annotations = {} # annotations map
+annotation_types = []  # stores types of annotations, per default if no types exist it holds only "default"
+
+
 # todo deal with multiple linklists
 nchildren = []
 
@@ -189,8 +194,10 @@ def loadLinks():
     # print(nchildren)
 
 
-def load_annotations():
+def load_annotations_simple_old():
     global annotations
+    global annotation_types
+    annotation_types = ["default"]
     temp_annotations = {}
     for node in nodes["nodes"]:
         if "attrlist" not in node.keys():
@@ -205,4 +212,56 @@ def load_annotations():
             temp_annotations[annotation].append(node["id"])
     annotations = OrderedDict(sorted(temp_annotations.items(), key=lambda x: x[0].lower()))  # annotations initilized increasing alphabetically
 
-    
+
+def load_annotations_complex():
+    global annotations
+    global annotation_types
+    annotation_types = []
+    annotations = {}
+
+    for node in nodes["nodes"]:
+        if "attrlist" not in node.keys():
+            continue
+
+        for anno_type, anno_list in node["attrlist"].items():
+            if anno_type not in annotation_types:
+                annotation_types.append(anno_type)
+                annotations[anno_type] = {}
+
+            for anno in anno_list:
+                if anno not in annotations[anno_type].keys():
+                    annotations[anno_type][anno] = []
+                annotations[anno_type][anno].append(node["id"])
+
+def load_annotations_simple():
+    global annotations
+    global annotation_types
+    annotation_types = ["default"]
+    annotations = {"default": {}}
+
+    for node in nodes["nodes"]:
+        if "attrlist" not in node.keys():
+            continue
+        
+        anno_list = node["attrlist"]
+
+        for idx, anno in enumerate(anno_list):
+            if idx == 0 and anno == node["n"]:
+                continue
+            if not isinstance(anno, str):
+                continue
+            if anno not in annotations["default"].keys():
+                annotations["default"][anno] = []
+            annotations["default"][anno].append(node["id"])
+
+
+def load_annotations():
+    if "annotationTypes" not in pfile.keys():
+        pfile["annotationTypes"] = False     # assuming to be False for old projects
+        savePFile()
+
+    # current solution -> enhance by keeping only complex function and deprecate simple
+    if pfile["annotationTypes"] is False:
+        load_annotations_simple()
+    else:
+        load_annotations_complex()

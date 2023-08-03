@@ -689,3 +689,345 @@
 </template>
 
 
+
+<!-- HTML Element to partition annotations -->
+<template id="mcAnnotationDropdown-template">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
+
+    <div id="container" style="display: inline-block; width:auto;  padding: 3px 3px">
+        <h5 id="label" style="font-size: 25px;  color: rgb(102, 102, 102); margin-top:5px; margin-bottom:5px; display: block;">default</h5>
+        <div class="gradient"></div>
+        
+        <div id="display">
+            <input type="button" id="sel" style="width:400px; height:50px; font-family: future; font-size: 25px; "/>
+            <p id="epochs" style="font-size: 15px; color: rgb(255, 255, 255); margin-top:0px; padding-left:10px ; margin-bottom: 0px; text-indent: 10px; display: block; overflow-x: hidden;">default</p>
+        </div>
+
+        <div>
+            <mc-button1 id="back" name="BACK" style="float: right;"></mc-button1> 
+        </div>
+
+        <div id="content" class="swagBoxT" style="width:400px; max-height: 600px; height:auto; overflow-y: auto; overflow-x: hidden;">
+        </div>
+    </div>
+</template>
+
+
+
+<script>
+    class mcAnnotationDropdown extends HTMLElement {
+
+        constructor() {
+            super();
+            let options;
+            this.template = document.querySelector('#mcAnnotationDropdown-template').content;
+            this.attachShadow({ mode: 'open' }).appendChild(this.template.cloneNode(true));
+
+            this.content = this.shadowRoot.querySelector("#content");
+            this.select = this.shadowRoot.querySelector("#sel");
+            this.label = this.shadowRoot.querySelector("#label");
+            this.epochsLabel = this.shadowRoot.querySelector("#epochs");
+            this.buttonBack = this.shadowRoot.querySelector("#back")
+            this.buttonBack.style.display = "block";
+
+            // content related
+            this.state = "inactive" // valid: "inactive", "selType", "selSub", "selMain"
+            if (options === undefined){
+                options = ["default"]
+            }
+            this.options = options;
+            this.subOptions = [
+                "A - E", 
+                "F - J",
+                "K - P",
+                "Q - T",
+                "U - Z",
+                "0 - 4",
+                "5 - 9",
+                "! ... ?"
+            ];
+
+            console.log("init annotation dropdown: ", this.label.innerHTML)
+        }
+
+        static get observedAttributes() {
+            return ['valType', 'valSub']; // Add any other attributes you want to observe
+        }
+
+
+        connectedCallback() {
+            // init
+            this.label.innerHTML = this.getAttribute('name');
+            this.buttonBack.style.display = "none";
+            this.epochsLabel.style.display = "none";
+            this.content.style.display = "none";
+            
+            // event listeners
+            this.select.addEventListener('click', () => {
+                if (this.state == "inactive") {
+                    this.content.style.display = "none";
+                    this.openSelectionType();
+                } 
+                else {
+                    this.content.style.display = "block";
+                }
+                this.clickUpdate()
+            });
+
+            this.buttonBack.addEventListener("click", ()=>{
+                // backwards step
+                switch (this.state){
+                    case "selType":
+                        this.state = "inactive";
+                        this.content.innerHTML = "";
+                        this.content.style.display = "none";
+                        this.buttonBack.style.display = "none"
+                        break;
+
+                    case "selSub":
+                        this.state = "selType";
+                        this.content.style.display = "block";
+                        this.buttonBack.style.display = "block"
+                        this.openSelectionType()
+                        break;
+
+                    case "selMain":
+                        this.state = "selSub";
+                        this.content.style.display = "block";
+                        this.buttonBack.style.display = "block"
+                        this.openSelectionSub(this.subOptions)
+                        break;
+                }
+                this.clickUpdate()
+            });
+        }
+
+
+        clickUpdate() {
+            // update
+            this.label.innerHTML = this.getAttribute('name');
+            if (this.getAttribute("valSub") == null){
+                this.epochsLabel.innerHTML = this.getAttribute("valType");
+            } 
+            else {
+                this.epochsLabel.innerHTML = this.getAttribute("valType") + " :: " + this.getAttribute("valSub");
+            }
+
+            switch (this.state) {
+                case "inactive":
+                    this.buttonBack.style.display = "none";
+                    this.epochsLabel.style.display = "none"
+                    break;
+
+                case "selType":
+                    this.buttonBack.style.display = "block";
+                    this.epochsLabel.style.display = "block";
+                    break;
+
+                case "selSub":
+                    this.buttonBack.style.display = "block";
+                    this.epochsLabel.style.display = "block";
+                    break;
+
+                case "selMain":
+                    this.buttonBack.style.display = "block";
+                    this.epochsLabel.style.display = "block";
+                    break;
+            }
+        
+        }
+        
+        // methods
+        generateColorGradient(n) {
+            function hsvToRgb(h, s, v) {
+                const c = v * s;
+                const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+                const m = v - c;
+
+                let r, g, b;
+                if (h >= 0 && h < 60) {
+                    [r, g, b] = [c, x, 0];
+                } else if (h >= 60 && h < 120) {
+                    [r, g, b] = [x, c, 0];
+                } else if (h >= 120 && h < 180) {
+                    [r, g, b] = [0, c, x];
+                } else if (h >= 180 && h < 240) {
+                    [r, g, b] = [0, x, c];
+                } else if (h >= 240 && h < 300) {
+                    [r, g, b] = [x, 0, c];
+                } else {
+                    [r, g, b] = [c, 0, x];
+                }
+
+                return [
+                    Math.round((r + m) * 255),
+                    Math.round((g + m) * 255),
+                    Math.round((b + m) * 255)
+                ];
+            }
+
+            function rgbToHex(r, g, b) {
+                return `#${(1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1)}`;
+            }
+
+            function random(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+
+            const colors = [];
+
+            const firstHue = random(0, 360);
+            const secondHue = (firstHue + random(30, 150)) % 360;
+            const randS = random(0.5, 1)
+            const randV = random(0.6, 1)
+
+            const firstColor = hsvToRgb(firstHue, randS, randV);
+            const secondColor = hsvToRgb(secondHue, randS, randV);
+
+            if (n === 1) {
+                colors.push(rgbToHex(...firstColor));
+            } else if (n === 2) {
+                colors.push(rgbToHex(...firstColor), rgbToHex(...secondColor));
+            } else if (n > 2) {
+                for (let i = 0; i < n; i++) {
+                    const currentHue = firstHue + ((secondHue - firstHue) / (n - 1)) * i;
+                    const currentColor = hsvToRgb(currentHue, randS, randV);
+                    colors.push(rgbToHex(...currentColor));
+                }
+            }
+
+            return colors;
+        }
+
+        openSelectionType(){
+            // Empty the content
+            this.content.innerHTML = '';
+            this.content.style.display = "block";
+            this.state = "selType";
+
+            // Generate custom buttons based on the options list
+            let buttonColors = this.generateColorGradient(this.options.length);
+            let colorIndex = 0;
+            this.options.forEach(option => {
+                const button = document.createElement('mc-button');
+                button.setAttribute('name', option);
+                button.style.display = 'block';
+                button.setAttribute("color", buttonColors[colorIndex])
+                colorIndex ++;
+                
+                // Log the name when the button is clicked
+                button.addEventListener('click', () => {
+                    this.setAttribute('valType', option); // Set the selType attribute
+                    this.content.style.display = 'none'; // Hide the content
+                    this.content.innerHTML = '';
+
+
+                    // on click launch sub selection
+                    // this.openSelectionSub();
+                    socket.emit('ex', { 
+                        usr:uid, 
+                        val: "getSub",
+                        valType: this.getAttribute("valType"),
+                        id: this.getAttribute('id'),
+                        fn: "annotation" 
+                    });
+                    this.clickUpdate();
+                });
+
+                this.content.appendChild(button);
+            });
+        }
+
+        openSelectionSub(options){
+            // Empty the content
+            this.content.innerHTML = '';
+            this.content.style.display = "block";
+            this.state = "selSub"
+
+            this.subOptions = options;
+
+            // Generate custom buttons based on the options list
+            let buttonColors = this.generateColorGradient(options.length);
+            let colorIndex = 0;
+            options.forEach(option => {
+                const button = document.createElement('mc-button');
+                button.setAttribute('name', option);
+                button.style.display = 'block';
+                button.setAttribute("color", buttonColors[colorIndex]);
+                colorIndex ++;
+                
+                // Log the name when the button is clicked
+                button.addEventListener('click', () => {
+                    this.setAttribute('valSub', option); // Set the valSub attribute
+                    this.content.style.display = 'none'; // Hide the content
+                    this.content.innerHTML = '';
+
+
+                    // get all annotations which have both specified types
+
+                    // using val here to differentiate between final set annotation and request for annotations 
+                    socket.emit('ex', { 
+                        usr:uid, 
+                        val: "getAnnotations",
+                        valType: this.getAttribute("valType"), 
+                        valSub: this.getAttribute("valSub"),
+                        id: this.getAttribute('id'),
+                        fn: "annotation" 
+                    });
+        
+                    this.clickUpdate();
+               
+                });
+
+                this.content.appendChild(button);
+            });
+        }
+
+        openSelectionMain(options){
+            // Empty the content
+            this.content.innerHTML = '';
+            this.content.style.display = "block";
+            this.state = "selMain";
+
+            // Generate custom buttons based on the options list
+            let buttonColors = this.generateColorGradient(options.length);
+            let colorIndex = 0;
+            options.forEach(option => {
+                const button = document.createElement('mc-button');
+                button.setAttribute('name', option);
+                button.style.display = 'block';
+                button.setAttribute("color", buttonColors[colorIndex])
+                colorIndex ++;
+                
+                // Log the name when the button is clicked
+                button.addEventListener('click', () => {
+
+                    // display name 
+                    this.select.setAttribute("value", option);
+                    
+
+                    this.content.style.display = 'none'; // Hide the content
+                    this.content.innerHTML = '';
+                    this.state = "inactive";
+                    this.clickUpdate();
+
+                    // emit to save and update it
+                    socket.emit('ex', { 
+                        usr:uid, 
+                        valAnnotation: option,
+                        valType: this.getAttribute("valType"),
+                        id: this.getAttribute('id'),
+                        val: "setAnnotation",
+                        fn: "annotation" 
+                    });
+                });
+
+                this.content.appendChild(button);
+            });
+        }
+
+        updateOptions(options){this.options = options;}
+    }
+
+    customElements.define('mc-annotation-dropdown', mcAnnotationDropdown);
+</script>
