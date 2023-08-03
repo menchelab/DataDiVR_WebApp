@@ -947,7 +947,7 @@ $(document).ready(function(){
                     let annotationLegend2 = document.getElementById("annotationColorA2");
                     let annotationLegendR = document.getElementById("annotationColorR");
                     if (value == true){
-                        button.innerHTML = "[-]";
+                        button.innerHTML = "SINGLE";
                         annotationDD2.style.display = "inline-block";
                         document.getElementById("annotation-Operations").style.display = "inline-block";
                         annotationLegendR.style.display = "block";
