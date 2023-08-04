@@ -98,6 +98,9 @@ function updateMcElements(){
             case 'dropdown':
                 socket.emit('ex', { usr:uid, id: dynelem[i].getAttribute('id'), fn: "dropdown", val:"init"});
                 break;
+            case "module":
+                dynelem[i].init();
+                break
         }
         //console.log(dynelem[i].getAttribute('container'));
     }
@@ -1067,7 +1070,14 @@ $(document).ready(function(){
                 }
 
                 break
-
+            
+            case("moduleState"):
+                if (data.val == true){
+                    document.getElementById(data.id).maximizeModule();
+                }
+                if (data.val == false){
+                    document.getElementById(data.id).minimizeModule();
+                }
         } 
     });
 

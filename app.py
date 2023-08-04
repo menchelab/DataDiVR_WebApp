@@ -1719,7 +1719,34 @@ def ex(message):
             return
 
 
+    elif message["fn"] == "module":
+        module_id = message["id"]
+        response = {}
+        response["usr"] = message["usr"]
+        response["id"] = message["id"]
+        response["fn"] = "moduleState"
 
+        # False = minimized, True = maximized
+
+        if message["val"] == "init":
+            module_id = message["id"]
+            if module_id not in GD.pdata.keys():
+                GD.pdata[module_id] = False
+                GD.savePD()
+            response["val"] = GD.pdata[module_id]
+            emit("ex", response, room=room)
+
+        if message["val"] == "maximize":
+            GD.pdata[module_id] = True
+            GD.savePD()
+            response["val"] = True
+            emit("ex", response, room=room)
+
+        if message["val"] == "minimize":
+            GD.pdata[module_id] = False
+            GD.savePD()
+            response["val"] = False
+            emit("ex", response, room=room)
 
 
     elif message["fn"] == "dropdown":

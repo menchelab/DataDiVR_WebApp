@@ -1040,3 +1040,183 @@
 
     customElements.define('mc-annotation-dropdown', mcAnnotationDropdown);
 </script>
+
+
+
+<!-- HTML Element to minimize and maximize modules -->
+<template id="module-template">
+   
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
+
+    <div id="module">
+        <style>
+            #max-button {
+                background-color: rgba(16, 3, 0, 0.3);
+            }
+            #max-button:hover {
+                background-color: rgba(49, 49, 49, 0.35);
+            }
+            #max-button:active {
+                background-color: rgba(69, 69, 69, 0.4);
+            }
+            button.minimize{
+                width: 380px;
+                height: 30px;
+                font-family: 'Future', sans-serif;
+                overflow: hidden;
+                white-space: nowrap; 
+                cursor: pointer;
+                box-sizing: border-box;
+                text-align: center;
+                border-radius: 7px;
+                
+                border-bottom-left-radius: 0px;
+                font-size: 24px;
+
+                color: rgb(255, 255, 255);
+                cursor: pointer;
+                background: rgba(66, 66, 66, 0);
+                border: 2px solid transparent;
+                
+                text-transform: uppercase;
+            }
+
+            button.minimize:hover {
+                border: 2px solid rgb(110, 110, 110);
+                background: rgba(33, 33, 33, 1);
+            }
+
+            button.minimize:active {
+                background: rgba(55, 55, 55, 1);
+                border: 2px solid rgb(130, 130, 130);
+            }
+            #module-label-container {
+                white-space: nowrap; /* Prevent the text from wrapping */
+                overflow: hidden; /* Hide any overflow beyond the container */
+                width: 330px;
+            }
+
+            @keyframes textScroll {
+                0% {
+                    transform: translateX(0%);
+                }
+                25%{
+                    transform: translateX(0%);
+                }
+
+                100% {
+                    transform: translateX(-100%);
+                }
+            }
+        </style> 
+        <input type="button" id="max-button" style="width:420px; height: 60px; font-family: future; font-size: 25px; text-transform: uppercase; color: rgb(102, 102, 102);" text="Default Module"/>
+        <div id="content">
+            <div class="gradientBox">
+                <div class='swagBox' id="clip-content" style="width:420px; background-color: rgba(16, 3, 0, 0.3);">
+                    <div id="module-header" style="display: block;">
+
+
+                        <div id="module-label-container" style="float: left; overflow-x: hidden; width: 330px;">
+                            <div>
+                                <h5 id="module-label" style="font-size: 25px; color: rgb(102, 102, 102); margin-top:5px; margin-bottom:5px; display: inline-flex; text-transform: uppercase; width: 330px;"></h5>
+                            </div>
+                            <div class="gradient"></div>
+                        </div>
+                        
+                        <button id="min-button" class="minimize" style="max-width: 60px; float: right; font-size: 20px; font-weight: bold;color: rgb(102, 102, 102)">&#128469;</button>
+
+                    </div>
+                    <div id="module-content" style="display: block; margin-top: 55px;">
+                        
+                        <slot></slot>
+
+                    </div>
+                </div>    
+            </div>
+        </div>
+    </div>
+</template>
+  
+
+
+
+<script>
+    class panelModule extends HTMLElement {
+        constructor() {
+            super();
+            this.attachShadow({ mode: 'open' });
+            const template = document.getElementById("module-template");
+            this.shadowRoot.appendChild(template.content.cloneNode(true));
+            this.label = this.shadowRoot.querySelector("#module-label");
+            this.maximizeButton = this.shadowRoot.querySelector("#max-button");
+            this.moduleContent = this.shadowRoot.querySelector("#content");
+            this.minimizeButton = this.shadowRoot.querySelector("#min-button");
+        }
+        connectedCallback(){
+            this.setAttribute("type", "module");
+            this.classList.add("GD");
+
+            this.name = this.getAttribute("name") || "default";
+            this.label.innerHTML = this.name;
+            this.maximizeButton.value = this.name;
+
+            // animate label if it overflows
+            if (this.label.scrollWidth > this.label.clientWidth) {
+                const originalText = this.label.innerText;
+
+                // Clone the label and hide the original
+                const clonedLabel = this.label.cloneNode(true);
+                this.label.style.display = "none";
+
+                // Append cloned label and animate it
+                this.label.parentElement.appendChild(clonedLabel);
+                clonedLabel.style.animation = `textScroll ${originalText.length * 0.45}s linear infinite`;
+            } else {
+                this.label.style.animation = "none";
+            }
+
+            // init
+
+            // connect buttons
+            this.minimizeButton.addEventListener('click', () => {
+                socket.emit('ex', { 
+                    usr:uid, 
+                    id: this.getAttribute('id'),
+                    fn: "module",
+                    val: "minimize"
+                });
+            });
+            this.maximizeButton.addEventListener('click', () => {
+                socket.emit('ex', { 
+                    usr:uid, 
+                    id: this.getAttribute('id'),
+                    fn: "module",
+                    val: "maximize"
+                });
+            });
+        }
+
+        init(){
+            socket.emit('ex', { 
+                usr:uid, 
+                id: this.getAttribute('id'),
+                fn: "module",
+                val: "init"
+            });
+        }
+
+
+        minimizeModule(){
+            this.moduleContent.style.display = "none";
+            this.maximizeButton.style.display = "block";
+        }
+        maximizeModule(){
+            this.moduleContent.style.display = "block";
+            this.maximizeButton.style.display = "none";
+        }
+
+    }
+  
+    // Define the custom element tag
+    customElements.define('mc-module', panelModule);
+</script>
