@@ -62,10 +62,13 @@
     button:hover {
         border: 2px solid rgb(124, 124, 124);
         background: rgba(66, 66, 66, 1);
-        
+    }
 
+    button:active {
+        border: 2px solid rgb(190, 190, 190);
     }
 </style>
+
     <div id="container" style="width: auto; height: 30p0x; display: inline-block; padding: 4px 2px">
         <button id="name"><img src="static/css/images/NotRecording.png"></img></button>
     </div>
@@ -149,7 +152,14 @@
 <template id="mcB1-template">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
 <div id="container" style="width: auto; height: 30p0x; display: inline-block;">
-
+    <style>
+        .swagbutton:hover{
+            background-color: rgba(77, 77, 77, 0.35);
+        }
+        .swagbutton:active{
+            background-color: rgba(77, 77, 77, 0.5);
+        }
+    </style>
     <button id="name" class="swagButton"></button>
 </div>
 
@@ -598,7 +608,6 @@
 <template id="mcTextBox-template">
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
-
     <div id="label" class="swagLabelSmall">TEXT</div>
     <input type="Text" id="text" autocomplete="off"></input>
 
