@@ -1091,11 +1091,12 @@
                 border: 2px solid rgb(130, 130, 130);
             }
             #module-label-container {
-                white-space: nowrap; /* Prevent the text from wrapping */
-                overflow: hidden; /* Hide any overflow beyond the container */
+                white-space: nowrap;
+                overflow: hidden;
                 width: 330px;
             }
 
+            /* animation to play when text overflows */
             @keyframes textScroll {
                 0% {
                     transform: translateX(0%);
@@ -1153,9 +1154,11 @@
             this.minimizeButton = this.shadowRoot.querySelector("#min-button");
         }
         connectedCallback(){
+            // assign attributes for initialization (connect_socketIO_main.js/updateMC)
             this.setAttribute("type", "module");
             this.classList.add("GD");
 
+            // set name text
             this.name = this.getAttribute("name") || "default";
             this.label.innerHTML = this.name;
             this.maximizeButton.value = this.name;
@@ -1164,18 +1167,16 @@
             if (this.label.scrollWidth > this.label.clientWidth) {
                 const originalText = this.label.innerText;
 
-                // Clone the label and hide the original
+                // clone label and hide the original
                 const clonedLabel = this.label.cloneNode(true);
                 this.label.style.display = "none";
 
-                // Append cloned label and animate it
+                // append cloned label and animate it
                 this.label.parentElement.appendChild(clonedLabel);
                 clonedLabel.style.animation = `textScroll ${originalText.length * 0.45}s linear infinite`;
             } else {
                 this.label.style.animation = "none";
             }
-
-            // init
 
             // connect buttons
             this.minimizeButton.addEventListener('click', () => {
@@ -1196,6 +1197,7 @@
             });
         }
 
+
         init(){
             socket.emit('ex', { 
                 usr:uid, 
@@ -1205,7 +1207,7 @@
             });
         }
 
-
+        // triggered by connect socket
         minimizeModule(){
             this.moduleContent.style.display = "none";
             this.maximizeButton.style.display = "block";
