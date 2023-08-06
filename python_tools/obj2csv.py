@@ -1,6 +1,11 @@
 from os import link
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
-name = "teapot60"
+# Create a 3D figure
+
+
+name = "bunny2"
 f = open("python_tools/" +name + ".obj", "r")
 lines = f.readlines()
 verticis = []
@@ -14,7 +19,8 @@ for i in lines:
     if i[0] == "v" and i[1] == " ":
         
         i = i.rstrip()
-        i = i[3:]  # delete first 3 chars
+        i = i[1:]  # delete first 3 chars
+        i = i.lstrip()
         verts = list(i.split(" "))
         
         verticis.append(verts)
@@ -22,7 +28,8 @@ for i in lines:
 
     if i[0] == "f" and i[1] == " ":
         i = i.rstrip()
-        i = i[2:]
+        i = i[1:]  # delete first 3 chars
+        i = i.lstrip()
         links = list(i.split(" "))
         
         poly = []
@@ -34,12 +41,18 @@ for i in lines:
 
 # normalize verticis to 0 - 1
 
-minvals = [9990.0,9990.0,9990.0]
-maxvals = [-9990.0,-9990.0,-9990.0]
+minvals = [999990.0,999990.0,999990.0]
+maxvals = [-999990.0,-999990.0,-999990.0]
 dimen = [0.0,0.0,0.0]
 normverts = []
+x = []
+y = []
+z = []
 
 for v in verticis:
+#    x.append(float(v[0]))
+#    y.append(float(v[1]))
+#    z.append(float(v[2]))
     for i in range(3):
         if float(v[i]) < minvals[i]:
             minvals[i] = float(v[i])
@@ -54,11 +67,12 @@ dimen[0] = maxvals[0] - minvals[0]
 dimen[1] = maxvals[1] - minvals[1]
 dimen[2] = maxvals[2] - minvals[2]
 
-biggest = 0
+biggest = 0.0
 
-for d in dimen:
-    if d > biggest:
-        biggest = d
+for i in range(3):
+    
+    if sum([float(dimen[i])]) > biggest:
+        biggest = dimen[i]
 
 print(dimen)
 print(biggest)
@@ -68,6 +82,9 @@ for v in verticis:
     thisv = [0.0,0.0,0.0]
     for i in range(3):
         thisv[i] = (float(v[i]) - minvals[i]) / biggest
+    x.append(float(thisv[0]))
+    y.append(float(thisv[1]))
+    z.append(float(thisv[2]))
     normverts.append(thisv)
 
 #print(normverts)
@@ -125,3 +142,17 @@ with open(name +'_nodes.csv', 'w') as f:
 f.close()
 '''
 print(str(len(normverts)) + " verticies")
+
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+
+# Plot the point cloud data
+ax.scatter(x, y, z, s=1)
+
+# Set the axis labels
+ax.set_xlabel('X Label')
+ax.set_ylabel('Y Label')
+ax.set_zlabel('Z Label')
+
+# Show the plot
+plt.show()

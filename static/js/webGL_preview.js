@@ -403,7 +403,7 @@
                 }
                 else{maxLinksPreview = pfile["linkcount"];}
                 count = 0;
-                for (let l = 0; l < maxLinksPreview - 1; l++) {
+                for (let l = 0; l < maxLinksPreview; l++) {
             
                         var link = getLink(l);
                         var color = getLColor(l);

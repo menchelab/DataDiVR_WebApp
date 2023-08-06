@@ -178,6 +178,7 @@ def makeXYZTexture(project, pixeldata, name=None):
             #print(pixelh)
     
     else:
+       
         x_norm = []
         y_norm = []
         z_norm = []
@@ -193,6 +194,7 @@ def makeXYZTexture(project, pixeldata, name=None):
 
         # check on coordinates - if normalized
         #print("C_DEBUG: checking for coords if normed or not.")
+        
         if min(x_norm)<0 or min(y_norm)<0 or min(z_norm)<0 or max(x_norm)>1 or max(y_norm)>1 or max(z_norm)>1:
             coordinates_norm = normalize_xyz(pixeldata["data"]) 
             #print("C_DEBUG: coordinates_norm: ", coordinates_norm)
@@ -217,7 +219,6 @@ def makeXYZTexture(project, pixeldata, name=None):
                 texl[i] = pixell
                 #print(pixelh)
                 #print("C_DEBUG: normalized coordinates.")
-
 
         else:
             #print("C_DEBUG: pixeldata: ", pixeldata["data"])
@@ -279,7 +280,7 @@ def makeNodeRGBTexture(project, pixeldata, name=None):
     print ("hight is " + str(hight))
     size = 128 * hight 
     path = 'static/projects/' + project 
-    tex = [(0,0,0,0)] * size
+    tex = [(128,0,0,100)] * size
 
     for i in range(len(rgba_colors)): #pixeldata["data"])):
         #tex[i] = (int(pixeldata["data"][i][0]), int(pixeldata["data"][i][1]),int(pixeldata["data"][i][2]),int(pixeldata["data"][i][3]))
