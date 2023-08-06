@@ -362,7 +362,7 @@ def makeLinkRGBTex(project, linksRGB, name=None):
     
     hight = 64 * (int((len(linksRGB["data"])) / 32768) + 1)
     path = 'static/projects/' + project 
-
+    rgba_colors = []
     # check if data is rgba or hex string
     try:
         for i in (linksRGB["data"]):
@@ -374,7 +374,8 @@ def makeLinkRGBTex(project, linksRGB, name=None):
                 rgba_colors = linksRGB["data"]
 
     except: # quick fix - if only point cloud upload and no links
-        rgba_colors = [[0,0,0,0]]
+        
+        print("has no colors")
 
     texc = [(0,0,0,0)] * 512 * hight
 
