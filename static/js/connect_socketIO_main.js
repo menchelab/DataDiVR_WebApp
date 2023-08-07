@@ -68,10 +68,9 @@ ue.interface.nodelabelclicked = function (data) {
     var out = JSON.parse(text);
     out.val = data;
     socket.emit('ex', out);
-
 };
 
-ue.interface.spee = function (data) {
+ue.interface.speech = function (data) {
     console.log(data);
     var text = '{"id":"node", "val": -1, "fn": "textinput"}';
     var out = JSON.parse(text);
@@ -81,6 +80,7 @@ ue.interface.spee = function (data) {
     socket.emit('ex', out);
    
 };
+
 
 
 function updateMcElements(){
@@ -1069,15 +1069,23 @@ $(document).ready(function(){
                     handleLayoutExistsDisplay(data.val);
                 }
 
-                break
-            
-            case("moduleState"):
+                break;
+
+            case"gotonode":
+                ue4(data["fn"], data);
+                //alert("rrrrrreeee");
+                break;
+
+            case"moduleState":
                 if (data.val == true){
                     document.getElementById(data.id).maximizeModule();
                 }
                 if (data.val == false){
                     document.getElementById(data.id).minimizeModule();
                 }
+                break;
+
+
         } 
     });
 

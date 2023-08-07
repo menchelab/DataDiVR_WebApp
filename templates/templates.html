@@ -264,6 +264,7 @@
         let rec_button = this.shadowRoot.querySelector("#rec");
 
         var msg = {}
+
         msg.id = this.getAttribute('id');
         //name_button.style.background = this.getAttribute('color');//("background",);
             text.addEventListener('change', () => {
@@ -276,6 +277,13 @@
 
             });
 
+             
+            text.addEventListener('click', function(){
+                ue4("textinput",msg);
+                // LET UE4 KNOW WHICH TEXTINPUT is ACTIVE
+                //console.log(msg);
+            });
+            
             //console.log('create: '+ this.getAttribute('container'));
         
             //x_button.addEventListener('click', () => {
