@@ -1204,6 +1204,15 @@ def ex(message):
                 GD.pdata["annotation_1"] = message["valAnnotation"]
                 GD.pdata["annotation_type_1"] = message["valType"]
                 GD.savePD()
+
+                response = {}
+                response["usr"] = message["usr"]
+                response["fn"] = message["fn"]
+                response["id"] = message["id"]
+                response["val"] = "setAnnotation"
+                response["annotation"] = message["valAnnotation"]
+                response["annotationType"] = message["valType"]
+                emit("ex", response, room = room)
                 return
             
             if message["val"] == "init":
@@ -1289,6 +1298,15 @@ def ex(message):
                 GD.pdata["annotation_2"] = message["valAnnotation"]
                 GD.pdata["annotation_type_2"] = message["valType"]
                 GD.savePD()
+
+                response = {}
+                response["usr"] = message["usr"]
+                response["fn"] = message["fn"]
+                response["id"] = message["id"]
+                response["val"] = "setAnnotation"
+                response["annotation"] = message["valAnnotation"]
+                response["annotationType"] = message["valType"]
+                emit("ex", response, room = room)
                 return
             
             if message["val"] == "init":

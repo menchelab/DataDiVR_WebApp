@@ -421,7 +421,8 @@
 
 
         constructor() {
-        super();
+            super();
+            this.hasCount = true;
         }
 
         connectedCallback() {
@@ -1044,6 +1045,13 @@
         }
 
         updateOptions(options){this.options = options;}
+
+        close(){
+            // method to close all tabs
+            this.content.style.display = 'none';
+            this.state = "inactive";
+            this.clickUpdate();
+        }
     }
 
     customElements.define('mc-annotation-dropdown', mcAnnotationDropdown);
@@ -1230,3 +1238,53 @@
     // Define the custom element tag
     customElements.define('mc-module', panelModule);
 </script>
+
+
+
+
+<!-- HTML Element copy of mc-dropdown without header as design choice together with mc-module element -->
+<script>
+    class mcDropdownNoHeader extends HTMLElement {
+
+
+        constructor() {
+            super();
+            this.hasCount = false;
+        }
+
+        connectedCallback() {
+        let template = document.querySelector('#mcdropdownNoHeader-template').content;
+        this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
+        let select = this.shadowRoot.querySelector("#sel");
+        let content = this.shadowRoot.querySelector("#content");
+
+        select.addEventListener('click', () => {
+
+            if (content.style.display === "none") {
+                content.style.display = "block";
+            } else {
+                content.style.display = "none";
+            }
+            //ocket.emit('ex', { id: this.getAttribute('id'), parent: this.getAttribute('container'), fn: this.getAttribute('fn'), val: text.value});
+            
+
+        });
+        
+        }
+
+
+    }
+
+    customElements.define('mc-dropdown-no-header', mcDropdownNoHeader);
+</script>
+
+<template id="mcdropdownNoHeader-template">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
+    <div id="container" style="display: inline-block; width:auto;  padding: 3px 3px">
+        <input type="button" id="sel" style="width:400px; height:50px; font-family: future; font-size: 25px; "/>
+        <div id = "content" class="swagBoxT" style="width:400px; max-height: 600px; height:auto; overflow-y: auto; overflow-x: hidden;">
+        </div>
+    </div>
+</template>
+
+

@@ -429,6 +429,7 @@ $(document).ready(function(){
                 if(document.getElementById(data.id)){
                     var select = document.getElementById(data.id).shadowRoot.getElementById("sel");
                     var count = document.getElementById(data.id).shadowRoot.querySelector("#count");
+                    var hasCount = document.getElementById(data.id).hasCount;
                     var content = document.getElementById(data.id).shadowRoot.getElementById("content");
                 
 
@@ -441,7 +442,7 @@ $(document).ready(function(){
                             $(content).append("<mc-button id = 'button"+ i + " 'val= '"+ i + "' name = '"+ data.opt[i] +  "' w = '375' parent = '"+ data.parent + "' fn = 'dropdown' color = '" + rgbToHex(Math.floor(Math.random()*cmul),Math.floor(Math.random()*cmul),Math.floor(Math.random()*cmul)) + "' ></mc-button>");
                         }
                         select.value = data.opt[data.sel]
-                        count.innerHTML = " [" + data.opt.length + "]"
+                        if (hasCount === true){count.innerHTML = " [" + data.opt.length + "]";}
                         content.style.display = "none";
                     }else{
                         //this comes from the buttons
@@ -982,7 +983,8 @@ $(document).ready(function(){
 
                     if (data.val == "setAnnotation"){
                         annotationDD1.select.setAttribute("value", data.annotation);
-                        annotationDD1.setAttribute('valType', data.annotationType)
+                        annotationDD1.setAttribute('valType', data.annotationType);
+                        annotationDD1.close();
                     }
 
                 }
@@ -999,7 +1001,9 @@ $(document).ready(function(){
 
                     if (data.val == "setAnnotation"){
                         annotationDD2.select.setAttribute("value", data.annotation);
-                        annotationDD2.setAttribute('valType', data.annotationType)
+                        annotationDD2.setAttribute('valType', data.annotationType);
+                        annotationDD1.close();
+
                     }
 
                 }
