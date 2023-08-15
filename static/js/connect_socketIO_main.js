@@ -101,6 +101,9 @@ function updateMcElements(){
             case "module":
                 dynelem[i].init();
                 break
+            case "annotationDD":
+                socket.emit('ex', { usr:uid, id: dynelem[i].getAttribute('id'), fn: "annotationDD", val:"init"});
+                break
         }
         //console.log(dynelem[i].getAttribute('container'));
     }
@@ -111,7 +114,7 @@ function updateMcElements(){
     socket.emit('ex', { usr:uid, id: "annotationOperation", fn: "annotation", val:"init"});
     socket.emit('ex', { usr:uid, id: "annotationRun", fn: "annotation", val:"init"});
     socket.emit('ex', { usr:uid, id: "layoutInit", fn: "layout", val:"init"});
-    socket.emit('ex', { usr:uid, id: "annotationInit", fn: "annotation", val:"init"})
+    //socket.emit('ex', { usr:uid, id: "annotationInit", fn: "annotation", val:"init"})
     socket.emit('ex', {usr:uid,  val: "init", id: "annotation-dd-1", fn: "annotation"});
     socket.emit('ex', {usr:uid,  val: "init", id: "annotation-dd-2", fn: "annotation"});
 }
@@ -939,6 +942,57 @@ $(document).ready(function(){
 
                 break;
 
+            case "annotationDD":
+                
+                if (data.id == "initDD"){
+                    const annotationDD1 = document.getElementById("annotation-dd-1");
+                    const annotationDD2 = document.getElementById("annotation-dd-2");
+                    annotationDD1.updateOptions(data.options);
+                    annotationDD2.updateOptions(data.options);
+
+                    // here init function to retreive type and annotation
+
+                    return;
+                }
+                
+                // defined annoID here as executor of the methods which it triggered; task separation by val here!
+                let annoID = document.getElementById(data.id);
+
+                if (data.val == "demo"){
+                    annoID.demo();
+                }
+
+                if (data.val == "initDD"){
+                    annoID.setType(data.valType);
+                    annoID.setAnnotation(data.valAnnotation);
+                }
+
+                if (data.val == "close"){
+                    annoID.close();
+                }
+
+                if (data.val == "openType"){
+                    annoID.generateSelectionType(data.valOptions);
+                }
+
+                if (data.val == "openSub"){
+                    annoID.setType(data.valSelected);
+                    annoID.generateSelectionSub(data.valOptions);
+                }
+
+                if (data.val == "openMain"){
+                    annoID.setSub(data.valSelected);
+                    annoID.generateSelectionMain(data.valOptions);
+                }
+
+                if (data.val == "annotationSelected"){
+                    annoID.setAnnotation(data.valSelected);
+                }
+
+                break;
+
+
+
             case "annotation":
 
                 const annotationDD1 = document.getElementById("annotation-dd-1");
@@ -965,49 +1019,6 @@ $(document).ready(function(){
                         annotationLegend2.style.display = "none";
                     }
                 }
-
-                if (data.id == "initDD"){
-                    annotationDD1.updateOptions(data.options);
-                    annotationDD2.updateOptions(data.options);
-                }
-
-                if (data.id == "annotation-dd-1"){
-                    
-                    if (data.val == "sendAnnotations"){
-                        annotationDD1.openSelectionMain(data.annotations);
-                    }
-
-                    if (data.val == "sendSub"){
-                        annotationDD1.openSelectionSub(data.options);
-                    }
-
-                    if (data.val == "setAnnotation"){
-                        annotationDD1.select.setAttribute("value", data.annotation);
-                        annotationDD1.setAttribute('valType', data.annotationType);
-                        annotationDD1.close();
-                    }
-
-                }
-
-                if (data.id == "annotation-dd-2"){
-                    
-                    if (data.val == "sendAnnotations"){
-                        annotationDD2.openSelectionMain(data.annotations);
-                    }
-
-                    if (data.val == "sendSub"){
-                        annotationDD2.openSelectionSub(data.options);
-                    }
-
-                    if (data.val == "setAnnotation"){
-                        annotationDD2.select.setAttribute("value", data.annotation);
-                        annotationDD2.setAttribute('valType', data.annotationType);
-                        annotationDD1.close();
-
-                    }
-
-                }
-
 
                 break;
 

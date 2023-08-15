@@ -749,7 +749,9 @@
             this.buttonBack.style.display = "block";
 
             // content related
+            // state important for back button to show the backend where to roll back from
             this.state = "inactive" // valid: "inactive", "selType", "selSub", "selMain"
+            this.validStates = new Set(["inactive", "selType", "selSub", "selMain"])
             if (options === undefined){
                 options = ["default"]
             }
@@ -768,10 +770,6 @@
             console.log("init annotation dropdown: ", this.label.innerHTML)
         }
 
-        static get observedAttributes() {
-            return ['valType', 'valSub']; // Add any other attributes you want to observe
-        }
-
 
         connectedCallback() {
             // init
@@ -780,82 +778,124 @@
             this.epochsLabel.style.display = "none";
             this.content.style.display = "none";
             
+            // assign attributes for initialization (connect_socketIO_main.js/updateMC)
+            this.setAttribute("type", "annotationDD");
+            this.classList.add("GD");
+
             // event listeners
             this.select.addEventListener('click', () => {
-                if (this.state == "inactive") {
-                    this.content.style.display = "none";
-                    this.openSelectionType();
-                } 
-                else {
-                    this.content.style.display = "block";
-                }
-                this.clickUpdate()
+                this.clickHeader()
             });
 
             this.buttonBack.addEventListener("click", ()=>{
-                // backwards step
-                switch (this.state){
-                    case "selType":
-                        this.state = "inactive";
-                        this.content.innerHTML = "";
-                        this.content.style.display = "none";
-                        this.buttonBack.style.display = "none"
-                        break;
-
-                    case "selSub":
-                        this.state = "selType";
-                        this.content.style.display = "block";
-                        this.buttonBack.style.display = "block"
-                        this.openSelectionType()
-                        break;
-
-                    case "selMain":
-                        this.state = "selSub";
-                        this.content.style.display = "block";
-                        this.buttonBack.style.display = "block"
-                        this.openSelectionSub(this.subOptions)
-                        break;
-                }
-                this.clickUpdate()
+                this.clickBack()
             });
         }
 
 
-        clickUpdate() {
-            // update
-            this.label.innerHTML = this.getAttribute('name');
-            if (this.getAttribute("valSub") == null){
-                this.epochsLabel.innerHTML = this.getAttribute("valType");
-            } 
-            else {
-                this.epochsLabel.innerHTML = this.getAttribute("valType") + " :: " + this.getAttribute("valSub");
-            }
-
-            switch (this.state) {
-                case "inactive":
-                    this.buttonBack.style.display = "none";
-                    this.epochsLabel.style.display = "none"
-                    break;
-
-                case "selType":
-                    this.buttonBack.style.display = "block";
-                    this.epochsLabel.style.display = "block";
-                    break;
-
-                case "selSub":
-                    this.buttonBack.style.display = "block";
-                    this.epochsLabel.style.display = "block";
-                    break;
-
-                case "selMain":
-                    this.buttonBack.style.display = "block";
-                    this.epochsLabel.style.display = "block";
-                    break;
-            }
-        
-        }
-        
         // methods
+
+        // click events for buttons
+        clickBack(){
+            socket.emit('ex', { 
+                usr:uid, 
+                val: "clickBack",
+                state: this.state, 
+                id: this.getAttribute('id'),
+                fn: "annotationDD" 
+            });
+        }
+
+        clickHeader(){
+            socket.emit('ex', { 
+                usr:uid, 
+                val: "clickHeader",
+                state: this.state, 
+                id: this.getAttribute('id'),
+                fn: "annotationDD" 
+            });
+        }
+
+        clickOptionType(clickedOption){
+            socket.emit('ex', { 
+                usr:uid, 
+                val: "clickOptionType",
+                option: clickedOption, 
+                id: this.getAttribute('id'),
+                fn: "annotationDD" 
+            });
+        }
+
+        clickOptionSub(clickedOption){
+            socket.emit('ex', { 
+                usr:uid, 
+                val: "clickOptionSub",
+                option: clickedOption, 
+                id: this.getAttribute('id'),
+                fn: "annotationDD" 
+            });
+        }
+
+        clickOptionMain(clickedOption){
+            socket.emit('ex', { 
+                usr:uid, 
+                val: "clickOptionAnnotation",
+                option: clickedOption, 
+                id: this.getAttribute('id'),
+                fn: "annotationDD" 
+            });
+        }
+
+
+        // set events from frontend 
+        updateOptions(options){this.options = options;} // called when opening new project
+
+        initSelection(){
+            // before generation: show back button, empty and show content
+            this.content.innerHTML = '';
+            this.content.style.display = "block";
+            this.buttonBack.style.display = "block";
+        }
+
+        close(){
+            // method to close all content; triggered when annotation is selected, header is pressed or pressed back in type selection
+            this.content.style.display = 'none';
+            this.state = "inactive";
+            this.buttonBack.style.display = "none";
+            this.epochsLabel.style.display = "none";
+            this.content.innerHTML = '';
+        }
+
+        hide(){
+            // method to hide selections and back button when selecting type or sub
+            this.content.style.display = 'none';
+            this.buttonBack.style.display = "none";
+            this.content.innerHTML = '';
+        }
+
+        setState(state){
+            if (!this.validStates.has(state)){
+                console.log(`state ${state} not valid`);
+                return;
+            }
+            this.state = state;
+        }
+
+
+        setType(type){
+            this.epochsLabel.innerHTML = type; // Set the type
+        }
+
+        setSub(){}
+
+        setAnnotation(annotation){
+            this.select.setAttribute("value", annotation); // set label in button input
+            this.close();
+        }
+
+        demo(){console.log("This is a demo method.");}
+
+        // selection generators
         generateColorGradient(n) {
             function hsvToRgb(h, s, v) {
                 const c = v * s;
@@ -917,11 +957,11 @@
             return colors;
         }
 
-        openSelectionType(){
-            // Empty the content
-            this.content.innerHTML = '';
-            this.content.style.display = "block";
+        generateSelectionType(typeOptions){
+            // init generator
+            this.initSelection()
             this.state = "selType";
+            this.options = typeOptions;
 
             // Generate custom buttons based on the options list
             let buttonColors = this.generateColorGradient(this.options.length);
@@ -933,35 +973,18 @@
                 button.setAttribute("color", buttonColors[colorIndex])
                 colorIndex ++;
                 
-                // Log the name when the button is clicked
                 button.addEventListener('click', () => {
-                    this.setAttribute('valType', option); // Set the selType attribute
-                    this.content.style.display = 'none'; // Hide the content
-                    this.content.innerHTML = '';
-
-
-                    // on click launch sub selection
-                    // this.openSelectionSub();
-                    socket.emit('ex', { 
-                        usr:uid, 
-                        val: "getSub",
-                        valType: this.getAttribute("valType"),
-                        id: this.getAttribute('id'),
-                        fn: "annotation" 
-                    });
-                    this.clickUpdate();
+                    this.clickOptionType(option)
                 });
 
                 this.content.appendChild(button);
             });
         }
 
-        openSelectionSub(options){
+        generateSelectionSub(options){
             // Empty the content
-            this.content.innerHTML = '';
-            this.content.style.display = "block";
+            this.initSelection()
             this.state = "selSub"
-
             this.subOptions = options;
 
             // Generate custom buttons based on the options list
@@ -974,37 +997,18 @@
                 button.setAttribute("color", buttonColors[colorIndex]);
                 colorIndex ++;
                 
-                // Log the name when the button is clicked
                 button.addEventListener('click', () => {
-                    this.setAttribute('valSub', option); // Set the valSub attribute
-                    this.content.style.display = 'none'; // Hide the content
-                    this.content.innerHTML = '';
-
-
-                    // get all annotations which have both specified types
-
-                    // using val here to differentiate between final set annotation and request for annotations 
-                    socket.emit('ex', { 
-                        usr:uid, 
-                        val: "getAnnotations",
-                        valType: this.getAttribute("valType"), 
-                        valSub: this.getAttribute("valSub"),
-                        id: this.getAttribute('id'),
-                        fn: "annotation" 
-                    });
-        
-                    this.clickUpdate();
+                    this.clickOptionSub(option);
                
                 });
 
                 this.content.appendChild(button);
             });
         }
-
-        openSelectionMain(options){
+        
+        generateSelectionMain(options){
             // Empty the content
-            this.content.innerHTML = '';
-            this.content.style.display = "block";
+            this.initSelection()
             this.state = "selMain";
 
             // Generate custom buttons based on the options list
@@ -1017,42 +1021,17 @@
                 button.setAttribute("color", buttonColors[colorIndex])
                 colorIndex ++;
                 
-                // Log the name when the button is clicked
                 button.addEventListener('click', () => {
-
-                    // display name 
-                    this.select.setAttribute("value", option);
-                    
-
-                    this.content.style.display = 'none'; // Hide the content
-                    this.content.innerHTML = '';
-                    this.state = "inactive";
-                    this.clickUpdate();
-
-                    // emit to save and update it
-                    socket.emit('ex', { 
-                        usr:uid, 
-                        valAnnotation: option,
-                        valType: this.getAttribute("valType"),
-                        id: this.getAttribute('id'),
-                        val: "setAnnotation",
-                        fn: "annotation" 
-                    });
+                    this.clickOptionMain(option);
                 });
 
                 this.content.appendChild(button);
             });
         }
 
-        updateOptions(options){this.options = options;}
-
-        close(){
-            // method to close all tabs
-            this.content.style.display = 'none';
-            this.state = "inactive";
-            this.clickUpdate();
-        }
     }
+
+
 
     customElements.define('mc-annotation-dropdown', mcAnnotationDropdown);
 </script>
@@ -1153,9 +1132,6 @@
         </div>
     </div>
 </template>
-  
-
-
 
 <script>
     class panelModule extends HTMLElement {

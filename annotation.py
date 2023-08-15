@@ -121,3 +121,46 @@ def get_annotation_operation_clipboard(annotation_1, annotation_2, type_1, type_
         set_result = set_a1.difference(set_a2)
 
     return list(set_result)
+
+
+def get_sub_options_dd(annotation_type):
+    sub_options = {
+        "A - E": {"a", "b", "c", "d", "e"}, 
+        "F - J": {"f", "g", "h", "i", "j"},
+        "K - P": {"k", "l", "m", "n", "o", "p"},
+        "Q - T": {"q", "r", "s", "t"},
+        "U - Z": {"u", "v", "w", "x", "y", "z"},
+        "0 - 4": {"1", "2", "3", "4", "0"},
+        "5 - 9": {"5", "6", "7", "8", "9"},
+        "! ... ?": {".", "!", "?", "ß", "ä", "ü", "ö", "+", "-", "*", ":"}
+    }
+    sub_options_rev = {item: key for key, value in sub_options.items() for item in value}
+    all_options = set(sub_options.keys())
+    valid_options = set()
+    for anno in GD.annotations[annotation_type].keys():
+        if valid_options == all_options:
+            break
+        if anno[0].lower() in sub_options_rev.keys():
+            valid_options.add(sub_options_rev[anno[0].lower()])
+    valid_options = sorted(list(valid_options))
+    return valid_options
+
+def get_main_options_dd(annotation_type, annotation_sub):
+    sub_options = {
+        "A - E": {"a", "b", "c", "d", "e"}, 
+        "F - J": {"f", "g", "h", "i", "j"},
+        "K - P": {"k", "l", "m", "n", "o", "p"},
+        "Q - T": {"q", "r", "s", "t"},
+        "U - Z": {"u", "v", "w", "x", "y", "z"},
+        "0 - 4": {"1", "2", "3", "4", "0"},
+        "5 - 9": {"5", "6", "7", "8", "9"},
+        "! ... ?": {".", "!", "?", "ß", "ä", "ü", "ö", "+", "-", "*", ":"}
+    }
+    filtered_annotations = GD.annotations[annotation_type]
+    valid_annotations = []
+    valid_set = sub_options[annotation_sub]
+    for anno in filtered_annotations:
+        if anno.lower()[0] in valid_set:
+            valid_annotations.append(anno)
+    valid_annotations = sorted(valid_annotations, key = lambda x: x.upper())
+    return valid_annotations
