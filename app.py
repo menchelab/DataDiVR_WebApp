@@ -1189,10 +1189,16 @@ def ex(message):
                 return
 
             elif dd_state == "selSub":
-                # from sub selection to type selection
-                response["val"] = "openType"
-                response["valOptions"] = GD.annotation_types
-                emit("ex", response, room = room)
+                # from sub selection to type selection                
+                # "annotationTypes" check to differentiate on which annotation format your'e working
+                # close directly for list type annotations
+                if GD.pfile["annotationTypes"] is True:
+                    response["val"] = "openType"
+                    response["valOptions"] = GD.annotation_types
+                    emit("ex", response, room = room)
+                else:
+                    response["val"] = "close"
+                    emit("ex", response, room = room)
                 return
             
             elif dd_state == "selMain":
@@ -1212,11 +1218,24 @@ def ex(message):
         if message["val"] == "clickHeader":
             dd_state = message["state"]
             if dd_state == "inactive":
-                # clicked on it to activate the dropdown and open type selection
-                response["val"] = "openType"
-                response["valOptions"] = GD.annotation_types
-                emit("ex", response, room = room)
-                return
+                # clicked on it to activate the dropdown and open type selection 
+                # or annotation selection for GD.pfile["annotationTypes"] is false
+                if GD.pfile["annotationTypes"] is True:
+                    # handle complex annotations
+                    response["val"] = "openType"
+                    response["valOptions"] = GD.annotation_types
+                    emit("ex", response, room = room)
+                    return
+                else:
+                    # handle basic annotations by setting default as type directly and pulling sub for default
+                    GD.pdata[id_GD_key_type] = "default"
+                    response["valOptions"] = annotation.get_sub_options_dd(GD.pdata[id_GD_key_type]) 
+                    response["valSelected"] = GD.pdata[id_GD_key_type]
+                    response["val"] = "openSub"
+                    emit("ex", response, room = room)
+                    GD.savePD()
+                    return
+                
             else:
                 # clicked on it to shut off dropdown and close it
                 response["val"] = "close"
