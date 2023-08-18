@@ -1,6 +1,7 @@
 """
 Functions for Analytics Module
 """
+
 import GlobalData as GD
 import networkx as nx
 from PIL import Image
@@ -12,6 +13,19 @@ from joblib import Parallel, delayed
 import igraph as ig
 import numpy as np
 import util
+
+
+
+ANALYTICS_TABS = [
+    "Degree Distribution",
+    "Closeness",
+    "Shortest Path",
+    "Eigenvector",
+    "Mod-based Communities",
+    "Clustering Coefficient"
+]
+
+
 
 
 def __compute_histogram_bins(values, min_bins=2, max_bins=15):

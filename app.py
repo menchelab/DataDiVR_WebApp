@@ -1765,16 +1765,9 @@ def ex(message):
                     ]
                     response["sel"] = layout_selected
 
-                # dropdown for fixed selections, might need a better solution to hardcode them in HTML / JS
+                # dropdown for fixed selections
                 if message["id"] == "analytics":
-                    response["opt"] = [
-                        "Degree Distribution",
-                        "Closeness",
-                        "Shortest Path",
-                        "Eigenvector",
-                        "Mod-based Communities",
-                        "Clustering Coefficient",
-                    ]
+                    response["opt"] = analytics.ANALYTICS_TABS
                     response["sel"] = "0"
 
                 if message["id"] == "layoutModule":
