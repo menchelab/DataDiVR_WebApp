@@ -41,7 +41,7 @@ function logjs(data, id){
 }
 
 
-function generateColorGradient(n) {
+function genOptionColorGradient(n) {
     // function to generate a color gradient based on two random picked colors and interpolating Hue for n colors
 
     function hsvToRgb(h, s, v) {
@@ -80,12 +80,15 @@ function generateColorGradient(n) {
     }
 
     const colors = [];
-
     const firstHue = random(0, 360);
     const secondHue = (firstHue + random(30, 150)) % 360;
-    const randS = random(0.5, 1)
-    const randV = random(0.6, 1)
 
+
+    // change these two constants to adjust color generation
+    const randS = random(0.5, 1)  // Saturation - pale (0) to vivid (1)
+    const randV = random(0.6, 1)  // Intensity Value - dark (0) to light (1)
+
+    
     const firstColor = hsvToRgb(firstHue, randS, randV);
     const secondColor = hsvToRgb(secondHue, randS, randV);
 
@@ -505,7 +508,7 @@ $(document).ready(function(){
                         removeAllChildNodes(content);
                         // cmul = 70;
                         //.log(data.opt.length)
-                        let optionColors = generateColorGradient(data.opt.length);
+                        let optionColors = genOptionColorGradient(data.opt.length);
                         for (let i = 0; i < data.opt.length; i++) {
                             // $(content).append("<mc-button id = 'button"+ i + " 'val= '"+ i + "' name = '"+ data.opt[i] +  "' w = '375' parent = '"+ data.parent + "' fn = 'dropdown' color = '" + rgbToHex(Math.floor(Math.random()*cmul),Math.floor(Math.random()*cmul),Math.floor(Math.random()*cmul)) + "' ></mc-button>");
                             $(content).append("<mc-button id = 'button"+ i + " 'val= '"+ i + "' name = '"+ data.opt[i] +  "' w = '375' parent = '"+ data.parent + "' fn = 'dropdown' color = '" + optionColors[i] + "' ></mc-button>");
