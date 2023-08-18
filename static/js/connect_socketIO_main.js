@@ -989,6 +989,8 @@ $(document).ready(function(){
                     annoID.setAnnotation(data.valSelected);
                 }
 
+                if (data.val == "setTypeDisplay"){annoID.setType(data.valType);}
+
                 break;
 
 

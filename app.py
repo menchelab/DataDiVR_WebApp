@@ -1203,10 +1203,15 @@ def ex(message):
             
             elif dd_state == "selMain":
                 # from main annotation selection to sub selection
-                response["val"] = "openSub"
-                response["valSelected"] = GD.pdata[id_GD_key_type]
-                response["valOptions"] = annotation.get_sub_options_dd(GD.pdata[id_GD_key_type])
-                emit("ex", response, room = room)
+                # check here if too less annotations to show subs based on DD_AVOID_SUB_LIMIT from annotation.py
+                if len(GD.annotations[GD.pdata[id_GD_key_type]].items()) <= len(annotation.DD_SUB_OPTIONS.items()):
+                    response["val"] = "close"
+                    emit("ex", response, room = room)
+                else:
+                    response["val"] = "openSub"
+                    response["valSelected"] = GD.pdata[id_GD_key_type]
+                    response["valOptions"] = annotation.get_sub_options_dd(GD.pdata[id_GD_key_type])
+                    emit("ex", response, room = room)
                 return
             
             else:
@@ -1229,11 +1234,26 @@ def ex(message):
                 else:
                     # handle basic annotations by setting default as type directly and pulling sub for default
                     GD.pdata[id_GD_key_type] = "default"
+                    GD.savePD()
+                    emit("ex", 
+                        {"usr": message["usr"], 
+                         "fn": message["fn"], 
+                         "id": message["id"], 
+                         "val": "setTypeDisplay", 
+                         "valType": GD.pdata[id_GD_key_type]}, 
+                        room = room
+                    )
+                    # check here if too less annotations to show subs based on DD_AVOID_SUB_LIMIT from annotation.py
+                    if len(GD.annotations[GD.pdata[id_GD_key_type]].items()) <= len(annotation.DD_SUB_OPTIONS.items()):
+                        response["valOptions"] = annotation.get_main_options_dd(GD.pdata[id_GD_key_type], None) 
+                        response["valSelected"] = GD.pdata[id_GD_key_type]
+                        response["val"] = "openMain"
+                        emit("ex", response, room = room)
+                        return
                     response["valOptions"] = annotation.get_sub_options_dd(GD.pdata[id_GD_key_type]) 
                     response["valSelected"] = GD.pdata[id_GD_key_type]
                     response["val"] = "openSub"
                     emit("ex", response, room = room)
-                    GD.savePD()
                     return
                 
             else:
@@ -1243,12 +1263,30 @@ def ex(message):
                 return
 
         if message["val"] == "clickOptionType":
+            # save type in pdata
             GD.pdata[id_GD_key_type] = message["option"]
+            GD.savePD()
+            emit("ex", 
+                {"usr": message["usr"], 
+                    "fn": message["fn"], 
+                    "id": message["id"], 
+                    "val": "setTypeDisplay", 
+                    "valType": GD.pdata[id_GD_key_type]}, 
+                room = room
+            )
+            
+            # check here if too less annotations to show subs based on DD_AVOID_SUB_LIMIT from annotation.py
+            if len(GD.annotations[GD.pdata[id_GD_key_type]].items()) <= len(annotation.DD_SUB_OPTIONS.items()):
+                response["valOptions"] = annotation.get_main_options_dd(GD.pdata[id_GD_key_type], None) 
+                response["valSelected"] = GD.pdata[id_GD_key_type]
+                response["val"] = "openMain"
+                emit("ex", response, room = room)
+                return
+            # case amount of annotations is sufficient large that you want to have sub level options
             response["valOptions"] = annotation.get_sub_options_dd(GD.pdata[id_GD_key_type]) 
             response["valSelected"] = GD.pdata[id_GD_key_type]
             response["val"] = "openSub"
             emit("ex", response, room = room)
-            GD.savePD()
             return
 
         if message["val"] == "clickOptionSub":

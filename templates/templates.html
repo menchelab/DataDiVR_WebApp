@@ -855,6 +855,7 @@
             this.content.innerHTML = '';
             this.content.style.display = "block";
             this.buttonBack.style.display = "block";
+            if (this.epochsLabel.innerHTML !== "default"){this.epochsLabel.style.display = "block";}
         }
 
         close(){
@@ -870,6 +871,7 @@
             // method to hide selections and back button when selecting type or sub
             this.content.style.display = 'none';
             this.buttonBack.style.display = "none";
+            this.epochsLabel.style.display = "none";
             this.content.innerHTML = '';
         }
 

@@ -5,6 +5,27 @@ from PIL import Image
 import GlobalData as GD
 
 
+# constant which is used to build the sub annotation selection in annotation dropdown
+# key turns to dropdown option, value is set of lower case first letters of annotations to
+# associate with
+DD_SUB_OPTIONS = {
+    "A - E": {"a", "b", "c", "d", "e"}, 
+    "F - J": {"f", "g", "h", "i", "j"},
+    "K - P": {"k", "l", "m", "n", "o", "p"},
+    "Q - T": {"q", "r", "s", "t"},
+    "U - Z": {"u", "v", "w", "x", "y", "z"},
+    "0 - 4": {"1", "2", "3", "4", "0"},
+    "5 - 9": {"5", "6", "7", "8", "9"},
+    "! ... ?": {".", "!", "?", "ß", "ä", "ü", "ö", "+", "-", "*", ":"}
+}
+
+# constant until which amount of annotations of a specific type to not use sub options in dropdown
+DD_AVOID_SUB_LIMIT = 20
+
+
+
+
+
 class AnnotationTextures:
     def __init__(self, project=None, nodes=None, links=None, annotations=None):
         self.project = project
@@ -124,18 +145,8 @@ def get_annotation_operation_clipboard(annotation_1, annotation_2, type_1, type_
 
 
 def get_sub_options_dd(annotation_type):
-    sub_options = {
-        "A - E": {"a", "b", "c", "d", "e"}, 
-        "F - J": {"f", "g", "h", "i", "j"},
-        "K - P": {"k", "l", "m", "n", "o", "p"},
-        "Q - T": {"q", "r", "s", "t"},
-        "U - Z": {"u", "v", "w", "x", "y", "z"},
-        "0 - 4": {"1", "2", "3", "4", "0"},
-        "5 - 9": {"5", "6", "7", "8", "9"},
-        "! ... ?": {".", "!", "?", "ß", "ä", "ü", "ö", "+", "-", "*", ":"}
-    }
-    sub_options_rev = {item: key for key, value in sub_options.items() for item in value}
-    all_options = set(sub_options.keys())
+    sub_options_rev = {item: key for key, value in DD_SUB_OPTIONS.items() for item in value}
+    all_options = set(DD_SUB_OPTIONS.keys())
     valid_options = set()
     for anno in GD.annotations[annotation_type].keys():
         if valid_options == all_options:
@@ -145,20 +156,15 @@ def get_sub_options_dd(annotation_type):
     valid_options = sorted(list(valid_options))
     return valid_options
 
-def get_main_options_dd(annotation_type, annotation_sub):
-    sub_options = {
-        "A - E": {"a", "b", "c", "d", "e"}, 
-        "F - J": {"f", "g", "h", "i", "j"},
-        "K - P": {"k", "l", "m", "n", "o", "p"},
-        "Q - T": {"q", "r", "s", "t"},
-        "U - Z": {"u", "v", "w", "x", "y", "z"},
-        "0 - 4": {"1", "2", "3", "4", "0"},
-        "5 - 9": {"5", "6", "7", "8", "9"},
-        "! ... ?": {".", "!", "?", "ß", "ä", "ü", "ö", "+", "-", "*", ":"}
-    }
+def get_main_options_dd(annotation_type, annotation_sub=None):
+    # function to return main annotation options for dropdown after selecting type (and sub level)
+    if annotation_sub is None:
+        # for the case that DD_AVOID_SUB_OPTIONS is higher than amount of annotations
+        return sorted(GD.annotations[annotation_type], key = lambda x: x.upper())
+    
     filtered_annotations = GD.annotations[annotation_type]
     valid_annotations = []
-    valid_set = sub_options[annotation_sub]
+    valid_set = DD_SUB_OPTIONS[annotation_sub]
     for anno in filtered_annotations:
         if anno.lower()[0] in valid_set:
             valid_annotations.append(anno)
