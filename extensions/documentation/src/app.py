@@ -103,6 +103,11 @@ def uploadFormat():
 def Initialization():
     return render_template('Initialization.html')
 
+@blueprint.route("/annotations")
+def doku_annotations():
+    return render_template('annotations.html')
+
+
 
 
 
