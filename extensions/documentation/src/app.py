@@ -108,8 +108,9 @@ def doku_annotations():
     return render_template('annotations.html')
 
 
-
-
+@blueprint.route('/uimodules')
+def doku_modules():
+    return render_template("newmodules.html")
 
 @blueprint.on("join", namespace="/doku")
 def join(message):
