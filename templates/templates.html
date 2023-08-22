@@ -384,7 +384,7 @@
             } else {
                 content.style.display = "none";
             }
-            //ocket.emit('ex', { id: this.getAttribute('id'), parent: this.getAttribute('container'), fn: this.getAttribute('fn'), val: text.value});
+            //socket.emit('ex', { id: this.getAttribute('id'), parent: this.getAttribute('container'), fn: this.getAttribute('fn'), val: text.value});
             
 
         });
@@ -402,7 +402,9 @@
     <div id="container" style="display: inline-block; width:auto;  padding: 3px 3px">
         <h5 id = "label" style="float:left; font-size: 25px;  color: rgb(102, 102, 102); margin-top:5px; margin-bottom:5px;">PROJECT</h5><p id = "count"  style="font-size: 15px; color: rgb(255, 255, 255); margin-top:0px; padding-left:10px ; margin-bottom: 0px; text-indent: 10px;  "> </p>
         
-        <div  class="gradient"></div>
+        <br>
+        <div  class="gradient" style="margin-bottom:10px"  ></div>
+
         <input type="button" id="sel" style="width:400px; height:50px; font-family: future; font-size: 25px; "/>
         <div id = "content" class="swagBoxT" style="width:400px; max-height: 600px; height:auto; overflow-y: auto; overflow-x: hidden;">
         </div>
