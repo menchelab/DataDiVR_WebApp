@@ -324,10 +324,10 @@
             
                 // MAKE NODES
  
- 
+
                 for (let i = 0; i < ( pfile["nodecount"]+ pfile["labelcount"]); i++){
                     if (i < maxNodesPreview){
-
+                        
                         const ngeometry = new THREE.BoxGeometry(nscale, nscale, nscale);
                         var color = getNColor(i);
 
@@ -398,6 +398,7 @@
                     
                 
                 // Draw Links
+                maxLinksPreview = 10000;
                 if (pfile["linkcount"] > maxLinksPreview) {
                 document.getElementById("warning").innerHTML = "TOO MANY LINKS<br>FOR PREVIEW";
                 }
