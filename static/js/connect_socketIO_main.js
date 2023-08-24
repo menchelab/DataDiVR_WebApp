@@ -801,7 +801,7 @@ $(document).ready(function(){
                     }
 
                 } 
-                ue4(data["fn"], data);
+                ue4("but", data);
                 //console.log("C_DEBUG: ue4 data = ", data);
             
                 break;
