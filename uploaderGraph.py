@@ -424,22 +424,38 @@ def parseGraphJSON_linkcolors(files,target):
                 color = file["links"][i]["linkcolor"]
 
                 if isinstance(color, str):
-                    # if HEX FORMAT (without alpha)
+                    #print("C_DEBUG: color is string")
+
+
+                    # if HEX FORMAT
                     if re.match(r'^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$', color):
+                        #print("C_DEBUG: link color is hex")
                         rgba_color = (*hex_to_rgb(color), 100)
                         linkcolor_rgba.append(rgba_color)
+
                     # if HEX FORMAT with alpha
                     elif re.match(r'^#([A-Fa-f0-9]{8})$', color):
+                        #print("C_DEBUG: link color is hex with alpha")
                         rgba_color = (hex_to_rgba(color))
                         linkcolor_rgba.append(rgba_color)
+
                     # if RGBA FORMAT
                     elif re.match(r'^rgba\((\d+),(\d+),(\d+),(\d+)\)$', color) or re.match(r'^\((\d+),(\d+),(\d+),(\d+)\)$', color):
+                        #print("C_DEBUG: link color is rgba")
                         rgba = re.findall(r'\d+', color)
                         rgba_color = tuple(map(int, rgba))
                         linkcolor_rgba.append(rgba_color)
+
+                elif isinstance(color, tuple) and len(color) == 4:
+                    #print("C_DEBUG: link color is tuple")  
+                    linkcolor_rgba.append(color)
+                
                 elif isinstance(color, list) and len(color) == 4:
+                    #print("C_DEBUG: link color is list")  
                     linkcolor_rgba.append(tuple(color))
+
                 else:
+                    #print("C_DEBUG: NO LINKCOLOR FOUND")
                     linkcolor_rgba.append((255, 0, 255, 100))
 
             vecList = {}
@@ -495,6 +511,7 @@ def parseGraphJSON_nodecolors(files,target):
             nodecolor_rgba = []
 
             for i in range(0,num_of_nodes):
+                # to do: add catch for nodecolor key 
                 color = file["nodes"][i]["nodecolor"]
                 
                 # if color is string 
