@@ -211,7 +211,11 @@ def upload_filesJSON(request):
     # match labels to respective layout to get label colors for legend
     if len(pfile["selections"]) > 0:
         all_layouts = pfile["layouts"]
+        #print("C_DEBUG: all_layouts: ", all_layouts)
+
         layoutname_pfile = pfile["selections"][0]["layoutname"]+"XYZ"
+        #print("C_DEBUG: layoutname_pfile: ", layoutname_pfile)
+
 
         for x,i in enumerate(all_layouts):        
             if i == layoutname_pfile:     
@@ -238,11 +242,11 @@ def upload_filesJSON(request):
                             
                 d_clusters = dict(zip(clusternames, clustercolors))
                 #print("C_DEBUG: d_clusters = ", d_clusters)
-                #print("C_DEBUG d_clusters len = ", len(d_clusters))
 
                 # add to pfile selections
                 for name,col in d_clusters.items():
                     for subdict in pfile["selections"]:
+                        
                         if name == subdict["name"]:
                             subdict["labelcolor"] = col
 

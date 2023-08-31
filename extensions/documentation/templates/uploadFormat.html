@@ -67,6 +67,7 @@ For the web preview go to <a style="font-size:20px" href="/preview">/preview</a>
 
 				- LABELS 
 				are set as the <i>name</i> of the label followed by a list of an arbitrary number of valid node indexes<br>
+				Note: There can only be one label file for now.
 				<pre><code class="html">GREEN,0,1,4</code></pre>
 
 				<br>
@@ -117,11 +118,11 @@ For the web preview go to <a style="font-size:20px" href="/preview">/preview</a>
 				- LAYOUTNAME (string) = the graph name of the nx.Graph 
 				<pre><code class="html">G.name="mylayout"</code></pre>
 
-				- NODE POSITION as a list of floats with (x,y) or (x,y,z) coordinates 
-				<pre><code class="html">nx.set_node_attributes(G, [(0.04, 0.011, 1.0),(0.5,0.5,0.35),...], "pos")"</code></pre>
+				- NODE POSITION as a dictionary of keys (Graph nodes) and values as (x,y) or (x,y,z) coordinates as floats
+				<pre><code class="html">nx.set_node_attributes(G, {0:(0.04, 0.011, 1.0),1:(0.5,0.5,0.35),...}, "pos")"</code></pre>
 
-				- NODE COLOR list (rgba e.g. (255,0,0,50) or hex e.g. '#FF0000')
-				<pre><code class="html">nx.set_node_attributes(G, ['#FF0000', '00FF00', ...], "nodecolors")</code></pre>
+				- NODE COLOR dictionary with keys (Graph nodes) and values (rgba e.g. (255,0,0,50) or hex e.g. '#FF0000')
+				<pre><code class="html">nx.set_node_attributes(G,  {0:'#FF0000', 1:'00FF00',...}, "nodecolors")</code></pre>
 				<br>
 
 				<div style="font-weight: bold">optional :</div>
@@ -129,8 +130,10 @@ For the web preview go to <a style="font-size:20px" href="/preview">/preview</a>
 				<br>- <a style="font-size:18px;" href="/doku/annotations">node annotations</a>
 				<br><br>
 
-				- LINK COLOR can be either a colorlist or one color value. (rgba e.g. (255,0,0,50) or hex e.g. '#FF0000')
-				<pre><code class="html">nx.set_edge_attributes(G, ['#FF0000', '#000000', ...], "linkcolors")</code></pre>
+				- LINK COLOR can be either one color value. (rgba e.g. (255,0,0,50) or hex e.g. '#FF0000')
+				<pre><code class="html">nx.set_edge_attributes(G, '#FF0000', "linkcolors")</code></pre>
+				- or a colorlist, containing a color per edge
+				<pre><code class="html">nx.set_edge_attributes(G, {edge:color for edge,color in zip(G.edges(), colorlist)}, "linkcolors")</code></pre>
 
 				- GRAPH TITLE (string) = title of the graph
 				<pre><code class="html">G.graph["graphtitle"] = "mygraph"</code></pre>
@@ -138,8 +141,9 @@ For the web preview go to <a style="font-size:20px" href="/preview">/preview</a>
 				- GRAPH DESCRIPTION (string) = short information about the graph
 				<pre><code class="html">G.graph["graphdesc"] = "The Graph describes XY."</code></pre>
 
-				- LABELS (string) = to display group/community association per node
-				<pre><code class="html">nx.set_node_attributes(G, ['clustername', ...], "cluster")</code></pre>
+				- LABELS (string) = to display group/community association per node<br>
+				Note: Only one layout per project can contain the "cluster" key for now.
+				<pre><code class="html">nx.set_node_attributes(G, {0:'clustername',1:'clustername2', ... }, "cluster")</code></pre>
 
 				<br>
 				NOTE: Find example files on the uploader webpage or go to <i>static/examplefiles/Upload_examples_JSON</i>.
