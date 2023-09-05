@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}"></link>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/atelier-cave.min.css') }}"></link>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+	<script>hljs.highlightAll();</script>
+
+
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	</head>
+
+
+	<body>
+		<div>
+			<br>
+			<h3>How to annotate a project</h3>
+
+			<br>
+			In this section we will present you how to annotate nodes of your project. 
+
+			<br><br>
+			The DataDiVR has a variety of tools to analyze networks and give the user an intuitive view on the data. Therfore, node annotations are a great way
+			to bind (shared) properties and information to nodes and add additional depth to the data.
+
+			<br><br>
+			There are currently two ways to annotate your project: basic list-based and advanced type-based annotations.
+			
+			<br>
+			<br>
+			<h4>Basic List-Based Annotations</h4><br>
+
+			The basic type of annotations is available for CSV and JSON upladed projects.
+			<br><br>
+
+			It stores all annotations internally in one list of strings where an annotation has to be a string:
+			(list of strings e.g. ["nodeID", "functionX", "attributeY"]) = e.g. nx.set_node_attributes(G, annotations, "annotation"). Another important
+			aspect of this type of annotations is that the first entry in the annotation list will be extracted and used as the display name of the node. 
+			This entry will not be used for internal annotation analyzation!
+			<br><br>
+
+			To use this type of annotation by uploading the network via the JSON uploader it is important to avoid the boolean "annotationTypes" key or set it to "false".
+			<br><br>
+
+			Here you can see how a toy network could be annotated using basic list-based annotations:
+			<br><br>
+			<pre>
+				<code class="javascript">
+{
+	"directed": false,
+	"multigraph": false,
+	"textureName": "BasicAnnotation",
+	
+	"annotationTypes": false,   // set this false or remove the property completly
+
+	"graph": {
+		"name": "Basic-Annotation",
+		"graphtitle": "Zachary Annotation Basic",
+		"graphdesc": "Karateclub toy network for basic annotation demo"
+	},
+	"nodes": [
+		{
+			// here are annotations as a list
+			// the display name of the node will be "Karate 0"
+
+			"annotation": [
+				"Karate 0", "Mr. Hi", "Node 0"
+			],
+
+			"pos": [
+				0.06287198998515463,
+				0.25783949576181114,
+				0.3343541170106573
+			],
+			"nodecolor": "#c90823",
+			"id": 0
+		}, ...
+	], ...
+}
+				</code>
+			</pre>
+
+			<h4>Advanced Type-Based Annotations</h4><br><br>
+
+			This way of annotating your data is ONLY available for the JSON uploader. It comes in handy if you have multiple types of 
+			annotations like different types of functions, origin of data, and other kind of subdivideable properties.
+			<br><br>
+
+			The annotated data is saved as dictionary where each type is a key and the corresponding annotations are strings in a list.
+			In the backend it does look like following for an network of actors:
+			<pre>
+				<code class="language-python">
+""""Code is inside GlobalData""""
+
+# list which contains types of annotations
+annotation_types = ["genre", "movie"]
+
+# annotation object
+annotations = {
+	"genre": {
+		"thriller": [... associated nodes ...],
+		"fantasy": [... associated nodes ...],
+		"horror": [... associated nodes ...],
+		"documentation": [... associated nodes ...],
+		...
+	},
+	"movie": {
+		"Lord of the rings": [... associated nodes ...],
+		"Lord of the rings 2": [... associated nodes ...],
+		"Lord of the rings 3": [... associated nodes ...],
+		"Howl's moving castle": [... associated nodes ...],
+		"Spirited away": [... associated nodes ...],
+		...
+	}
+}
+				</code>
+			</pre>
+
+			NOTE: Basic list-based annotated projects are saved similarly. However, instead of having multiple types they have
+			by default the type "default". This is nowhere exposed to the user but only used internally.
+
+			<br><br>
+
+			To use this kind of annotation you have to set the "annotationTypes" key to true inside of the JSON to upload.
+			Furthemore, this format version allows to use also an additional "name" key for each node which decouples the display name of 
+			the node from the annotation property. Also, not each type of annotations has to be present in each node.
+			<br><br>
+
+			To differentiate inside the backend between both types of annotation for a project you can access the "annotationTypes" key in the PFile of each
+			project. If this one holds true the project uses the advanced type of annotations.
+			<br><br>
+
+
+			Here you can see how a toy network could be annotated using basic list-based annotations:
+			<br><br>
+			<pre>
+				<code class="javascript">
+{
+	"directed": false,
+	"multigraph": false,
+	"textureName": "AdvancedAnnotation",
+	
+	"annotationTypes": true,   // this must be true
+
+	"graph": {
+		"name": "Basic-Annotation",
+		"graphtitle": "Actors Annotation Advanced",
+		"graphdesc": "Actors network for advanced annotation demo"
+	},
+
+	"nodes": [
+		{
+			// you can set the name of the node
+			"name": "Harrison Ford"
+
+			// here are annotations as a dictionary
+			"annotation": {
+				"genre": [
+					"thriller", "fantasy", ...
+				],
+				"movie": [
+					"Indiana Jones", "Indiana Jones 2", "Indiana Jones 3", "Indiana Jones 4", "Indiana Jones 5",
+					"Star Wars", ...
+				]	
+			}
+
+			"pos": [
+				0.06287198998515463,
+				0.25783949576181114,
+				0.3343541170106573
+			],
+			"nodecolor": "#c90823",
+			"id": 0
+		}, ...
+	], ...
+}
+				</code>
+			</pre>
+
+
+			<br><br><a href="/doku/">DOKU<br>
+		</div>
+	</body>
+</html>

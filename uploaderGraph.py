@@ -54,13 +54,24 @@ def upload_filesJSON(request):
     labels = []
     
 
-    # implement a way to set name as key for node and kill annotation-defined node names
-    # assign/polish meta data (internal and external information)
-
-
     loadGraphJSON(request.files.getlist("graphJSON"), jsonfiles)
-    parseGraphJSON_nodepositions(jsonfiles, nodepositions)    
-    parseGraphJSON_nodeinfo(jsonfiles, nodeinfo)
+
+    # decide which annotation type to go with
+    # if complex_annotations is True it uses a dict to store annotations and their types
+    # referenced by "annotationTypes" as true in uploaded JSON
+    complex_annotations = False
+    if "annotationTypes" in jsonfiles[0].keys():
+        if jsonfiles[0]["annotationTypes"] is True:
+            complex_annotations = True
+
+
+    parseGraphJSON_nodepositions(jsonfiles, nodepositions)
+
+    if complex_annotations is False:    
+        parseGraphJSON_nodeinfo_simple(jsonfiles, nodeinfo)
+    else:  # complex_annotations is True
+        nodeinfo = parseGraphJSON_nodeinfo_complex(jsonfiles)
+    
     parseGraphJSON_nodecolors(jsonfiles, nodecolors)
     parseGraphJSON_links(jsonfiles, links)
     parseGraphJSON_linkcolors(jsonfiles, linkcolors)
@@ -88,22 +99,31 @@ def upload_filesJSON(request):
     numnodes = len(nodepositions[0]["data"])
 
     # generate node.json
-    for i in range(len(nodepositions[0]["data"])):
-        thisnode = {}
-        thisnode["id"] = i
-        if "_geo" in nodepositions[0]["name"]:
-            thisnode["lat"] = nodepositions[0]["data"][i][0]
-            thisnode["lon"] = nodepositions[0]["data"][i][1]
+    if complex_annotations is False:
+        for i in range(len(nodepositions[0]["data"])):
+            thisnode = {}
+            thisnode["id"] = i
+            if "_geo" in nodepositions[0]["name"]:
+                thisnode["lat"] = nodepositions[0]["data"][i][0]
+                thisnode["lon"] = nodepositions[0]["data"][i][1]
 
-        if len(nodeinfo[0]["data"]) == len(nodepositions[0]["data"]):
-            thisnode["attrlist"] = nodeinfo[0]["data"][i]
-            thisnode["n"] = str(nodeinfo[0]["data"][i][0]) #show first element in node annotation for node label
+            if len(nodeinfo[0]["data"]) == len(nodepositions[0]["data"]):
+                thisnode["attrlist"] = nodeinfo[0]["data"][i]
+                thisnode["n"] = str(nodeinfo[0]["data"][i][0]) # show first element in node annotation for node label
 
-        else:
-            thisnode["attrlist"] = ["node" + str(i)]
-            thisnode["n"] = "node" + str(i)
+            else:
+                thisnode["attrlist"] = ["node" + str(i)]
+                thisnode["n"] = "node" + str(i)
 
-        nodelist["nodes"].append(thisnode)
+            nodelist["nodes"].append(thisnode)
+    
+    else: # complex_annotations is True -> annotation types and name specified
+        for i in range(len(nodeinfo)):
+            this_node = {}
+            this_node["id"] = i
+            this_node["n"] = nodeinfo[i]["name"]
+            this_node["attrlist"] = nodeinfo[i]["annotation"]
+            nodelist["nodes"].append(this_node)
 
     
     for labellist in labels:   
@@ -191,7 +211,11 @@ def upload_filesJSON(request):
     # match labels to respective layout to get label colors for legend
     if len(pfile["selections"]) > 0:
         all_layouts = pfile["layouts"]
+        #print("C_DEBUG: all_layouts: ", all_layouts)
+
         layoutname_pfile = pfile["selections"][0]["layoutname"]+"XYZ"
+        #print("C_DEBUG: layoutname_pfile: ", layoutname_pfile)
+
 
         for x,i in enumerate(all_layouts):        
             if i == layoutname_pfile:     
@@ -218,11 +242,11 @@ def upload_filesJSON(request):
                             
                 d_clusters = dict(zip(clusternames, clustercolors))
                 #print("C_DEBUG: d_clusters = ", d_clusters)
-                #print("C_DEBUG d_clusters len = ", len(d_clusters))
 
                 # add to pfile selections
                 for name,col in d_clusters.items():
                     for subdict in pfile["selections"]:
+                        
                         if name == subdict["name"]:
                             subdict["labelcolor"] = col
 
@@ -290,6 +314,7 @@ def upload_filesJSON(request):
     #----------------------------------
     pfile["graphtitle"] = title_of_graph
     pfile["graphdesc"] = descr_of_graph
+    pfile["annotationTypes"] = complex_annotations    # define in pfile if you use annotation types or default flat annotation list
 
     #----------------------------------
     # uploading and storing Legends files in folder
@@ -403,22 +428,38 @@ def parseGraphJSON_linkcolors(files,target):
                 color = file["links"][i]["linkcolor"]
 
                 if isinstance(color, str):
-                    # if HEX FORMAT (without alpha)
+                    #print("C_DEBUG: color is string")
+
+
+                    # if HEX FORMAT
                     if re.match(r'^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$', color):
+                        #print("C_DEBUG: link color is hex")
                         rgba_color = (*hex_to_rgb(color), 100)
                         linkcolor_rgba.append(rgba_color)
+
                     # if HEX FORMAT with alpha
                     elif re.match(r'^#([A-Fa-f0-9]{8})$', color):
+                        #print("C_DEBUG: link color is hex with alpha")
                         rgba_color = (hex_to_rgba(color))
                         linkcolor_rgba.append(rgba_color)
+
                     # if RGBA FORMAT
                     elif re.match(r'^rgba\((\d+),(\d+),(\d+),(\d+)\)$', color) or re.match(r'^\((\d+),(\d+),(\d+),(\d+)\)$', color):
+                        #print("C_DEBUG: link color is rgba")
                         rgba = re.findall(r'\d+', color)
                         rgba_color = tuple(map(int, rgba))
                         linkcolor_rgba.append(rgba_color)
+
+                elif isinstance(color, tuple) and len(color) == 4:
+                    #print("C_DEBUG: link color is tuple")  
+                    linkcolor_rgba.append(color)
+                
                 elif isinstance(color, list) and len(color) == 4:
+                    #print("C_DEBUG: link color is list")  
                     linkcolor_rgba.append(tuple(color))
+
                 else:
+                    #print("C_DEBUG: NO LINKCOLOR FOUND")
                     linkcolor_rgba.append((255, 0, 255, 100))
 
             vecList = {}
@@ -429,7 +470,7 @@ def parseGraphJSON_linkcolors(files,target):
             #print("C_DEBUG: LINKCOLORS:", vecList)
 
 
-def parseGraphJSON_nodeinfo(files,target):
+def parseGraphJSON_nodeinfo_simple(files,target):
     if len(files) > 0: 
         #for file in files: 
         for idx,file in enumerate(files):
@@ -447,6 +488,23 @@ def parseGraphJSON_nodeinfo(files,target):
             #print("C_DEBUG: NODEINFO:", vecList)
 
 
+def parseGraphJSON_nodeinfo_complex(files):
+    if len(files) <= 0:
+        return 
+    
+    out = []
+    file = files[0]  # no need to iter over all files since you have to set it for all files the same way 
+    num_of_nodes = len(file["nodes"])
+
+    for i in range(num_of_nodes):
+        node_info = {}
+        node_info["annotation"] = file["nodes"][i]["annotation"]
+        node_info["name"] = file["nodes"][i]["name"]
+        out.append(node_info)
+
+    return out
+
+
 def parseGraphJSON_nodecolors(files,target):
     if len(files) > 0: 
         for idx,file in enumerate(files):
@@ -457,6 +515,7 @@ def parseGraphJSON_nodecolors(files,target):
             nodecolor_rgba = []
 
             for i in range(0,num_of_nodes):
+                # to do: add catch for nodecolor key 
                 color = file["nodes"][i]["nodecolor"]
                 
                 # if color is string 
@@ -529,7 +588,6 @@ def parseGraphJSON_labels(files,target):
             
             target.append(vecList)
         
-    
 
 def parseGraphJSON_graphtitle(files,target):
     if len(files) > 0: 

@@ -62,10 +62,13 @@
     button:hover {
         border: 2px solid rgb(124, 124, 124);
         background: rgba(66, 66, 66, 1);
-        
+    }
 
+    button:active {
+        border: 2px solid rgb(190, 190, 190);
     }
 </style>
+
     <div id="container" style="width: auto; height: 30p0x; display: inline-block; padding: 4px 2px">
         <button id="name"><img src="static/css/images/NotRecording.png"></img></button>
     </div>
@@ -149,7 +152,14 @@
 <template id="mcB1-template">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
 <div id="container" style="width: auto; height: 30p0x; display: inline-block;">
-
+    <style>
+        .swagbutton:hover{
+            background-color: rgba(77, 77, 77, 0.35);
+        }
+        .swagbutton:active{
+            background-color: rgba(77, 77, 77, 0.5);
+        }
+    </style>
     <button id="name" class="swagButton"></button>
 </div>
 
@@ -254,6 +264,7 @@
         let rec_button = this.shadowRoot.querySelector("#rec");
 
         var msg = {}
+
         msg.id = this.getAttribute('id');
         //name_button.style.background = this.getAttribute('color');//("background",);
             text.addEventListener('change', () => {
@@ -266,6 +277,13 @@
 
             });
 
+             
+            text.addEventListener('click', function(){
+                ue4("textinput",msg);
+                // LET UE4 KNOW WHICH TEXTINPUT is ACTIVE
+                //console.log(msg);
+            });
+            
             //console.log('create: '+ this.getAttribute('container'));
         
             //x_button.addEventListener('click', () => {
@@ -366,7 +384,7 @@
             } else {
                 content.style.display = "none";
             }
-            //ocket.emit('ex', { id: this.getAttribute('id'), parent: this.getAttribute('container'), fn: this.getAttribute('fn'), val: text.value});
+            //socket.emit('ex', { id: this.getAttribute('id'), parent: this.getAttribute('container'), fn: this.getAttribute('fn'), val: text.value});
             
 
         });
@@ -384,7 +402,9 @@
     <div id="container" style="display: inline-block; width:auto;  padding: 3px 3px">
         <h5 id = "label" style="float:left; font-size: 25px;  color: rgb(102, 102, 102); margin-top:5px; margin-bottom:5px;">PROJECT</h5><p id = "count"  style="font-size: 15px; color: rgb(255, 255, 255); margin-top:0px; padding-left:10px ; margin-bottom: 0px; text-indent: 10px;  "> </p>
         
-        <div  class="gradient"></div>
+        <br>
+        <div  class="gradient" style="margin-bottom:10px"  ></div>
+
         <input type="button" id="sel" style="width:400px; height:50px; font-family: future; font-size: 25px; "/>
         <div id = "content" class="swagBoxT" style="width:400px; max-height: 600px; height:auto; overflow-y: auto; overflow-x: hidden;">
         </div>
@@ -403,7 +423,8 @@
 
 
         constructor() {
-        super();
+            super();
+            this.hasCount = true;
         }
 
         connectedCallback() {
@@ -598,7 +619,6 @@
 <template id="mcTextBox-template">
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
-
     <div id="label" class="swagLabelSmall">TEXT</div>
     <input type="Text" id="text" autocomplete="off"></input>
 
@@ -684,6 +704,565 @@
             <input type="range" min="0" max="255" value="128" class="slider" id="green" style="display: inline-block; width:100%; position:relative; ; Z-index: 1; background-image: linear-gradient(270deg,rgba( 0,255, 0, 0.3),rgba(0, 255, 0, 0.05),rgba(0,0,0,0));"></input>
             <input type="range" min="0" max="255" value="128" class="slider" id="blue" style="display: inline-block; width:100%; position:relative; ; Z-index: 1; background-image: linear-gradient(270deg,rgba( 0, 0,255, 0.3),rgba(0, 0, 255, 0.05),rgba(0,0,0,0));"></input>
             <input type="range" min="0" max="255" value="128" class="slider" id="alpha" style="display: inline-block; width:100%; position:relative; ; Z-index: 1;"></input>
+        </div>
+    </div>
+</template>
+
+
+
+<!-- HTML Element to partition annotations -->
+<template id="mcAnnotationDropdown-template">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
+
+    <div id="container" style="display: inline-block; width:auto;  padding: 3px 3px">
+        <h5 id="label" style="font-size: 25px;  color: rgb(102, 102, 102); margin-top:5px; margin-bottom:5px; display: block;">default</h5>
+        <div class="gradient"></div>
+        
+        <div id="display">
+            <input type="button" id="sel" style="width:400px; height:50px; font-family: future; font-size: 25px; "/>
+            <p id="epochs" style="font-size: 15px; color: rgb(255, 255, 255); margin-top:0px; padding-left:10px ; margin-bottom: 0px; text-indent: 10px; display: block; overflow-x: hidden;">default</p>
+        </div>
+
+        <div>
+            <mc-button1 id="back" name="BACK" style="float: right;"></mc-button1> 
+        </div>
+
+        <div id="content" class="swagBoxT" style="width:400px; max-height: 600px; height:auto; overflow-y: auto; overflow-x: hidden;">
+        </div>
+    </div>
+</template>
+
+
+
+<script>
+    class mcAnnotationDropdown extends HTMLElement {
+
+        constructor() {
+            super();
+            let options;
+            this.template = document.querySelector('#mcAnnotationDropdown-template').content;
+            this.attachShadow({ mode: 'open' }).appendChild(this.template.cloneNode(true));
+
+            this.content = this.shadowRoot.querySelector("#content");
+            this.select = this.shadowRoot.querySelector("#sel");
+            this.label = this.shadowRoot.querySelector("#label");
+            this.epochsLabel = this.shadowRoot.querySelector("#epochs");
+            this.buttonBack = this.shadowRoot.querySelector("#back")
+            this.buttonBack.style.display = "block";
+
+            // content related
+            // state important for back button to show the backend where to roll back from
+            this.state = "inactive" // valid: "inactive", "selType", "selSub", "selMain"
+            this.validStates = new Set(["inactive", "selType", "selSub", "selMain"])
+            if (options === undefined){
+                options = ["default"]
+            }
+            this.options = options;
+            this.subOptions = [
+                "A - E", 
+                "F - J",
+                "K - P",
+                "Q - T",
+                "U - Z",
+                "0 - 4",
+                "5 - 9",
+                "! ... ?"
+            ];
+
+            console.log("init annotation dropdown: ", this.label.innerHTML)
+        }
+
+
+        connectedCallback() {
+            // init
+            this.label.innerHTML = this.getAttribute('name');
+            this.buttonBack.style.display = "none";
+            this.epochsLabel.style.display = "none";
+            this.content.style.display = "none";
+            
+            // assign attributes for initialization (connect_socketIO_main.js/updateMC)
+            this.setAttribute("type", "annotationDD");
+            this.classList.add("GD");
+
+            // event listeners
+            this.select.addEventListener('click', () => {
+                this.clickHeader()
+            });
+
+            this.buttonBack.addEventListener("click", ()=>{
+                this.clickBack()
+            });
+        }
+
+
+        // methods
+
+        // click events for buttons
+        clickBack(){
+            socket.emit('ex', { 
+                usr:uid, 
+                val: "clickBack",
+                state: this.state, 
+                id: this.getAttribute('id'),
+                fn: "annotationDD" 
+            });
+        }
+
+        clickHeader(){
+            socket.emit('ex', { 
+                usr:uid, 
+                val: "clickHeader",
+                state: this.state, 
+                id: this.getAttribute('id'),
+                fn: "annotationDD" 
+            });
+        }
+
+        clickOptionType(clickedOption){
+            socket.emit('ex', { 
+                usr:uid, 
+                val: "clickOptionType",
+                option: clickedOption, 
+                id: this.getAttribute('id'),
+                fn: "annotationDD" 
+            });
+        }
+
+        clickOptionSub(clickedOption){
+            socket.emit('ex', { 
+                usr:uid, 
+                val: "clickOptionSub",
+                option: clickedOption, 
+                id: this.getAttribute('id'),
+                fn: "annotationDD" 
+            });
+        }
+
+        clickOptionMain(clickedOption){
+            socket.emit('ex', { 
+                usr:uid, 
+                val: "clickOptionAnnotation",
+                option: clickedOption, 
+                id: this.getAttribute('id'),
+                fn: "annotationDD" 
+            });
+        }
+
+
+        // set events from frontend 
+        updateOptions(options){this.options = options;} // called when opening new project
+
+        initSelection(){
+            // before generation: show back button, empty and show content
+            this.content.innerHTML = '';
+            this.content.style.display = "block";
+            this.buttonBack.style.display = "block";
+            if (this.epochsLabel.innerHTML !== "default"){this.epochsLabel.style.display = "block";}
+        }
+
+        close(){
+            // method to close all content; triggered when annotation is selected, header is pressed or pressed back in type selection
+            this.content.style.display = 'none';
+            this.state = "inactive";
+            this.buttonBack.style.display = "none";
+            this.epochsLabel.style.display = "none";
+            this.content.innerHTML = '';
+        }
+
+        hide(){
+            // method to hide selections and back button when selecting type or sub
+            this.content.style.display = 'none';
+            this.buttonBack.style.display = "none";
+            this.epochsLabel.style.display = "none";
+            this.content.innerHTML = '';
+        }
+
+        setState(state){
+            if (!this.validStates.has(state)){
+                console.log(`state ${state} not valid`);
+                return;
+            }
+            this.state = state;
+        }
+
+
+        setType(type){
+            this.epochsLabel.innerHTML = type; // Set the type
+        }
+
+        setSub(){}
+
+        setAnnotation(annotation){
+            this.select.setAttribute("value", annotation); // set label in button input
+            this.close();
+        }
+
+        demo(){console.log("This is a demo method.");}
+
+        // selection generators
+        generateColorGradient(n) {
+            function hsvToRgb(h, s, v) {
+                const c = v * s;
+                const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+                const m = v - c;
+
+                let r, g, b;
+                if (h >= 0 && h < 60) {
+                    [r, g, b] = [c, x, 0];
+                } else if (h >= 60 && h < 120) {
+                    [r, g, b] = [x, c, 0];
+                } else if (h >= 120 && h < 180) {
+                    [r, g, b] = [0, c, x];
+                } else if (h >= 180 && h < 240) {
+                    [r, g, b] = [0, x, c];
+                } else if (h >= 240 && h < 300) {
+                    [r, g, b] = [x, 0, c];
+                } else {
+                    [r, g, b] = [c, 0, x];
+                }
+
+                return [
+                    Math.round((r + m) * 255),
+                    Math.round((g + m) * 255),
+                    Math.round((b + m) * 255)
+                ];
+            }
+
+            function rgbToHex(r, g, b) {
+                return `#${(1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1)}`;
+            }
+
+            function random(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+
+            const colors = [];
+
+            const firstHue = random(0, 360);
+            const secondHue = (firstHue + random(30, 150)) % 360;
+            const randS = random(0.5, 1)
+            const randV = random(0.6, 1)
+
+            const firstColor = hsvToRgb(firstHue, randS, randV);
+            const secondColor = hsvToRgb(secondHue, randS, randV);
+
+            if (n === 1) {
+                colors.push(rgbToHex(...firstColor));
+            } else if (n === 2) {
+                colors.push(rgbToHex(...firstColor), rgbToHex(...secondColor));
+            } else if (n > 2) {
+                for (let i = 0; i < n; i++) {
+                    const currentHue = firstHue + ((secondHue - firstHue) / (n - 1)) * i;
+                    const currentColor = hsvToRgb(currentHue, randS, randV);
+                    colors.push(rgbToHex(...currentColor));
+                }
+            }
+
+            return colors;
+        }
+
+        generateSelectionType(typeOptions){
+            // init generator
+            this.initSelection()
+            this.state = "selType";
+            this.options = typeOptions;
+
+            // Generate custom buttons based on the options list
+            let buttonColors = this.generateColorGradient(this.options.length);
+            let colorIndex = 0;
+            this.options.forEach(option => {
+                const button = document.createElement('mc-button');
+                button.setAttribute('name', option);
+                button.style.display = 'block';
+                button.setAttribute("color", buttonColors[colorIndex])
+                colorIndex ++;
+                
+                button.addEventListener('click', () => {
+                    this.clickOptionType(option)
+                });
+
+                this.content.appendChild(button);
+            });
+        }
+
+        generateSelectionSub(options){
+            // Empty the content
+            this.initSelection()
+            this.state = "selSub"
+            this.subOptions = options;
+
+            // Generate custom buttons based on the options list
+            let buttonColors = this.generateColorGradient(options.length);
+            let colorIndex = 0;
+            options.forEach(option => {
+                const button = document.createElement('mc-button');
+                button.setAttribute('name', option);
+                button.style.display = 'block';
+                button.setAttribute("color", buttonColors[colorIndex]);
+                colorIndex ++;
+                
+                button.addEventListener('click', () => {
+                    this.clickOptionSub(option);
+               
+                });
+
+                this.content.appendChild(button);
+            });
+        }
+        
+        generateSelectionMain(options){
+            // Empty the content
+            this.initSelection()
+            this.state = "selMain";
+
+            // Generate custom buttons based on the options list
+            let buttonColors = this.generateColorGradient(options.length);
+            let colorIndex = 0;
+            options.forEach(option => {
+                const button = document.createElement('mc-button');
+                button.setAttribute('name', option);
+                button.style.display = 'block';
+                button.setAttribute("color", buttonColors[colorIndex])
+                colorIndex ++;
+                
+                button.addEventListener('click', () => {
+                    this.clickOptionMain(option);
+                });
+
+                this.content.appendChild(button);
+            });
+        }
+
+    }
+
+
+
+    customElements.define('mc-annotation-dropdown', mcAnnotationDropdown);
+</script>
+
+
+
+<!-- HTML Element to minimize and maximize modules -->
+<template id="module-template">
+   
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
+
+    <div id="module">
+        <style>
+            #max-button {
+                background-color: rgba(16, 3, 0, 0.3);
+            }
+            #max-button:hover {
+                background-color: rgba(49, 49, 49, 0.35);
+            }
+            #max-button:active {
+                background-color: rgba(69, 69, 69, 0.4);
+            }
+            button.minimize{
+                width: 380px;
+                height: 30px;
+                font-family: 'Future', sans-serif;
+                overflow: hidden;
+                white-space: nowrap; 
+                cursor: pointer;
+                box-sizing: border-box;
+                text-align: center;
+                border-radius: 7px;
+                
+                border-bottom-left-radius: 0px;
+                font-size: 24px;
+
+                color: rgb(255, 255, 255);
+                cursor: pointer;
+                background: rgba(66, 66, 66, 0);
+                border: 2px solid transparent;
+                
+                text-transform: uppercase;
+            }
+
+            button.minimize:hover {
+                border: 2px solid rgb(110, 110, 110);
+                background: rgba(33, 33, 33, 1);
+            }
+
+            button.minimize:active {
+                background: rgba(55, 55, 55, 1);
+                border: 2px solid rgb(130, 130, 130);
+            }
+            #module-label-container {
+                white-space: nowrap;
+                overflow: hidden;
+                width: 330px;
+            }
+
+            /* animation to play when text overflows */
+            @keyframes textScroll {
+                0% {
+                    transform: translateX(0%);
+                }
+                25%{
+                    transform: translateX(0%);
+                }
+
+                100% {
+                    transform: translateX(-100%);
+                }
+            }
+        </style> 
+        <input type="button" id="max-button" style="width:420px; height: 60px; font-family: future; font-size: 25px; text-transform: uppercase; color: rgb(102, 102, 102);" text="Default Module"/>
+        <div id="content">
+            <div class="gradientBox">
+                <div class='swagBox' id="clip-content" style="width:420px; background-color: rgba(16, 3, 0, 0.3);">
+                    <div id="module-header" style="display: block;">
+
+
+                        <div id="module-label-container" style="float: left; overflow-x: hidden; width: 330px;">
+                            <div>
+                                <h5 id="module-label" style="font-size: 25px; color: rgb(102, 102, 102); margin-top:5px; margin-bottom:5px; display: inline-flex; text-transform: uppercase; width: 330px;"></h5>
+                            </div>
+                            <div class="gradient"></div>
+                        </div>
+                        
+                        <button id="min-button" class="minimize" style="max-width: 60px; float: right; font-size: 20px; font-weight: bold;color: rgb(102, 102, 102)">&#128469;</button>
+
+                    </div>
+                    <div id="module-content" style="display: block; margin-top: 55px;">
+                        
+                        <slot></slot>
+
+                    </div>
+                </div>    
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+    class panelModule extends HTMLElement {
+        constructor() {
+            super();
+            this.attachShadow({ mode: 'open' });
+            const template = document.getElementById("module-template");
+            this.shadowRoot.appendChild(template.content.cloneNode(true));
+            this.label = this.shadowRoot.querySelector("#module-label");
+            this.maximizeButton = this.shadowRoot.querySelector("#max-button");
+            this.moduleContent = this.shadowRoot.querySelector("#content");
+            this.minimizeButton = this.shadowRoot.querySelector("#min-button");
+        }
+        connectedCallback(){
+            // assign attributes for initialization (connect_socketIO_main.js/updateMC)
+            this.setAttribute("type", "module");
+            this.classList.add("GD");
+
+            // set name text
+            this.name = this.getAttribute("name") || "default";
+            this.label.innerHTML = this.name;
+            this.maximizeButton.value = this.name;
+
+            // animate label if it overflows
+            if (this.label.scrollWidth > this.label.clientWidth) {
+                const originalText = this.label.innerText;
+
+                // clone label and hide the original
+                const clonedLabel = this.label.cloneNode(true);
+                this.label.style.display = "none";
+
+                // append cloned label and animate it
+                this.label.parentElement.appendChild(clonedLabel);
+                clonedLabel.style.animation = `textScroll ${originalText.length * 0.45}s linear infinite`;
+            } else {
+                this.label.style.animation = "none";
+            }
+
+            // connect buttons
+            this.minimizeButton.addEventListener('click', () => {
+                socket.emit('ex', { 
+                    usr:uid, 
+                    id: this.getAttribute('id'),
+                    fn: "module",
+                    val: "minimize"
+                });
+            });
+            this.maximizeButton.addEventListener('click', () => {
+                socket.emit('ex', { 
+                    usr:uid, 
+                    id: this.getAttribute('id'),
+                    fn: "module",
+                    val: "maximize"
+                });
+            });
+        }
+
+
+        init(){
+            socket.emit('ex', { 
+                usr:uid, 
+                id: this.getAttribute('id'),
+                fn: "module",
+                val: "init"
+            });
+        }
+
+        // triggered by connect socket
+        minimizeModule(){
+            this.moduleContent.style.display = "none";
+            this.maximizeButton.style.display = "block";
+        }
+        maximizeModule(){
+            this.moduleContent.style.display = "block";
+            this.maximizeButton.style.display = "none";
+        }
+
+    }
+  
+    // Define the custom element tag
+    customElements.define('mc-module', panelModule);
+</script>
+
+
+
+
+<!-- HTML Element copy of mc-dropdown without header as design choice together with mc-module element -->
+<script>
+    class mcDropdownNoHeader extends HTMLElement {
+
+
+        constructor() {
+            super();
+            this.hasCount = false;
+        }
+
+        connectedCallback() {
+        let template = document.querySelector('#mcdropdownNoHeader-template').content;
+        this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
+        let select = this.shadowRoot.querySelector("#sel");
+        let content = this.shadowRoot.querySelector("#content");
+
+        select.addEventListener('click', () => {
+
+            if (content.style.display === "none") {
+                content.style.display = "block";
+            } else {
+                content.style.display = "none";
+            }
+            //ocket.emit('ex', { id: this.getAttribute('id'), parent: this.getAttribute('container'), fn: this.getAttribute('fn'), val: text.value});
+            
+
+        });
+        
+        }
+
+
+    }
+
+    customElements.define('mc-dropdown-no-header', mcDropdownNoHeader);
+</script>
+
+<template id="mcdropdownNoHeader-template">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
+    <div id="container" style="display: inline-block; width:auto;  padding: 3px 3px">
+        <input type="button" id="sel" style="width:400px; height:50px; font-family: future; font-size: 25px; "/>
+        <div id = "content" class="swagBoxT" style="width:400px; max-height: 600px; height:auto; overflow-y: auto; overflow-x: hidden;">
         </div>
     </div>
 </template>

@@ -41,6 +41,73 @@ function logjs(data, id){
 }
 
 
+function genOptionColorGradient(n) {
+    // function to generate a color gradient based on two random picked colors and interpolating Hue for n colors
+
+    function hsvToRgb(h, s, v) {
+        const c = v * s;
+        const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+        const m = v - c;
+
+        let r, g, b;
+        if (h >= 0 && h < 60) {
+            [r, g, b] = [c, x, 0];
+        } else if (h >= 60 && h < 120) {
+            [r, g, b] = [x, c, 0];
+        } else if (h >= 120 && h < 180) {
+            [r, g, b] = [0, c, x];
+        } else if (h >= 180 && h < 240) {
+            [r, g, b] = [0, x, c];
+        } else if (h >= 240 && h < 300) {
+            [r, g, b] = [x, 0, c];
+        } else {
+            [r, g, b] = [c, 0, x];
+        }
+
+        return [
+            Math.round((r + m) * 255),
+            Math.round((g + m) * 255),
+            Math.round((b + m) * 255)
+        ];
+    }
+
+    function rgbToHex(r, g, b) {
+        return `#${(1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1)}`;
+    }
+
+    function random(min, max) {
+        return Math.random() * (max - min) + min;
+    }
+
+    const colors = [];
+    const firstHue = random(0, 360);
+    const secondHue = (firstHue + random(30, 150)) % 360;
+
+
+    // change these two constants to adjust color generation
+    const randS = random(0.5, 1)  // Saturation - pale (0) to vivid (1)
+    const randV = random(0.6, 1)  // Intensity Value - dark (0) to light (1)
+
+    
+    const firstColor = hsvToRgb(firstHue, randS, randV);
+    const secondColor = hsvToRgb(secondHue, randS, randV);
+
+    if (n === 1) {
+        colors.push(rgbToHex(...firstColor));
+    } else if (n === 2) {
+        colors.push(rgbToHex(...firstColor), rgbToHex(...secondColor));
+    } else if (n > 2) {
+        for (let i = 0; i < n; i++) {
+            const currentHue = firstHue + ((secondHue - firstHue) / (n - 1)) * i;
+            const currentColor = hsvToRgb(currentHue, randS, randV);
+            colors.push(rgbToHex(...currentColor));
+        }
+    }
+
+    return colors;
+}
+
+
 
 var uid = makeid(10);
 console.log("Logged in as " + uid);
@@ -68,10 +135,9 @@ ue.interface.nodelabelclicked = function (data) {
     var out = JSON.parse(text);
     out.val = data;
     socket.emit('ex', out);
-
 };
 
-ue.interface.spee = function (data) {
+ue.interface.speech = function (data) {
     console.log(data);
     var text = '{"id":"node", "val": -1, "fn": "textinput"}';
     var out = JSON.parse(text);
@@ -81,6 +147,7 @@ ue.interface.spee = function (data) {
     socket.emit('ex', out);
    
 };
+
 
 
 function updateMcElements(){
@@ -98,6 +165,12 @@ function updateMcElements(){
             case 'dropdown':
                 socket.emit('ex', { usr:uid, id: dynelem[i].getAttribute('id'), fn: "dropdown", val:"init"});
                 break;
+            case "module":
+                dynelem[i].init();
+                break
+            case "annotationDD":
+                socket.emit('ex', { usr:uid, id: dynelem[i].getAttribute('id'), fn: "annotationDD", val:"init"});
+                break
         }
         //console.log(dynelem[i].getAttribute('container'));
     }
@@ -108,6 +181,9 @@ function updateMcElements(){
     socket.emit('ex', { usr:uid, id: "annotationOperation", fn: "annotation", val:"init"});
     socket.emit('ex', { usr:uid, id: "annotationRun", fn: "annotation", val:"init"});
     socket.emit('ex', { usr:uid, id: "layoutInit", fn: "layout", val:"init"});
+    //socket.emit('ex', { usr:uid, id: "annotationInit", fn: "annotation", val:"init"})
+    socket.emit('ex', {usr:uid,  val: "init", id: "annotation-dd-1", fn: "annotation"});
+    socket.emit('ex', {usr:uid,  val: "init", id: "annotation-dd-2", fn: "annotation"});
 }
 
 function reconnect(){
@@ -423,19 +499,22 @@ $(document).ready(function(){
                 if(document.getElementById(data.id)){
                     var select = document.getElementById(data.id).shadowRoot.getElementById("sel");
                     var count = document.getElementById(data.id).shadowRoot.querySelector("#count");
+                    var hasCount = document.getElementById(data.id).hasCount;
                     var content = document.getElementById(data.id).shadowRoot.getElementById("content");
                 
 
                     if(data.hasOwnProperty('opt')){
                     
                         removeAllChildNodes(content);
-                        cmul = 70;
+                        // cmul = 70;
                         //.log(data.opt.length)
+                        let optionColors = genOptionColorGradient(data.opt.length);
                         for (let i = 0; i < data.opt.length; i++) {
-                            $(content).append("<mc-button id = 'button"+ i + " 'val= '"+ i + "' name = '"+ data.opt[i] +  "' w = '375' parent = '"+ data.parent + "' fn = 'dropdown' color = '" + rgbToHex(Math.floor(Math.random()*cmul),Math.floor(Math.random()*cmul),Math.floor(Math.random()*cmul)) + "' ></mc-button>");
+                            // $(content).append("<mc-button id = 'button"+ i + " 'val= '"+ i + "' name = '"+ data.opt[i] +  "' w = '375' parent = '"+ data.parent + "' fn = 'dropdown' color = '" + rgbToHex(Math.floor(Math.random()*cmul),Math.floor(Math.random()*cmul),Math.floor(Math.random()*cmul)) + "' ></mc-button>");
+                            $(content).append("<mc-button id = 'button"+ i + " 'val= '"+ i + "' name = '"+ data.opt[i] +  "' w = '375' parent = '"+ data.parent + "' fn = 'dropdown' color = '" + optionColors[i] + "' ></mc-button>");
                         }
                         select.value = data.opt[data.sel]
-                        count.innerHTML = " [" + data.opt.length + "]"
+                        if (hasCount === true){count.innerHTML = " [" + data.opt.length + "]";}
                         content.style.display = "none";
                     }else{
                         //this comes from the buttons
@@ -722,7 +801,7 @@ $(document).ready(function(){
                     }
 
                 } 
-                ue4(data["fn"], data);
+                ue4("but", data);
                 //console.log("C_DEBUG: ue4 data = ", data);
             
                 break;
@@ -932,7 +1011,64 @@ $(document).ready(function(){
 
                 break;
 
+            case "annotationDD":
+                
+                if (data.id == "initDD"){
+                    const annotationDD1 = document.getElementById("annotation-dd-1");
+                    const annotationDD2 = document.getElementById("annotation-dd-2");
+                    annotationDD1.updateOptions(data.options);
+                    annotationDD2.updateOptions(data.options);
+
+                    // here init function to retreive type and annotation
+
+                    return;
+                }
+                
+                // defined annoID here as executor of the methods which it triggered; task separation by val here!
+                let annoID = document.getElementById(data.id);
+
+                if (data.val == "demo"){
+                    annoID.demo();
+                }
+
+                if (data.val == "initDD"){
+                    annoID.setType(data.valType);
+                    annoID.setAnnotation(data.valAnnotation);
+                }
+
+                if (data.val == "close"){
+                    annoID.close();
+                }
+
+                if (data.val == "openType"){
+                    annoID.generateSelectionType(data.valOptions);
+                }
+
+                if (data.val == "openSub"){
+                    annoID.setType(data.valSelected);
+                    annoID.generateSelectionSub(data.valOptions);
+                }
+
+                if (data.val == "openMain"){
+                    annoID.setSub(data.valSelected);
+                    annoID.generateSelectionMain(data.valOptions);
+                }
+
+                if (data.val == "annotationSelected"){
+                    annoID.setAnnotation(data.valSelected);
+                }
+
+                if (data.val == "setTypeDisplay"){annoID.setType(data.valType);}
+
+                break;
+
+
+
             case "annotation":
+
+                const annotationDD1 = document.getElementById("annotation-dd-1");
+                const annotationDD2 = document.getElementById("annotation-dd-2");
+                
                 if (data.id == "annotationOperation"){
                     let value = data.val;
                     if (value == "init") {return;}
@@ -940,21 +1076,21 @@ $(document).ready(function(){
                     let annotationLegend2 = document.getElementById("annotationColorA2");
                     let annotationLegendR = document.getElementById("annotationColorR");
                     if (value == true){
-                        button.innerHTML = "[-]";
-                        document.getElementById("annotation-2").style.display = "inline-block";
+                        button.innerHTML = "SINGLE";
+                        annotationDD2.style.display = "inline-block";
                         document.getElementById("annotation-Operations").style.display = "inline-block";
                         annotationLegendR.style.display = "block";
                         annotationLegend2.style.display = "block";
                     }
                     if (value == false){
                         button.innerHTML = "OPERATION";
-                        document.getElementById("annotation-2").style.display = "none";
+                        annotationDD2.style.display = "none";
                         document.getElementById("annotation-Operations").style.display = "none";
                         annotationLegendR.style.display = "none";
                         annotationLegend2.style.display = "none";
                     }
                 }
-                
+
                 break;
 
             case "legendfileswitch":
@@ -1019,7 +1155,22 @@ $(document).ready(function(){
                     handleLayoutExistsDisplay(data.val);
                 }
 
-                break
+                break;
+
+            case"gotonode":
+                ue4(data["fn"], data);
+                //alert("rrrrrreeee");
+                break;
+
+            case"moduleState":
+                if (data.val == true){
+                    document.getElementById(data.id).maximizeModule();
+                }
+                if (data.val == false){
+                    document.getElementById(data.id).minimizeModule();
+                }
+                break;
+
 
         } 
     });
