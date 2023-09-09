@@ -1,55 +1,55 @@
-<!-- Analytics Module -->
 
-
-<mc-module id="module-analytics" name="Analytics Module">
-        
-    <mc-dropdown-no-header id="analytics" class="GD" type="dropdown" fn="dropdown" name="ANALYTICS"></mc-dropdown-no-header>
-
-    <!-- Analytics modules -->
-    <div id="analyticsSelectedDegree" style="display: none;" class="analyticsOption"> 
-        <mc-button1 name="RUN" id="analyticsDegreeRun" fn="analytics"></mc-button1>
-    </div>
-
-    <div id="analyticsSelectedCloseness" style="display: none;" class="analyticsOption">
-        <mc-button1 name="RUN" id="analyticsClosenessRun" fn="analytics"></mc-button1>
-    </div>
-
-    <div id="analyticsSelectedPath" style="display: none;" class="analyticsOption">
-        <div id="analyticsPathNodeContainer" class="swagBoxT" style="width:398px; max-height: 380px; height:auto; overflow-y: auto; overflow-x: hidden; margin-bottom: 4px;">
-            <mc-button1 class="GD" name="Select Node 1" id="analyticsPathNode1" fn="analytics" parent="analyticsPathNodeContainer" style="display:inline-block; width:49%;"></mc-button1>
-            <mc-button1 class="GD" name="Select Node 2" id="analyticsPathNode2" fn="analytics" parent="analyticsPathNodeContainer" style="display:inline-block; width:49%;"></mc-button1>            
-            <script>
-                // scale buttons
-                $(document).ready(function(){
-                    document.getElementById("analyticsPathNode1").shadowRoot.getElementById("name").style.width = "186px";
-                    document.getElementById("analyticsPathNode2").shadowRoot.getElementById("name").style.width = "186px";
-                });
-            </script>
+    <div style="display:None"> 
+    <mc-module id="module-analytics" name="Analytics Module">
             
+        <mc-dropdown-no-header id="analytics" class="GD" type="dropdown" fn="dropdown" name="ANALYTICS"></mc-dropdown-no-header>
+
+        <!-- Analytics modules -->
+        <div id="analyticsSelectedDegree" style="display: none;" class="analyticsOption"> 
+            <mc-button1 name="RUN" id="analyticsDegreeRun" fn="analytics"></mc-button1>
         </div>
-        <mc-button1 name="RUN" id="analyticsPathRun" fn="analytics"></mc-button1>
-        <!-- hide them at init and show them on running path over backend only when shortest path is selected-->
-        <div id="analyticsPathButtons" style="display: inline-block;">
-            <mc-button1 id="analyticsPathBackw" name="&#60&#60" fn="analytics"></mc-button1>
-            <mc-button1 id="analyticsPathForw" name="&#62&#62" fn="analytics"></mc-button1>
+
+        <div id="analyticsSelectedCloseness" style="display: none;" class="analyticsOption">
+            <mc-button1 name="RUN" id="analyticsClosenessRun" fn="analytics"></mc-button1>
         </div>
-    </div>
-    
-    <div id="analyticsSelectedEigenvector" style="display: none;" class="analyticsOption">
-        <mc-button1 name="RUN" id="analyticsEigenvectorRun" fn="analytics"></mc-button1>
-    </div>
 
-    <div id="analyticsSelectedModcommunity" style="display: none;" class="analyticsOption">
-        <mc-button1 name="Apply Coloring" id="analyticsModcommunityRun" fn="analytics"></mc-button1>
-        <mc-button1 name="Apply Layout" id="analyticsModcommunityLayout" fn="analytics"></mc-button1>
-    </div>
+        <div id="analyticsSelectedPath" style="display: none;" class="analyticsOption">
+            <div id="analyticsPathNodeContainer" class="swagBoxT" style="width:398px; max-height: 380px; height:auto; overflow-y: auto; overflow-x: hidden; margin-bottom: 4px;">
+                <mc-button1 class="GD" name="Select Node 1" id="analyticsPathNode1" fn="analytics" parent="analyticsPathNodeContainer" style="display:inline-block; width:49%;"></mc-button1>
+                <mc-button1 class="GD" name="Select Node 2" id="analyticsPathNode2" fn="analytics" parent="analyticsPathNodeContainer" style="display:inline-block; width:49%;"></mc-button1>            
+                <script>
+                    // scale buttons
+                    $(document).ready(function(){
+                        document.getElementById("analyticsPathNode1").shadowRoot.getElementById("name").style.width = "186px";
+                        document.getElementById("analyticsPathNode2").shadowRoot.getElementById("name").style.width = "186px";
+                    });
+                </script>
+                
+            </div>
+            <mc-button1 name="RUN" id="analyticsPathRun" fn="analytics"></mc-button1>
+            <!-- hide them at init and show them on running path over backend only when shortest path is selected-->
+            <div id="analyticsPathButtons" style="display: inline-block;">
+                <mc-button1 id="analyticsPathBackw" name="&#60&#60" fn="analytics"></mc-button1>
+                <mc-button1 id="analyticsPathForw" name="&#62&#62" fn="analytics"></mc-button1>
+            </div>
+        </div>
+        
+        <div id="analyticsSelectedEigenvector" style="display: none;" class="analyticsOption">
+            <mc-button1 name="RUN" id="analyticsEigenvectorRun" fn="analytics"></mc-button1>
+        </div>
 
-    <div id="analyticsSelectedClusteringCoeff" style="display: none;" class="analyticsOption">
-        <mc-button1 name="RUN" id="analyticsClusteringCoeffRun" fn="analytics"></mc-button1>
-    </div>
+        <div id="analyticsSelectedModcommunity" style="display: none;" class="analyticsOption">
+            <mc-button1 name="Apply Coloring" id="analyticsModcommunityRun" fn="analytics"></mc-button1>
+            <mc-button1 name="Apply Layout" id="analyticsModcommunityLayout" fn="analytics"></mc-button1>
+        </div>
+
+        <div id="analyticsSelectedClusteringCoeff" style="display: none;" class="analyticsOption">
+            <mc-button1 name="RUN" id="analyticsClusteringCoeffRun" fn="analytics"></mc-button1>
+        </div>
 
 
 
-    <!-- plotly container-->
-    <div id="analyticsContainer" frameborder="0"></div>
-</mc-module>
+        <!-- plotly container-->
+        <div id="analyticsContainer" frameborder="0"></div>
+    </mc-module>
+</div>

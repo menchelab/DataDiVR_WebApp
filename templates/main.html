@@ -109,24 +109,24 @@
             <div style="width: 426px; height:100vh; overflow-y:auto;  overflow-x:hidden">
                 <br>
 
-                {% include 'mGPT.html' %}
+                {% include 'mGPT_LBI.html' %}
                 <!--{% include 'mCartographs.html' %} -->
                 {% include 'mAnalytics.html' %}
                 {% include 'mAnnotations.html' %}
 
 
                 {% include 'mClipboard.html' %}
-                {% include 'mNodeinfo.html' %}
+                <!-- {% include 'mNodeinfo.html' %} -->
                 {% include 'mLayout.html' %}
 
-
+                <!--
                 {% for ext in extensions["ext"] %}
                 {% if "column_4" in ext.keys() %}
                 {% for module in ext["column_4"]%}
                 {% include module %}
                 {% endfor %}
                 {% endif %}
-                {% endfor %}
+                {% endfor %}  -->
 
             </div>
 
