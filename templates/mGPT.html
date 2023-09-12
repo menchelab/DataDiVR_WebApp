@@ -1,20 +1,15 @@
-<div class="gradientBox">
+<mc-module id="module-chatGPT" name="ChatGPT">
     <audio id="GPTAudio"  src="" type="audio/ogg">
     <source id = "GPTAudioS">
         Your browser does not support the audio element.
     </audio>
-    <div class='swagBox' style="width:420px; background-color: rgba(16, 3, 0, 0.3)">
-        <h5
-            style="float:left; font-size: 25px;  color: rgb(102, 102, 102); margin-top:5px; margin-bottom:5px;">
-            ChatGPT</h5>
-            <button id="gptclearbutton1" class="swagButton" onclick="clearChat()" style="float:right;">CLEAR</button>
-        <br><div  class="gradient"></div>
+
+    <button id="gptclearbutton1" class="swagButton" onclick="clearChat()" style="float:right;">CLEAR</button>
         <mc-scrollbox id='gptscrollbox'></mc-scrollbox>
            
         <mc-TextInput id="gptText1" type="textinput" fn="textinput"></mc-TextInput>
         <button id="searchbutton1" class="swagButton" onclick="gptQuery()">GO</button>   
-    </div>
-</div>
+</mc-module>
 <script>
 function clearChat(){
     document.getElementById("gptscrollbox").shadowRoot.getElementById("box").innerHTML = '';

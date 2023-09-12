@@ -1269,4 +1269,49 @@
     </div>
 </template>
 
+<!-- HTML Element to set and see current slider value -->
+<template id="mcValueSlider-template">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
+    <div id="container" style="position:relative; display: inline-block; width:100%; padding: 0px 0px">
+        <h5 id="label" style="margin-top:2px; color: rgb(100, 100, 100); display: block; text-align: right; font-size: 20px;"></h5>
+        <input type="range" min="0" max="100" value="0" class="slider" id="myRange" style="display: block; width:100%;"></input>
+        
+    </div>
+</template>
 
+<script>
+    class mcSliderValue extends HTMLElement {
+        
+
+        constructor() {
+            super();
+            this.hasCount = true;
+        }
+
+        connectedCallback() {
+            let template = document.querySelector('#mcValueSlider-template').content;
+            this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
+
+            this.label = this.shadowRoot.querySelector("#label");
+            this.slider = this.shadowRoot.querySelector("#myRange");
+
+            this.setLabel();
+            console.log('create: '+ this.getAttribute('container'));
+            
+            this.slider.addEventListener('change', () => {
+                socket.emit('ex', { usr:uid, id: this.getAttribute('id'), fn: "sli", val: this.slider.value});
+                this.setLabel()
+            });
+
+        }
+        setLabel(){
+            this.label.textContent = this.getAttribute('name') +  " :: " + this.slider.value + " %";
+        }
+
+        init(){
+            socket.emit('ex', { usr:uid, id: this.getAttribute('id'), fn: "sli", val: "0"});
+        }
+    }
+
+    customElements.define('mc-slider-value', mcSliderValue);
+</script>
