@@ -977,7 +977,7 @@ def ex(message):
         if message["id"] == "annotationRun":
             if message["val"] == "init":
                 return
-            if "annotation_1" not in GD.pdata.keys():
+            if "annotation_1" not in GD.pdata.keys() or GD.pdata["annotation_1"] == "-":   # at least annotation 1 should be set
                 print(
                     "ERROR: Select Annotation 1 to perform set operation on annotations."
                 )
@@ -985,11 +985,6 @@ def ex(message):
             if "annotation-Operations" not in GD.pdata.keys():
                 print(
                     "ERROR: Select operation to perform set operation on annotations."
-                )
-                return
-            if "annotation_1" not in GD.pdata.keys():
-                print(
-                    "ERROR: Select Annotation 1 to perform set operation on annotations."
                 )
                 return
             if "annotation_2" not in GD.pdata.keys():
@@ -1177,6 +1172,7 @@ def ex(message):
             response["valAnnotation"] = anno
             response["valType"] = anno_type
             emit("ex", response, room = room)
+            GD.savePD()
             return
 
 

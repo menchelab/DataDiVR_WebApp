@@ -197,10 +197,9 @@
             console.log(name_button.parentElement);
             var parent = this.getRootNode().host;
             if (parent != null) { //is in shadowDom
-
-            socket.emit('ex', { id: this.getAttribute('id'), parent: parent.getAttribute('id'), fn: "rem_butt_del_sbox" });
+    	        socket.emit('ex', { id: this.getAttribute('id'), parent: parent.getAttribute('id'), fn: "rem_butt_del_sbox" });
             } else {
-            socket.emit('ex', { id: this.getAttribute('id'), parent: this.parentElement.getAttribute('id'), fn: "rem_butt_del" });
+                socket.emit('ex', { id: this.getAttribute('id'), parent: this.parentElement.getAttribute('id'), fn: "rem_butt_del" });
             }
 
         });
@@ -1105,14 +1104,14 @@
                 }
 
                 100% {
-                    transform: translateX(-100%);
+                    transform: translateX(-200%);
                 }
             }
         </style> 
         <input type="button" id="max-button" style="width:420px; height: 60px; font-family: future; font-size: 25px; text-transform: uppercase; color: rgb(102, 102, 102);" text="Default Module"/>
         <div id="content">
             <div class="gradientBox">
-                <div class='swagBox' id="clip-content" style="width:420px; background-color: rgba(16, 3, 0, 0.3);">
+                <div id="backgroundColorBox" class='swagBox' id="clip-content" style="width:420px; background-color: rgba(16, 3, 0, 0.3);">
                     <div id="module-header" style="display: block;">
 
 
@@ -1153,12 +1152,14 @@
             // assign attributes for initialization (connect_socketIO_main.js/updateMC)
             this.setAttribute("type", "module");
             this.classList.add("GD");
-
             // set name text
             this.name = this.getAttribute("name") || "default";
             this.label.innerHTML = this.name;
             this.maximizeButton.value = this.name;
-
+            // set background color if assigned
+            this.bgColor = this.getAttribute("color") || "rgba(16, 3, 0, 0.3)";
+            this.maximizeButton.style.background = this.bgColor;
+            this.shadowRoot.querySelector("#backgroundColorBox").style.background = this.bgColor;
             // animate label if it overflows
             if (this.label.scrollWidth > this.label.clientWidth) {
                 const originalText = this.label.innerText;
@@ -1169,7 +1170,7 @@
 
                 // append cloned label and animate it
                 this.label.parentElement.appendChild(clonedLabel);
-                clonedLabel.style.animation = `textScroll ${originalText.length * 0.45}s linear infinite`;
+                clonedLabel.style.animation = `textScroll ${originalText.length * 0.55}s linear infinite`;
             } else {
                 this.label.style.animation = "none";
             }
@@ -1237,6 +1238,7 @@
         this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
         let select = this.shadowRoot.querySelector("#sel");
         let content = this.shadowRoot.querySelector("#content");
+
 
         select.addEventListener('click', () => {
 

@@ -1,26 +1,17 @@
-<link rel = "stylesheet" href = "http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css"/>
-<body>
-<div class="gradientBox">
-    <div class='swagBox' style="width:420px; background-color: rgba(16, 3, 0, 0.3);">
-        <div id="nodeL2"
-            style="float:right;  max-width:250px; font-size: 25px; text-align:right; margin-bottom:20px; position:relative; Z-index: 0;">
-        </div>
-        <h5 id="nodeL1"
-            style="  float:left; font-size: 25px;  color: rgb(102, 102, 102); margin-top:5px; margin-bottom:5px;">
-            NODE</h5>
-        <div id="nodecount"
-            style="font-size: 15px;max-width: 300px; position:relative; ; Z-index: 1; text-indent: 10px;  ">
-            [-]</div>
 
-            <br>
-        <div class="gradient"></div>
+<mc-module id="module-node-info" name="Node Info">
+        <div id="nodeL2"
+            style="float:right;  max-width:250px; font-size: 25px; text-align:right; margin-bottom:20px; position:relative; Z-index: 0;">        
+
+        </div>            
+        <div id="nodecount" style="font-size: 15px;max-width: 300px; position:relative; ; Z-index: 1; text-indent: 10px; padding-right: 10px; float: right;">
+                [-]
+            </div>
+        <br>
         <br>
         <mc-button1 id="gotonode" fn="gotonode" img="gotonode.png" style="float:right; position: relative; Z-index: 0;"></mc-button1>
 
-        <pre id="nodeRawdata" style="width: 400px; word-wrap: break-word; max-height: 300px; overflow:scroll"></pre>
+        <pre id="nodeRawdata" style="width: 400px; word-wrap: break-word; max-height: 300px; overflow:auto"></pre>
         
         <!-- <iframe width="425" height="350" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="https://umap.openstreetmap.fr/de/map/dark-mode_297704#11/30.3791/-447.6764" style="border: 1px solid black"></iframe><br/><small><a href="https://www.openstreetmap.org/?mlat=47.4920&amp;mlon=9.7145#map=16/47.4920/9.7145">Größere Karte anzeigen</a></small> -->
-    </div>
-</div>
-
-</body>
+</mc-module>

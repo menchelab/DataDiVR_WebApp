@@ -66,7 +66,9 @@ class AnnotationTextures:
 
         # generate sets
         set_a1 = set(self.annotations[type_1][annotation_1])
-        set_a2 = set(self.annotations[type_2][annotation_2])
+        set_a2 = set()
+        if operation != "single":
+            set_a2 = set(self.annotations[type_2][annotation_2])
 
         # perform operartion
         if operation == "union":

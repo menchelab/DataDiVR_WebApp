@@ -1,17 +1,10 @@
-<div class="gradientBox">
-
-    <div class='swagBox' style="width:420px; background-color: rgba(16, 3, 0, 0.3)">
-        <h5
-            style="float:left; font-size: 25px;  color: rgb(102, 102, 102); margin-top:5px; margin-bottom:5px;">
-            NODE SEARCH</h5>
-        <p id="searchcount" style="font-size: 15px; color: rgb(255, 255, 255); margin-top:0px; padding-left:10px ; margin-bottom: 0px; text-indent: 10px;  ">
+<mc-module id="module-node-search" name="Node Search">
+        <p id="searchcount" style="font-size: 15px; color: rgb(255, 255, 255); margin-top:0px; padding-left:10px; padding-right: 10px; margin-bottom: 0px; text-indent: 10px; float: right; ">
             [-]</p>
-        <div  class="gradient"></div>   
         <mc-TextInput id="search" container="scrollbox2" type="textinput" fn="search"></mc-TextInput>
         <button id="searchbutton1" class="swagButton" onclick="nodesearch()">GO</button>   
         <mc-scrollbox id='scrollbox2'></mc-scrollbox>
-    </div>
-</div>
+</mc-module>
 <script>
 function nodesearch() {
     var text = document.getElementById("search").shadowRoot.getElementById("text").value;
