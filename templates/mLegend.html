@@ -193,21 +193,75 @@
 
             $.getJSON(p_file, (pfiledata) => {
                 
-                const layoutname = pfiledata["layoutsRGB"][selected_id];
-                
-                let layout_with_clusters;
-                if (pfiledata["selections"].length != 0) {
-                    if ("layoutname" in pfiledata["selections"][0]) {                
-                        layout_with_clusters = pfiledata["selections"][0]["layoutname"]+"RGB";
-                    } else {
-                        layout_with_clusters = "";
-                    }
-                    //console.log("C_DEBUG - layout_with_clusters = ", layout_with_clusters);
-                }
+                let layoutname = pfiledata["layoutsRGB"][selected_id];
+                let l_layout_with_clusters = [];
 
-                if (layout_with_clusters !== layoutname) {                    
+                if (pfiledata["selections"].length != 0) {
+                    for (layoutid in pfiledata["selections"]) {
+                        if ("layoutname" in pfiledata["selections"][layoutid]) {
+                            let layout_with_clusters = pfiledata["selections"][layoutid]["layoutname"] + "RGB";
+                            l_layout_with_clusters.push(layout_with_clusters); // Use push() to add elements to an array
+                        }
+                    }
+                }
+                console.log("C_DEBUG - layoutmame selected = ", layoutname);
+                console.log("C_DEBUG - list layout_with_clusters = ", l_layout_with_clusters);
+
+                if (l_layout_with_clusters.includes(layoutname)) {
+                    // W I T H   D E F I N E D   C L U S T E R S 
+                    console.log("C_DEBUG in FOUND CLUSTERS ", l_layout_with_clusters);
+
+                    const clusterlist = pfiledata["selections"];
+                    //console.log("C_DEBUG - clusterlist = ", clusterlist); //.reverse());
+                    
+                    const allnode_Div = document.getElementById("legend_node_all");
+
+                    const nodedesc_Div = document.getElementById("legend_nodedescription");
+                    const nodecol_Div = document.getElementById("legend_nodecolor");
+                    nodedesc_Div.innerHTML = "";
+                    nodecol_Div.innerHTML = "";
+                    
+                    // loop through clusterlist 
+                    const labelColorDict = {};
+                    for (const key in clusterlist) {
+
+                        const labelColor = clusterlist[key]['labelcolor']; //value.labelcolor.slice(0, -1).join(',');
+                        const name = clusterlist[key]['name']; //value.name;
+
+                        console.log(clusterlist[key]['layoutname']);
+                        console.log("C_DEBUG: labelcolor: ", labelColor);
+                        console.log("C_DEBUG: name: ", name);
+
+                        const clusterlist_layoutname = clusterlist[key]['layoutname']+"RGB";
+                        console.log("C_DEBUG: clusterlist layoutname ",  clusterlist_layoutname);
+
+                        if (layoutname === clusterlist_layoutname) {
+                            console.log("C_DEBUG matched layoutname with clusterlist");
+                            labelColorDict[labelColor] = name;
+                        } 
+                    }
+                    console.log("C_DEBUG: labelColorDict = ", labelColorDict);
+            
+                    let idx = 0;
+                    for (const color in labelColorDict) { 
+                        const keys = Object.keys(labelColorDict);
+                        const color_reformated = 'rgb(' + color + ')';                            
+                        const textdiv = document.createElement("div");
+                        const text = document.createTextNode(labelColorDict[keys[idx]]); //newNamesDict[color]["name"]);                            
+                        textdiv.style.fontSize="14px";
+                        textdiv.style.lineHeight="24px"; // this should be same as colorImg.height+colorImg.marginBottom
+                        textdiv.appendChild(text);
+                        nodedesc_Div.appendChild(textdiv);
+                        const colorImg = displayColorAsDiv(color_reformated, 18.5, 18.5, 5.5, 0); 
+                        nodecol_Div.appendChild(colorImg);
+                        
+                        idx += 1;
+                    } 
+                    allnode_Div.appendChild(nodecol_Div);
+                    allnode_Div.appendChild(nodedesc_Div);
+                } else {                    
                     // W I T H O U T   D E F I N E D   C L U S T E R S (in pfiledata["selections"])
-                    //console.log("C_DEBUG - no clusters found");
+                    console.log("C_DEBUG - in else");
 
                     const allnode_Div = document.getElementById("legend_node_all");
 
@@ -288,47 +342,6 @@
                         
                     };
     
-                } else if (layout_with_clusters === layoutname) {
-                    // W I T H   D E F I N E D   C L U S T E R S 
-                    //console.log("C_DEBUG - in clusters found.");
-    
-                    const clusterlist = pfiledata["selections"];
-                    console.log("C_DEBUG - clusterlist = ", clusterlist); //.reverse());
-                    
-                    const allnode_Div = document.getElementById("legend_node_all");
-
-                    const nodedesc_Div = document.getElementById("legend_nodedescription");
-                    const nodecol_Div = document.getElementById("legend_nodecolor");
-                    nodedesc_Div.innerHTML = "";
-                    nodecol_Div.innerHTML = "";
-                    
-                    // loop through clusterlist 
-                    const labelColorDict = {};
-                    for (const key in clusterlist) {
-                        const value = clusterlist[key];
-                        const labelColor = value.labelcolor.slice(0, -1).join(',');
-                        const name = value.name;
-                        labelColorDict[labelColor] = name;
-                        }
-                    //console.log("C_DEBUG: labelColorDict = ", labelColorDict);
-            
-                    let idx = 0;
-                    for (const color in labelColorDict) { 
-                        const keys = Object.keys(labelColorDict);
-                        const color_reformated = 'rgb(' + color + ')';                            
-                        const textdiv = document.createElement("div");
-                        const text = document.createTextNode(labelColorDict[keys[idx]]); //newNamesDict[color]["name"]);                            
-                        textdiv.style.fontSize="14px";
-                        textdiv.style.lineHeight="24px"; // this should be same as colorImg.height+colorImg.marginBottom
-                        textdiv.appendChild(text);
-                        nodedesc_Div.appendChild(textdiv);
-                        const colorImg = displayColorAsDiv(color_reformated, 18.5, 18.5, 5.5, 0); 
-                        nodecol_Div.appendChild(colorImg);
-                        
-                        idx += 1;
-                    } 
-                    allnode_Div.appendChild(nodecol_Div);
-                    allnode_Div.appendChild(nodedesc_Div);
                 }
             })
 
