@@ -417,7 +417,6 @@ def layout_spectral(ordered_graph: util.OrderedGraph)->dict:
         
         # scale positions
         scaled_pos = scale_positions(positions=positions, node_order=ordered_graph.node_order)
-        print(scaled_pos)
         # return positions
         return {"success": True, "content": scaled_pos}
     except:

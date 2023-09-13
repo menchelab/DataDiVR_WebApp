@@ -53,6 +53,13 @@ import uploader
 import uploaderGraph
 import util
 import websocket_functions as webfunc
+import spam_protection as spam
+
+
+
+#### Settings
+
+spam_protector = spam.SpamProtector()
 
 log = logging.getLogger("werkzeug")
 log.setLevel(logging.ERROR)
@@ -257,6 +264,7 @@ def join(message):
 
 
 @socketio.on("ex", namespace="/main")
+@spam_protector
 def ex(message):
     room = flask.session.get("room")
     # print(webfunc.bcolors.WARNING+ flask.session.get("username")+ "ex: "+ json.dumps(message)+ webfunc.bcolors.ENDC)
