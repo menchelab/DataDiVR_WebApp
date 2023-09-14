@@ -38,6 +38,7 @@ from werkzeug.utils import secure_filename
 
 import analytics
 import annotation
+import enrichment_module
 import cartographs_func as CG
 import chat
 import chatGPTTest
@@ -398,6 +399,12 @@ def ex(message):
 
     elif message["fn"] == "selections":
         if message["id"] == "selectionsCb":
+            if "selections" not in GD.pfile.keys():
+                GD.pfile["selections"] = []
+                GD.savePFile()
+            if not GD.pfile["selections"]:
+                print("CLIPBOARD: No selections available.")
+                return
             activeSelIndex = int(GD.pdata["selectionsDD"])
             selectionNodes = GD.pfile["selections"][activeSelIndex]["nodes"]
 
@@ -1075,6 +1082,7 @@ def ex(message):
                         "ERROR: Select Annotation 1 to clipboard annotations."
                     )
                     return
+                print("DEBUG: ", GD.pdata["annotation_1"], GD.pdata["annotation_type_1"], GD.annotations[GD.pdata["annotation_type_1"]][GD.pdata["annotation_1"]])
                 selectionNodes = GD.annotations[GD.pdata["annotation_type_1"]][GD.pdata["annotation_1"]]
                 
 
@@ -1118,10 +1126,18 @@ def ex(message):
             if not "cbnode" in GD.pdata.keys():
                 GD.pdata["cbnode"] = []
 
-            exists = False  # check if node already exists in clipboard
+
             for nodeID in selectionNodes:
+                exists = False    # check if node already exists in clipboard
                 if int(nodeID) == int(GD.pdata["activeNode"]):
                     exists = True
+                    continue
+
+                for cbnode in GD.pdata["cbnode"]:
+                    if int(nodeID) == int(cbnode["id"]):
+                        exists = True
+                        break
+
                 if not exists: 
                     cbnode = {}
                     try:  ### improve this, runs sometimes into issues when activeNode is not valid
@@ -1139,7 +1155,6 @@ def ex(message):
             response["fn"] = "cbaddNode"
             response["val"] = GD.pdata["cbnode"]
             emit("ex", response, room=room)
-
 
 
     elif message["fn"] == "annotationDD":
@@ -1747,6 +1762,46 @@ def ex(message):
             response["val"] = False
             emit("ex", response, room=room)
 
+    elif message["fn"] == "enrichment":
+        response = {}
+        response["usr"] = message["usr"]
+        response["id"] = message["id"]
+        
+        if message["id"] == "init":
+            response["fn"] = "enrichment"
+            if "enrichment_query" not in GD.pdata.keys():
+                GD.pdata["enrichment_query"] = []
+                GD.savePD()
+            response["valQuery"] = GD.pdata["enrichment_query"]
+            if "annotationTypes" not in GD.pfile.keys():
+                # assumption: if flag is not set it will most likely be false
+                GD.pfile["annotationTypes"] = False
+                GD.savePFile()
+            response["valHideNote"] = GD.pfile["annotationTypes"]
+            emit("ex", response, room=room)
+            return
+        
+        if message["id"] == "enrichment-import":
+            enrichment_module.query_from_clipboard()
+            response["fn"] = "enrichment"
+            response["val"] = GD.pdata["enrichment_query"]
+            emit("ex", response, room=room)
+            return
+
+        if message["id"] == "enrichment-clear":
+            enrichment_module.query_clear()
+            response["fn"] = "enrichment"
+            response["val"] = []
+            emit("ex", response, room=room)
+            return
+
+        if message["id"] == "enrichment-run":
+            if not enrichment_module.validate():
+                return
+            enrichment_module.main()
+            print("ENRICHMENT: TODO: send query run request")
+            return
+
 
     elif message["fn"] == "dropdown":
         response = {}
@@ -1777,6 +1832,14 @@ def ex(message):
                 if message["id"] == "layoutModule":
                     response["opt"] = layout_module.LAYOUT_TABS
                     response["sel"] = "0"
+
+                if message["id"] == "enrichment-cutoff":
+                    response["opt"] = enrichment_module.ALPHA_VALUES
+                    response["sel"] = 0
+
+                if message["id"] == "enrichment-features":
+                    response["opt"] = GD.annotation_types
+                    response["sel"] = 0
 
                 # dropdown for visualization type selection
                 vis_selected = 0

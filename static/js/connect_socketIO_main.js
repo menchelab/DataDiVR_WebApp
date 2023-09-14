@@ -184,6 +184,7 @@ function updateMcElements(){
     //socket.emit('ex', { usr:uid, id: "annotationInit", fn: "annotation", val:"init"})
     socket.emit('ex', {usr:uid,  val: "init", id: "annotation-dd-1", fn: "annotation"});
     socket.emit('ex', {usr:uid,  val: "init", id: "annotation-dd-2", fn: "annotation"});
+    socket.emit('ex', {usr:uid,  val: "init", id: "init", fn: "enrichment"})
 }
 
 function reconnect(){
@@ -556,6 +557,9 @@ $(document).ready(function(){
                             break;
                             case "Mod-based Communities":
                                 $("#analyticsSelectedModcommunity").css('display', 'inline-block');
+                            break;
+                            case "Clustering Coefficient":
+                                $("#analyticsSelectedClusteringCoeff").css('display', 'inline-block');
                             break;
                             case "Clustering Coefficient":
                                 $("#analyticsSelectedClusteringCoeff").css('display', 'inline-block');
@@ -1170,6 +1174,38 @@ $(document).ready(function(){
                     document.getElementById(data.id).minimizeModule();
                 }
                 break;
+
+            case "enrichment":
+                if (data.id == "init"){
+
+                    $("#enrichment-note").css('display', 'none');
+                    if (data.valHideNote == false){$("#enrichment-note").css('display', 'block');}
+
+                    let button_container = document.getElementById("enrichment-query").shadowRoot.getElementById("box");
+                    removeAllChildNodes(button_container);
+                    for (let i = 0; i < data.valQuery.length; i++) {
+                        $(button_container).append("<mc-button id = 'button"+ i + " 'val= '"+ data.valQuery[i].id + "' name = '"+ data.valQuery[i].name +  "' w = '118' fn = 'node' color = '" + rgbToHex(data.valQuery[i].color[0]*0.5,data.valQuery[i].color[1]*0.5,data.valQuery[i].color[2]*0.5) + "' ></mc-button>");
+                    }
+                    break;
+                }
+
+                if (data.id == "enrichment-import"){
+                    let button_container = document.getElementById("enrichment-query").shadowRoot.getElementById("box");
+                    removeAllChildNodes(button_container);
+                    for (let i = 0; i < data.val.length; i++) {
+                        $(button_container).append("<mc-button id = 'button"+ i + " 'val= '"+ data.val[i].id + "' name = '"+ data.val[i].name +  "' w = '118' fn = 'node' color = '" + rgbToHex(data.val[i].color[0]*0.5,data.val[i].color[1]*0.5,data.val[i].color[2]*0.5) + "' ></mc-button>");
+                    }
+                    break;
+                }
+
+                if (data.id == "enrichment-clear"){
+                    let button_container = document.getElementById("enrichment-query").shadowRoot.getElementById("box");
+                    removeAllChildNodes(button_container);
+                }
+
+                if (data.id == "enrichment-run"){
+                    console.log("TODO run");
+                }
 
 
         } 
