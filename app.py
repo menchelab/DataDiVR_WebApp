@@ -1798,9 +1798,17 @@ def ex(message):
         if message["id"] == "enrichment-run":
             if not enrichment_module.validate():
                 return
-            enrichment_module.main()
-            print("ENRICHMENT: TODO: send query run request")
+            
+            result_test, result_plot = enrichment_module.main(highlight = message.get("val", None))
+            response["fn"] = "enrichment"
+            response["val"] = result_plot
+            emit("ex", response, room=room)
             return
+
+        if message["id"] == "enrichment-plotClick":
+            print("TODO: plot responsive")
+            return
+
 
 
     elif message["fn"] == "dropdown":

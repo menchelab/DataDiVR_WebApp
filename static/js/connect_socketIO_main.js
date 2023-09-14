@@ -1204,10 +1204,34 @@ $(document).ready(function(){
                 }
 
                 if (data.id == "enrichment-run"){
-                    console.log("TODO run");
+                    const config = {displayModeBar: false};
+                    const layout = {};
+                    let plot_data = JSON.parse(data["val"]);
+                    let targetName = "enrichment-container";
+                    let targetContainer = document.getElementById(targetName);
+                    let user = data.usr;
+                                    
+                    Plotly.newPlot(targetName, plot_data, layout, config);
+                    targetContainer.on('plotly_click', function(data){
+                        if (data.event.button !== 0){return;}
+
+                        let clickedBar = data.points[0].customdata;
+                        console.log(clickedBar);
+
+                        let request = {
+                            fn: "enrichment",
+                            id: "enrichment-run",
+                            val: clickedBar,
+                            usr: user
+                        }
+
+                        socket.emit("ex", request);
+                    });
+                    
+                    targetContainer.style.display = "inline-block";
+                    const NavBar = document.getElementsByClassName("modebar-container");
+                    for (let i = 0; i < NavBar.length; i++) {NavBar[i].style.visibility = "hidden";}
                 }
-
-
         } 
     });
 
