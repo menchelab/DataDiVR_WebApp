@@ -1,0 +1,45 @@
+<!-- Enrichment Analysis Module -->
+
+
+<mc-module id="module-erichment" name="Enrichment">
+    <h5 style="display:block; font-size: 25px;  color: rgb(102, 102, 102); margin-top:15px; margin-bottom:5px; margin-left:5px;">Query Set</h5>
+    <div style="display:block;">
+        <mc-button1 id="enrichment-import" name="Import Clipboard" fn="enrichment"></mc-button1>
+        <mc-button1 id="enrichment-clear" name="Clear" fn="enrichment"></mc-button1>
+    </div>
+    <mc-scrollbox id="enrichment-query"></mc-scrollbox>
+
+    <h5 style="display:block; font-size: 25px;  color: rgb(102, 102, 102); margin-top:15px; margin-bottom:5px; margin-left:5px;">Feature Set</h5>
+    <span id="enrichment-note-features" style="color: rgb(250, 12, 12); margin-left:5px; display: none;">Warning: No annotation types provided. Upload again using annotation types for significant results.</span>
+    <mc-dropdown-no-header id="enrichment-features" class="GD" type="dropdown" fn="dropdown" name="Feature Set"></mc-dropdown-no-header>
+
+    <h5 style="display:block; font-size: 25px;  color: rgb(102, 102, 102); margin-top:15px; margin-bottom:5px; margin-left:5px;">&#945;-cutoff</h5>
+    <mc-dropdown-no-header id="enrichment-cutoff" class="GD" type="dropdown" fn="dropdown" name="&#945; - Significance Level"></mc-dropdown-no-header>
+
+    <mc-button1 id="enrichment-run" name="RUN" fn="enrichment"></mc-button1>
+    <br>
+    <div id="enrichment-colors" style="display: none;">
+        <br>
+        <div class="gradient"></div>
+        <br>
+
+        <div style="display: block;">
+            <div style="display: block; margin-left: 6px;">
+                <div style="width: 18.5px; height: 18.5px; border: 1px solid grey; background-color: rgb(255, 166, 0); display: inline-flex; margin-right: 6px;"></div>
+                <p style="font-size: 16; display: inline;">Feature and Query</p>
+            </div>
+            <div style="display: block; margin-left: 6px;">
+                <div style="width: 18.5px; height: 18.5px; border: 1px solid grey; background-color: rgb(99, 110, 250); display: inline-flex; margin-right: 6px;"></div>
+                <p style="font-size: 16; display: inline;">Feature and not Query</p>
+            </div>
+            <div  style="display: block; margin-left: 6px;">
+                <div style="width: 18.5px; height: 18.5px; border: 1px solid grey; background-color: rgb(3, 218, 198); display: inline-flex; margin-right: 6px;"></div>
+                <p style="font-size: 16; display: inline;">not Feature and Query</p>
+            </div>
+        </div>
+        <div class="gradient"></div>
+        <br>
+    </div>
+    <span id="enrichment-note-result" style="color: rgb(250, 12, 12); margin-left:5px; display: none;">Some text</span>
+    <div id="enrichment-container"></div>
+</mc-module>

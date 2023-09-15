@@ -38,6 +38,7 @@ from werkzeug.utils import secure_filename
 
 import analytics
 import annotation
+import enrichment_module
 import cartographs_func as CG
 import chat
 import chatGPTTest
@@ -398,6 +399,12 @@ def ex(message):
 
     elif message["fn"] == "selections":
         if message["id"] == "selectionsCb":
+            if "selections" not in GD.pfile.keys():
+                GD.pfile["selections"] = []
+                GD.savePFile()
+            if not GD.pfile["selections"]:
+                print("CLIPBOARD: No selections available.")
+                return
             activeSelIndex = int(GD.pdata["selectionsDD"])
             selectionNodes = GD.pfile["selections"][activeSelIndex]["nodes"]
 
@@ -1118,10 +1125,18 @@ def ex(message):
             if not "cbnode" in GD.pdata.keys():
                 GD.pdata["cbnode"] = []
 
-            exists = False  # check if node already exists in clipboard
+
             for nodeID in selectionNodes:
+                exists = False    # check if node already exists in clipboard
                 if int(nodeID) == int(GD.pdata["activeNode"]):
                     exists = True
+                    continue
+
+                for cbnode in GD.pdata["cbnode"]:
+                    if int(nodeID) == int(cbnode["id"]):
+                        exists = True
+                        break
+
                 if not exists: 
                     cbnode = {}
                     try:  ### improve this, runs sometimes into issues when activeNode is not valid
@@ -1139,7 +1154,6 @@ def ex(message):
             response["fn"] = "cbaddNode"
             response["val"] = GD.pdata["cbnode"]
             emit("ex", response, room=room)
-
 
 
     elif message["fn"] == "annotationDD":
@@ -1747,6 +1761,95 @@ def ex(message):
             response["val"] = False
             emit("ex", response, room=room)
 
+    elif message["fn"] == "enrichment":
+        response = {}
+        response["usr"] = message["usr"]
+        response["id"] = message["id"]
+        
+        if message["id"] == "init":
+            response["fn"] = "enrichment"
+            if "enrichment_query" not in GD.pdata.keys():
+                GD.pdata["enrichment_query"] = []
+                GD.savePD()
+            response["valQuery"] = GD.pdata["enrichment_query"]
+            if "annotationTypes" not in GD.pfile.keys():
+                # assumption: if flag is not set it will most likely be false
+                GD.pfile["annotationTypes"] = False
+                GD.savePFile()
+            response["valHideNote"] = GD.pfile["annotationTypes"]
+            emit("ex", response, room=room)
+            return
+        
+        if message["id"] == "enrichment-import":
+            enrichment_module.query_from_clipboard()
+            response["fn"] = "enrichment"
+            response["val"] = GD.pdata["enrichment_query"]
+            emit("ex", response, room=room)
+            return
+
+        if message["id"] == "enrichment-clear":
+            enrichment_module.query_clear()
+            response["fn"] = "enrichment"
+            response["val"] = []
+            emit("ex", response, room=room)
+            return
+
+        if message["id"] == "enrichment-run":
+            if not enrichment_module.validate():
+                return
+            
+            result_plot, highlight_payload, highlight_texture_obj, display_note = enrichment_module.main(highlight = message.get("val", None))
+            response["fn"] = "enrichment"
+            response["valPlot"] = result_plot
+            response["valPayload"] = highlight_payload
+            emit("ex", response, room=room)
+
+            if display_note is not None:
+                response_note = {}
+                response_note["usr"] = message["usr"]
+                response_note["fn"] = "enrichment"
+                response_note["id"] = "enrichment-note-result"
+                response_note["val"] = display_note
+                emit("ex", response_note, room=room)
+
+            if highlight_texture_obj is None:
+                return
+            
+            if highlight_texture_obj["textures_created"] is False:
+                print("Failed to create textures for Enrichment.")
+                return
+            
+            response_colors = {}
+            response_colors["usr"] = message["usr"]
+            response_colors["fn"] = "enrichment"
+            response_colors["id"] = "enrichment-colors"
+            response_colors["val"] = True
+            emit("ex", response_colors, room=room)
+
+            response_textures = {}
+            response_textures["usr"] = message["usr"]
+            response_textures["fn"] = "updateTempTex"
+            response_textures["textures"] = []
+            response_textures["textures"].append(
+                {
+                    "channel": "nodeRGB",
+                    "path": highlight_texture_obj["path_nodes"],
+                }
+            )
+            response_textures["textures"].append(
+                {
+                    "channel": "linkRGB",
+                    "path": highlight_texture_obj["path_links"],
+                }
+            )
+            emit("ex", response_textures, room=room)
+            return
+
+        if message["id"] == "enrichment-plotClick":
+            print("TODO: plot responsive")
+            return
+
+
 
     elif message["fn"] == "dropdown":
         response = {}
@@ -1777,6 +1880,14 @@ def ex(message):
                 if message["id"] == "layoutModule":
                     response["opt"] = layout_module.LAYOUT_TABS
                     response["sel"] = "0"
+
+                if message["id"] == "enrichment-cutoff":
+                    response["opt"] = enrichment_module.ALPHA_VALUES
+                    response["sel"] = 0
+
+                if message["id"] == "enrichment-features":
+                    response["opt"] = GD.annotation_types
+                    response["sel"] = 0
 
                 # dropdown for visualization type selection
                 vis_selected = 0
