@@ -1177,9 +1177,10 @@ $(document).ready(function(){
 
             case "enrichment":
                 if (data.id == "init"){
-
-                    $("#enrichment-note").css('display', 'none');
-                    if (data.valHideNote == false){$("#enrichment-note").css('display', 'block');}
+                    $("#enrichment-colors").css('display', 'none');
+                    $("#enrichment-note-result").css('display', 'none');
+                    $("#enrichment-note-features").css('display', 'none');
+                    if (data.valHideNote == false){$("#enrichment-note-features").css('display', 'block');}
 
                     let button_container = document.getElementById("enrichment-query").shadowRoot.getElementById("box");
                     removeAllChildNodes(button_container);
@@ -1206,7 +1207,8 @@ $(document).ready(function(){
                 if (data.id == "enrichment-run"){
                     const config = {displayModeBar: false};
                     const layout = {};
-                    let plot_data = JSON.parse(data["val"]);
+                    let plot_data = JSON.parse(data["valPlot"]);
+                    let payload = data.valPayload
                     let targetName = "enrichment-container";
                     let targetContainer = document.getElementById(targetName);
                     let user = data.usr;
@@ -1215,13 +1217,13 @@ $(document).ready(function(){
                     targetContainer.on('plotly_click', function(data){
                         if (data.event.button !== 0){return;}
 
-                        let clickedBar = data.points[0].customdata;
-                        console.log(clickedBar);
+                        let clickedBar = data.points[0].customdata[0];
+                        let clickedFeature = data.points[0].customdata[1];
 
                         let request = {
                             fn: "enrichment",
                             id: "enrichment-run",
-                            val: clickedBar,
+                            val: [clickedBar, clickedFeature, payload[0], payload[1], payload[2]], // bar id, feature. feature type, test result dict, query ids list
                             usr: user
                         }
 
@@ -1231,6 +1233,14 @@ $(document).ready(function(){
                     targetContainer.style.display = "inline-block";
                     const NavBar = document.getElementsByClassName("modebar-container");
                     for (let i = 0; i < NavBar.length; i++) {NavBar[i].style.visibility = "hidden";}
+                }
+
+                if (data.id == "enrichment-colors"){
+                    if (data.val == true){$("#enrichment-colors").css('display', 'block');}
+                }
+                if (data.id == "enrichment-note-result"){
+                    $("#enrichment-note-result").css('display', 'block');
+                    $("#enrichment-note-result").html(data.val)
                 }
         } 
     });

@@ -1082,7 +1082,6 @@ def ex(message):
                         "ERROR: Select Annotation 1 to clipboard annotations."
                     )
                     return
-                print("DEBUG: ", GD.pdata["annotation_1"], GD.pdata["annotation_type_1"], GD.annotations[GD.pdata["annotation_type_1"]][GD.pdata["annotation_1"]])
                 selectionNodes = GD.annotations[GD.pdata["annotation_type_1"]][GD.pdata["annotation_1"]]
                 
 
@@ -1799,10 +1798,51 @@ def ex(message):
             if not enrichment_module.validate():
                 return
             
-            result_test, result_plot = enrichment_module.main(highlight = message.get("val", None))
+            result_plot, highlight_payload, highlight_texture_obj, display_note = enrichment_module.main(highlight = message.get("val", None))
             response["fn"] = "enrichment"
-            response["val"] = result_plot
+            response["valPlot"] = result_plot
+            response["valPayload"] = highlight_payload
             emit("ex", response, room=room)
+
+            if display_note is not None:
+                response_note = {}
+                response_note["usr"] = message["usr"]
+                response_note["fn"] = "enrichment"
+                response_note["id"] = "enrichment-note-result"
+                response_note["val"] = display_note
+                emit("ex", response_note, room=room)
+
+            if highlight_texture_obj is None:
+                return
+            
+            if highlight_texture_obj["textures_created"] is False:
+                print("Failed to create textures for Enrichment.")
+                return
+            
+            response_colors = {}
+            response_colors["usr"] = message["usr"]
+            response_colors["fn"] = "enrichment"
+            response_colors["id"] = "enrichment-colors"
+            response_colors["val"] = True
+            emit("ex", response_colors, room=room)
+
+            response_textures = {}
+            response_textures["usr"] = message["usr"]
+            response_textures["fn"] = "updateTempTex"
+            response_textures["textures"] = []
+            response_textures["textures"].append(
+                {
+                    "channel": "nodeRGB",
+                    "path": highlight_texture_obj["path_nodes"],
+                }
+            )
+            response_textures["textures"].append(
+                {
+                    "channel": "linkRGB",
+                    "path": highlight_texture_obj["path_links"],
+                }
+            )
+            emit("ex", response_textures, room=room)
             return
 
         if message["id"] == "enrichment-plotClick":
