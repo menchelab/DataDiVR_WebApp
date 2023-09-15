@@ -1917,7 +1917,7 @@ def ex(message):
                     GD.savePD()
 
                 if message["id"] == "selectionsDD":
-                    print(GD.pfile["selections"][int(message["val"])]["nodes"])
+                    #print(GD.pfile["selections"][int(message["val"])]["nodes"])
                     response2 = {}
                     response2["usr"] = message["usr"]
                     response2["id"] = message["id"]

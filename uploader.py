@@ -723,7 +723,7 @@ def upload_files(request):
         for file in label_file:
             name = file.filename.split(".")[0]
             labels_content = file.read().decode('utf-8')
-            print(labels_content)
+            #print(labels_content)
             lines = labels_content.splitlines()
             for line in lines:
                 thislabelText = line.split(";")[0]
@@ -964,7 +964,7 @@ def makeNodeTex(project, name, file, labelfile):
     try:
         l=0
         for row in csvreaderl:
-            print(row)
+            #print(row)
             thiscolor = [200,200,200]
             thisnode = {}
             index = elem + l 
@@ -976,7 +976,7 @@ def makeNodeTex(project, name, file, labelfile):
             # A LIST OF NODES
                 my_list = row[0].split(";")
                 row[0] = my_list[1]
-                print(my_list)
+                #print(my_list)
                 accPos = [0,0,0]
                 thisnode["n"] = my_list[0]
 

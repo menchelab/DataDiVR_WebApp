@@ -684,6 +684,17 @@ $(document).ready(function(){
                 Legend_displayGraphInfo(pfile.name);
                 Legend_displayfirstFile(pfile.name);
 
+                Legend_displayNodeInfobyID(pfile.name, 0); 
+                Legend_displayLinkInfobyID(pfile.name,  0); 
+                Legend_displayGraphLayoutbyID(pfile.name, 0, "layouts", "graphlayout");
+                Legend_displayGraphLayoutbyID(pfile.name, 0, "layouts", "graphlayout_nodecolors");
+                Legend_displayGraphLayoutbyID(pfile.name, 0, "layouts", "graphlayout_linkcolors");
+
+
+                // update dropdowns
+                document.getElementById("layoutsDD").shadowRoot.getElementById("sel");
+                //layouts_DD.setAttribute("sel", parseInt(data.sel));
+
                 if (isPreview){
                     downloadProjectTextures(); // download textures for preview, report when done
                 }
