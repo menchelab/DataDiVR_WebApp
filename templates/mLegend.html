@@ -245,7 +245,12 @@
                     let idx = 0;
                     for (const color in labelColorDict) { 
                         const keys = Object.keys(labelColorDict);
-                        const color_reformated = 'rgb(' + color + ')';                            
+                        //const color_reformated = 'rgb(' + color + ')';  
+                        const colorParts = color.split(',').map(Number); // Split and convert to numbers
+                        const color_reformated = 'rgb(' + colorParts.slice(0, 3).join(', ') + ')';
+    
+                        console.log("C_DEBUG: color =", color_reformated);
+                        
                         const textdiv = document.createElement("div");
                         const text = document.createTextNode(labelColorDict[keys[idx]]); //newNamesDict[color]["name"]);                            
                         textdiv.style.fontSize="14px";
