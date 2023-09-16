@@ -1177,83 +1177,83 @@ $(document).ready(function(){
                 //alert("rrrrrreeee");
                 break;
 
-            case"moduleState":
-                if (data.val == true){
-                    document.getElementById(data.id).maximizeModule();
-                }
-                if (data.val == false){
-                    document.getElementById(data.id).minimizeModule();
-                }
-                break;
+            // case"moduleState":
+            //     if (data.val == true){
+            //         document.getElementById(data.id).maximizeModule();
+            //     }
+            //     if (data.val == false){
+            //         document.getElementById(data.id).minimizeModule();
+            //     }
+            //     break;
 
-            case "enrichment":
-                if (data.id == "init"){
-                    $("#enrichment-colors").css('display', 'none');
-                    $("#enrichment-note-result").css('display', 'none');
-                    $("#enrichment-note-features").css('display', 'none');
-                    if (data.valHideNote == false){$("#enrichment-note-features").css('display', 'block');}
+        //     case "enrichment":
+        //         if (data.id == "init"){
+        //             $("#enrichment-colors").css('display', 'none');
+        //             $("#enrichment-note-result").css('display', 'none');
+        //             $("#enrichment-note-features").css('display', 'none');
+        //             if (data.valHideNote == false){$("#enrichment-note-features").css('display', 'block');}
 
-                    let button_container = document.getElementById("enrichment-query").shadowRoot.getElementById("box");
-                    removeAllChildNodes(button_container);
-                    for (let i = 0; i < data.valQuery.length; i++) {
-                        $(button_container).append("<mc-button id = 'button"+ i + " 'val= '"+ data.valQuery[i].id + "' name = '"+ data.valQuery[i].name +  "' w = '118' fn = 'node' color = '" + rgbToHex(data.valQuery[i].color[0]*0.5,data.valQuery[i].color[1]*0.5,data.valQuery[i].color[2]*0.5) + "' ></mc-button>");
-                    }
-                    break;
-                }
+        //             let button_container = document.getElementById("enrichment-query").shadowRoot.getElementById("box");
+        //             removeAllChildNodes(button_container);
+        //             for (let i = 0; i < data.valQuery.length; i++) {
+        //                 $(button_container).append("<mc-button id = 'button"+ i + " 'val= '"+ data.valQuery[i].id + "' name = '"+ data.valQuery[i].name +  "' w = '118' fn = 'node' color = '" + rgbToHex(data.valQuery[i].color[0]*0.5,data.valQuery[i].color[1]*0.5,data.valQuery[i].color[2]*0.5) + "' ></mc-button>");
+        //             }
+        //             break;
+        //         }
 
-                if (data.id == "enrichment-import"){
-                    let button_container = document.getElementById("enrichment-query").shadowRoot.getElementById("box");
-                    removeAllChildNodes(button_container);
-                    for (let i = 0; i < data.val.length; i++) {
-                        $(button_container).append("<mc-button id = 'button"+ i + " 'val= '"+ data.val[i].id + "' name = '"+ data.val[i].name +  "' w = '118' fn = 'node' color = '" + rgbToHex(data.val[i].color[0]*0.5,data.val[i].color[1]*0.5,data.val[i].color[2]*0.5) + "' ></mc-button>");
-                    }
-                    break;
-                }
+        //         if (data.id == "enrichment-import"){
+        //             let button_container = document.getElementById("enrichment-query").shadowRoot.getElementById("box");
+        //             removeAllChildNodes(button_container);
+        //             for (let i = 0; i < data.val.length; i++) {
+        //                 $(button_container).append("<mc-button id = 'button"+ i + " 'val= '"+ data.val[i].id + "' name = '"+ data.val[i].name +  "' w = '118' fn = 'node' color = '" + rgbToHex(data.val[i].color[0]*0.5,data.val[i].color[1]*0.5,data.val[i].color[2]*0.5) + "' ></mc-button>");
+        //             }
+        //             break;
+        //         }
 
-                if (data.id == "enrichment-clear"){
-                    let button_container = document.getElementById("enrichment-query").shadowRoot.getElementById("box");
-                    removeAllChildNodes(button_container);
-                }
+        //         if (data.id == "enrichment-clear"){
+        //             let button_container = document.getElementById("enrichment-query").shadowRoot.getElementById("box");
+        //             removeAllChildNodes(button_container);
+        //         }
 
-                if (data.id == "enrichment-run"){
-                    const config = {displayModeBar: false};
-                    const layout = {};
-                    let plot_data = JSON.parse(data["valPlot"]);
-                    let payload = data.valPayload
-                    let targetName = "enrichment-container";
-                    let targetContainer = document.getElementById(targetName);
-                    let user = data.usr;
+        //         if (data.id == "enrichment-run"){
+        //             const config = {displayModeBar: false};
+        //             const layout = {};
+        //             let plot_data = JSON.parse(data["valPlot"]);
+        //             let payload = data.valPayload
+        //             let targetName = "enrichment-container";
+        //             let targetContainer = document.getElementById(targetName);
+        //             let user = data.usr;
                                     
-                    Plotly.newPlot(targetName, plot_data, layout, config);
-                    targetContainer.on('plotly_click', function(data){
-                        if (data.event.button !== 0){return;}
+        //             Plotly.newPlot(targetName, plot_data, layout, config);
+        //             targetContainer.on('plotly_click', function(data){
+        //                 if (data.event.button !== 0){return;}
 
-                        let clickedBar = data.points[0].customdata[0];
-                        let clickedFeature = data.points[0].customdata[1];
+        //                 let clickedBar = data.points[0].customdata[0];
+        //                 let clickedFeature = data.points[0].customdata[1];
 
-                        let request = {
-                            fn: "enrichment",
-                            id: "enrichment-run",
-                            val: [clickedBar, clickedFeature, payload[0], payload[1], payload[2]], // bar id, feature. feature type, test result dict, query ids list
-                            usr: user
-                        }
+        //                 let request = {
+        //                     fn: "enrichment",
+        //                     id: "enrichment-run",
+        //                     val: [clickedBar, clickedFeature, payload[0], payload[1], payload[2]], // bar id, feature. feature type, test result dict, query ids list
+        //                     usr: user
+        //                 }
 
-                        socket.emit("ex", request);
-                    });
+        //                 socket.emit("ex", request);
+        //             });
                     
-                    targetContainer.style.display = "inline-block";
-                    const NavBar = document.getElementsByClassName("modebar-container");
-                    for (let i = 0; i < NavBar.length; i++) {NavBar[i].style.visibility = "hidden";}
-                }
+        //             targetContainer.style.display = "inline-block";
+        //             const NavBar = document.getElementsByClassName("modebar-container");
+        //             for (let i = 0; i < NavBar.length; i++) {NavBar[i].style.visibility = "hidden";}
+        //         }
 
-                if (data.id == "enrichment-colors"){
-                    if (data.val == true){$("#enrichment-colors").css('display', 'block');}
-                }
-                if (data.id == "enrichment-note-result"){
-                    $("#enrichment-note-result").css('display', 'block');
-                    $("#enrichment-note-result").html(data.val)
-                }
-        } 
+        //         if (data.id == "enrichment-colors"){
+        //             if (data.val == true){$("#enrichment-colors").css('display', 'block');}
+        //         }
+        //         if (data.id == "enrichment-note-result"){
+        //             $("#enrichment-note-result").css('display', 'block');
+        //             $("#enrichment-note-result").html(data.val)
+        //         }
+         } 
     });
 
 });

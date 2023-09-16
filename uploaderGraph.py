@@ -213,42 +213,34 @@ def upload_filesJSON(request):
         all_layouts = pfile["layouts"]
         #print("C_DEBUG: all_layouts: ", all_layouts)
 
-        layoutname_pfile = pfile["selections"][0]["layoutname"]+"XYZ"
-        #print("C_DEBUG: layoutname_pfile: ", layoutname_pfile)
+        
+        clustercolors_dicts = []
+        for e,subdict in enumerate(pfile["selections"]):
+            layoutname_pfile = pfile["selections"][e]["layoutname"]+"XYZ"
+            #print("C_DEBUG: layoutname_pfile: ", layoutname_pfile)
 
+            d_clustercolors = {}
 
-        for x,i in enumerate(all_layouts):        
-            if i == layoutname_pfile:     
+            for x,i in enumerate(all_layouts):        
+                if i == layoutname_pfile:     
 
-                # get unique cluster values :
-                unique_clusters_firstnode = []
-                for lab in labels[x]["data"]:
-                    if lab not in unique_clusters_firstnode:
-                        unique_clusters_firstnode.append(lab[0]) # get id of first node in cluster to match with color 
-                
-                # get cluster colors based on first node id in cluster 
-                clustercolors = []
-                for nodeid in unique_clusters_firstnode:             
-                    if nodeid == str(nodelist["nodes"][int(nodeid)]["id"]):
-                        nodecol = nodecolors[x]["data"][int(nodeid)]
-                        clustercolors.append(nodecol)
+                    # get unique cluster values :
+                    unique_clusters_firstnode = []
+                    for lab in labels[x]["data"]:
+                        if lab not in unique_clusters_firstnode:
+                            unique_clusters_firstnode.append(lab[0]) # get id of first node in cluster to match with color 
+                    
+                    # get cluster colors based on first node id in cluster 
+                    clustercolors = []
+                    for nodeid in unique_clusters_firstnode:             
+                        if nodeid == str(nodelist["nodes"][int(nodeid)]["id"]):
+                            nodecol = nodecolors[x]["data"][int(nodeid)]
+                            clustercolors.append(nodecol)
+                        #print("C_DEBUG : CLUSTERCOLORS : ", clustercolors)
 
-                clusternames = []
-                for ids,nn in enumerate(nodelist["nodes"]):
-                    # check if node id is actually label id (distinguishable with "group" key)
-                    if "group" in nodelist["nodes"][ids]:
-                        clustern = nodelist["nodes"][ids]["n"]
-                        clusternames.append(clustern)
-                            
-                d_clusters = dict(zip(clusternames, clustercolors))
-                #print("C_DEBUG: d_clusters = ", d_clusters)
-
-                # add to pfile selections
-                for name,col in d_clusters.items():
-                    for subdict in pfile["selections"]:
-                        
-                        if name == subdict["name"]:
-                            subdict["labelcolor"] = col
+                        if nodeid in pfile["selections"][e]["nodes"]:
+                            pfile["selections"][e]["labelcolor"] = nodecol # clustercolors
+                            print("C_DEBUG: pfile[selections][clustername and labelcolor] : ", (pfile["selections"][e]["name"], pfile["selections"][e]["labelcolor"]))
 
         pfile["labelcount"] = len(labels[x]["data"])
 
