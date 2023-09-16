@@ -213,13 +213,9 @@ def upload_filesJSON(request):
         all_layouts = pfile["layouts"]
         #print("C_DEBUG: all_layouts: ", all_layouts)
 
-        
-        clustercolors_dicts = []
         for e,subdict in enumerate(pfile["selections"]):
             layoutname_pfile = pfile["selections"][e]["layoutname"]+"XYZ"
             #print("C_DEBUG: layoutname_pfile: ", layoutname_pfile)
-
-            d_clustercolors = {}
 
             for x,i in enumerate(all_layouts):        
                 if i == layoutname_pfile:     
@@ -240,7 +236,7 @@ def upload_filesJSON(request):
 
                         if nodeid in pfile["selections"][e]["nodes"]:
                             pfile["selections"][e]["labelcolor"] = nodecol # clustercolors
-                            print("C_DEBUG: pfile[selections][clustername and labelcolor] : ", (pfile["selections"][e]["name"], pfile["selections"][e]["labelcolor"]))
+                            #print("C_DEBUG: pfile[selections][clustername and labelcolor] : ", (pfile["selections"][e]["name"], pfile["selections"][e]["labelcolor"]))
 
         pfile["labelcount"] = len(labels[x]["data"])
 
