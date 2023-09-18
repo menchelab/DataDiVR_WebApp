@@ -300,10 +300,14 @@ def main(highlight=None):
             background = background_count
         )
 
+        if not test_result:
+            return None, None, None, "Warning: No significant feature hits."
+
     # build plot and insert responsive payload
     highlight_bar, highlight_feature, highlight_feature_type, highlight_results, highlight_query_ids = None, None, features_type, test_result, query_set
     if highlight is not None:
         highlight_bar, highlight_feature, highlight_feature_type, highlight_results, highlight_query_ids = highlight
+
 
     plot_json, display_note = _plot(
         data = highlight_results, 
@@ -324,6 +328,7 @@ def main(highlight=None):
 
     # return results
     payload = [highlight_feature_type, highlight_results, highlight_query_ids]
+
     return plot_json, payload, texture_obj, display_note
 
 

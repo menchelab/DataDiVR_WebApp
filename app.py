@@ -1799,10 +1799,11 @@ def ex(message):
                 return
             
             result_plot, highlight_payload, highlight_texture_obj, display_note = enrichment_module.main(highlight = message.get("val", None))
-            response["fn"] = "enrichment"
-            response["valPlot"] = result_plot
-            response["valPayload"] = highlight_payload
-            emit("ex", response, room=room)
+            if result_plot is not None:
+                response["fn"] = "enrichment"
+                response["valPlot"] = result_plot
+                response["valPayload"] = highlight_payload
+                emit("ex", response, room=room)
 
             if display_note is not None:
                 response_note = {}
