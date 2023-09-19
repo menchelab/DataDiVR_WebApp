@@ -3,7 +3,6 @@ Functions for Enrichment Module
 """
 import GlobalData as GD
 from PIL import Image
-import math
 import json
 import numpy as np
 import plotly.express as px
@@ -84,7 +83,6 @@ def _plot(data, highlight_bar=None):
     categories = [{"name": names[i], "value": values[i]} for i in range(data_size)]
     colors = ["#636efa" if i != highlight_bar else "orange" for i in range(data_size)]
 
-    data_offset = 1e-10 
     # Create subplots for each category
     subplots = make_subplots(
         rows=data_size,
@@ -100,7 +98,7 @@ def _plot(data, highlight_bar=None):
         subplots.add_trace(
             go.Bar(
                 x=[category["value"]],
-                y=[category["value"]],
+                y=[1],
                 orientation='h',
                 hoverinfo='text',
                 text=f'{category["name"]} :: {category["value"]:.2e}',
@@ -112,19 +110,16 @@ def _plot(data, highlight_bar=None):
 
     # Update the layout
     subplots.update_layout(
-        width=550,
         font_color="rgb(200,200,200)",
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         showlegend=False,
         title=None,
-        yaxis=dict(categoryorder="total ascending", fixedrange=True, type="log"),
+        yaxis=dict(categoryorder="total ascending", fixedrange=True),
         xaxis=dict(
             fixedrange=True,
             type="log",
-            zeroline=True,
-            tickvals=np.logspace(np.log10(data_offset), np.log10(max(values)), num=5),
-            ticktext=["{:.0e}".format(val) for val in np.logspace(np.log10(data_offset), np.log10(max(values)), num=5)],
+            zeroline=True
         ),
         bargap=0.1,
         height=45 * len(categories),
@@ -149,7 +144,7 @@ def _plot(data, highlight_bar=None):
 
     # Update the margins and size
     subplots['layout']['margin'] = {
-        'l': 0,
+        'l': 5,
         'r': 0,
         't': 20,
         'b': 1,
@@ -159,7 +154,7 @@ def _plot(data, highlight_bar=None):
 
     height_calc = max([45 * len(categories), 350])
     subplots['layout']['height'] = height_calc
-    subplots['layout']['width'] = height_calc
+    subplots['layout']['width'] = 400
 
     plotly_json = json.dumps(subplots, cls=pu.PlotlyJSONEncoder)
 
