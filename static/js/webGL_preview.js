@@ -17,7 +17,8 @@
         var scale = 20;
         const nscale = .02;
         var nodemeshes = [];
-        var linkmeshes = []
+        var linkmeshes = [];
+        var link_ids = [];
         var indexsphere;
         var labels = [];
         var children = [];
@@ -151,10 +152,10 @@
         }
 
         function updateLinkColors(data){
-            console.log("uopdate")
+            console.log("update")
             //console.log(linkmeshes);
             for (let i = 0; i < (linkmeshes.length); i++){
-                color = [data[i*4], data[i*4+1], data[i*4+2], data[i*4 + 3]];
+                color = [data[link_ids[i]*4], data[link_ids[i]*4+1], data[link_ids[i]*4+2], data[link_ids[i]*4 + 3]];
                 if (color[3] > 100) {
                     // if alpha is greater than 100, create emissive material
                     var material1 = new THREE.LineBasicMaterial({ 
@@ -402,14 +403,19 @@
                 if (pfile["linkcount"] > maxLinksPreview) {
                 document.getElementById("warning").innerHTML = "TOO MANY LINKS<br>FOR PREVIEW";
                 }
-                else{maxLinksPreview = pfile["linkcount"];}
                 count = 0;
-                for (let l = 0; l < maxLinksPreview; l++) {
+                for (let l = 0; count < maxLinksPreview && l < pfile["linkcount"]; l++) {
             
                         var link = getLink(l);
+                        const start = link["start"];
+                        const end = link["end"];
+                        
+
+                        if (start >= nodemeshes.length){continue;}
+                        if (end >= nodemeshes.length){continue;}
+
+
                         var color = getLColor(l);
-
-
                         if (color[3] > 100) {
                             // if alpha is greater than 100, create emissive material
                             var material1 = new THREE.LineBasicMaterial({ 
@@ -428,18 +434,11 @@
 
 
                         //const material1 = new THREE.LineBasicMaterial({ color: RGB2HTML(color[0], color[1], color[2]), transparent: true, opacity: 0.2 });
-                        const points = [];
-                        const start = link["start"];
-                        const end = link["end"];
-                        
-
-                        if (start >= maxNodesPreview){continue;}
-                        if (end >= maxNodesPreview){continue;}
 
 
                         //children[start].push(end);
                         //children[end].push(start);
-
+                        const points = [];
                         points.push(nodemeshes[start].position);
                         points.push(nodemeshes[end].position);
                         const geometry1 = new THREE.BufferGeometry().setFromPoints(points);
@@ -448,8 +447,9 @@
                         line.linewidth
                         line.name = "line"
                         scene.add(line);
-                        linkmeshes.push(line)
-                        count = l
+                        linkmeshes.push(line);
+                        count ++;
+                        link_ids.push(l)
                     //}
                 }
                

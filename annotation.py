@@ -85,18 +85,25 @@ class AnnotationTextures:
             
         # generate node texture
         nodes_colors = []
-        for node in self.nodes:
-            if node["id"] in set_result:
-                nodes_colors.append(self.colors["result"])
-                continue
-            if node["id"] in set_a1:
-                nodes_colors.append(self.colors["a1"])
-                continue
-            if node["id"] in set_a2:
-                nodes_colors.append(self.colors["a2"])
-                continue
-            nodes_colors.append(self.colors["none"])
+        if operation == "single":
+            for node in self.nodes:
+                if node["id"] in set_a1:
+                    nodes_colors.append(self.colors["a1"])
+                    continue
+                nodes_colors.append(self.colors["none"])
 
+        else:
+            for node in self.nodes:
+                if node["id"] in set_result:
+                    nodes_colors.append(self.colors["result"])
+                    continue
+                if node["id"] in set_a1:
+                    nodes_colors.append(self.colors["a1"])
+                    continue
+                if node["id"] in set_a2:
+                    nodes_colors.append(self.colors["a2"])
+                    continue
+                nodes_colors.append(self.colors["none"])
         
         texture_nodes_active = Image.open("static/projects/"+ GD.data["actPro"]  + "/layoutsRGB/"+ GD.pfile["layoutsRGB"][int(GD.pdata["layoutsRGBDD"])]+".png","r")
         texture_nodes = texture_nodes_active.copy()
@@ -105,16 +112,25 @@ class AnnotationTextures:
 
         # generate link texture
         link_colors = []
-        for link in self.links:
-            color = self.colors["none"]
-            start, end = int(link["s"]), int(link["e"])
-            if start in set_a2 and end in set_a2:
-                color = self.colors["a2"]
-            if start in set_a1 and end in set_a1:
-                color = self.colors["a1"]
-            if start in set_result and end in set_result:
-                color = self.colors["result"]
-            link_colors.append(color)
+        if operation == "single":
+            for link in self.links:
+                color = self.colors["none"]
+                start, end = int(link["s"]), int(link["e"])
+                if start in set_a1 and end in set_a1:
+                    color = self.colors["a1"]
+                link_colors.append(color)
+
+        else:
+            for link in self.links:
+                color = self.colors["none"]
+                start, end = int(link["s"]), int(link["e"])
+                if start in set_a2 and end in set_a2:
+                    color = self.colors["a2"]
+                if start in set_a1 and end in set_a1:
+                    color = self.colors["a1"]
+                if start in set_result and end in set_result:
+                    color = self.colors["result"]
+                link_colors.append(color)
         
         texture_links_active = Image.open("static/projects/"+ GD.data["actPro"]  + "/linksRGB/"+ GD.pfile["linksRGB"][int(GD.pdata["linksRGBDD"])]+".png","r")
         texture_links = texture_links_active.copy()

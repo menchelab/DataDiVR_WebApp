@@ -27,6 +27,7 @@ class SpamProtector:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             request_id = ""
+            result = None
             request_message = {}
             for arg in args:
                 if isinstance(arg, dict):
