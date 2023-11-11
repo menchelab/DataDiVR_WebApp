@@ -246,6 +246,7 @@ def upload_filesJSON(request):
 
 
     for file_index in range(len(nodecolors)):  # for color in nodecolors:
+        
         color = nodecolors[file_index]
 
         if len(color["data"]) == 0:
@@ -335,15 +336,15 @@ def loadGraphJSON(files, target):
             target.append(G_json)
 
 
-def parseGraphJSON_nodepositions(files,target):
+def parseGraphJSON_nodepositions(files, target):
     if len(files) > 0: 
-        for idx,file in enumerate(files):
+        for file in files:
 
             name_of_file = file["graph"]["name"]
             num_of_nodes = len(file["nodes"])
 
             nodepositions = []
-            for i in range(0,num_of_nodes):
+            for i in range(0, num_of_nodes):
                 pos = file["nodes"][i]["pos"]
                 # catch if positions contain "nan" values
                 if math.isnan(pos[0]) or math.isnan(pos[1]) or math.isnan(pos[2]):
@@ -432,7 +433,7 @@ def parseGraphJSON_linkcolors(files,target):
                         linkcolor_rgba.append(rgba_color)
 
                     # if RGBA FORMAT
-                    elif re.match(r'^rgba\((\d+),(\d+),(\d+),(\d+)\)$', color) or re.match(r'^\((\d+),(\d+),(\d+),(\d+)\)$', color):
+                    elif re.match(r'^rgba\((\d+),(\d+),(\d+),(\d+)\)$', color) or re.match(r'^\((\d+),(\d+),(\d+),(\d+)\)$', color) or re.match(r'^RGBA\((\d+),(\d+),(\d+),(\d+)\)$', color):
                         #print("C_DEBUG: link color is rgba")
                         rgba = re.findall(r'\d+', color)
                         rgba_color = tuple(map(int, rgba))
@@ -495,23 +496,22 @@ def parseGraphJSON_nodeinfo_complex(files):
 
 def parseGraphJSON_nodecolors(files,target):
     if len(files) > 0: 
-        for idx,file in enumerate(files):
+        for file in files:
 
             name_of_file = file["graph"]["name"]
             num_of_nodes = len(file["nodes"])
 
             nodecolor_rgba = []
 
-            for i in range(0,num_of_nodes):
+            for i in range(0, num_of_nodes):
                 # to do: add catch for nodecolor key 
                 color = file["nodes"][i]["nodecolor"]
                 
                 # if color is string 
                 if isinstance(color, str):
-
                     # if HEX FORMAT
                     if re.match(r'^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$', color):                        
-                        rgba_color = (*hex_to_rgb(color), 100)
+                        rgba_color = (hex_to_rgb(color), 100)
                         nodecolor_rgba.append(rgba_color)
 
                     # if HEX FORMAT with alpha
@@ -520,7 +520,7 @@ def parseGraphJSON_nodecolors(files,target):
                         nodecolor_rgba.append(rgba_color)
 
                     # if RGBA FORMAT
-                    elif re.match(r'^rgba\((\d+),(\d+),(\d+),(\d+)\)$', color):
+                    elif re.match(r'^rgba\((\d+),(\d+),(\d+),(\d+)\)$', color) or re.match(r'^RGBA\((\d+),(\d+),(\d+),(\d+)\)$', color):
                         rgba = re.findall(r'\d+', color)
                         rgba_color = tuple(map(int, rgba))
                         nodecolor_rgba.append(rgba_color)
