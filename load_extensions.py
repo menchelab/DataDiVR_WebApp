@@ -36,20 +36,20 @@ def import_blueprint(app: flask.Flask, ext: str, extensions_path: str) -> bool:
         print(f"\033[1;32mLoaded extension: {ext}")
         return module
     except ImportError:
-        print(f"\u001b[33m", traceback.format_exc())
-        print(f"\u001b[33mMake sure you installed a necessary python modules.")
+        print("\u001b[33m", traceback.format_exc())
+        print("\u001b[33mMake sure you installed a necessary python modules.")
         print(
             f"\u001b[33mYou can use:\n\npython3 -m pip install -r extensions/{ext}/requirements.txt\n\nTo install all requirements."
         )
     except AttributeError:
-        print(f"\u001b[33m", traceback.format_exc())
+        print("\u001b[33m", traceback.format_exc())
         print(
-            f"\u001b[33mMake sure you have an app.py file in the '/src/' folder of your extension."
+            "\u001b[33mMake sure you have an app.py file in the '/src/' folder of your extension."
         )
         print(
-            f"\u001b[33mMake sure that you have defined a 'url_prefix' for your in the app.py file."
+            "\u001b[33mMake sure that you have defined a 'url_prefix' for your in the app.py file."
         )
-        print(f"\u001b[33mMake sure your flask blueprint is called 'blueprint'.")
+        print("\u001b[33mMake sure your flask blueprint is called 'blueprint'.")
         return False
 
 
