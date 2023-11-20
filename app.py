@@ -434,6 +434,15 @@ def ex(message):
             emit("ex", response, room=room)
 
 
+    elif message["fn"] == "legend_scene_display":
+        # only here for managing forward and backward click
+        if "scenes" in GD.pfile.keys():
+            new_scene = GD.pfile["scenes"][message["val"]]
+            emit("ex", {"fn": "legend_scene_display", "has_scenes": True, "text": new_scene}, room=room)
+        else:
+            emit("ex", {"fn": "legend_scene_display", "has_scenes": False}, room=room)
+
+
     elif message["fn"] == "clipboard": 
         if message["id"] == "cbClear":
             # clear in backend
@@ -2017,7 +2026,8 @@ def ex(message):
                         room=room,
                     )
                     # update not self updating elements
-                    emit("ex", {"fn": "annotationDD", "id": "initDD", "options": GD.annotation_types})
+
+                    
                 else:
                     response["sel"] = message["val"]
                     response["name"] = message["msg"]

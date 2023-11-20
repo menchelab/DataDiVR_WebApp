@@ -10,6 +10,7 @@ import plotly.graph_objects as go
 import plotly.utils as pu
 import scipy.stats as st
 from plotly.subplots import make_subplots
+import math
 
 
 
@@ -97,7 +98,7 @@ def _plot(data, highlight_bar=None):
     for k, category in enumerate(categories):
         subplots.add_trace(
             go.Bar(
-                x=[category["value"]],
+                x=[-math.log(category["value"])],
                 y=[1],
                 orientation='h',
                 hoverinfo='text',
@@ -116,15 +117,15 @@ def _plot(data, highlight_bar=None):
         showlegend=False,
         title=None,
         yaxis=dict(categoryorder="total ascending", fixedrange=True),
+        # https://plotly.com/python-api-reference/generated/plotly.graph_objects.layout.html#plotly.graph_objects.layout.XAxis
         xaxis=dict(
             fixedrange=True,
             type="log",
-            zeroline=True
+            zeroline=True,
+            showticklabels=False
         ),
         bargap=0.1,
         height=45 * len(categories),
-        uniformtext_minsize=12,
-        uniformtext_mode='show',
         margin=dict(l=20, r=20, t=40, b=20),
         dragmode=False
     )
@@ -150,7 +151,7 @@ def _plot(data, highlight_bar=None):
         'b': 1,
     }
     for i in range(data_size):
-        subplots.update_xaxes(type='log', row=i+1, col=1)
+        subplots.update_xaxes(type='log', row=i+1, col=1, showticklabels=False)
 
     height_calc = max([45 * len(categories), 350])
     subplots['layout']['height'] = height_calc

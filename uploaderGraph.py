@@ -77,7 +77,7 @@ def upload_filesJSON(request):
     parseGraphJSON_linkcolors(jsonfiles, linkcolors)
     parseGraphJSON_labels(jsonfiles, labels)
     names = parseGraphJSON_textureNames(jsonfiles)  # list, containing names for textures defined in uploaded json as "textureName"
-
+    scene_description = parseGraphJSON_scene_description(jsonfiles)
 
     #----------------------------------
     # FOR GRAPH TITLE + DESCRIPTION 
@@ -303,6 +303,9 @@ def upload_filesJSON(request):
     #----------------------------------
     pfile["graphtitle"] = title_of_graph
     pfile["graphdesc"] = descr_of_graph
+    if scene_description:
+        pfile["scenes"] = scene_description
+    
     pfile["annotationTypes"] = complex_annotations    # define in pfile if you use annotation types or default flat annotation list
 
     #----------------------------------
@@ -614,3 +617,15 @@ def parseGraphJSON_textureNames(files):
             continue    
         out.append(file["textureName"])
     return out
+
+def parseGraphJSON_scene_description(files):
+    out = []
+    for file in files:
+        if "scene" in file["graph"].keys():
+            out.append(file["graph"]["scene"])
+            
+    if len(out) != len(files):
+        return False
+    
+    return out 
+        

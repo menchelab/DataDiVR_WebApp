@@ -33,7 +33,8 @@ class SpamProtector:
                 if isinstance(arg, dict):
                     request_message = arg
                     break
-            if "id" in request_message:
+            
+            if "id" in request_message.keys():
                 request_id = request_message["id"]
 
             if request_id not in SPAM_EXPENSIVE_IDS:

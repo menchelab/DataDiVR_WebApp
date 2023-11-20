@@ -185,6 +185,7 @@ function updateMcElements(){
     socket.emit('ex', {usr:uid,  val: "init", id: "annotation-dd-1", fn: "annotation"});
     socket.emit('ex', {usr:uid,  val: "init", id: "annotation-dd-2", fn: "annotation"});
     socket.emit('ex', {usr:uid,  val: "init", id: "init", fn: "enrichment"})
+    socket.emit("ex", {fn: "legend_scene_display", id: "legend_scene_display", val: 0});
 }
 
 function reconnect(){
@@ -589,7 +590,7 @@ $(document).ready(function(){
                             case "Spectral":
                                 $("#layoutSelectSpectral").css('display', 'inline-block');
                             break;
-                            // add bindings for options display here
+                            // add bindings for options display here4
                         }
                     }
 
@@ -726,6 +727,12 @@ $(document).ready(function(){
 
                     forwardidx = NEWIndexforwardstep(pfile.layouts.length); 
                     //console.log("C_DEBUG in ue4 forwardstep = ", forwardidx);
+
+                    socket.emit("ex", {
+                        fn: "legend_scene_display",
+                        id: "legend_scene_display",
+                        val: forwardidx
+                    });
                     
                     if (pfile.linksRGB.length <= forwardidx) {
                         linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
@@ -775,7 +782,13 @@ $(document).ready(function(){
                     backwardidx = NEWIndexbackwardstep(pfile.layouts.length); 
                     //console.log("C_DEBUG in ue4 backwardidx = ", backwardidx);
                     
-                    
+                    socket.emit("ex", {
+                        fn: "legend_scene_display",
+                        id: "legend_scene_display",
+                        val: backwardidx
+                    });
+
+
                     if (pfile.linksRGB.length <= backwardidx) {
                         linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
                         linksRGB_DD.setAttribute("sel", parseInt(0));
@@ -1252,6 +1265,16 @@ $(document).ready(function(){
                 if (data.id == "enrichment-note-result"){
                     $("#enrichment-note-result").css('display', 'block');
                     $("#enrichment-note-result").html(data.val)
+                }
+
+            case "legend_scene_display":
+                if (data.has_scenes === true){
+                    $("#legend-scene-description-container").css('display', 'block');
+                    $("#legend-scene-description-element").html("SCENE : : " + data.text)
+                }
+                else {
+                    $("#legend-scene-description-container").css('display', 'none');
+                    $("#legend-scene-description-element").html("")
                 }
          } 
     });
