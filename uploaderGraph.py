@@ -11,7 +11,7 @@ from uploader import *
 def hex_to_rgb(hx):
     hx = hx.lstrip('#')
     hlen = len(hx)
-    return tuple(int(hx[i:i+hlen//3], 16) for i in range(0, hlen, hlen//3))
+    return [int(hx[i:i+hlen//3], 16) for i in range(0, hlen, hlen//3)]
 
 def hex_to_rgba(hex_color):
     hex_color = hex_color.lstrip('#')
@@ -426,13 +426,14 @@ def parseGraphJSON_linkcolors(files,target):
                     # if HEX FORMAT
                     if re.match(r'^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$', color):
                         #print("C_DEBUG: link color is hex")
-                        rgba_color = (*hex_to_rgb(color), 100)
+                        _r, _g, _b = hex_to_rgb(color)
+                        rgba_color = (_r, _g, _b, 100)
                         linkcolor_rgba.append(rgba_color)
 
                     # if HEX FORMAT with alpha
                     elif re.match(r'^#([A-Fa-f0-9]{8})$', color):
                         #print("C_DEBUG: link color is hex with alpha")
-                        rgba_color = (hex_to_rgba(color))
+                        rgba_color = hex_to_rgba(color)
                         linkcolor_rgba.append(rgba_color)
 
                     # if RGBA FORMAT
@@ -513,13 +514,14 @@ def parseGraphJSON_nodecolors(files,target):
                 # if color is string 
                 if isinstance(color, str):
                     # if HEX FORMAT
-                    if re.match(r'^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$', color):                        
-                        rgba_color = (hex_to_rgb(color), 100)
+                    if re.match(r'^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$', color):
+                        _r, _g, _b = hex_to_rgb(color)                        
+                        rgba_color = (_r, _g, _b, 100)
                         nodecolor_rgba.append(rgba_color)
 
                     # if HEX FORMAT with alpha
                     elif re.match(r'^#([A-Fa-f0-9]{8})$', color):
-                        rgba_color = (hex_to_rgba(color))
+                        rgba_color = hex_to_rgba(color)
                         nodecolor_rgba.append(rgba_color)
 
                     # if RGBA FORMAT
