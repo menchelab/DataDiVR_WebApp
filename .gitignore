@@ -11,4 +11,4 @@ static/TTSaudio/
 extensions/whisperSpeechRecognition/static/WhisperAudio/
 python_tools/data
 extensions/ignore.py
-**/**.log
+logs/**
