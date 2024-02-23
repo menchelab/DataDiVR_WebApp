@@ -46,6 +46,7 @@ import GlobalData as GD
 import layout_module
 import load_extensions
 import plotlyExamples as PE
+import rooms
 import search
 
 # load audio and pad/trim it to fit 30 seconds
@@ -441,8 +442,7 @@ def ex(message):
             emit("ex", {"fn": "legend_scene_display", "has_scenes": True, "text": new_scene}, room=room)
         else:
             emit("ex", {"fn": "legend_scene_display", "has_scenes": False}, room=room)
-
-
+        
     elif message["fn"] == "clipboard": 
         if message["id"] == "cbClear":
             # clear in backend
@@ -1871,8 +1871,7 @@ def ex(message):
         if "val" in message.keys():
             # init message called when socket connection is established
             if message["val"] == "init":
-                # C A R T O G R A P H S
-                # dropdown for layout type selection
+                # C A R T O G R A P H S - dropdown for layout type selection
                 layout_selected = 0
                 if message["id"] == "CGlayouts":
                     response["opt"] = [
@@ -1897,7 +1896,12 @@ def ex(message):
 
                 if message["id"] == "enrichment-features":
                     response["opt"] = GD.annotation_types
-                    response["sel"] = 0
+                    response["sel"] = 0 
+
+                # R O O M S - dropdown for room (fixed) selection
+                if message["id"] == "rooms":
+                    response["opt"] = rooms.ROOMS_TABS
+                    response["sel"] = "0"
 
                 # dropdown for visualization type selection
                 vis_selected = 0

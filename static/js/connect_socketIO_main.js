@@ -569,6 +569,24 @@ $(document).ready(function(){
 
                         }
                     }
+                    // Virtual Rooms / Spatial Environments
+                    if (data.id == "rooms"){
+                        switch (data.name){
+                            case "Dome":
+                                ue4(data["fn"], data);
+                            break;
+                            case "Black Landscape":
+                                ue4(data["fn"], data);
+                            break;
+                            case "White Landscape":
+                                ue4(data["fn"], data);
+                            break;
+                            case "Lecturehall":
+                                ue4(data["fn"], data);
+                            break;
+                        }
+                    }
+
                     if (data.id == "layoutModule"){
                         $('.layoutOption').css('display', 'none');
                         switch (data.name){
@@ -849,6 +867,25 @@ $(document).ready(function(){
                 // ue4(data["fn"], data); // NOT TESTED IF Username taken from ue4
                 break;
             
+
+            case "rooms":
+                if (data.name == "Dome") {
+                    console.log("C_DEBUG in rooms: selected Dome", data);
+                    //ue4(data["fn"], data);
+                }
+                if (data.name == "Black Landscape") {
+                    console.log("C_DEBUG in rooms: selected black Landscape", data);
+                    //ue4(data["fn"], data);
+                }
+                if (data.name == "White Landscape") {
+                    console.log("C_DEBUG in rooms: selected white Landscape", data);
+                    //ue4(data["fn"], data);
+                }
+                if (data.name == "Lecturehall") {
+                    console.log("C_DEBUG in rooms: selected Lecturehall", data);
+                    //ue4(data["fn"], data);
+                }
+
             case "analytics":
 
                 if (data.id == "analyticsDegreePlot") {
