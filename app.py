@@ -249,6 +249,8 @@ def loadProjectAnnotations(name):
 
 @socketio.on("join", namespace="/main")
 def join(message):
+    for func in GD.functions["join"]:
+        func(message)
     room = flask.session.get("room")
     join_room(room)
     print(message["usr"])
@@ -2201,6 +2203,8 @@ def ex(message):
 
 @socketio.on("left", namespace="/main")
 def left(message):
+    for func in GD.functions["left"]:
+        func(message)
     room = flask.session.get("room")
     username = flask.session.get("username")
     leave_room(room)
@@ -2212,7 +2216,6 @@ def left(message):
         + " has left the room."
         + webfunc.bcolors.ENDC
     )
-    util.construct_nav_bar(app)
 
 
 if __name__ == "__main__":
