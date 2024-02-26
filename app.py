@@ -38,15 +38,16 @@ from werkzeug.utils import secure_filename
 
 import analytics
 import annotation
-import enrichment_module
 import cartographs_func as CG
 import chat
 import chatGPTTest
+import enrichment_module
 import GlobalData as GD
 import layout_module
 import load_extensions
 import plotlyExamples as PE
 import search
+import spam_protection as spam
 
 # load audio and pad/trim it to fit 30 seconds
 import TextToSpeech
@@ -54,9 +55,6 @@ import uploader
 import uploaderGraph
 import util
 import websocket_functions as webfunc
-import spam_protection as spam
-
-
 
 #### Settings
 
@@ -267,6 +265,9 @@ def join(message):
 @socketio.on("ex", namespace="/main")
 @spam_protector
 def ex(message):
+    for func in GD.functions["ex"]:
+        func(message)
+
     room = flask.session.get("room")
     # print(webfunc.bcolors.WARNING+ flask.session.get("username")+ "ex: "+ json.dumps(message)+ webfunc.bcolors.ENDC)
     # message["usr"] = flask.session.get("username")
@@ -415,7 +416,7 @@ def ex(message):
             for nodeID in selectionNodes:
                 if int(nodeID) == int(GD.pdata["activeNode"]):
                     exists = True
-                if not exists: 
+                if not exists:
                     cbnode = {}
                     try:  ### improve this, runs sometimes into issues when activeNode is not valid
                         cbnode["id"] = int(nodeID)
@@ -433,17 +434,19 @@ def ex(message):
             response["val"] = GD.pdata["cbnode"]
             emit("ex", response, room=room)
 
-
     elif message["fn"] == "legend_scene_display":
         # only here for managing forward and backward click
         if "scenes" in GD.pfile.keys():
             new_scene = GD.pfile["scenes"][message["val"]]
-            emit("ex", {"fn": "legend_scene_display", "has_scenes": True, "text": new_scene}, room=room)
+            emit(
+                "ex",
+                {"fn": "legend_scene_display", "has_scenes": True, "text": new_scene},
+                room=room,
+            )
         else:
             emit("ex", {"fn": "legend_scene_display", "has_scenes": False}, room=room)
 
-
-    elif message["fn"] == "clipboard": 
+    elif message["fn"] == "clipboard":
         if message["id"] == "cbClear":
             # clear in backend
             GD.pdata["cbnode"] = []
@@ -578,9 +581,9 @@ def ex(message):
                 GD.pdata["analyticsData"]["shortestPathNode1"]["id"] = GD.pdata[
                     "activeNode"
                 ]
-                GD.pdata["analyticsData"]["shortestPathNode1"][
-                    "color"
-                ] = util.rgb_to_hex(GD.pixel_valuesc[int(GD.pdata["activeNode"])])
+                GD.pdata["analyticsData"]["shortestPathNode1"]["color"] = (
+                    util.rgb_to_hex(GD.pixel_valuesc[int(GD.pdata["activeNode"])])
+                )
                 GD.pdata["analyticsData"]["shortestPathNode1"]["name"] = GD.nodes[
                     "nodes"
                 ][int(GD.pdata["activeNode"])]["n"]
@@ -608,9 +611,9 @@ def ex(message):
                 GD.pdata["analyticsData"]["shortestPathNode2"]["id"] = GD.pdata[
                     "activeNode"
                 ]
-                GD.pdata["analyticsData"]["shortestPathNode2"][
-                    "color"
-                ] = util.rgb_to_hex(GD.pixel_valuesc[int(GD.pdata["activeNode"])])
+                GD.pdata["analyticsData"]["shortestPathNode2"]["color"] = (
+                    util.rgb_to_hex(GD.pixel_valuesc[int(GD.pdata["activeNode"])])
+                )
                 GD.pdata["analyticsData"]["shortestPathNode2"]["name"] = GD.nodes[
                     "nodes"
                 ][int(GD.pdata["activeNode"])]["n"]
@@ -1001,7 +1004,9 @@ def ex(message):
         if message["id"] == "annotationRun":
             if message["val"] == "init":
                 return
-            if "annotation_1" not in GD.pdata.keys() or GD.pdata["annotation_1"] == "-":   # at least annotation 1 should be set
+            if (
+                "annotation_1" not in GD.pdata.keys() or GD.pdata["annotation_1"] == "-"
+            ):  # at least annotation 1 should be set
                 print(
                     "ERROR: Select Annotation 1 to perform set operation on annotations."
                 )
@@ -1026,7 +1031,7 @@ def ex(message):
                     "ERROR: Select Annotation 2 to perform set operation on annotations."
                 )
                 return
-            
+
             annotation_1 = GD.pdata["annotation_1"]
             annotation_2 = GD.pdata["annotation_2"]
             type_1 = GD.pdata["annotation_type_1"]
@@ -1048,8 +1053,8 @@ def ex(message):
             generated_annotation_textures = annotation_texture.gen_textures(
                 annotation_1=annotation_1,
                 annotation_2=annotation_2,
-                type_1 = type_1,
-                type_2 = type_2,
+                type_1=type_1,
+                type_2=type_2,
                 operation=operation,
             )
 
@@ -1082,34 +1087,25 @@ def ex(message):
             # single annotation case
             if GD.pdata["annotationOperationsActive"] is False:
                 if "annotation_1" not in GD.pdata.keys():
-                    print(
-                        "ERROR: Select Annotation 1 to clipboard annotations."
-                    )
+                    print("ERROR: Select Annotation 1 to clipboard annotations.")
                     return
                 if "annotation_type_1" not in GD.pdata.keys():
-                    print(
-                        "ERROR: Select Annotation 1 to clipboard annotations."
-                    )
+                    print("ERROR: Select Annotation 1 to clipboard annotations.")
                     return
-                selectionNodes = GD.annotations[GD.pdata["annotation_type_1"]][GD.pdata["annotation_1"]]
-                
+                selectionNodes = GD.annotations[GD.pdata["annotation_type_1"]][
+                    GD.pdata["annotation_1"]
+                ]
 
             # result case
             else:
                 if "annotation-Operations" not in GD.pdata.keys():
-                    print(
-                        "ERROR: Select operation to clipboard annotations."
-                    )
+                    print("ERROR: Select operation to clipboard annotations.")
                     return
                 if "annotation_1" not in GD.pdata.keys():
-                    print(
-                        "ERROR: Select Annotation 1 to clipboard annotations."
-                    )
+                    print("ERROR: Select Annotation 1 to clipboard annotations.")
                     return
                 if "annotation_2" not in GD.pdata.keys():
-                    print(
-                        "ERROR: Select Annotation 2 to clipboard annotations."
-                    )
+                    print("ERROR: Select Annotation 2 to clipboard annotations.")
                     return
                 if "annotation_type_1" not in GD.pdata.keys():
                     print(
@@ -1123,20 +1119,18 @@ def ex(message):
                     return
                 operations = ["union", "intersection", "subtraction"]
                 selectionNodes = annotation.get_annotation_operation_clipboard(
-                    annotation_1 = GD.pdata["annotation_1"],
-                    annotation_2 = GD.pdata["annotation_2"],
-                    type_1 = GD.pdata["annotation_type_1"],
-                    type_2 = GD.pdata["annotation_type_2"],
-                    operation = operations[int(GD.pdata["annotation-Operations"])]
+                    annotation_1=GD.pdata["annotation_1"],
+                    annotation_2=GD.pdata["annotation_2"],
+                    type_1=GD.pdata["annotation_type_1"],
+                    type_2=GD.pdata["annotation_type_2"],
+                    operation=operations[int(GD.pdata["annotation-Operations"])],
                 )
-
 
             if not "cbnode" in GD.pdata.keys():
                 GD.pdata["cbnode"] = []
 
-
             for nodeID in selectionNodes:
-                exists = False    # check if node already exists in clipboard
+                exists = False  # check if node already exists in clipboard
                 if int(nodeID) == int(GD.pdata["activeNode"]):
                     exists = True
                     continue
@@ -1146,7 +1140,7 @@ def ex(message):
                         exists = True
                         break
 
-                if not exists: 
+                if not exists:
                     cbnode = {}
                     try:  ### improve this, runs sometimes into issues when activeNode is not valid
                         cbnode["id"] = int(nodeID)
@@ -1164,31 +1158,37 @@ def ex(message):
             response["val"] = GD.pdata["cbnode"]
             emit("ex", response, room=room)
 
-
     elif message["fn"] == "annotationDD":
         if message["id"] == "annotationInit":
-            emit("ex", {"fn": "annotationDD", "id": "initDD", "options": GD.annotation_types})
+            emit(
+                "ex",
+                {"fn": "annotationDD", "id": "initDD", "options": GD.annotation_types},
+            )
             return
 
-        # some useful variables 
-        id_GD_key_type = "annotation_type_1" if message["id"] == "annotation-dd-1" else "annotation_type_2"
-        id_GD_key = "annotation_1" if message["id"] == "annotation-dd-1" else "annotation_2"
+        # some useful variables
+        id_GD_key_type = (
+            "annotation_type_1"
+            if message["id"] == "annotation-dd-1"
+            else "annotation_type_2"
+        )
+        id_GD_key = (
+            "annotation_1" if message["id"] == "annotation-dd-1" else "annotation_2"
+        )
 
         response = {}
         response["usr"] = message["usr"]
         response["fn"] = message["fn"]
         response["id"] = message["id"]
 
-
         if message["val"] == "init":
             # on init
-            
+
             #####
             # implement them as case where to ignore on annotation analytics
             #####
             anno = "Select Annotation"
             anno_type = "-"
-
 
             if id_GD_key in GD.pdata.keys():
                 anno = GD.pdata[id_GD_key]
@@ -1202,137 +1202,158 @@ def ex(message):
             response["val"] = "initDD"
             response["valAnnotation"] = anno
             response["valType"] = anno_type
-            emit("ex", response, room = room)
+            emit("ex", response, room=room)
             GD.savePD()
             return
-
 
         if message["val"] == "clickBack":
             dd_state = message["state"]
             if dd_state == "selType":
                 # from type selection to inactive
                 response["val"] = "close"
-                emit("ex", response, room = room)
+                emit("ex", response, room=room)
                 return
 
             elif dd_state == "selSub":
-                # from sub selection to type selection                
+                # from sub selection to type selection
                 # "annotationTypes" check to differentiate on which annotation format your'e working
                 # close directly for list type annotations
                 if GD.pfile["annotationTypes"] is True:
                     response["val"] = "openType"
                     response["valOptions"] = GD.annotation_types
-                    emit("ex", response, room = room)
+                    emit("ex", response, room=room)
                 else:
                     response["val"] = "close"
-                    emit("ex", response, room = room)
+                    emit("ex", response, room=room)
                 return
-            
+
             elif dd_state == "selMain":
                 # from main annotation selection to sub selection
                 # check here if too less annotations to show subs based on DD_AVOID_SUB_LIMIT from annotation.py
-                if len(GD.annotations[GD.pdata[id_GD_key_type]].items()) <= len(annotation.DD_SUB_OPTIONS.items()):
+                if len(GD.annotations[GD.pdata[id_GD_key_type]].items()) <= len(
+                    annotation.DD_SUB_OPTIONS.items()
+                ):
                     response["val"] = "close"
-                    emit("ex", response, room = room)
+                    emit("ex", response, room=room)
                 else:
                     response["val"] = "openSub"
                     response["valSelected"] = GD.pdata[id_GD_key_type]
-                    response["valOptions"] = annotation.get_sub_options_dd(GD.pdata[id_GD_key_type])
-                    emit("ex", response, room = room)
+                    response["valOptions"] = annotation.get_sub_options_dd(
+                        GD.pdata[id_GD_key_type]
+                    )
+                    emit("ex", response, room=room)
                 return
-            
+
             else:
                 response["val"] = "close"
-                emit("ex", response, room = room)
+                emit("ex", response, room=room)
                 print("ERROR: This should not happen: ", message)
                 return
-        
+
         if message["val"] == "clickHeader":
             dd_state = message["state"]
             if dd_state == "inactive":
-                # clicked on it to activate the dropdown and open type selection 
+                # clicked on it to activate the dropdown and open type selection
                 # or annotation selection for GD.pfile["annotationTypes"] is false
                 if GD.pfile["annotationTypes"] is True:
                     # handle complex annotations
                     response["val"] = "openType"
                     response["valOptions"] = GD.annotation_types
-                    emit("ex", response, room = room)
+                    emit("ex", response, room=room)
                     return
                 else:
                     # handle basic annotations by setting default as type directly and pulling sub for default
                     GD.pdata[id_GD_key_type] = "default"
                     GD.savePD()
-                    emit("ex", 
-                        {"usr": message["usr"], 
-                         "fn": message["fn"], 
-                         "id": message["id"], 
-                         "val": "setTypeDisplay", 
-                         "valType": GD.pdata[id_GD_key_type]}, 
-                        room = room
+                    emit(
+                        "ex",
+                        {
+                            "usr": message["usr"],
+                            "fn": message["fn"],
+                            "id": message["id"],
+                            "val": "setTypeDisplay",
+                            "valType": GD.pdata[id_GD_key_type],
+                        },
+                        room=room,
                     )
                     # check here if too less annotations to show subs based on DD_AVOID_SUB_LIMIT from annotation.py
-                    if len(GD.annotations[GD.pdata[id_GD_key_type]].items()) <= len(annotation.DD_SUB_OPTIONS.items()):
-                        response["valOptions"] = annotation.get_main_options_dd(GD.pdata[id_GD_key_type], None) 
+                    if len(GD.annotations[GD.pdata[id_GD_key_type]].items()) <= len(
+                        annotation.DD_SUB_OPTIONS.items()
+                    ):
+                        response["valOptions"] = annotation.get_main_options_dd(
+                            GD.pdata[id_GD_key_type], None
+                        )
                         response["valSelected"] = GD.pdata[id_GD_key_type]
                         response["val"] = "openMain"
-                        emit("ex", response, room = room)
+                        emit("ex", response, room=room)
                         return
-                    response["valOptions"] = annotation.get_sub_options_dd(GD.pdata[id_GD_key_type]) 
+                    response["valOptions"] = annotation.get_sub_options_dd(
+                        GD.pdata[id_GD_key_type]
+                    )
                     response["valSelected"] = GD.pdata[id_GD_key_type]
                     response["val"] = "openSub"
-                    emit("ex", response, room = room)
+                    emit("ex", response, room=room)
                     return
-                
+
             else:
                 # clicked on it to shut off dropdown and close it
                 response["val"] = "close"
-                emit("ex", response, room = room)
+                emit("ex", response, room=room)
                 return
 
         if message["val"] == "clickOptionType":
             # save type in pdata
             GD.pdata[id_GD_key_type] = message["option"]
             GD.savePD()
-            emit("ex", 
-                {"usr": message["usr"], 
-                    "fn": message["fn"], 
-                    "id": message["id"], 
-                    "val": "setTypeDisplay", 
-                    "valType": GD.pdata[id_GD_key_type]}, 
-                room = room
+            emit(
+                "ex",
+                {
+                    "usr": message["usr"],
+                    "fn": message["fn"],
+                    "id": message["id"],
+                    "val": "setTypeDisplay",
+                    "valType": GD.pdata[id_GD_key_type],
+                },
+                room=room,
             )
-            
+
             # check here if too less annotations to show subs based on DD_AVOID_SUB_LIMIT from annotation.py
-            if len(GD.annotations[GD.pdata[id_GD_key_type]].items()) <= len(annotation.DD_SUB_OPTIONS.items()):
-                response["valOptions"] = annotation.get_main_options_dd(GD.pdata[id_GD_key_type], None) 
+            if len(GD.annotations[GD.pdata[id_GD_key_type]].items()) <= len(
+                annotation.DD_SUB_OPTIONS.items()
+            ):
+                response["valOptions"] = annotation.get_main_options_dd(
+                    GD.pdata[id_GD_key_type], None
+                )
                 response["valSelected"] = GD.pdata[id_GD_key_type]
                 response["val"] = "openMain"
-                emit("ex", response, room = room)
+                emit("ex", response, room=room)
                 return
             # case amount of annotations is sufficient large that you want to have sub level options
-            response["valOptions"] = annotation.get_sub_options_dd(GD.pdata[id_GD_key_type]) 
+            response["valOptions"] = annotation.get_sub_options_dd(
+                GD.pdata[id_GD_key_type]
+            )
             response["valSelected"] = GD.pdata[id_GD_key_type]
             response["val"] = "openSub"
-            emit("ex", response, room = room)
+            emit("ex", response, room=room)
             return
 
         if message["val"] == "clickOptionSub":
             # no benefit from saving sub in backend
-            response["valOptions"] = annotation.get_main_options_dd(GD.pdata[id_GD_key_type], message["option"]) 
+            response["valOptions"] = annotation.get_main_options_dd(
+                GD.pdata[id_GD_key_type], message["option"]
+            )
             response["valSelected"] = message["option"]
             response["val"] = "openMain"
-            emit("ex", response, room = room)
+            emit("ex", response, room=room)
             return
 
         if message["val"] == "clickOptionAnnotation":
             GD.pdata[id_GD_key] = message["option"]
-            response["valSelected"] = GD.pdata[id_GD_key] 
+            response["valSelected"] = GD.pdata[id_GD_key]
             response["val"] = "annotationSelected"
-            emit("ex", response, room = room)
+            emit("ex", response, room=room)
             GD.savePD()
             return
-
-
 
     elif message["fn"] == "layout":
         if message["id"] == "layoutInit":
@@ -1740,7 +1761,6 @@ def ex(message):
             emit("ex", response, room=room)
             return
 
-
     elif message["fn"] == "module":
         module_id = message["id"]
         response = {}
@@ -1774,7 +1794,7 @@ def ex(message):
         response = {}
         response["usr"] = message["usr"]
         response["id"] = message["id"]
-        
+
         if message["id"] == "init":
             response["fn"] = "enrichment"
             if "enrichment_query" not in GD.pdata.keys():
@@ -1788,7 +1808,7 @@ def ex(message):
             response["valHideNote"] = GD.pfile["annotationTypes"]
             emit("ex", response, room=room)
             return
-        
+
         if message["id"] == "enrichment-import":
             enrichment_module.query_from_clipboard()
             response["fn"] = "enrichment"
@@ -1806,8 +1826,10 @@ def ex(message):
         if message["id"] == "enrichment-run":
             if not enrichment_module.validate():
                 return
-            
-            result_plot, highlight_payload, highlight_texture_obj, display_note = enrichment_module.main(highlight = message.get("val", None))
+
+            result_plot, highlight_payload, highlight_texture_obj, display_note = (
+                enrichment_module.main(highlight=message.get("val", None))
+            )
             if result_plot is not None:
                 response["fn"] = "enrichment"
                 response["valPlot"] = result_plot
@@ -1824,11 +1846,11 @@ def ex(message):
 
             if highlight_texture_obj is None:
                 return
-            
+
             if highlight_texture_obj["textures_created"] is False:
                 print("Failed to create textures for Enrichment.")
                 return
-            
+
             response_colors = {}
             response_colors["usr"] = message["usr"]
             response_colors["fn"] = "enrichment"
@@ -1858,8 +1880,6 @@ def ex(message):
         if message["id"] == "enrichment-plotClick":
             print("TODO: plot responsive")
             return
-
-
 
     elif message["fn"] == "dropdown":
         response = {}
@@ -1945,12 +1965,11 @@ def ex(message):
                         response["opt"] = options
                         print(options)
 
-
                     if "opt" in response.keys():
                         # dirty fix that sel of pdata layoutsDD is somwhow always = 2
-                        response["sel"] = str(min(len(response["opt"]) - 1, int(response["sel"])))
-
-
+                        response["sel"] = str(
+                            min(len(response["opt"]) - 1, int(response["sel"]))
+                        )
 
                 # dropdown for annotations
                 if message["id"] == "annotation-1":
@@ -2027,7 +2046,6 @@ def ex(message):
                     )
                     # update not self updating elements
 
-                    
                 else:
                     response["sel"] = message["val"]
                     response["name"] = message["msg"]
@@ -2039,7 +2057,7 @@ def ex(message):
                     GD.savePD()
 
                 if message["id"] == "selectionsDD":
-                    #print(GD.pfile["selections"][int(message["val"])]["nodes"])
+                    # print(GD.pfile["selections"][int(message["val"])]["nodes"])
                     response2 = {}
                     response2["usr"] = message["usr"]
                     response2["id"] = message["id"]
