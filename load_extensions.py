@@ -36,21 +36,21 @@ def import_blueprint(app: flask.Flask, ext: str, extensions_path: str) -> bool:
         print(f"\033[1;32mLoaded extension: {ext}")
         return module
     except ImportError:
-        print(f"\u001b[33m", traceback.format_exc())
-        print(f"\u001b[33mMake sure you installed a necessary python modules.")
+        print("\u001b[33m", traceback.format_exc())
+        print("\u001b[33mMake sure you installed a necessary python modules.")
         print(
             f"\u001b[33mYou can use:\n\npython3 -m pip install -r extensions/{ext}/requirements.txt\n\nTo install all requirements."
         )
     except AttributeError:
-        print(f"\u001b[33m", traceback.format_exc())
+        print("\u001b[33m", traceback.format_exc())
         print(
-            f"\u001b[33mMake sure you have an app.py file in the '/src/' folder of your extension."
+            "\u001b[33mMake sure you have an app.py file in the '/src/' folder of your extension."
         )
         print(
-            f"\u001b[33mMake sure that you have defined a 'url_prefix' for your in the app.py file."
+            "\u001b[33mMake sure that you have defined a 'url_prefix' for your in the app.py file."
         )
-        print(f"\u001b[33mMake sure your flask blueprint is called 'blueprint'.")
-        return False
+        print("\u001b[33mMake sure your flask blueprint is called 'blueprint'.")
+    return False
 
 
 def load(main_app: flask.Flask) -> tuple[flask.Flask, dict]:
@@ -73,18 +73,20 @@ def load(main_app: flask.Flask) -> tuple[flask.Flask, dict]:
             ignore_py = import_module("extensions.ignore")
             if hasattr(ignore_py, "ignore"):
                 ignore = ignore_py.ignore
-        for ext in os.listdir(extensions):
-            if (
-                not os.path.isdir(os.path.join(extensions, ext))
-                or ext in ignore
-                or ext in IGNORE_DIRS
-            ):
-                continue
-            extension_attr = {}
-            module = import_blueprint(main_app, ext, extensions)
-            if module:
-                extension_attr["id"] = ext
-                loaded_extensions.append(ext)
+
+    for ext in os.listdir(extensions):
+        if (
+            not os.path.isdir(os.path.join(extensions, ext))
+            or ext in ignore
+            or ext in IGNORE_DIRS
+        ):
+            continue
+
+        extension_attr = {}
+        module = import_blueprint(main_app, ext, extensions)
+        if module:
+            extension_attr["id"] = ext
+            loaded_extensions.append(ext)
             for key in possible_tabs:
                 if hasattr(module, key):
                     extension_attr[key] = module.__dict__[key]
