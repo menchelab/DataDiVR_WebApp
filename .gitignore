@@ -10,5 +10,7 @@ openAI_KEY_doNOTcommit.txt
 static/TTSaudio/
 extensions/whisperSpeechRecognition/static/WhisperAudio/
 python_tools/data
-extensions/ignore.py
-**/**.log
+extensions/**
+**/**.log**
+!extensions/documentation/
+!extensions/whisperSpeechRecognition/
