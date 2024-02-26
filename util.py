@@ -1,15 +1,17 @@
+import colorsys
+import json
 import os
 import random
 import shutil
+from collections import OrderedDict
+
 import flask
+import matplotlib.cm as cm
+import networkx as nx
+import pandas as pd
+
 import GlobalData as GD
 import uploader
-import pandas as pd
-import networkx as nx
-import json
-import matplotlib.cm as cm
-from collections import OrderedDict
-import colorsys
 
 
 def delete_project(request: flask.request):
@@ -77,7 +79,9 @@ def prepare_protein_structures(nodes):
     if not "uniprot" in nodes_data.columns:
         return nodes
 
-    csv_file = os.path.join("static", "examplefiles", "protein_structure_info", "overview.csv")
+    csv_file = os.path.join(
+        "static", "examplefiles", "protein_structure_info", "overview.csv"
+    )
     protein_structure_infos = pd.read_csv(csv_file, index_col=0, header=0)
     protein_structure_infos = protein_structure_infos.dropna(how="all", axis=0)
 
@@ -116,7 +120,7 @@ def prepare_protein_structures(nodes):
     nodes_data.update(has_uniprot)
     nodes_data = [
         {k: v for k, v in m.items() if isinstance(v, list) or pd.notna(v)}
-        for m in nodes_data.to_dict(orient="rows")
+        for m in nodes_data.to_dict(orient="records")
     ]
     nodes = {"nodes": nodes_data}
     return nodes
@@ -143,7 +147,6 @@ class OrderedGraph(nx.Graph):
         self.node_order.extend(nodes_for_adding)
 
 
-
 def project_to_graph(project):
     with open(f"./static/projects/{project}/links.json") as links_json:
         links = json.load(links_json)
@@ -152,10 +155,12 @@ def project_to_graph(project):
             nodes = json.load(nodes_json)
     except FileNotFoundError:
         # here maybe names.json parsing (even if its deprecated)
-        raise FileNotFoundError("The selected Project does not support nodes.json file for storing nodes.")
-    
+        raise FileNotFoundError(
+            "The selected Project does not support nodes.json file for storing nodes."
+        )
+
     graph_dict = OrderedDict()
-    
+
     for node in nodes["nodes"]:
         graph_dict[str(node["id"])] = []
     for link in links["links"]:
@@ -192,7 +197,7 @@ def sample_color_gradient(plt_color_map, values):
 
 def generate_colors(n, s=None, v=None, alpha=None):
     # n: int, number of colors to generate
-    # s: float [0.0, 1.0] Saturation 
+    # s: float [0.0, 1.0] Saturation
     # v: float [0.0, 1.0] Light value
 
     if s is None:
@@ -211,12 +216,7 @@ def generate_colors(n, s=None, v=None, alpha=None):
     for i in range(n):
         hue = i * hue_increment
         rgb = colorsys.hsv_to_rgb(hue, s, v)
-        rgba_tuple = (
-            int(rgb[0] * 255),
-            int(rgb[1] * 255),
-            int(rgb[2] * 255),
-            alpha
-        )
+        rgba_tuple = (int(rgb[0] * 255), int(rgb[1] * 255), int(rgb[2] * 255), alpha)
         colors.append(rgba_tuple)
 
     return colors
