@@ -184,8 +184,14 @@ function updateMcElements(){
     //socket.emit('ex', { usr:uid, id: "annotationInit", fn: "annotation", val:"init"})
     socket.emit('ex', {usr:uid,  val: "init", id: "annotation-dd-1", fn: "annotation"});
     socket.emit('ex', {usr:uid,  val: "init", id: "annotation-dd-2", fn: "annotation"});
-    socket.emit('ex', {usr:uid,  val: "init", id: "init", fn: "enrichment"})
+    socket.emit('ex', {usr:uid,  val: "init", id: "init", fn: "enrichment"});
     socket.emit("ex", {fn: "legend_scene_display", id: "legend_scene_display", val: 0});
+
+    // VRrooms
+    socket.emit('ex', {usr:uid,  val: "init", id: "VRrooms", fn: "dropdown"});
+
+
+
 }
 
 function reconnect(){
@@ -263,6 +269,7 @@ $(document).ready(function(){
             if(isMain || isPreview){
                 // START initialization routine
                 socket.emit('ex', { id: "projDD", fn: "dropdown", val:"init", usr:uid});
+
             }
 
             if(document.getElementById("disconnected")){
@@ -272,6 +279,11 @@ $(document).ready(function(){
                 document.getElementById("outer").style.backgroundColor = "rgb(0 0 0 / 0%)"   
             }
             socket.emit('ex', { usr:uid, id: "analytics", fn: "dropdown", val:"init"});
+
+            // VRrooms
+            socket.emit('ex', { usr:uid, id: "VRrooms", fn: "dropdown", val:"init"});
+
+
         }
         //CONNECTION Established - initialize the project (Ui elements initialize when project changes)
         
@@ -569,25 +581,23 @@ $(document).ready(function(){
 
                         }
                     }
-                    // Virtual Rooms / Spatial Environments
-                    if (data.id == "rooms"){
+                    // VRrooms
+                    if (data.id == "VRrooms"){
+
                         switch (data.name){
                             case "Dome":
-                                ue4(data["fn"], data);
+                                ue4(data["name"], data.name);
                             break;
-                            case "Black Landscape":
-                                ue4(data["fn"], data);
+                            case "Landscape":
+                                ue4(data["name"], data.name);
                             break;
-                            case "White Landscape":
-                                ue4(data["fn"], data);
-                            break;
-                            case "Lecturehall":
-                                ue4(data["fn"], data);
+                            case "Platforms":
+                                ue4(data["name"], data.name);
                             break;
                         }
                     }
 
-                    if (data.id == "layoutModule"){
+                    if (data.id == "layout"){
                         $('.layoutOption').css('display', 'none');
                         switch (data.name){
                             case "Random":
@@ -867,24 +877,6 @@ $(document).ready(function(){
                 // ue4(data["fn"], data); // NOT TESTED IF Username taken from ue4
                 break;
             
-
-            case "rooms":
-                if (data.name == "Dome") {
-                    console.log("C_DEBUG in rooms: selected Dome", data);
-                    //ue4(data["fn"], data);
-                }
-                if (data.name == "Black Landscape") {
-                    console.log("C_DEBUG in rooms: selected black Landscape", data);
-                    //ue4(data["fn"], data);
-                }
-                if (data.name == "White Landscape") {
-                    console.log("C_DEBUG in rooms: selected white Landscape", data);
-                    //ue4(data["fn"], data);
-                }
-                if (data.name == "Lecturehall") {
-                    console.log("C_DEBUG in rooms: selected Lecturehall", data);
-                    //ue4(data["fn"], data);
-                }
 
             case "analytics":
 

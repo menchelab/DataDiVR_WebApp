@@ -46,7 +46,7 @@ import GlobalData as GD
 import layout_module
 import load_extensions
 import plotlyExamples as PE
-import rooms
+import VRrooms
 import search
 
 # load audio and pad/trim it to fit 30 seconds
@@ -442,7 +442,8 @@ def ex(message):
             emit("ex", {"fn": "legend_scene_display", "has_scenes": True, "text": new_scene}, room=room)
         else:
             emit("ex", {"fn": "legend_scene_display", "has_scenes": False}, room=room)
-        
+    
+
     elif message["fn"] == "clipboard": 
         if message["id"] == "cbClear":
             # clear in backend
@@ -1898,11 +1899,19 @@ def ex(message):
                     response["opt"] = GD.annotation_types
                     response["sel"] = 0 
 
-                # R O O M S - dropdown for room (fixed) selection
-                if message["id"] == "rooms":
-                    response["opt"] = rooms.ROOMS_TABS
-                    response["sel"] = "0"
-
+                # VRrooms
+                if message["id"] == "VRrooms":
+                    if "VRrooms" in GD.pdata.keys():
+                        newval = int(GD.pdata["VRrooms"])
+                        newname = VRrooms.VRROOMS_TABS[newval]
+                    else:   
+                        newval = 0
+                        newname = "Dome"
+                    response["opt"] = VRrooms.VRROOMS_TABS      
+                    response["sel"] = newval
+                    response["name"] = newname
+                    response["usr"] = message["usr"]
+                    
                 # dropdown for visualization type selection
                 vis_selected = 0
                 if message["id"] == "CGvis":
@@ -2031,7 +2040,7 @@ def ex(message):
                     )
                     # update not self updating elements
 
-                    
+
                 else:
                     response["sel"] = message["val"]
                     response["name"] = message["msg"]
