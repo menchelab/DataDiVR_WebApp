@@ -2,8 +2,8 @@ from flask_socketio import emit
 
 import plotlyExamples as PE
 
-from . import execute_event_handler, join_event_handler, left_event_handler
-from .execute_event_handler import (
+from . import execute_events, join_events, left_events
+from .execute_events import (
     analytics_events,
     annotation_events,
     clipboard_events,
