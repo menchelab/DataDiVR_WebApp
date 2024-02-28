@@ -50,7 +50,7 @@ install_requirements() {
             echo ""
             python3 -m pip install -r "$requirements_file" | grep -v "Requirement already satisfied" || true
         else
-            echo "No requirements file found for extension $ext_name. Skipping installation."
+            echo "No requirements file found for extension $ext_name, therefore no python packages are installed."
         fi
         loaded_ext+=("$ext_name")
     done
