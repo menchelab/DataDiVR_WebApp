@@ -22,7 +22,6 @@ function Should-IgnoreExtension {
     param($extension)
     foreach ($ignored_dir in $ignore_dirs) {
         if ($extension -eq $ignored_dir) {
-            Write-Host "Extensions $extension is ignored!"
             return $true
         }
     }
@@ -38,22 +37,24 @@ function Should-IgnoreExtension {
 function Install-Requirements {
     foreach ($extension_dir in Get-ChildItem "$EXTENSIONS_DIR\*" -Directory) {
         $ext_name = $extension_dir.Name
-
+    
         if (Should-IgnoreExtension $ext_name) { continue }
-
+    
         Write-Host "Loading extensions: $ext_name"
         $requirements_file = "$extension_dir\requirements.txt"
         if (Test-Path $requirements_file -PathType Leaf) {
-            Write-Host "Installing the following requirements for the extension $ext_name\:"
+            Write-Host "Installing the following requirements for the extension $ext_name :"
             Get-Content $requirements_file
             Write-Host ""
             python -m pip install -r $requirements_file
         } else {
-            Write-Host "No requirements file found for extension $ext_name. Skipping installation."
+            Write-Host "No requirements file found for extension $ext_name, therefore no python packages are installed for this extension."
         }
         $loaded_ext += $ext_name
     }
     Write-Host "Finished installing all requirements for the following extensions:"
+    # TODO: Somehow all extensions are printet as a single string instead of seprated elements.
+    # Does anyone understand the powerscript magic that is happening here?
     foreach ($ext in $loaded_ext) {
         Write-Host $ext
     }
