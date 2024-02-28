@@ -14,3 +14,6 @@ extensions/**
 **/**.log**
 !extensions/documentation/
 !extensions/whisperSpeechRecognition/
+!extensions/load_extensions.py
+!extensions/install_requirements.sh
+!extensions/install_requirements.ps1
