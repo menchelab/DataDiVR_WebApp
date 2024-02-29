@@ -1,5 +1,3 @@
-
-
 <!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
                 TEMPLATES & THEIR JS CLASSES
@@ -8,11 +6,11 @@
 
 
 <script>
-        class mcButton extends HTMLElement {
-            constructor() {
+    class mcButton extends HTMLElement {
+        constructor() {
             super();
-            }
-            connectedCallback() {
+        }
+        connectedCallback() {
             let template = document.querySelector('#mcB-template').content;
             this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
             let name_button = this.shadowRoot.querySelector("#name");
@@ -23,76 +21,76 @@
             var fun = this.getAttribute('fn');
 
             name_button.addEventListener('click', () => {
-                console.log('select '+ name_button.textContent);
-                socket.emit('ex', { usr:uid, msg: this.getAttribute('name'), id: this.getAttribute('parent'),val: this.getAttribute('val'),  fn: fun});
+                console.log('select ' + name_button.textContent);
+                socket.emit('ex', { usr: uid, msg: this.getAttribute('name'), id: this.getAttribute('parent'), val: this.getAttribute('val'), fn: fun });
             });
-    
-            }
-    
+
         }
-        customElements.define('mc-button', mcButton);
+
+    }
+    customElements.define('mc-button', mcButton);
 </script>
 
 
 <template id="mcB-template">
-<style>
-    button{
-    width: 380px;
-    height: 30px;
-    font-family: 'Future', sans-serif;
-    overflow: hidden;
-    white-space: nowrap; 
-    cursor: pointer;
-    box-sizing: border-box;
-    padding: 0px 6px;
-    text-align: left;
-    border-radius: 7px;
-     
-    border-bottom-left-radius: 0px;
-    font-size: 24px;
+    <style>
+        button {
+            width: 380px;
+            height: 30px;
+            font-family: 'Future', sans-serif;
+            overflow: hidden;
+            white-space: nowrap;
+            cursor: pointer;
+            box-sizing: border-box;
+            padding: 0px 6px;
+            text-align: left;
+            border-radius: 7px;
 
-    color: rgb(255, 255, 255);
-    cursor: pointer;
-    background: rgba(66, 66, 66, 0);
-    border: 2px solid transparent;
-    
-    text-transform: uppercase;
-    }
+            border-bottom-left-radius: 0px;
+            font-size: 24px;
 
-    button:hover {
-        border: 2px solid rgb(124, 124, 124);
-        background: rgba(66, 66, 66, 1);
-    }
+            color: rgb(255, 255, 255);
+            cursor: pointer;
+            background: rgba(66, 66, 66, 0);
+            border: 2px solid transparent;
 
-    button:active {
-        border: 2px solid rgb(190, 190, 190);
-    }
-</style>
+            text-transform: uppercase;
+        }
+
+        button:hover {
+            border: 2px solid rgb(124, 124, 124);
+            background: rgba(66, 66, 66, 1);
+        }
+
+        button:active {
+            border: 2px solid rgb(190, 190, 190);
+        }
+    </style>
 
     <div id="container" style="width: auto; height: 30p0x; display: inline-block; padding: 4px 2px">
         <button id="name"><img src="static/css/images/NotRecording.png"></img></button>
     </div>
 
 </template>
-        
+
 <script>
     class mcCheckbox extends HTMLElement {
         constructor() {
-        super();
+            super();
         }
         connectedCallback() {
-        let template = document.querySelector('#mcCb-template').content;
-        this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
-        let checkbox = this.shadowRoot.querySelector("#box");
-      
+            let template = document.querySelector('#mcCb-template').content;
+            this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
+            let checkbox = this.shadowRoot.querySelector("#box");
 
-        //name_button.style.background = url('images/NotR;ecording.png')
-        //var fun = this.getAttribute('fn');
 
-        checkbox.addEventListener('click', () => {
-            console.log('select '+ checkbox.val);
-            socket.emit('ex', { usr:uid, id: this.getAttribute('id'), val: checkbox.checked, fn: "checkbox"});
-        });
+            //name_button.style.background = url('images/NotR;ecording.png')
+            //var fun = this.getAttribute('fn');
+
+            checkbox.addEventListener('click', () => {
+                console.log('select ' + checkbox.val);
+                socket.emit('ex', { usr: uid, id: this.getAttribute('id'), val: checkbox.checked, fn: "checkbox" });
+            });
 
         }
 
@@ -102,12 +100,12 @@
 
 <template id="mcCb-template">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
-        <div id="container" style="width: auto; height: 30p0x; display: inline-block; padding: 4px 2px">
-           <input type="checkbox" class="check_box" id="box"></input>
-           <label for="box"></label>
+    <div id="container" style="width: auto; height: 30p0x; display: inline-block; padding: 4px 2px">
+        <input type="checkbox" class="check_box" id="box"></input>
+        <label for="box"></label>
 
-        </div>
-    
+    </div>
+
 </template>
 
 
@@ -119,27 +117,27 @@
 
 
         constructor() {
-        super();
+            super();
         }
 
         connectedCallback() {
-        let template = document.querySelector('#mcB1-template').content;
-        this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
+            let template = document.querySelector('#mcB1-template').content;
+            this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
 
-        let name_button = this.shadowRoot.querySelector("#name");
+            let name_button = this.shadowRoot.querySelector("#name");
 
-        name_button.textContent = this.getAttribute('name');
-        if (this.getAttribute('img')){
-            name_button.innerHTML ='<img src="static/css/images/'+ this.getAttribute('img') +'" />';
-        }
-        //
-        var fun = this.getAttribute('fn');
-        //console.log('create: '+ this.getAttribute('data'));
+            name_button.textContent = this.getAttribute('name');
+            if (this.getAttribute('img')) {
+                name_button.innerHTML = '<img src="static/css/images/' + this.getAttribute('img') + '" />';
+            }
+            //
+            var fun = this.getAttribute('fn');
+            //console.log('create: '+ this.getAttribute('data'));
 
-        name_button.addEventListener('click', () => {
-            console.log('select '+ uid);
-            socket.emit('ex', { usr:uid, msg: this.getAttribute('name'), id: this.getAttribute('id'), parent: this.getAttribute('parent'),val: this.getAttribute('val'), fn: fun});
-        });
+            name_button.addEventListener('click', () => {
+                console.log('select ' + uid);
+                socket.emit('ex', { usr: uid, msg: this.getAttribute('name'), id: this.getAttribute('id'), parent: this.getAttribute('parent'), val: this.getAttribute('val'), fn: fun });
+            });
 
         }
 
@@ -150,18 +148,19 @@
 
 
 <template id="mcB1-template">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
-<div id="container" style="width: auto; height: 30p0x; display: inline-block;">
-    <style>
-        .swagbutton:hover{
-            background-color: rgba(77, 77, 77, 0.35);
-        }
-        .swagbutton:active{
-            background-color: rgba(77, 77, 77, 0.5);
-        }
-    </style>
-    <button id="name" class="swagButton"></button>
-</div>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
+    <div id="container" style="width: auto; height: 30p0x; display: inline-block;">
+        <style>
+            .swagbutton:hover {
+                background-color: rgba(77, 77, 77, 0.35);
+            }
+
+            .swagbutton:active {
+                background-color: rgba(77, 77, 77, 0.5);
+            }
+        </style>
+        <button id="name" class="swagButton"></button>
+    </div>
 
 </template>
 
@@ -173,36 +172,36 @@
 
 
         constructor() {
-        super();
+            super();
         }
 
         connectedCallback() {
-        let template = document.querySelector('#mcRB-template').content;
-        this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
+            let template = document.querySelector('#mcRB-template').content;
+            this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
 
-        let name_button = this.shadowRoot.querySelector("#name");
-        let x_button = this.shadowRoot.querySelector("#x");
+            let name_button = this.shadowRoot.querySelector("#name");
+            let x_button = this.shadowRoot.querySelector("#x");
 
-        name_button.textContent = this.getAttribute('name');
-        name_button.style.background = this.getAttribute('color');//("background",);
-        console.log('create: '+ this.getAttribute('data'));
+            name_button.textContent = this.getAttribute('name');
+            name_button.style.background = this.getAttribute('color');//("background",);
+            console.log('create: ' + this.getAttribute('data'));
 
-        name_button.addEventListener('click', () => {
-            //console.log('select '+ this.shadowRoot.getAttribute('id'));
-            socket.emit('ex', { msg: this.getAttribute('name'), id: this.getAttribute('id'), fn: "rem_butt_clicked" });
-        });
+            name_button.addEventListener('click', () => {
+                //console.log('select '+ this.shadowRoot.getAttribute('id'));
+                socket.emit('ex', { msg: this.getAttribute('name'), id: this.getAttribute('id'), fn: "rem_butt_clicked" });
+            });
 
-        x_button.addEventListener('click', () => {
+            x_button.addEventListener('click', () => {
 
-            console.log(name_button.parentElement);
-            var parent = this.getRootNode().host;
-            if (parent != null) { //is in shadowDom
-    	        socket.emit('ex', { id: this.getAttribute('id'), parent: parent.getAttribute('id'), fn: "rem_butt_del_sbox" });
-            } else {
-                socket.emit('ex', { id: this.getAttribute('id'), parent: this.parentElement.getAttribute('id'), fn: "rem_butt_del" });
-            }
+                console.log(name_button.parentElement);
+                var parent = this.getRootNode().host;
+                if (parent != null) { //is in shadowDom
+                    socket.emit('ex', { id: this.getAttribute('id'), parent: parent.getAttribute('id'), fn: "rem_butt_del_sbox" });
+                } else {
+                    socket.emit('ex', { id: this.getAttribute('id'), parent: this.parentElement.getAttribute('id'), fn: "rem_butt_del" });
+                }
 
-        });
+            });
 
         }
 
@@ -213,11 +212,10 @@
 
 <template id="mcRB-template">
     <style>
-
         button {
             width: 15%;
             font-family: 'Future', sans-serif;
-            
+
             cursor: pointer;
             box-sizing: border-box;
             padding: 5px 2px;
@@ -233,8 +231,10 @@
     </style>
 
     <div id="container" style="width: 120px; height: 30p0x; display: inline-block; padding: 4px 2px">
-        <button id="name" style=" float: left; width: 90px; height: 30p0x; border-top-right-radius: 0px; border-bottom-right-radius: 0px; border-right: 0px"></button>
-        <button id="x" style="float: right; width: 30px; height: 30p0x;border-top-left-radius: 0px; border-bottom-left-radius: 0px; background-color: #3d3d3d;">X</button>
+        <button id="name"
+            style=" float: left; width: 90px; height: 30p0x; border-top-right-radius: 0px; border-bottom-right-radius: 0px; border-right: 0px"></button>
+        <button id="x"
+            style="float: right; width: 30px; height: 30p0x;border-top-left-radius: 0px; border-bottom-left-radius: 0px; background-color: #3d3d3d;">X</button>
         <!-- <input type="checkbox" class="rec" id="checkbox1"></input> -->
         <!-- <label for="checkbox1" id ="reclabel"></label> -->
     </div>
@@ -251,73 +251,73 @@
 
 
         constructor() {
-        super();
+            super();
         }
 
         connectedCallback() {
-        let template = document.querySelector('#mcTextInput-template').content;
-        this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
+            let template = document.querySelector('#mcTextInput-template').content;
+            this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
 
-        let text = this.shadowRoot.querySelector("#text");
-        //let x_button = this.shadowRoot.querySelector("#x");
-        let rec_button = this.shadowRoot.querySelector("#rec");
+            let text = this.shadowRoot.querySelector("#text");
+            //let x_button = this.shadowRoot.querySelector("#x");
+            let rec_button = this.shadowRoot.querySelector("#rec");
 
-        var msg = {}
+            var msg = {}
 
-        msg.id = this.getAttribute('id');
-        //name_button.style.background = this.getAttribute('color');//("background",);
+            msg.id = this.getAttribute('id');
+            //name_button.style.background = this.getAttribute('color');//("background",);
             text.addEventListener('change', () => {
 
-            console.log(text.value);
+                console.log(text.value);
 
 
-            socket.emit('ex', { usr: uid, id: this.getAttribute('id'), parent: this.getAttribute('container'), fn: this.getAttribute('fn'), val: text.value});
+                socket.emit('ex', { usr: uid, id: this.getAttribute('id'), parent: this.getAttribute('container'), fn: this.getAttribute('fn'), val: text.value });
 
 
             });
 
-             
-            text.addEventListener('click', function(){
-                ue4("textinput",msg);
+
+            text.addEventListener('click', function() {
+                ue4("textinput", msg);
                 // LET UE4 KNOW WHICH TEXTINPUT is ACTIVE
                 //console.log(msg);
             });
-            
+
             //console.log('create: '+ this.getAttribute('container'));
-        
+
             //x_button.addEventListener('click', () => {
 
-                //console.log(text.value);
+            //console.log(text.value);
 
 
-               // socket.emit('ex', { usr: uid, id: this.getAttribute('id'), parent: this.getAttribute('container'), fn: this.getAttribute('fn'), val: text.value});
-                
+            // socket.emit('ex', { usr: uid, id: this.getAttribute('id'), parent: this.getAttribute('container'), fn: this.getAttribute('fn'), val: text.value});
+
 
             //});
 
             rec_button.addEventListener('change', () => {
-            //socket.emit('ex', { id: this.getAttribute('id'), fn: fn, val: select.selectedIndex});
-                if (rec_button.checked){
+                //socket.emit('ex', { id: this.getAttribute('id'), fn: fn, val: select.selectedIndex});
+                if (rec_button.checked) {
                     console.log("Rec " + msg.id);
                     msg.val = 'rec';
-                    if (isUE4){ue4("rec",msg);}
-                    else{record(true, msg.id);}
-                }else{
+                    if (isUE4) { ue4("rec", msg); }
+                    else { record(true, msg.id); }
+                } else {
                     console.log("NoRec");
                     msg.val = 'stoprec';
-                    if (isUE4){ue4("rec",msg);}
-                    else{record(false, msg.id);}
-                    
+                    if (isUE4) { ue4("rec", msg); }
+                    else { record(false, msg.id); }
+
                 }
-                
+
 
             });
-        
+
         }
 
 
 
- 
+
     }
 
     customElements.define('mc-textinput', mcTInput);
@@ -327,7 +327,8 @@
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
     <div id="container" style="display: inline-block; overflow:auto; width:100%; padding: 10px 0px;">
-        <textarea class="swagButton" type="text" id="text" placeholder="Enter your message here" style="white-space:pre-wrap; float:left; width:85%;"></textarea>
+        <textarea class="swagButton" type="text" id="text" placeholder="Enter your message here"
+            style="white-space:pre-wrap; float:left; width:85%;"></textarea>
         <!-- <input type="button" id="x" value="OK" class="swagTextButton" style="width: 12%; float:right; height:58px; text-align: center"></input> -->
         <input type="checkbox" class="rec" id="rec"></input>
         <label for="rec"></label>
@@ -350,44 +351,44 @@
 
 
         constructor() {
-        super();
+            super();
         }
 
         connectedCallback() {
-        let template = document.querySelector('#mcdropdown-template').content;
-        this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
-        let select = this.shadowRoot.querySelector("#sel");
-        let content = this.shadowRoot.querySelector("#content");
-        
-        let label = this.shadowRoot.querySelector("#label");
-        label.innerHTML = this.getAttribute('name');
+            let template = document.querySelector('#mcdropdown-template').content;
+            this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
+            let select = this.shadowRoot.querySelector("#sel");
+            let content = this.shadowRoot.querySelector("#content");
 
-        
-       // let newOption = new Option('Option Text','Option Value');
-       // select.add(newOption,undefined);
-       // select.add(new Option('Option2','Option2Value'));
-       // select.add(new Option('Option3'));
-       // select.value="Option3"
-        //name_button.textContent = this.getAttribute('name');
-        //name_button.style.background = this.getAttribute('color');//("background",);
-        //console.log( select.options[select.selectedIndex].text);
-       
-        select.addEventListener('click', () => {
-            //socket.emit('ex', { id: this.getAttribute('id'), fn: fn, val: select.selectedIndex});
-       
-            //console.log(this.getAttribute('opt'));
-            //console.log(select.value);
-            //console.log(select.options[select.selectedIndex].text);
-            if (content.style.display === "none") {
-                content.style.display = "block";
-            } else {
-                content.style.display = "none";
-            }
-            //socket.emit('ex', { id: this.getAttribute('id'), parent: this.getAttribute('container'), fn: this.getAttribute('fn'), val: text.value});
-            
+            let label = this.shadowRoot.querySelector("#label");
+            label.innerHTML = this.getAttribute('name');
 
-        });
-        
+
+            // let newOption = new Option('Option Text','Option Value');
+            // select.add(newOption,undefined);
+            // select.add(new Option('Option2','Option2Value'));
+            // select.add(new Option('Option3'));
+            // select.value="Option3"
+            //name_button.textContent = this.getAttribute('name');
+            //name_button.style.background = this.getAttribute('color');//("background",);
+            //console.log( select.options[select.selectedIndex].text);
+
+            select.addEventListener('click', () => {
+                //socket.emit('ex', { id: this.getAttribute('id'), fn: fn, val: select.selectedIndex});
+
+                //console.log(this.getAttribute('opt'));
+                //console.log(select.value);
+                //console.log(select.options[select.selectedIndex].text);
+                if (content.style.display === "none") {
+                    content.style.display = "block";
+                } else {
+                    content.style.display = "none";
+                }
+                //socket.emit('ex', { id: this.getAttribute('id'), parent: this.getAttribute('container'), fn: this.getAttribute('fn'), val: text.value});
+
+
+            });
+
         }
 
 
@@ -399,13 +400,19 @@
 <template id="mcdropdown-template">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
     <div id="container" style="display: inline-block; width:auto;  padding: 3px 3px">
-        <h5 id = "label" style="float:left; font-size: 25px;  color: rgb(102, 102, 102); margin-top:5px; margin-bottom:5px;">PROJECT</h5><p id = "count"  style="font-size: 15px; color: rgb(255, 255, 255); margin-top:0px; padding-left:10px ; margin-bottom: 0px; text-indent: 10px;  "> </p>
-        
-        <br>
-        <div  class="gradient" style="margin-bottom:10px"  ></div>
+        <h5 id="label"
+            style="float:left; font-size: 25px;  color: rgb(102, 102, 102); margin-top:5px; margin-bottom:5px;">PROJECT
+        </h5>
+        <p id="count"
+            style="font-size: 15px; color: rgb(255, 255, 255); margin-top:0px; padding-left:10px ; margin-bottom: 0px; text-indent: 10px;  ">
+        </p>
 
-        <input type="button" id="sel" style="width:400px; height:50px; font-family: future; font-size: 25px; "/>
-        <div id = "content" class="swagBoxT" style="width:400px; max-height: 600px; height:auto; overflow-y: auto; overflow-x: hidden;">
+        <br>
+        <div class="gradient" style="margin-bottom:10px"></div>
+
+        <input type="button" id="sel" style="width:400px; height:50px; font-family: future; font-size: 25px; " />
+        <div id="content" class="swagBoxT"
+            style="width:400px; max-height: 600px; height:auto; overflow-y: auto; overflow-x: hidden;">
         </div>
     </div>
 </template>
@@ -427,27 +434,37 @@
         }
 
         connectedCallback() {
-        let template = document.querySelector('#mcSlider-template').content;
-        this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
+            let template = document.querySelector('#mcSlider-template').content;
+            this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
 
-        let slider = this.shadowRoot.querySelector("#myRange");
-        let label = this.shadowRoot.querySelector("#label");
+            let slider = this.shadowRoot.querySelector("#myRange");
+            let label = this.shadowRoot.querySelector("#label");
 
-        label.textContent = this.getAttribute('name');
-        //name_button.style.background = this.getAttribute('color');//("background",);
-        console.log('create: '+ this.getAttribute('container'));
-        
-   
+            label.textContent = this.getAttribute('name');
+            //name_button.style.background = this.getAttribute('color');//("background",);
+            console.log('create: ' + this.getAttribute('container'));
 
-        slider.addEventListener('input', () => {
-            console.log(slider.value);
-            //socket.emit('ex', { id: this.getAttribute('id'), parent: this.getAttribute('container'), fn: "submit_butt", val: text.value});
-        });
-        
-        slider.addEventListener('change', () => {
-            console.log(slider.value);
-            socket.emit('ex', { usr:uid, id: this.getAttribute('id'), fn: "sli", val: slider.value});
-        });
+            this.label = this.shadowRoot.querySelector("#label");
+            this.slider = this.shadowRoot.querySelector("#myRange");
+            let min = this.getAttribute("min")
+            let max = this.getAttribute("max")
+            let step = this.getAttribute("step")
+            let value = this.getAttribute("value")
+            if (min) this.slider.min = min;
+            if (max) this.slider.max = max;
+            if (step) this.slider.step = step;
+            if (value) this.slider.value = value;
+
+
+            slider.addEventListener('input', () => {
+                console.log(slider.value);
+                //socket.emit('ex', { id: this.getAttribute('id'), parent: this.getAttribute('container'), fn: "submit_butt", val: text.value});
+            });
+
+            slider.addEventListener('change', () => {
+                console.log(slider.value);
+                socket.emit('ex', { usr: uid, id: this.getAttribute('id'), fn: "sli", val: slider.value });
+            });
 
         }
 
@@ -460,9 +477,12 @@
 <template id="mcSlider-template">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
     <div id="container" style="position:relative; display: inline-block; width:100%; padding: 0px 0px">
-        
-        <input type="range" min="0" max="1000" value="500" class="slider" id="myRange" style="display: inline-block; width:100%; position:relative; ; Z-index: 1;"></input>
-        <h5 id="label" style="margin-top:2px; color: rgb(100, 100, 100); position:absolute; top: 0 ; Z-index: 0; text-align: right; font-size: 20px;"></h5>
+
+        <input type="range" min="0" max="1000" value="500" class="slider" id="myRange"
+            style="display: inline-block; width:100%; position:relative; ; Z-index: 1;"></input>
+        <h5 id="label"
+            style="margin-top:2px; color: rgb(100, 100, 100); position:absolute; top: 0 ; Z-index: 0; text-align: right; font-size: 20px;">
+        </h5>
     </div>
 </template>
 
@@ -474,26 +494,26 @@
     class mcSresult extends HTMLElement {
 
         constructor() {
-        super();
+            super();
         }
 
         connectedCallback() {
 
 
-        let template = document.querySelector('#mcSresult-template').content;
-        this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
+            let template = document.querySelector('#mcSresult-template').content;
+            this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
 
-        let name_button = this.shadowRoot.querySelector("#name");
-        let x_button = this.shadowRoot.querySelector("#x");
+            let name_button = this.shadowRoot.querySelector("#name");
+            let x_button = this.shadowRoot.querySelector("#x");
 
-        name_button.textContent = this.getAttribute('name');
-        name_button.style.background = this.getAttribute('color');//("background",);
-        //console.log('create: '+ this.getAttribute('id'));
+            name_button.textContent = this.getAttribute('name');
+            name_button.style.background = this.getAttribute('color');//("background",);
+            //console.log('create: '+ this.getAttribute('id'));
 
-        name_button.addEventListener('click', () => {
-            //console.log('select '+ this.shadowRoot.getAttribute('id'));
-            socket.emit('ex', { usr:uid, msg: this.getAttribute('name'), id: this.getAttribute('id'), fn: "sres_butt_clicked" });
-        });
+            name_button.addEventListener('click', () => {
+                //console.log('select '+ this.shadowRoot.getAttribute('id'));
+                socket.emit('ex', { usr: uid, msg: this.getAttribute('name'), id: this.getAttribute('id'), fn: "sres_butt_clicked" });
+            });
 
 
 
@@ -525,39 +545,39 @@
     class mcScrollBox extends HTMLElement {
 
         constructor() {
-        super();
+            super();
         }
 
         connectedCallback() {
-        let template = document.querySelector('#mcScrollBox-template').content;
-        this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
+            let template = document.querySelector('#mcScrollBox-template').content;
+            this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
 
 
 
-        let scrollbox = this.shadowRoot.querySelector("#box");
-        
-        var isScroll = true;
-        var lastscroll = 0;
-        scrollbox.addEventListener('mouseup', () => {
-            //console.log(scrollbox.value);
-            isScroll = false;
-            //socket.emit('ex', {id: this.getAttribute('id'), val: slider.value, fn: "sli"});
-        });
+            let scrollbox = this.shadowRoot.querySelector("#box");
 
-        scrollbox.addEventListener('mousedown', () => {
-            isScroll = true;
-        });
-        
-        scrollbox.addEventListener('scroll', () => {
-            var out = [$(scrollbox).scrollTop(), $(scrollbox).scrollLeft()];
-            var thisscroll = out[0] + out[1];
-            if (isScroll && Math.abs(thisscroll - lastscroll) > 10) {
-            //socket.emit('ex', {usr:uid, msg: out, id: this.getAttribute('id'), fn: "scb" });
-            lastscroll = out[0] + out[1];
-           // console.log(out[0])
+            var isScroll = true;
+            var lastscroll = 0;
+            scrollbox.addEventListener('mouseup', () => {
+                //console.log(scrollbox.value);
+                isScroll = false;
+                //socket.emit('ex', {id: this.getAttribute('id'), val: slider.value, fn: "sli"});
+            });
 
-            }
-        });
+            scrollbox.addEventListener('mousedown', () => {
+                isScroll = true;
+            });
+
+            scrollbox.addEventListener('scroll', () => {
+                var out = [$(scrollbox).scrollTop(), $(scrollbox).scrollLeft()];
+                var thisscroll = out[0] + out[1];
+                if (isScroll && Math.abs(thisscroll - lastscroll) > 10) {
+                    //socket.emit('ex', {usr:uid, msg: out, id: this.getAttribute('id'), fn: "scb" });
+                    lastscroll = out[0] + out[1];
+                    // console.log(out[0])
+
+                }
+            });
 
         }
     }
@@ -569,7 +589,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
 
     <!-- <div id = "label" class = "swagLabelSmall">TEXT</div> -->
-    <div id='box' name='box' class='swagBoxT' style="width:398px; max-height: 380px; height:auto; overflow-y: auto; overflow-x: hidden;">
+    <div id='box' name='box' class='swagBoxT'
+        style="width:398px; max-height: 380px; height:auto; overflow-y: auto; overflow-x: hidden;">
 
 </template>
 
@@ -581,31 +602,31 @@
 
 
 
-<script>  
+<script>
 
     class mcTextBox extends HTMLElement {
 
         constructor() {
-        super();
+            super();
         }
 
         connectedCallback() {
-        let template = document.querySelector('#mcTextBox-template').content;
-        this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
+            let template = document.querySelector('#mcTextBox-template').content;
+            this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
 
-        let textbox = this.shadowRoot.querySelector("#text");
-        let label = this.shadowRoot.querySelector("#label");
-        label.innerHTML = this.getAttribute('id').toUpperCase();
+            let textbox = this.shadowRoot.querySelector("#text");
+            let label = this.shadowRoot.querySelector("#label");
+            label.innerHTML = this.getAttribute('id').toUpperCase();
 
-        textbox.addEventListener('keyup', () => {
-            console.log(textbox.value);
-            socket.emit('ex', {usr:uid, id: this.getAttribute('id'), val: textbox.value, fn: "tex" });
-        });
+            textbox.addEventListener('keyup', () => {
+                console.log(textbox.value);
+                socket.emit('ex', { usr: uid, id: this.getAttribute('id'), val: textbox.value, fn: "tex" });
+            });
 
-        textbox.addEventListener('change', () => {
-            console.log(textbox.value);
-            //socket.emit('ex', {id: this.getAttribute('id'), val: slider.value, fn: "sli"});
-        });
+            textbox.addEventListener('change', () => {
+                console.log(textbox.value);
+                //socket.emit('ex', {id: this.getAttribute('id'), val: slider.value, fn: "sli"});
+            });
 
 
         }
@@ -621,7 +642,7 @@
     <div id="label" class="swagLabelSmall">TEXT</div>
     <input type="Text" id="text" autocomplete="off"></input>
 
- 
+
 </template>
 
 
@@ -632,7 +653,7 @@
     class mcColorBox extends HTMLElement {
 
         constructor() {
-        super();
+            super();
         }
 
         connectedCallback() {
@@ -646,32 +667,32 @@
             let sliderG = this.shadowRoot.querySelector("#green");
             let sliderB = this.shadowRoot.querySelector("#blue");
             let sliderA = this.shadowRoot.querySelector("#alpha");
-            let [r,g,b,a] = [0,0,0,0];
+            let [r, g, b, a] = [0, 0, 0, 0];
 
             sliderR.addEventListener('input', () => {
                 r = sliderR.value;
-                colorbox.style.backgroundColor = 'rgba(' + sliderR.value + ',' + sliderG.value + ',' + sliderB.value +',' + sliderA.value/255 + ')'; 
+                colorbox.style.backgroundColor = 'rgba(' + sliderR.value + ',' + sliderG.value + ',' + sliderB.value + ',' + sliderA.value / 255 + ')';
             });
-            sliderG.addEventListener('input', () => { 
+            sliderG.addEventListener('input', () => {
                 g = sliderG.value;
-                colorbox.style.backgroundColor = 'rgba(' + sliderR.value + ',' + sliderG.value + ',' + sliderB.value +',' + sliderA.value/255 + ')';  
-            
+                colorbox.style.backgroundColor = 'rgba(' + sliderR.value + ',' + sliderG.value + ',' + sliderB.value + ',' + sliderA.value / 255 + ')';
+
             });
             sliderB.addEventListener('input', () => {
                 b = sliderB.value;
-                colorbox.style.backgroundColor = 'rgba(' + sliderR.value + ',' + sliderG.value + ',' + sliderB.value +',' + sliderA.value/255 + ')';  
+                colorbox.style.backgroundColor = 'rgba(' + sliderR.value + ',' + sliderG.value + ',' + sliderB.value + ',' + sliderA.value / 255 + ')';
             });
             sliderA.addEventListener('input', () => {
-                a = sliderA.value/255;
-                colorbox.style.backgroundColor ='rgba(' + sliderR.value + ',' + sliderG.value + ',' + sliderB.value +',' + sliderA.value/255 + ')';   
+                a = sliderA.value / 255;
+                colorbox.style.backgroundColor = 'rgba(' + sliderR.value + ',' + sliderG.value + ',' + sliderB.value + ',' + sliderA.value / 255 + ')';
             });
-                
+
             //colorbox.addEventListener('change', () => {
-                //console.log(colorbox.value);
-                //socket.emit('ex', {usr:uid, id: this.getAttribute('id'), val: colorbox.value, fn: "col"});
+            //console.log(colorbox.value);
+            //socket.emit('ex', {usr:uid, id: this.getAttribute('id'), val: colorbox.value, fn: "col"});
             //});
             colorbox.addEventListener('click', () => {
-                socket.emit('ex', { usr:uid, id: this.getAttribute('id'), r:r, g:g, b:b, a:a, fn: "colorbox"});
+                socket.emit('ex', { usr: uid, id: this.getAttribute('id'), r: r, g: g, b: b, a: a, fn: "colorbox" });
                 /*
                     if (sliders.style.display != "none"){
                         sliders.style.display = "none";
@@ -697,12 +718,17 @@
     </style>
     <div id="container" calss="swagBox" style="width: 200px; display: inline-block; padding: 4px 2px;">
         <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
-        <div type="button" id="color" class="swagButton" style="height:40px; width:80px; background-color: rgba(128,0,0,0.5);"></div>
-        <div id="sliders"  >
-            <input type="range" min="0" max="255" value="128" class="slider" id="red" style="display: inline-block; width:100%; position:relative; ; Z-index: 1;background-image: linear-gradient(270deg,rgba(255, 0, 0, 0.3),rgba(255, 0, 0, 0.05),rgba(0,0,0,0)); "></input>
-            <input type="range" min="0" max="255" value="128" class="slider" id="green" style="display: inline-block; width:100%; position:relative; ; Z-index: 1; background-image: linear-gradient(270deg,rgba( 0,255, 0, 0.3),rgba(0, 255, 0, 0.05),rgba(0,0,0,0));"></input>
-            <input type="range" min="0" max="255" value="128" class="slider" id="blue" style="display: inline-block; width:100%; position:relative; ; Z-index: 1; background-image: linear-gradient(270deg,rgba( 0, 0,255, 0.3),rgba(0, 0, 255, 0.05),rgba(0,0,0,0));"></input>
-            <input type="range" min="0" max="255" value="128" class="slider" id="alpha" style="display: inline-block; width:100%; position:relative; ; Z-index: 1;"></input>
+        <div type="button" id="color" class="swagButton"
+            style="height:40px; width:80px; background-color: rgba(128,0,0,0.5);"></div>
+        <div id="sliders">
+            <input type="range" min="0" max="255" value="128" class="slider" id="red"
+                style="display: inline-block; width:100%; position:relative; ; Z-index: 1;background-image: linear-gradient(270deg,rgba(255, 0, 0, 0.3),rgba(255, 0, 0, 0.05),rgba(0,0,0,0)); "></input>
+            <input type="range" min="0" max="255" value="128" class="slider" id="green"
+                style="display: inline-block; width:100%; position:relative; ; Z-index: 1; background-image: linear-gradient(270deg,rgba( 0,255, 0, 0.3),rgba(0, 255, 0, 0.05),rgba(0,0,0,0));"></input>
+            <input type="range" min="0" max="255" value="128" class="slider" id="blue"
+                style="display: inline-block; width:100%; position:relative; ; Z-index: 1; background-image: linear-gradient(270deg,rgba( 0, 0,255, 0.3),rgba(0, 0, 255, 0.05),rgba(0,0,0,0));"></input>
+            <input type="range" min="0" max="255" value="128" class="slider" id="alpha"
+                style="display: inline-block; width:100%; position:relative; ; Z-index: 1;"></input>
         </div>
     </div>
 </template>
@@ -714,19 +740,24 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
 
     <div id="container" style="display: inline-block; width:auto;  padding: 3px 3px">
-        <h5 id="label" style="font-size: 25px;  color: rgb(102, 102, 102); margin-top:5px; margin-bottom:5px; display: block;">default</h5>
+        <h5 id="label"
+            style="font-size: 25px;  color: rgb(102, 102, 102); margin-top:5px; margin-bottom:5px; display: block;">
+            default</h5>
         <div class="gradient"></div>
-        
+
         <div id="display">
-            <input type="button" id="sel" style="width:400px; height:50px; font-family: future; font-size: 25px; "/>
-            <p id="epochs" style="font-size: 15px; color: rgb(255, 255, 255); margin-top:0px; padding-left:10px ; margin-bottom: 0px; text-indent: 10px; display: block; overflow-x: hidden;">default</p>
+            <input type="button" id="sel" style="width:400px; height:50px; font-family: future; font-size: 25px; " />
+            <p id="epochs"
+                style="font-size: 15px; color: rgb(255, 255, 255); margin-top:0px; padding-left:10px ; margin-bottom: 0px; text-indent: 10px; display: block; overflow-x: hidden;">
+                default</p>
         </div>
 
         <div>
-            <mc-button1 id="back" name="BACK" style="float: right;"></mc-button1> 
+            <mc-button1 id="back" name="BACK" style="float: right;"></mc-button1>
         </div>
 
-        <div id="content" class="swagBoxT" style="width:400px; max-height: 600px; height:auto; overflow-y: auto; overflow-x: hidden;">
+        <div id="content" class="swagBoxT"
+            style="width:400px; max-height: 600px; height:auto; overflow-y: auto; overflow-x: hidden;">
         </div>
     </div>
 </template>
@@ -753,12 +784,12 @@
             // state important for back button to show the backend where to roll back from
             this.state = "inactive" // valid: "inactive", "selType", "selSub", "selMain"
             this.validStates = new Set(["inactive", "selType", "selSub", "selMain"])
-            if (options === undefined){
+            if (options === undefined) {
                 options = ["default"]
             }
             this.options = options;
             this.subOptions = [
-                "A - E", 
+                "A - E",
                 "F - J",
                 "K - P",
                 "Q - T",
@@ -778,7 +809,7 @@
             this.buttonBack.style.display = "none";
             this.epochsLabel.style.display = "none";
             this.content.style.display = "none";
-            
+
             // assign attributes for initialization (connect_socketIO_main.js/updateMC)
             this.setAttribute("type", "annotationDD");
             this.classList.add("GD");
@@ -788,7 +819,7 @@
                 this.clickHeader()
             });
 
-            this.buttonBack.addEventListener("click", ()=>{
+            this.buttonBack.addEventListener("click", () => {
                 this.clickBack()
             });
         }
@@ -797,69 +828,69 @@
         // methods
 
         // click events for buttons
-        clickBack(){
-            socket.emit('ex', { 
-                usr:uid, 
+        clickBack() {
+            socket.emit('ex', {
+                usr: uid,
                 val: "clickBack",
-                state: this.state, 
+                state: this.state,
                 id: this.getAttribute('id'),
-                fn: "annotationDD" 
+                fn: "annotationDD"
             });
         }
 
-        clickHeader(){
-            socket.emit('ex', { 
-                usr:uid, 
+        clickHeader() {
+            socket.emit('ex', {
+                usr: uid,
                 val: "clickHeader",
-                state: this.state, 
+                state: this.state,
                 id: this.getAttribute('id'),
-                fn: "annotationDD" 
+                fn: "annotationDD"
             });
         }
 
-        clickOptionType(clickedOption){
-            socket.emit('ex', { 
-                usr:uid, 
+        clickOptionType(clickedOption) {
+            socket.emit('ex', {
+                usr: uid,
                 val: "clickOptionType",
-                option: clickedOption, 
+                option: clickedOption,
                 id: this.getAttribute('id'),
-                fn: "annotationDD" 
+                fn: "annotationDD"
             });
         }
 
-        clickOptionSub(clickedOption){
-            socket.emit('ex', { 
-                usr:uid, 
+        clickOptionSub(clickedOption) {
+            socket.emit('ex', {
+                usr: uid,
                 val: "clickOptionSub",
-                option: clickedOption, 
+                option: clickedOption,
                 id: this.getAttribute('id'),
-                fn: "annotationDD" 
+                fn: "annotationDD"
             });
         }
 
-        clickOptionMain(clickedOption){
-            socket.emit('ex', { 
-                usr:uid, 
+        clickOptionMain(clickedOption) {
+            socket.emit('ex', {
+                usr: uid,
                 val: "clickOptionAnnotation",
-                option: clickedOption, 
+                option: clickedOption,
                 id: this.getAttribute('id'),
-                fn: "annotationDD" 
+                fn: "annotationDD"
             });
         }
 
 
         // set events from frontend 
-        updateOptions(options){this.options = options;} // called when opening new project
+        updateOptions(options) { this.options = options; } // called when opening new project
 
-        initSelection(){
+        initSelection() {
             // before generation: show back button, empty and show content
             this.content.innerHTML = '';
             this.content.style.display = "block";
             this.buttonBack.style.display = "block";
-            if (this.epochsLabel.innerHTML !== "default"){this.epochsLabel.style.display = "block";}
+            if (this.epochsLabel.innerHTML !== "default") { this.epochsLabel.style.display = "block"; }
         }
 
-        close(){
+        close() {
             // method to close all content; triggered when annotation is selected, header is pressed or pressed back in type selection
             this.content.style.display = 'none';
             this.state = "inactive";
@@ -868,7 +899,7 @@
             this.content.innerHTML = '';
         }
 
-        hide(){
+        hide() {
             // method to hide selections and back button when selecting type or sub
             this.content.style.display = 'none';
             this.buttonBack.style.display = "none";
@@ -876,8 +907,8 @@
             this.content.innerHTML = '';
         }
 
-        setState(state){
-            if (!this.validStates.has(state)){
+        setState(state) {
+            if (!this.validStates.has(state)) {
                 console.log(`state ${state} not valid`);
                 return;
             }
@@ -885,18 +916,18 @@
         }
 
 
-        setType(type){
+        setType(type) {
             this.epochsLabel.innerHTML = type; // Set the type
         }
 
-        setSub(){}
+        setSub() { }
 
-        setAnnotation(annotation){
+        setAnnotation(annotation) {
             this.select.setAttribute("value", annotation); // set label in button input
             this.close();
         }
 
-        demo(){console.log("This is a demo method.");}
+        demo() { console.log("This is a demo method."); }
 
         // selection generators
         generateColorGradient(n) {
@@ -960,7 +991,7 @@
             return colors;
         }
 
-        generateSelectionType(typeOptions){
+        generateSelectionType(typeOptions) {
             // init generator
             this.initSelection()
             this.state = "selType";
@@ -974,8 +1005,8 @@
                 button.setAttribute('name', option);
                 button.style.display = 'block';
                 button.setAttribute("color", buttonColors[colorIndex])
-                colorIndex ++;
-                
+                colorIndex++;
+
                 button.addEventListener('click', () => {
                     this.clickOptionType(option)
                 });
@@ -984,7 +1015,7 @@
             });
         }
 
-        generateSelectionSub(options){
+        generateSelectionSub(options) {
             // Empty the content
             this.initSelection()
             this.state = "selSub"
@@ -998,18 +1029,18 @@
                 button.setAttribute('name', option);
                 button.style.display = 'block';
                 button.setAttribute("color", buttonColors[colorIndex]);
-                colorIndex ++;
-                
+                colorIndex++;
+
                 button.addEventListener('click', () => {
                     this.clickOptionSub(option);
-               
+
                 });
 
                 this.content.appendChild(button);
             });
         }
-        
-        generateSelectionMain(options){
+
+        generateSelectionMain(options) {
             // Empty the content
             this.initSelection()
             this.state = "selMain";
@@ -1022,8 +1053,8 @@
                 button.setAttribute('name', option);
                 button.style.display = 'block';
                 button.setAttribute("color", buttonColors[colorIndex])
-                colorIndex ++;
-                
+                colorIndex++;
+
                 button.addEventListener('click', () => {
                     this.clickOptionMain(option);
                 });
@@ -1043,7 +1074,7 @@
 
 <!-- HTML Element to minimize and maximize modules -->
 <template id="module-template">
-   
+
     <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
 
     <div id="module">
@@ -1051,23 +1082,26 @@
             #max-button {
                 background-color: rgba(16, 3, 0, 0.3);
             }
+
             #max-button:hover {
                 background-color: rgba(49, 49, 49, 0.35);
             }
+
             #max-button:active {
                 background-color: rgba(69, 69, 69, 0.4);
             }
-            button.minimize{
+
+            button.minimize {
                 width: 380px;
                 height: 30px;
                 font-family: 'Future', sans-serif;
                 overflow: hidden;
-                white-space: nowrap; 
+                white-space: nowrap;
                 cursor: pointer;
                 box-sizing: border-box;
                 text-align: center;
                 border-radius: 7px;
-                
+
                 border-bottom-left-radius: 0px;
                 font-size: 24px;
 
@@ -1075,7 +1109,7 @@
                 cursor: pointer;
                 background: rgba(66, 66, 66, 0);
                 border: 2px solid transparent;
-                
+
                 text-transform: uppercase;
             }
 
@@ -1088,6 +1122,7 @@
                 background: rgba(55, 55, 55, 1);
                 border: 2px solid rgb(130, 130, 130);
             }
+
             #module-label-container {
                 white-space: nowrap;
                 overflow: hidden;
@@ -1099,7 +1134,8 @@
                 0% {
                     transform: translateX(0%);
                 }
-                25%{
+
+                25% {
                     transform: translateX(0%);
                 }
 
@@ -1107,30 +1143,36 @@
                     transform: translateX(-200%);
                 }
             }
-        </style> 
-        <input type="button" id="max-button" style="width:420px; height: 60px; font-family: future; font-size: 25px; text-transform: uppercase; color: rgb(102, 102, 102);" text="Default Module"/>
+        </style>
+        <input type="button" id="max-button"
+            style="width:420px; height: 60px; font-family: future; font-size: 25px; text-transform: uppercase; color: rgb(102, 102, 102);"
+            text="Default Module" />
         <div id="content">
             <div class="gradientBox">
-                <div id="backgroundColorBox" class='swagBox' id="clip-content" style="width:420px; background-color: rgba(16, 3, 0, 0.3);">
+                <div id="backgroundColorBox" class='swagBox' id="clip-content"
+                    style="width:420px; background-color: rgba(16, 3, 0, 0.3);">
                     <div id="module-header" style="display: block;">
 
 
                         <div id="module-label-container" style="float: left; overflow-x: hidden; width: 330px;">
                             <div>
-                                <h5 id="module-label" style="font-size: 25px; color: rgb(102, 102, 102); margin-top:5px; margin-bottom:5px; display: inline-flex; text-transform: uppercase; width: 330px;"></h5>
+                                <h5 id="module-label"
+                                    style="font-size: 25px; color: rgb(102, 102, 102); margin-top:5px; margin-bottom:5px; display: inline-flex; text-transform: uppercase; width: 330px;">
+                                </h5>
                             </div>
                             <div class="gradient"></div>
                         </div>
-                        
-                        <button id="min-button" class="minimize" style="max-width: 60px; float: right; font-size: 20px; font-weight: bold;color: rgb(102, 102, 102)">&#128469;</button>
+
+                        <button id="min-button" class="minimize"
+                            style="max-width: 60px; float: right; font-size: 20px; font-weight: bold;color: rgb(102, 102, 102)">&#128469;</button>
 
                     </div>
                     <div id="module-content" style="display: block; margin-top: 55px;">
-                        
+
                         <slot></slot>
 
                     </div>
-                </div>    
+                </div>
             </div>
         </div>
     </div>
@@ -1148,7 +1190,7 @@
             this.moduleContent = this.shadowRoot.querySelector("#content");
             this.minimizeButton = this.shadowRoot.querySelector("#min-button");
         }
-        connectedCallback(){
+        connectedCallback() {
             // assign attributes for initialization (connect_socketIO_main.js/updateMC)
             this.setAttribute("type", "module");
             this.classList.add("GD");
@@ -1177,16 +1219,16 @@
 
             // connect buttons
             this.minimizeButton.addEventListener('click', () => {
-                socket.emit('ex', { 
-                    usr:uid, 
+                socket.emit('ex', {
+                    usr: uid,
                     id: this.getAttribute('id'),
                     fn: "module",
                     val: "minimize"
                 });
             });
             this.maximizeButton.addEventListener('click', () => {
-                socket.emit('ex', { 
-                    usr:uid, 
+                socket.emit('ex', {
+                    usr: uid,
                     id: this.getAttribute('id'),
                     fn: "module",
                     val: "maximize"
@@ -1195,9 +1237,9 @@
         }
 
 
-        init(){
-            socket.emit('ex', { 
-                usr:uid, 
+        init() {
+            socket.emit('ex', {
+                usr: uid,
                 id: this.getAttribute('id'),
                 fn: "module",
                 val: "init"
@@ -1205,17 +1247,17 @@
         }
 
         // triggered by connect socket
-        minimizeModule(){
+        minimizeModule() {
             this.moduleContent.style.display = "none";
             this.maximizeButton.style.display = "block";
         }
-        maximizeModule(){
+        maximizeModule() {
             this.moduleContent.style.display = "block";
             this.maximizeButton.style.display = "none";
         }
 
     }
-  
+
     // Define the custom element tag
     customElements.define('mc-module', panelModule);
 </script>
@@ -1234,24 +1276,24 @@
         }
 
         connectedCallback() {
-        let template = document.querySelector('#mcdropdownNoHeader-template').content;
-        this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
-        let select = this.shadowRoot.querySelector("#sel");
-        let content = this.shadowRoot.querySelector("#content");
+            let template = document.querySelector('#mcdropdownNoHeader-template').content;
+            this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
+            let select = this.shadowRoot.querySelector("#sel");
+            let content = this.shadowRoot.querySelector("#content");
 
 
-        select.addEventListener('click', () => {
+            select.addEventListener('click', () => {
 
-            if (content.style.display === "none") {
-                content.style.display = "block";
-            } else {
-                content.style.display = "none";
-            }
-            //ocket.emit('ex', { id: this.getAttribute('id'), parent: this.getAttribute('container'), fn: this.getAttribute('fn'), val: text.value});
-            
+                if (content.style.display === "none") {
+                    content.style.display = "block";
+                } else {
+                    content.style.display = "none";
+                }
+                //ocket.emit('ex', { id: this.getAttribute('id'), parent: this.getAttribute('container'), fn: this.getAttribute('fn'), val: text.value});
 
-        });
-        
+
+            });
+
         }
 
 
@@ -1263,8 +1305,9 @@
 <template id="mcdropdownNoHeader-template">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
     <div id="container" style="display: inline-block; width:auto;  padding: 3px 3px">
-        <input type="button" id="sel" style="width:400px; height:50px; font-family: future; font-size: 25px; "/>
-        <div id = "content" class="swagBoxT" style="width:400px; max-height: 600px; height:auto; overflow-y: auto; overflow-x: hidden;">
+        <input type="button" id="sel" style="width:400px; height:50px; font-family: future; font-size: 25px; " />
+        <div id="content" class="swagBoxT"
+            style="width:400px; max-height: 600px; height:auto; overflow-y: auto; overflow-x: hidden;">
         </div>
     </div>
 </template>
@@ -1273,15 +1316,17 @@
 <template id="mcValueSlider-template">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
     <div id="container" style="position:relative; display: inline-block; width:100%; padding: 0px 0px">
-        <h5 id="label" style="margin-top:2px; color: rgb(100, 100, 100); display: block; text-align: right; font-size: 20px;"></h5>
-        <input type="range" min="0" max="100" value="0" class="slider" id="myRange" style="display: block; width:100%;"></input>
-        
+        <h5 id="label"
+            style="margin-top:2px; color: rgb(100, 100, 100); display: block; text-align: right; font-size: 20px;"></h5>
+        <input type="range" min="0" max="100" value="0" class="slider" id="myRange"
+            style="display: block; width:100%;"></input>
+
     </div>
 </template>
 
 <script>
     class mcSliderValue extends HTMLElement {
-        
+
 
         constructor() {
             super();
@@ -1292,24 +1337,22 @@
             let template = document.querySelector('#mcValueSlider-template').content;
             this.attachShadow({ mode: 'open' }).appendChild(template.cloneNode(true));
 
-            this.label = this.shadowRoot.querySelector("#label");
-            this.slider = this.shadowRoot.querySelector("#myRange");
-
             this.setLabel();
-            console.log('create: '+ this.getAttribute('container'));
-            
+            console.log('create: ' + this.getAttribute('container'));
+
             this.slider.addEventListener('change', () => {
-                socket.emit('ex', { usr:uid, id: this.getAttribute('id'), fn: "sli", val: this.slider.value});
+                console.log("This is min,max,step: ", this.min, this.max, this.step)
+                socket.emit('ex', { usr: uid, id: this.getAttribute('id'), fn: "sli", val: this.slider.value });
                 this.setLabel()
             });
 
         }
-        setLabel(){
-            this.label.textContent = this.getAttribute('name') +  " :: " + this.slider.value + " %";
+        setLabel() {
+            this.label.textContent = this.getAttribute('name') + " :: " + this.slider.value + " %";
         }
 
-        init(){
-            socket.emit('ex', { usr:uid, id: this.getAttribute('id'), fn: "sli", val: "0"});
+        init() {
+            socket.emit('ex', { usr: uid, id: this.getAttribute('id'), fn: "sli", val: "0" });
         }
     }
 

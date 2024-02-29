@@ -84,9 +84,9 @@ def plotly():
     return render_template("Plotly.html")
 
 
-@blueprint.route("/Extentions")
+@blueprint.route("/extensions")
 def Extentions():
-    return render_template("Extentions.html")
+    return render_template("extensions.html")
 
 
 @blueprint.route("/webui")
@@ -122,6 +122,11 @@ def doku_annotations():
 @blueprint.route("/uimodules")
 def doku_modules():
     return render_template("newmodules.html")
+
+
+@blueprint.route("/cytoscape")
+def doku_cytoscape():
+    return render_template("cytoscapeBridge.html")
 
 
 @blueprint.on("join", namespace="/doku")

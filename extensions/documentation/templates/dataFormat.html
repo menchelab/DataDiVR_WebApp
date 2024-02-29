@@ -1,22 +1,25 @@
 <!DOCTYPE html>
 <html>
-	<link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}"></link>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
+</link>
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/atelier-cave.min.css') }}"></link>
-	<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
-	<script>hljs.highlightAll();</script>
-	<head>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-	</head>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/atelier-cave.min.css') }}">
+</link>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
 
 <body>
- 
-<div>
 
-<h5>DataDiVR Data Format</h5>
-<br>
-from the readme file:
-<pre><code class="html">The DataDiVR acts as a multiplayer gameserver for one or more VR clients.
+  <div>
+
+    <h5>DataDiVR Data Format</h5>
+    <br>
+    from the readme file:
+    <pre><code class="html">The DataDiVR acts as a multiplayer gameserver for one or more VR clients.
 Its purpose is to serve the connected players with big network datasets
  - as quickly as possible.
 That is the reason why most properties are stored (and transmitted over the network) as images.
@@ -64,20 +67,25 @@ Link colors are stored in 'linksRGB'.
 
 
 </code></pre>
-<br>
-When using the uploader, a new folder will be created in /static/projects/ that contains the above files.<br>
-Lets look at the .json files that are also created alongside with the textures:<br><br>
+    <br>
+    When using the uploader, a new folder will be created in /static/projects/ that contains the above files.<br>
+    Lets look at the .json files that are also created alongside with the textures:<br><br>
 
-<a href="/static/demo_project/Autocore/pfile.json" target="_blank">pfile.json</a> contains lists of all the textures, labels, and some other general informations about the project 
-<br><br>
-<a href="/static/demo_project/Autocore/pdata.json" target="_blank">pdata.json</a> is used by the user interfaces to store their states
-<br><br>
-<a href="/static/demo_project/Autocore/nodes.json" target="_blank">nodes.json</a> contains a list of all the nodes and their attributes as json objects
-<br><br>
-<a href="/static/demo_project/Autocore/links.json" target="_blank">links.json</a> contains the linklist
-<br><br>
-There is one more important .json file called <br><a href="/static/projects/GD.json" target="_blank">GD.json</a> in <i>"/static/projects/GD.json"</i> that stores the active project.
-<br><br><a href="/doku/">DOKU</a><br>
-</div>
+    <a href="/static/demo_project/Autocore/pfile.json" target="_blank">pfile.json</a> contains lists of all the
+    textures, labels, and some other general informations about the project
+    <br><br>
+    <a href="/static/demo_project/Autocore/pdata.json" target="_blank">pdata.json</a> is used by the user interfaces to
+    store their states
+    <br><br>
+    <a href="/static/demo_project/Autocore/nodes.json" target="_blank">nodes.json</a> contains a list of all the nodes
+    and their attributes as json objects
+    <br><br>
+    <a href="/static/demo_project/Autocore/links.json" target="_blank">links.json</a> contains the linklist
+    <br><br>
+    There is one more important .json file called <br><a href="/static/projects/GD.json" target="_blank">GD.json</a> in
+    <i>"/static/projects/GD.json"</i> that stores the active project.
+    <br><br><a href="/doku/">Back to the main documentation</a><br>
+  </div>
 </body>
+
 </html>

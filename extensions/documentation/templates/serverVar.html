@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html>
 
-<link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}"></link>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/atelier-cave.min.css') }}"></link>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
+</link>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/atelier-cave.min.css') }}">
+</link>
 
 <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
@@ -21,30 +23,34 @@
 
 </head>
 
-<body>   
+<body>
     <div id="outer" style="width: auto; height: auto;">
         <a href="/doku/">BACK</a><br>
-        <h5 >SERVER SIDE VARIABLE</h5>
+        <h5>SERVER SIDE VARIABLE</h5>
         <br>
         Go to the <a href="/preview">WebGL Preview</a> and scroll down to the CLIPBOARD section<br><br>
         <img src="{{ url_for('static', filename='img/help/clipboard.jpg') }}" style="max-width: 100%;">
         <br>
-        If you select a node in the network and click <i>ADD</i>, it will be stored on the server and added to the clipboard on all clients<br>
+        If you select a node in the network and click <i>ADD</i>, it will be stored on the server and added to the
+        clipboard on all clients<br>
         Let's look at the definition of that button in <i>static/templates/mClipboard.html</i> to see how this is done.
 
         <br>
         <pre><code class="html">&ltmc-button1 id="cbaddNode" parent="" val="" name="ADD" fn="addNode"&gt&lt/mc-button1&gt
 &ltmc-scrollbox id='cbscrollbox'&gt&lt/mc-scrollbox&gt</code></pre>
         <br>
-        <i>&ltmc-button1&gt</i>  is a custom element that already has the inbuilt functionality to send a SocketIO message to the server when clicked.<br>
+        <i>&ltmc-button1&gt</i> is a custom element that already has the inbuilt functionality to send a SocketIO
+        message to the server when clicked.<br>
         It is defined in <i>static/templates/templates.html</i> and produces the following message:<br><br>
-        <pre><code class="javascript">{'usr': 'CqtNKAlRLd', 'msg': 'ADD', 'id': 'cbaddNode', 'parent': '', 'val': '', 'fn': 'addNode'}</code></pre><br>
+        <pre><code class="javascript">{'usr': 'CqtNKAlRLd', 'msg': 'ADD', 'id': 'cbaddNode', 'parent': '', 'val': '', 'fn': 'addNode'}</code></pre>
+        <br>
         This message is then received in <i>app.py</i> and the following operations are performed:<br><br>
         - check if the key <i>'cbnode'</i> exists in pdata.json and create it if it does not exist<br>
-        - check if the <i>'activeNode'</i> is already in 'cbnode' ('activeNode' gets set whenever a node is selected by a user)<br>
+        - check if the <i>'activeNode'</i> is already in 'cbnode' ('activeNode' gets set whenever a node is selected by
+        a user)<br>
         - if it's not, construct an object containing 'id', "color", and "name" attributes and add it to 'cbnode'<br>
-        
-<pre><code class="language-python"># CLIPBOARD 
+
+        <pre><code class="language-python"># CLIPBOARD 
 elif message["id"] == "cbaddNode":
     if message["val"] != "init":                # used for initialization for newly joined client
         if not 'cbnode' in GD.pdata.keys():     # check if selection exists in pdata.json
@@ -71,9 +77,9 @@ elif message["id"] == "cbaddNode":
     
     emit("ex", response, room=room)  # send to all clients
 </code></pre>
-- send a response containing 'cbnode' as attribute with the key <i>'val'</i> 
-<br>
-<pre><code class="javascript">{
+        - send a response containing 'cbnode' as attribute with the key <i>'val'</i>
+        <br>
+        <pre><code class="javascript">{
     "usr": "NMEZIhV1u3",
     "id": "cbaddNode",
     "fn": "cbaddNode",
@@ -98,19 +104,21 @@ elif message["id"] == "cbaddNode":
         }
     ]
 }</code></pre><br>
-Here is the client - side receiver for this message in <i>'static/js/connect_SocketIO_main.js'</i>
-<pre><code class="javascript">case "cbaddNode":
+        Here is the client - side receiver for this message in <i>'static/js/connect_SocketIO_main.js'</i>
+        <pre><code class="javascript">case "cbaddNode":
     var content = document.getElementById('cbscrollbox').shadowRoot.getElementById("box");
     removeAllChildNodes(content);
     for (let i = 0; i &lt data.val.length; i++) &#123
         $(content).append("&ltmc-button id = 'button"+ i + " 'val= '"+ data.val[i].id + "' name = '"+ data.val[i].name +  "' w = '118' fn = 'node' color = '" + rgbToHex(data.val[i].color[0]*0.5,data.val[i].color[1]*0.5,data.val[i].color[2]*0.5) + "' &gt&lt/mc-button&gt");
     &#125
     break;</code></pre>
-    First, all child elements of the &ltdiv&gt 'cbscrollbox' are deleted with <i>removeAllChildNodes()</i><br>
-    Then, for each object in 'val' of the reveived message a <i>&ltmc-button&gt</i> element is appended to the 'cbscrollbox' &ltdiv&gt using JQuery.
-    <br>
-    Name, Id, and color are passed as html parameters and retrived in the custom element defined in <i>'static/templates/templates.html'</i>
-    <pre><code class="javascript">class mcButton extends HTMLElement {
+        First, all child elements of the &ltdiv&gt 'cbscrollbox' are deleted with <i>removeAllChildNodes()</i><br>
+        Then, for each object in 'val' of the reveived message a <i>&ltmc-button&gt</i> element is appended to the
+        'cbscrollbox' &ltdiv&gt using JQuery.
+        <br>
+        Name, Id, and color are passed as html parameters and retrived in the custom element defined in
+        <i>'static/templates/templates.html'</i>
+        <pre><code class="javascript">class mcButton extends HTMLElement {
         constructor() {
         super();
         }
@@ -132,13 +140,14 @@ Here is the client - side receiver for this message in <i>'static/js/connect_Soc
 
     }
     customElements.define('mc-button', mcButton);</code></pre>
-    <br><br>
-    <h5>Initialization</h5><br>
-    When a Client joins a session, a SocketIO message is sent to the server to populate the 'cbscrollbox' &ltdiv&gt<br>
-    <i>updateMcElements()</i> in  <i>'static/js/connect_SocketIO_main.js'</i>
-    <pre><code class="javascript">socket.emit('ex', { usr:uid, id: "cbaddNode", fn: "addNode", val:"init"});</code></pre>
-    <br><br><a href="/doku/">DOKU</a><br>    
-</div>
+        <br><br>
+        <h5>Initialization</h5><br>
+        When a Client joins a session, a SocketIO message is sent to the server to populate the 'cbscrollbox'
+        &ltdiv&gt<br>
+        <i>updateMcElements()</i> in <i>'static/js/connect_SocketIO_main.js'</i>
+        <pre><code class="javascript">socket.emit('ex', { usr:uid, id: "cbaddNode", fn: "addNode", val:"init"});</code></pre>
+        <br><br><a href="/doku/">Back to the main documentation</a><br>
+    </div>
 
 
 
