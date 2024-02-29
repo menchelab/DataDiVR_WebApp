@@ -58,7 +58,7 @@ def socket_join(func):
 
 
 def socket_left(func):
-    functions["join"].append(func)
+    functions["left"].append(func)
 
 
 def listProjects():
