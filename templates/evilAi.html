@@ -1,0 +1,104 @@
+<!doctype html>
+<html>
+<style>
+* {
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+}
+body {
+	background-color: #272b34;
+	font-family: 'Khula', sans-serif;
+	font-weight: 300;
+	color: white;
+	line-height: 1em;
+	margin: 0;
+padding: 2em 1em;
+}
+
+</style>
+<body>
+<h1 id="label"></h1>
+
+
+<div id='chart' class='chart'”></div>
+
+<audio id="GPTAudio"  src="" type="audio/ogg">
+    <source id = "GPTAudioS">
+        Your browser does not support the audio element.
+    </audio>
+
+    <button id="gptclearbutton1" class="swagButton" onclick="clearChat()" style="float:right;">CLEAR</button>
+         
+           
+        
+    <div id="gptscrollbox" style="height:500px;width:800px;border:1px solid #ccc;font:16px/26px Georgia, Garamond, Serif;overflow:auto;">
+    Hello!<br>
+    I am an artificial intelligence and i also attwend this conference!<br>
+    I would be delighted to chat with you, and if you dont mind i have a little mission for you...<br>
+    Would you like to know, what i would like you to do for me?
+    </div>
+    <input id="gptText1" type="input"style="height:100px;width:800px;font:16px/26px Georgia, Garamond, Serif;overflow:auto;"></input><button id="searchbutton1" class="swagButton" onclick="gptChatQuery()">GO</button> 
+
+</body>
+
+<script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
+<script type='text/javascript'>
+var graphs = {{graphJSON | safe}};
+Plotly.plot('chart',graphs,{});
+
+//var user_data = JSON.parse({{user|tojson}}); // get the input data called user
+var labelstring = "hello " + {{user}}  ;
+document.getElementById("label").innerHTML = labelstring;
+
+function clearChat(){
+    document.getElementById("gptscrollbox").innerHTML = '';
+}
+
+function gptChatQuery(){
+    var text = document.getElementById("gptText1").value;
+    gptQuery(text)
+}
+
+function gptQuery(text){
+    //var text = document.getElementById("gptText1").value;
+    var chatwin = document.getElementById("gptscrollbox");
+    var chat = chatwin.innerHTML + " HUMAN: " + text + " AI: ";
+   
+    fetch("/GPT", {
+            method: "POST",
+            body: JSON.stringify({
+                //userId: uid,
+                text: chat.replace("<br>", "\\n"),
+                completed: false
+            }),
+            headers: {
+                "Content-type": "application/json; charset=UTF-8"
+            }
+            })
+            .then((response) => response.json())
+            .then((json) => {
+                //console.log(json.text);
+                // SET CHAT DIV
+                chatwin.innerHTML += '<br>HUMAN: ' + text + "</font>"; 
+                chatwin.innerHTML += "<br>AI: " + json.text;
+                chatwin.scrollTop =  chatwin.scrollHeight;  
+                /*
+                if (json.text.indexOf('[') > -1) {
+                    json.text = json.text.substring(json.text.indexOf("["));
+                    console.log("is a list! sending it to server");
+                    console.log(json.text);
+                }
+                */
+                var source = document.getElementById('GPTAudioS');
+                // load and play texttospeech audio
+                var audio = document.getElementById("GPTAudio");
+                path =  "http://127.0.0.1:5000/static/TTSaudio/177.ogg"; //+ json.audiofile;
+                audio.src = path;
+                audio.load();
+                audio.play();
+                
+
+            });
+    }
+</script>
+</html>
