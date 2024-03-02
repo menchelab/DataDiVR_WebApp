@@ -546,10 +546,14 @@ $(document).ready(function(){
                             makeNetwork();
                         }
                         if(data.id == "linksRGBDD"){                            
-                            //actLinks = data.sel;
                             actLinksRGB = data.sel;
                             makeNetwork();
-                        }
+                        } 
+                        if(data.id == "linksDD"){                            
+                            actLinks = data.sel;
+                            makeNetwork();
+                        }                       
+
 
 
                     }
@@ -583,7 +587,6 @@ $(document).ready(function(){
                     }
                     // VRrooms
                     if (data.id == "VRrooms"){
-
                         switch (data.name){
                             case "Dome":
                                 ue4(data["name"], data.name);
@@ -591,9 +594,9 @@ $(document).ready(function(){
                             case "Landscape":
                                 ue4(data["name"], data.name);
                             break;
-                            case "Platforms":
-                                ue4(data["name"], data.name);
-                            break;
+                            // case "Platforms":
+                            //     ue4(data["name"], data.name);
+                            // break;
                         }
                     }
 
@@ -693,7 +696,30 @@ $(document).ready(function(){
 
                                 break;
                         }
+                    }
+                
+                    if(data.id == "linksDD") {
+                        switch (data.id){
+                            case "linksDD": // if change in DD for link colors = change link colors in network and legend
+                                
+                                if (pfile.links.length <= data.sel) {
+                                    links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
+                                    links_DD.setAttribute("sel", parseInt(0));
+                                    links_DD.setAttribute("value", pfile.links[0]);
+                                } else {
+                                    links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
+                                    links_DD.setAttribute("sel", parseInt(data.sel));
+                                    links_DD.setAttribute("value", pfile.links[data.sel]);
+                                }
 
+                                // update arrow buttons with new index
+                                nextButton = document.getElementById("forwardstep");
+                                nextButton.setAttribute('val', data.sel);
+                                backButton = document.getElementById("backwardstep");
+                                backButton.setAttribute('val', data.sel);
+
+                                break;
+                        }
                     }
                 }
                 ue4(data["fn"], data);    
@@ -761,7 +787,8 @@ $(document).ready(function(){
                         id: "legend_scene_display",
                         val: forwardidx
                     });
-                    
+
+                    // link colors 
                     if (pfile.linksRGB.length <= forwardidx) {
                         linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
                         linksRGB_DD.setAttribute("sel", parseInt(0));
@@ -779,12 +806,29 @@ $(document).ready(function(){
                     layouts_DD = document.getElementById("layoutsDD").shadowRoot.getElementById("sel");
                     layouts_DD.setAttribute("sel", parseInt(forwardidx));
                     layouts_DD.setAttribute("value", pfile.layouts[forwardidx]);
+                    //console.log("C_DEBUG changed Layouts: ", forwardidx);
 
                     // layoutRGB
                     layoutsRGB_DD = document.getElementById("layoutsRGBDD").shadowRoot.getElementById("sel");
                     layoutsRGB_DD.setAttribute("sel", parseInt(forwardidx));
                     layoutsRGB_DD.setAttribute("value", pfile.layoutsRGB[forwardidx]);
+                    //console.log("C_DEBUG changed Layouts Colors: ", forwardidx);
 
+                    // links
+                    if (pfile.links.length <= forwardidx) {
+                        links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
+                        links_DD.setAttribute("sel", parseInt(0));
+                        links_DD.setAttribute("value", pfile.links[0]);
+                        actLinks = 0;
+
+                    } else {
+                        links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
+                        links_DD.setAttribute("sel", parseInt(forwardidx));
+                        links_DD.setAttribute("value", pfile.links[forwardidx]);
+                        actLinks = forwardidx;
+                    }
+                    //console.log("C_DEBUG changed Links: ", forwardidx);
+                    
                     Legend_displayNodeInfobyID(pfile.name, forwardidx);
                     Legend_displayLinkInfobyID(pfile.name, forwardidx);
                     Legend_displayGraphLayoutbyID(pfile.name, forwardidx, "layouts", "graphlayout");
@@ -797,7 +841,7 @@ $(document).ready(function(){
                     if (isPreview){
                         actLayout = forwardidx;
                         actLayoutRGB = forwardidx;
-                        actLinks = 0;
+                        actLinks = forwardidx; // 0
                         makeNetwork();
                     }
 
@@ -816,7 +860,7 @@ $(document).ready(function(){
                         val: backwardidx
                     });
 
-
+                    // link colors
                     if (pfile.linksRGB.length <= backwardidx) {
                         linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
                         linksRGB_DD.setAttribute("sel", parseInt(0));
@@ -829,16 +873,35 @@ $(document).ready(function(){
                         linksRGB_DD.setAttribute("value", pfile.linksRGB[backwardidx]);
                         actLinksRGB = backwardidx;
                     }
+                    //console.log("C_DEBUG changed Link colors: ", backwardidx);
 
                     // layouts
                     layouts_DD = document.getElementById("layoutsDD").shadowRoot.getElementById("sel");
                     layouts_DD.setAttribute("sel", parseInt(backwardidx));
                     layouts_DD.setAttribute("value", pfile.layouts[backwardidx]);
+                    //console.log("C_DEBUG changed Layouts: ", backwardidx);
 
                     // layoutRGB
                     layoutsRGB_DD = document.getElementById("layoutsRGBDD").shadowRoot.getElementById("sel");
                     layoutsRGB_DD.setAttribute("sel", parseInt(backwardidx));
                     layoutsRGB_DD.setAttribute("value", pfile.layoutsRGB[backwardidx]);
+                    //console.log("C_DEBUG changed Layouts Colors: ", backwardidx);
+
+
+                    // links
+                    if (pfile.links.length <= backwardidx) {
+                        links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
+                        links_DD.setAttribute("sel", parseInt(0));
+                        links_DD.setAttribute("value", pfile.links[0]);
+                        actLinks = 0;
+
+                    } else {
+                        links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
+                        links_DD.setAttribute("sel", parseInt(backwardidx));
+                        links_DD.setAttribute("value", pfile.links[backwardidx]);
+                        actLinks = backwardidx;
+                    }
+                    //console.log("C_DEBUG changed Links: ", backwardidx);
 
                     Legend_displayNodeInfobyID(pfile.name, backwardidx);
                     Legend_displayLinkInfobyID(pfile.name, backwardidx);
@@ -852,7 +915,7 @@ $(document).ready(function(){
                     if (isPreview){
                         actLayout = backwardidx;
                         actLayoutRGB = backwardidx;
-                        actLinks = 0;
+                        actLinks = backwardidx; //= 0;
                         makeNetwork();
                     }
 

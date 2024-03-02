@@ -206,12 +206,12 @@
                         }
                     }
                 }
-                console.log("C_DEBUG - layoutmame selected = ", layoutname);
-                console.log("C_DEBUG - list layout_with_clusters = ", l_layout_with_clusters);
+                //console.log("C_DEBUG - layoutmame selected = ", layoutname);
+                //console.log("C_DEBUG - list layout_with_clusters = ", l_layout_with_clusters);
 
                 if (l_layout_with_clusters.includes(layoutname)) {
                     // W I T H   D E F I N E D   C L U S T E R S 
-                    console.log("C_DEBUG in FOUND CLUSTERS ", l_layout_with_clusters);
+                    //console.log("C_DEBUG in FOUND CLUSTERS ", l_layout_with_clusters);
 
                     const clusterlist = pfiledata["selections"];
                     //console.log("C_DEBUG - clusterlist = ", clusterlist); //.reverse());
@@ -231,18 +231,18 @@
                         const name = clusterlist[key]['name']; //value.name;
 
                         console.log(clusterlist[key]['layoutname']);
-                        console.log("C_DEBUG: labelcolor: ", labelColor);
-                        console.log("C_DEBUG: name: ", name);
+                        //console.log("C_DEBUG: labelcolor: ", labelColor);
+                        // console.log("C_DEBUG: name: ", name);
 
                         const clusterlist_layoutname = clusterlist[key]['layoutname']+"RGB";
-                        console.log("C_DEBUG: clusterlist layoutname ",  clusterlist_layoutname);
+                        // console.log("C_DEBUG: clusterlist layoutname ",  clusterlist_layoutname);
 
                         if (layoutname === clusterlist_layoutname) {
-                            console.log("C_DEBUG matched layoutname with clusterlist");
+                            // console.log("C_DEBUG matched layoutname with clusterlist");
                             labelColorDict[labelColor] = name;
                         } 
                     }
-                    console.log("C_DEBUG: labelColorDict = ", labelColorDict);
+                    // console.log("C_DEBUG: labelColorDict = ", labelColorDict);
             
                     let idx = 0;
                     for (const color in labelColorDict) { 
@@ -251,7 +251,7 @@
                         const colorParts = color.split(',').map(Number); // Split and convert to numbers
                         const color_reformated = 'rgb(' + colorParts.slice(0, 3).join(', ') + ')';
     
-                        console.log("C_DEBUG: color =", color_reformated);
+                        // console.log("C_DEBUG: color =", color_reformated);
                         
                         const textdiv = document.createElement("div");
                         const text = document.createTextNode(labelColorDict[keys[idx]]); //newNamesDict[color]["name"]);                            
@@ -268,7 +268,7 @@
                     allnode_Div.appendChild(nodedesc_Div);
                 } else {                    
                     // W I T H O U T   D E F I N E D   C L U S T E R S (in pfiledata["selections"])
-                    console.log("C_DEBUG - in else");
+                    // console.log("C_DEBUG - in else");
 
                     const allnode_Div = document.getElementById("legend_node_all");
 

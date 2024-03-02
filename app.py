@@ -42,7 +42,7 @@ import GlobalData as GD
 import layout_module
 #import load_extensions
 import plotlyExamples as PE
-import VRrooms
+
 import search
 import spam_protection as spam
 

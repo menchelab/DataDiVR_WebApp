@@ -5,6 +5,8 @@ import enrichment_module
 import GlobalData as GD
 import layout_module
 
+import VRrooms
+
 
 def main(message, room):
     response = {}
@@ -16,6 +18,22 @@ def main(message, room):
     if "val" in message.keys():
         # init message called when socket connection is established
         if message["val"] == "init":
+
+            
+            # VRrooms
+            if message["id"] == "VRrooms":
+                if "VRrooms" in GD.pdata.keys():
+                    newval = int(GD.pdata["VRrooms"])
+                    newname = VRrooms.VRROOMS_TABS[newval]
+                else:   
+                    newval = 0
+                    newname = "Dome"
+                response["opt"] = VRrooms.VRROOMS_TABS      
+                response["sel"] = newval
+                response["name"] = newname
+                response["usr"] = message["usr"]
+
+                
             # C A R T O G R A P H S
             # dropdown for layout type selection
             layout_selected = 0
@@ -207,5 +225,7 @@ def main(message, room):
                 response_layout_exists["id"] = "layoutExists"
                 response_layout_exists["val"] = layout_module.check_layout_exists()
                 emit("ex", response_layout_exists, room=room)
+
+
     emit("ex", response, room=room)
     print(response)
