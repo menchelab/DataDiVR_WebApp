@@ -1,43 +1,51 @@
 <!DOCTYPE html>
 <html>
-	<link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}"></link>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/atelier-cave.min.css') }}"></link>
-	<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
-	<script>hljs.highlightAll();</script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
+</link>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/atelier-cave.min.css') }}">
+</link>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
 
 
-	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-	</head>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
 
 
-	<body>
-		<div>
-			<br>
-			<h3>How to implement a new module</h3>
+<body>
+	<div>
+		<br>
+		<h3>How to implement a new module</h3>
 
-			<br>
-			In this section we will present you how to setup a new module. 
+		<br>
+		In this section we will present you how to setup a new module.
 
-			<br><br>
-			The DataDiVR uses modules to encapsle related tools together. Therfore, the DataDiVR has a some usefull custom HTML elements
-			to allow easy implementation of new modules which are minimizable as well as maximizable to have the best possible overview about
-			your tools.
+		<br><br>
+		The DataDiVR uses modules to encapsle related tools together. Therfore, the DataDiVR has a some usefull custom
+		HTML elements
+		to allow easy implementation of new modules which are minimizable as well as maximizable to have the best
+		possible overview about
+		your tools.
 
-			<br><br>
-			There are more <a style="font-size:20px" href="/doku/">custom HTML elements</a><br> to discover.
-			
-			<br>
-			<br>
-			<h4>Module Container: mc-module</h4><br>
+		<br><br>
+		There are more <a style="font-size:20px" href="/doku/">custom HTML elements</a><br> to discover.
 
-			The mc-module tag works exactly as a div but gives the user the freedom to write only the genuinely necessary UI code. By using
-			this tag to create a new HTML element there are no further configurations necessary except to set a display name using the 
-			custom "name" attribute as well as to give the element a unique id to track its state in the backend. Following, there is an
-			on how to setup a module correctly, however feel free to checkout templates/mAnnotation.html as an examplary implementation.
-			<br><br>
+		<br>
+		<br>
+		<h4>Module Container: mc-module</h4><br>
 
-			<pre>
+		The mc-module tag works exactly as a div but gives the user the freedom to write only the genuinely necessary UI
+		code. By using
+		this tag to create a new HTML element there are no further configurations necessary except to set a display name
+		using the
+		custom "name" attribute as well as to give the element a unique id to track its state in the backend. Following,
+		there is an
+		on how to setup a module correctly, however feel free to checkout templates/mAnnotation.html as an examplary
+		implementation.
+		<br><br>
+
+		<pre>
 				<code class="html">
 &ltmc-module id="module-annotation" name="Annotation Module">
 	&ltdiv id="your content"
@@ -46,17 +54,20 @@
 &lt/mc-module>			
 		</code>
 			</pre>
-			
-			<h4>Alternative Dropdown: mc-dropdown-no-header</h4><br><br>
 
-			Sometime you might need only a dropdown as a main selection tool in your module. To keep the advantages of the mc-dropdown
-			template without the display name there is the mc-dropdown-no-header HTML element. It works exactly the same as mc-dropdon.
-			<br><br>
+		<h4>Alternative Dropdown: mc-dropdown-no-header</h4><br><br>
 
-			To check out how its working have a look at templates/mAnalytics.html in the backend to see how it's working.
-			
+		Sometime you might need only a dropdown as a main selection tool in your module. To keep the advantages of the
+		mc-dropdown
+		template without the display name there is the mc-dropdown-no-header HTML element. It works exactly the same as
+		mc-dropdon.
+		<br><br>
 
-			<br><br><a href="/doku/">DOKU<br>
-		</div>
-	</body>
+		To check out how its working have a look at templates/mAnalytics.html in the backend to see how it's working.
+
+
+		<br><br><a href="/doku/">Back to the main documentation</a><br>
+	</div>
+</body>
+
 </html>

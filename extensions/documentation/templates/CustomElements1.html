@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}"></link>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/atelier-cave.min.css') }}"></link>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
+</link>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/atelier-cave.min.css') }}">
+</link>
 
 <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
@@ -37,7 +39,8 @@
         <mc-rbutton id='666' name='name' color='#550022'></mc-rbutton><br>
 
         Open this page 2 times, open the Console and click on the buttons name,<br>
-        then press 'X' and observe the output and the behaviour of the other window - it should disappear there aswell.<br><br>
+        then press 'X' and observe the output and the behaviour of the other window - it should disappear there
+        aswell.<br><br>
 
         It is defined in <i>static/templates/templates.html </i> <br>
         and can be used in html like this:
@@ -56,7 +59,8 @@
 &lt/script&gt</code></pre>
 
         <br>
-        <div id='geneBox' style='width: 300px; height: 120px; overflow:auto; border-radius: 12px;  background-color: #adadad; display: inline-block; border-color: rgb(10, 24, 221); border-right: 2px solid ; border-top: 2px solid; border-left: 2px solid ; border-bottom: 2px solid'>
+        <div id='geneBox'
+            style='width: 300px; height: 120px; overflow:auto; border-radius: 12px;  background-color: #adadad; display: inline-block; border-color: rgb(10, 24, 221); border-right: 2px solid ; border-top: 2px solid; border-left: 2px solid ; border-bottom: 2px solid'>
             <script>
                 for (let i = 0; i < 50; i++) {
                     $("#geneBox").append("<mc-rbutton id = '" + i + "' name = '" + makeid(Math.floor(Math.random() * 3) + 4) + "' color = '#" + Math.floor(Math.random() * 16777215).toString(16) + "'></mc-rbutton>");
@@ -132,7 +136,7 @@ customElements.define('mc-rbutton', mcRButton);</code></pre>
         Or this text box
         <mc-textbox id="TextInput">></mc-textbox><br><br>
         Or on <a style="font-size:20px" href="/doku/uimodules">how to setup new a new module<br><br>
-        <br><br><a href="/doku/">DOKU<br>
+            <br><br><a href="/doku/">Back to the main documentation</a><br>
     </div>
 
 </body>

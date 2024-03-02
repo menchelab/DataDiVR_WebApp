@@ -1,9 +1,11 @@
 import json
-from PIL import Image
 import os.path
-from os import path
-import util
 from collections import OrderedDict
+from os import path
+
+from PIL import Image
+
+import util
 
 # idata = {'mes': 'dfhdfhfh', 'usr': 'NaS7QA89nxLg9nKQAAAn', 'tag': 'flask'}
 
@@ -24,10 +26,12 @@ pdata = {}
 nodes = {}
 links = {}
 names = {}
+functions = {"ex": [], "join": [], "left": []}
 
-
-annotations = {} # annotations map
-annotation_types = []  # stores types of annotations, per default if no types exist it holds only "default"
+annotations = {}  # annotations map
+annotation_types = (
+    []
+)  # stores types of annotations, per default if no types exist it holds only "default"
 
 
 # todo deal with multiple linklists
@@ -35,12 +39,26 @@ nchildren = []
 
 pixel_valuesc = []
 
-session_data = {}  # caching data computed in expensive algorithms once during session -> key: str of algorithm id, value result of algoriuthm/function
+session_data = (
+    {}
+)  # caching data computed in expensive algorithms once during session -> key: str of algorithm id, value result of algoriuthm/function
 # ideas to improve performance and avoid large data problems:
 # - cache size limit -> might rewrite all functions which use and produce this data to not store it and retreive it afterwards but skip this process if data size is to big
 # - LRU approach to kill things which are never used (maybe combine with first one) -> using ordered dict
 # - expiration limits to keep it lightweight using timestamps (might be hard since id need to regularly check it but maybe still useful)
 # - serialization like pickling big objects (maybe graph)
+
+
+def socket_execute(func):
+    functions["ex"].append(func)
+
+
+def socket_join(func):
+    functions["join"].append(func)
+
+
+def socket_left(func):
+    functions["left"].append(func)
 
 
 def listProjects():
@@ -88,7 +106,7 @@ def loadPD():
     global links
 
     global session_data
-    session_data = {} # empty session data on changing project
+    session_data = {}  # empty session data on changing project
 
     if not path.exists("static/projects/" + data["actPro"] + "/pdata.json"):
         with open("static/projects/" + data["actPro"] + "/pdata.json", "w") as outfile:
@@ -202,15 +220,21 @@ def load_annotations_simple_old():
     for node in nodes["nodes"]:
         if "attrlist" not in node.keys():
             continue
-        
-        # efficient filtering of annotation which are not strings (i.e. json) or name of node 
-        valid_annotations = [annotation for annotation in node["attrlist"] if isinstance(annotation, str) and annotation != node["n"]]
+
+        # efficient filtering of annotation which are not strings (i.e. json) or name of node
+        valid_annotations = [
+            annotation
+            for annotation in node["attrlist"]
+            if isinstance(annotation, str) and annotation != node["n"]
+        ]
 
         for annotation in valid_annotations:
             if annotation not in temp_annotations:
                 temp_annotations[annotation] = []
             temp_annotations[annotation].append(node["id"])
-    annotations = OrderedDict(sorted(temp_annotations.items(), key=lambda x: x[0].lower()))  # annotations initilized increasing alphabetically
+    annotations = OrderedDict(
+        sorted(temp_annotations.items(), key=lambda x: x[0].lower())
+    )  # annotations initilized increasing alphabetically
 
 
 def load_annotations_complex():
@@ -233,6 +257,7 @@ def load_annotations_complex():
                     annotations[anno_type][anno] = []
                 annotations[anno_type][anno].append(node["id"])
 
+
 def load_annotations_simple():
     global annotations
     global annotation_types
@@ -242,7 +267,7 @@ def load_annotations_simple():
     for node in nodes["nodes"]:
         if "attrlist" not in node.keys():
             continue
-        
+
         anno_list = node["attrlist"]
 
         for idx, anno in enumerate(anno_list):
@@ -257,7 +282,7 @@ def load_annotations_simple():
 
 def load_annotations():
     if "annotationTypes" not in pfile.keys():
-        pfile["annotationTypes"] = False     # assuming to be False for old projects
+        pfile["annotationTypes"] = False  # assuming to be False for old projects
         savePFile()
 
     # current solution -> enhance by keeping only complex function and deprecate simple

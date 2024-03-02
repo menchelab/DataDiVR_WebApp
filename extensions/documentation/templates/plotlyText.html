@@ -1,15 +1,14 @@
+<br>
+<br>
+Let's have a look at the last barchart example for the sake of simplicity.<br>
 
-    <br>
-    <br>
-    Let's have a look at the last barchart example for the sake of simplicity.<br>
-    
-    in <i>extentions/documentation/templates/plotly.html</i> a socket.io signal is sent to the server on page load:<br>
-    <pre><code class="javascript">$(document).ready(function()&#123
+in <i>extentions/documentation/templates/plotly.html</i> a socket.io signal is sent to the server on page load:<br>
+<pre><code class="javascript">$(document).ready(function()&#123
       socket.emit("ex",&#123'usr': uid, 'msg': 'Barchart', 'parent': 'chart', 'fn': 'Plotly2js'&#125);
 &#125); </code></pre>
-    This message is recieved in <i>extentions/documentation/src/app.py</i><br>
-    the function <i>PE.barGraph(data)</i> that creates the graph gets called with some dummy data.<br>
-    <pre><code class="language-python">@blueprint.on("ex", namespace="/doku")
+This message is recieved in <i>extentions/documentation/src/app.py</i><br>
+the function <i>PE.barGraph(data)</i> that creates the graph gets called with some dummy data.<br>
+<pre><code class="language-python">@blueprint.on("ex", namespace="/doku")
 def ex(message): # receive socket.io
   ...
       if message["fn"] == "Plotly2js":
@@ -21,7 +20,7 @@ def ex(message): # receive socket.io
               data = [{"name":"aaron","val":200,"id":0},{"name":"erica","val":500,"id":1},{"name":"anton","val":250,"id":2},{"name":"emma","val":180,"id":3}]
               response["val"] = PE.barGraph(data)
     </code></pre>
-    This is <i>PE.barGraph(data)</i> in <i>plotlyExamples.py</i><br>
+This is <i>PE.barGraph(data)</i> in <i>plotlyExamples.py</i><br>
 
 
 
@@ -49,16 +48,20 @@ def ex(message): # receive socket.io
     fig.update_yaxes(showticklabels=False)
     fig.update_layout(uniformtext_minsize=12, uniformtext_mode='show')
     return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-</code></pre> 
+</code></pre>
 It parses the provided data into the expected dataformat and creates the <i>fig</i> object,<br>
 but instead of rendering it with <i>fig.show()</i>, it's returned to <i>extentions/documentation/src/app.py</i>
-where it is added to the response object under the key <i>["val"]</i> and sent back to the clients using socket.io.<br>Note that this is NOT a prerendered SVG file, but a dataframe which is much smaller.<br><br>
+where it is added to the response object under the key <i>["val"]</i> and sent back to the clients using
+socket.io.<br>Note that this is NOT a prerendered SVG file, but a dataframe which is much smaller.<br><br>
 
 Another important detail is the <i>meta</i> parameter.<br>
 It is an array of the same length as names[] that allows us to store additional data for each node of the graph.<br>
-If the meta parameter is assigned, a callback is automatically created when the graph is rendered later in plotly.js.<br>
-So when a user clicks on the graph, this data is sent back to the server which enables us to interact with these events.<br><br>
-Finally, here is <i>extentions/documentation/static/js/connect_socketIO_doku.js</i> that receives the message and renders the graph.
+If the meta parameter is assigned, a callback is automatically created when the graph is rendered later in
+plotly.js.<br>
+So when a user clicks on the graph, this data is sent back to the server which enables us to interact with these
+events.<br><br>
+Finally, here is <i>extentions/documentation/static/js/connect_socketIO_doku.js</i> that receives the message and
+renders the graph.
 <pre><code class="javascript">socket.on('ex', function(data) &#123
     console.log("server returned: " + JSON.stringify(data));
     switch(data.fn)
@@ -87,7 +90,8 @@ Finally, here is <i>extentions/documentation/static/js/connect_socketIO_doku.js<
 </code></pre>
 
 <br><br>
-<h5>Bargraph</h5><div class="gradient"></div>
+<h5>Bargraph</h5>
+<div class="gradient"></div>
 <div id='chart6'></div><br>
 <br><br>
 Bring up the browser console and click on a bar and you will see something like <br>
@@ -99,10 +103,10 @@ In this case, the <i>"id"</i> provided when <i>PE.barGraph()</i> was called.
   &#123"name":"anton","val":250,"id":2&#125,
   &#123"name":"emma","val":180,"id":3&#125]</code></pre>
 
- 
 
-    
-    
-    
-    
-    <br><br><a href="/doku/">DOKU<br>
+
+
+
+
+
+<br><br><a href="/doku/">Back to the main documentation</a><br>

@@ -19,6 +19,118 @@ import matplotlib.pyplot as plt
 pio.templates.default = "plotly_dark"
 
 
+
+
+
+def networkGraphRT(nlist, alist, llist):
+
+    '''
+    nlist = [111,2,3,49,5,6]
+    alist = ["peter","klaus","anne","lukas","felix","marion"]
+    llist = [(0,1),(1, 1), (0, 2), (0, 3), (0, 4), (0, 5),(2, 1), (3, 2), (5, 3), (1, 4), (1, 5)]
+    '''
+    
+    nxlist = [] # need a nodelist like [0,1,2...] for nx, so we use meta attr to provide node id's
+    for i in range(len(alist)):
+        nxlist.append(i)
+
+    G=nx.random_geometric_graph(len(alist),0.3)
+    G.add_nodes_from(nxlist)
+    G.remove_edges_from(G.edges())
+    G.add_edges_from(llist)
+    pos = nx.spring_layout(G)
+    
+    #print(G.nodes(data=True))
+
+    edge_x = []
+    edge_y = []
+    for edge in G.edges():
+
+        edge_x.append(pos[edge[0]][0])
+        edge_x.append(pos[edge[1]][0])
+        edge_x.append(None)
+        edge_y.append(pos[edge[0]][1])
+        edge_y.append(pos[edge[1]][1])
+        edge_y.append(None)
+
+    edge_trace = go.Scatter(
+        x=edge_x, y=edge_y,
+        line=dict(width=0.5, color='#888'),
+        hoverinfo='none',
+        mode='lines')
+
+    node_x = []
+    node_y = []
+    for node in G.nodes():
+        #x, y = G.nodes[node]['pos']
+        node_x.append(pos[node][0])
+        node_y.append(pos[node][1])
+    marker ='markers'
+    if len(alist) < 30:
+        marker ="markers+text"       
+
+    node_trace = go.Scatter(
+        x=node_x, y=node_y,
+        meta = nlist, # this can be used to pass custom info, here nodeIDs to the graph which can be retrived in js
+        text = alist,
+        textposition="top center",
+        mode=marker,
+        hoverinfo='text',
+        marker=dict(
+            showscale=True,
+            # colorscale options
+            #'Greys' | 'YlGnBu' | 'Greens' | 'YlOrRd' | 'Bluered' | 'RdBu' |
+            #'Reds' | 'Blues' | 'Picnic' | 'Rainbow' | 'Portland' | 'Jet' |
+            #'Hot' | 'Blackbody' | 'Earth' | 'Electric' | 'Viridis' |
+            colorscale='YlGnBu',
+            reversescale=True,
+            color=[],
+            size=8,
+            colorbar=dict(
+                thickness=5,
+                title='Node Connections',
+                xanchor='left',
+                titleside='right'
+            ),
+            line_width=2))
+
+    node_adjacencies = []
+    node_text = []
+    for node, adjacencies in enumerate(G.adjacency()):
+        node_adjacencies.append(len(adjacencies[1]))
+        #node_text.append('# of connections: '+str(len(adjacencies[1])))
+        node_text.append(alist[node])
+    node_trace.marker.color = node_adjacencies
+    node_trace.text = node_text
+
+    fig = go.Figure(data=[edge_trace, node_trace],
+                layout=go.Layout(
+                    title='',
+                    titlefont_size=16,
+                    showlegend=False,
+                    hovermode='closest',
+                    margin=dict(b=20,l=5,r=5,t=40),
+                    annotations=[ dict(
+                        text='',
+                        showarrow=False,
+                        xref="paper", yref="paper",
+                        x=0.005, y=-0.002 ) ],
+                    xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                    yaxis=dict(showgrid=False, zeroline=False, showticklabels=False))
+                    )
+    fig.update_layout(height= 420, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=10, r=10, t=40, b=10))
+ 
+    return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)  
+
+
+
+
+
+
+
+
+
+
 def networkGraph():
 
     #elist = [(0,1),(1,2),(1,3),(1,4),(5,4),(5,7),(3,7)]

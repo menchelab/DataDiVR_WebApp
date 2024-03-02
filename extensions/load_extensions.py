@@ -14,17 +14,6 @@ def import_blueprint(app: flask.Flask, ext: str, extensions_path: str) -> bool:
             raise ImportError(f"No app.py found in '/extension/{ext}/src'.")
 
         module = f"extensions.{ext}.src.app"
-
-        # Install requirements
-        requirements = os.path.join(extensions_path, ext, "requirements.txt")
-        if os.path.isfile(requirements):
-            if platform.system() != "Windows":
-                os.system(
-                    f"python3 -m pip install -r {requirements} | grep -v 'already satisfied'"
-                )
-            else:
-                os.system(f"python3 -m pip install -r {requirements}")
-
         module = import_module(module)
 
         if not hasattr(module, "blueprint") or not hasattr(module, "url_prefix"):
@@ -36,27 +25,26 @@ def import_blueprint(app: flask.Flask, ext: str, extensions_path: str) -> bool:
         print(f"\033[1;32mLoaded extension: {ext}")
         return module
     except ImportError:
-        print(f"\u001b[33m", traceback.format_exc())
-        print(f"\u001b[33mMake sure you installed a necessary python modules.")
+        print("\u001b[33m", traceback.format_exc())
+        print("\u001b[33mMake sure you installed a necessary python modules.")
         print(
             f"\u001b[33mYou can use:\n\npython3 -m pip install -r extensions/{ext}/requirements.txt\n\nTo install all requirements."
         )
     except AttributeError:
-        print(f"\u001b[33m", traceback.format_exc())
+        print("\u001b[33m", traceback.format_exc())
         print(
-            f"\u001b[33mMake sure you have an app.py file in the '/src/' folder of your extension."
+            "\u001b[33mMake sure you have an app.py file in the '/src/' folder of your extension."
         )
         print(
-            f"\u001b[33mMake sure that you have defined a 'url_prefix' for your in the app.py file."
+            "\u001b[33mMake sure that you have defined a 'url_prefix' for your in the app.py file."
         )
-        print(f"\u001b[33mMake sure your flask blueprint is called 'blueprint'.")
-        return False
+        print("\u001b[33mMake sure your flask blueprint is called 'blueprint'.")
+    return False
 
 
 def load(main_app: flask.Flask) -> tuple[flask.Flask, dict]:
     """Loads all extensions contained in the directory extensions."""
     _WORKING_DIR = os.path.abspath(os.path.dirname(__file__))
-    extensions = os.path.join(_WORKING_DIR, "extensions")
     ignore = []
     loaded_extensions = []
     list_of_ext = []
@@ -68,23 +56,25 @@ def load(main_app: flask.Flask) -> tuple[flask.Flask, dict]:
         "upload_tabs",
     ]
     # add_tab_to_nodepanel = []
-    if os.path.exists(extensions):
-        if os.path.isfile(os.path.join(extensions, "ignore.py")):
-            ignore_py = import_module("extensions.ignore")
-            if hasattr(ignore_py, "ignore"):
-                ignore = ignore_py.ignore
-        for ext in os.listdir(extensions):
-            if (
-                not os.path.isdir(os.path.join(extensions, ext))
-                or ext in ignore
-                or ext in IGNORE_DIRS
-            ):
-                continue
-            extension_attr = {}
-            module = import_blueprint(main_app, ext, extensions)
-            if module:
-                extension_attr["id"] = ext
-                loaded_extensions.append(ext)
+    if os.path.exists(_WORKING_DIR):
+        IGNORE_FILE = os.path.join(_WORKING_DIR, "ignore.txt")
+        if os.path.isfile(IGNORE_FILE):
+            with open(IGNORE_FILE, "r") as f:
+                ignore = f.readlines()
+
+    for ext in os.listdir(_WORKING_DIR):
+        if (
+            not os.path.isdir(os.path.join(_WORKING_DIR, ext))
+            or ext in ignore
+            or ext in IGNORE_DIRS
+        ):
+            continue
+
+        extension_attr = {}
+        module = import_blueprint(main_app, ext, _WORKING_DIR)
+        if module:
+            extension_attr["id"] = ext
+            loaded_extensions.append(ext)
             for key in possible_tabs:
                 if hasattr(module, key):
                     extension_attr[key] = module.__dict__[key]

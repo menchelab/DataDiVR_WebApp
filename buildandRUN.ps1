@@ -5,6 +5,11 @@ Clear-Host
 #create virtual env in windows and activate it and install requirements.txt
 py -3.9 -m venv venv
 venv\Scripts\activate
+
+# Install requirements of the extensions
+. .\extensions\install_requirements.ps1
+Install-Requirements
+
 #pip install flask_cors
 #pip install pymysql
 pip install wheel
