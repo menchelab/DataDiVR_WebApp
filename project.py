@@ -5,6 +5,64 @@ import shutil
 import numpy as np
 from PIL import Image
 
+
+class ProjectTag:
+    """
+    This class provides access to the layouts keys of a pfile.
+    """
+
+    LAYOUTS = "layouts"
+    LAYOUTS_RGB = "layoutsRGB"
+    LINKS = "links"
+    LINKS_RGB = "linksRGB"
+
+
+class ProjectFiles:
+    """This class provides access to the file names of the files located in a project"""
+
+    PFILE = "pfile.json"
+    NAMES = "names.json"
+    NODES = "nodes.json"
+    LINKS = "links.json"
+    ANNOTATIONS = "annotations.json"
+
+
+class ProjectDirs:
+    """This class provides access to the directory names of the directories located in a project"""
+
+    LAYOUTS = "layouts"
+    LAYOUTSL = "layoutsl"
+    LAYOUTS_RGB = "layoutsRGB"
+    LINKS = "links"
+    LINKS_RGB = "linksRGB"
+
+    @staticmethod
+    def get_dir(key: ProjectTag) -> str:
+        """Return the directory with is associated to the respective ProjectTag.
+
+        Args:
+            key (ProjectTag): Tag in the pfile that list the contained layouts.
+
+        Raises:
+            NotImplementedError: If a ProjectTag is defined but not directory is associated.
+
+        Returns:
+            str: Name of the directory associated to the ProjectTag.
+        """
+        directory = {
+            ProjectTag.LAYOUTS: ProjectDirs.LAYOUTS,
+            ProjectTag.LAYOUTS_RGB: ProjectDirs.LAYOUTS_RGB,
+            ProjectTag.LINKS: ProjectDirs.LINKS,
+            ProjectTag.LINKS_RGB: ProjectDirs.LINKS_RGB,
+        }
+        if key not in directory:
+            raise NotImplementedError(
+                "The respective ProjectTag is not associated to any directory!"
+            )
+
+        return directory[key]
+
+
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 PROJECTS_DIR = os.path.join(STATIC_DIR, "projects")
 DEFAULT_PFILE = {
@@ -20,11 +78,7 @@ DEFAUT_NAMES = {"names": []}
 DEFAULT_NODES = {"nodes": []}
 DEFAULT_LINKS = {"links": []}
 DEFAULT_ANNOTATIONS = {"node": None, "link": None}
-LAYOUTS = "layouts"
-LAYOUTSL = "layoutsl"
-LAYOUTS_RGB = "layoutsRGB"
-LINKS = "links"
-LINKS_RGB = "linksRGB"
+
 LINK = "link"
 NODE = "node"
 LAYOUT = "layout"
@@ -44,16 +98,17 @@ class Project:
             raise TypeError(f"Name must be a string, not {type(name)}")
         self.name = name
         self.location = os.path.join(PROJECTS_DIR, name)
-        self.pfile_file = os.path.join(self.location, f"pfile.json")
-        self.names_file = os.path.join(self.location, f"names.json")
-        self.nodes_file = os.path.join(self.location, f"nodes.json")
-        self.links_file = os.path.join(self.location, f"links.json")
-        self.layouts_dir = os.path.join(self.location, f"layouts")
-        self.layoutsl_dir = os.path.join(self.location, f"layoutsl")
-        self.layouts_rgb_dir = os.path.join(self.location, f"layoutsRGB")
-        self.links_dir = os.path.join(self.location, f"links")
-        self.links_rgb_dir = os.path.join(self.location, f"linksRGB")
-        self.annotations_file = os.path.join(self.location, f"annotations.json")
+        self.pfile_file = os.path.join(self.location, ProjectFiles.PFILE)
+        self.names_file = os.path.join(self.location, ProjectFiles.NAMES)
+        self.nodes_file = os.path.join(self.location, ProjectFiles.NODES)
+        self.links_file = os.path.join(self.location, ProjectFiles.LINKS)
+        self.annotations_file = os.path.join(self.location, ProjectFiles.ANNOTATIONS)
+
+        self.layouts_dir = os.path.join(self.location, ProjectDirs.LAYOUTS)
+        self.layoutsl_dir = os.path.join(self.location, ProjectDirs.LAYOUTSL)
+        self.layouts_rgb_dir = os.path.join(self.location, ProjectDirs.LAYOUTS_RGB)
+        self.links_dir = os.path.join(self.location, ProjectDirs.LINKS)
+        self.links_rgb_dir = os.path.join(self.location, ProjectDirs.LINKS_RGB)
 
         self.pfile = None
         self.origin = None
@@ -105,7 +160,7 @@ class Project:
             json.dump(data, f)
         os.rename(tmp_name, file)
 
-    def read_json(self, file: str, default: object = {}):
+    def read_json(self, file: str, default: None):
         """Generic read function for json files.
 
         Args:
@@ -114,6 +169,9 @@ class Project:
         Returns:
             json: Data from file or default value.
         """
+        if default is None:
+            default = {}
+
         if self.pfile is not None:
             self.origin = self.get_pfile_value("origin")
             if not self.origin and not os.path.exists(file):
@@ -392,7 +450,7 @@ class Project:
         Returns:
             dict: All jsons of the project.
         """
-        data = self.read_all_jsons(False)
+        self.read_all_jsons(False)
         return {
             "pfile": self.pfile,
             "names": self.names,
@@ -437,9 +495,6 @@ class Project:
     def set_state_data_value(self, key, value):
         self.define_pfile_value("stateData", key, value)
 
-    def get_all_data(self):
-        return self.pfile, self.names, self.nodes, self.links
-
     def create_layouts_dir(self):
         self.create_directory(self.layouts_dir)
 
@@ -461,8 +516,8 @@ class Project:
     def exists(self):
         return os.path.exists(self.location)
 
-    def get_files_in_dir(self, dir: str):
-        return os.listdir(os.path.join(self.location, dir))
+    def get_files_in_dir(self, directory: str):
+        return os.listdir(os.path.join(self.location, directory))
 
     def has_own_nodes(self):
         return os.path.exists(self.nodes_file)
@@ -471,7 +526,8 @@ class Project:
         return os.path.exists(self.links_file)
 
     def remove(self):
-        shutil.rmtree(self.location, ignore_errors=True)
+        if self.exists():
+            shutil.rmtree(self.location, ignore_errors=True)
 
     def remove_subdir(self, subdir: str):
         shutil.rmtree(os.path.join(self.location, subdir))
@@ -587,3 +643,38 @@ class Project:
             }
 
         return os.path.join(target_dir[bitmap_type], layout_name)
+
+    def init_pfile_from_dir(self, key):
+        """
+        Initializes a list in the pfile of the project with the to all existing textures in the respective directory. For example, if the key 'layouts' is provides the list with key 'layouts' in the pfile is initialized with all textures that a contained in the layouts directory of this project.
+
+        Args:
+            key (str): Key of the list in the pfile to initialize. Possible values are provided by the ProjectTag class
+        """
+        directory = ProjectDirs.get_dir(key)
+        files = os.listdir(os.path.join(self.location, directory))
+        file_ex = ".bmp" if "RGB" not in key else ".png"
+        self.set_pfile_value(key, [item.strip(file_ex) for item in files])
+
+    def init_pfile_links(self):
+        """Initializes the items associated to the key 'links' in the pfile of the current project to all existing link textures that are located in /static/<project>/links/"""
+        self.init_pfile_from_dir(ProjectTag.LINKS)
+
+    def init_pfile_links_rgb(self):
+        """Initializes the items associated to the key 'linksRGB' in the pfile of the current project to all existing link color textures that are located in /static/<project>/linksRGB/"""
+        self.init_pfile_from_dir(ProjectTag.LINKS_RGB)
+
+    def init_pfile_layouts(self):
+        """Initializes the items associated to the key 'layouts' in the pfile of the current project to all existing layout textures that are located in /static/<project>/layouts/"""
+        self.init_pfile_from_dir(ProjectTag.LAYOUTS)
+
+    def init_pfile_layouts_rgb(self):
+        """Initializes the items associated to the key 'layoutsRGB' in the pfile of the current project to all existing layout color textures that are located in /static/<project>/layoutsRGB/"""
+        self.init_pfile_from_dir(ProjectTag.LAYOUTS_RGB)
+
+    def init_all_pfile_list(self):
+        """Initializes the items associated to the keys 'layouts, 'layouts', 'links' and 'linksRGB' in the pfile of the current project to all existing textures that are located in the respective directories"""
+        self.init_pfile_layouts()
+        self.init_pfile_layouts_rgb()
+        self.init_pfile_links()
+        self.init_pfile_links_rgb()
