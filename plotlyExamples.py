@@ -29,10 +29,15 @@ def networkGraphRT(nlist, alist, llist):
     alist = ["peter","klaus","anne","lukas","felix","marion"]
     llist = [(0,1),(1, 1), (0, 2), (0, 3), (0, 4), (0, 5),(2, 1), (3, 2), (5, 3), (1, 4), (1, 5)]
     '''
-    images=["https://images.plot.ly/language-icons/api-home/python-logo.png",
-                 "https://raw.githubusercontent.com/michaelbabyn/plot_data/master/benzene.png",
-                 "https://images.plot.ly/language-icons/api-home/python-logo.png",
-                 "https://raw.githubusercontent.com/michaelbabyn/plot_data/master/benzene.png"]
+
+# Get the list of all files and directories
+    path = "static/CAT_thumbs"
+    dir_list = os.listdir(path)
+    images=[]
+    for i in range(len(dir_list)-1):
+        images.append("http://127.0.0.1:5000/static/CAT_thumbs/" + str(i)+".png")
+    #print(images)
+    
     nxlist = [] # need a nodelist like [0,1,2...] for nx, so we use meta attr to provide node id's
     for i in range(len(alist)):
         nxlist.append(i)
@@ -70,8 +75,8 @@ def networkGraphRT(nlist, alist, llist):
         node_y.append(pos[node][1])
     marker ='markers'
 
-    if len(alist) < 30:
-        marker ="markers+text"       
+    #if len(alist) < 30:
+    marker ="markers+text"       
 
     node_trace = go.Scatter(
         x=node_x, y=node_y,
@@ -124,21 +129,25 @@ def networkGraphRT(nlist, alist, llist):
                     )
     fig.update_layout(height= 420, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=10, r=10, t=40, b=10))
     
-    sample_images=["https://raw.githubusercontent.com/michaelbabyn/plot_data/master/benzene.png"]
+    
     xVals = fig['data'][1]['x']
     yVals = fig['data'][1]['y']
-    for i in range(0, len(xVals)):  
+    ids = fig['data'][1]["meta"]
+    print(fig['data'][1])
+
+    for i in range(0, len(xVals)):
+        
         fig.add_layout_image(dict(
-            source=sample_images[0],
-            x=xVals[i],
-            y=yVals[i],
+            source=images[ids[i]],
+            x=xVals[i] - 0.01,
+            y=yVals[i] + 0.01,
             xref="x",
             yref="y",
             #sizex=0.03,
             #sizey=0.03,
             #layer='above'
-            sizex=0.1,
-            sizey=0.1,
+            sizex=0.2,
+            sizey=0.2,
             #sizing="stretch",
             opacity=0.5,
             layer="below"
