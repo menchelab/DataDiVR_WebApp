@@ -1,5 +1,7 @@
 <!doctype html>
 <html>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
+</link>
 <style>
 * {
 	-webkit-box-sizing: border-box;
@@ -17,10 +19,10 @@ padding: 2em 1em;
 
 </style>
 <body>
-<h1 id="label"></h1>
 
 
-<div id='chart' class='chart'”></div>
+
+
 
 <audio id="GPTAudio"  src="" type="audio/ogg">
     <source id = "GPTAudioS">
@@ -31,14 +33,14 @@ padding: 2em 1em;
          
            
         
-    <div id="gptscrollbox" style="height:500px;width:800px;border:1px solid #ccc;font:16px/26px Georgia, Garamond, Serif;overflow:auto;">
-    Hello!<br>
-    I am an artificial intelligence and i also attwend this conference!<br>
+    <div id="gptscrollbox" class="swagBox;" style="height:400px; width:800px; overflow:auto; font-size: 30px; line-height: 150%">
+    <font color='#13a3e9'>AI: Hello {{user}} !<br>
+    I am an artificial intelligence and i also attend this conference!<br>
     I would be delighted to chat with you, and if you dont mind i have a little mission for you...<br>
-    Would you like to know, what i would like you to do for me?
+    Would you like to know, what i would like you to do for me?</font>
     </div>
-    <input id="gptText1" type="input"style="height:100px;width:800px;font:16px/26px Georgia, Garamond, Serif;overflow:auto;"></input><button id="searchbutton1" class="swagButton" onclick="gptChatQuery()">GO</button> 
-
+    <input id="gptText1" type="input"style= "height:100px; width:600px; overflow:auto;  font-size: 40px;"></input><button id="searchbutton1" class="swagButton" style="height:100px; width:200px; font-size: 40px;" onclick=gptChatQuery()>SEND</button> 
+    <div id='chart' class='chart'”></div>
 </body>
 
 <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
@@ -47,8 +49,6 @@ var graphs = {{graphJSON | safe}};
 Plotly.plot('chart',graphs,{});
 
 //var user_data = JSON.parse({{user|tojson}}); // get the input data called user
-var labelstring = "hello " + {{user}}  ;
-document.getElementById("label").innerHTML = labelstring;
 
 function clearChat(){
     document.getElementById("gptscrollbox").innerHTML = '';
@@ -79,8 +79,8 @@ function gptQuery(text){
             .then((json) => {
                 //console.log(json.text);
                 // SET CHAT DIV
-                chatwin.innerHTML += '<br>HUMAN: ' + text + "</font>"; 
-                chatwin.innerHTML += "<br>AI: " + json.text;
+                chatwin.innerHTML += "<br> <font color='#9900FF'>HUMAN: " + text + "</font>"; 
+                chatwin.innerHTML += "<br><font color='#13a3e9'> AI: " + json.text + "</font>";
                 chatwin.scrollTop =  chatwin.scrollHeight;  
                 /*
                 if (json.text.indexOf('[') > -1) {

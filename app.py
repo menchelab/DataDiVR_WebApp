@@ -117,7 +117,7 @@ def main():
 
 
 myusers = [{'uid': 4, 'links': [2, 2, 2, 2, 2, 133, 666, 666, 666, 666, 125, 125]}, {'uid': 666, 'links': [133]}, {'uid': 133, 'links': [666]}, {'uid': 555, 'links': [666, 133, 4, 123, 124, 125, 125, 125]}, {'uid': 125, 'links': [555, 128]}, {'uid': 128, 'links': [555]}, {'uid': 130, 'links': [555]}]
-
+ 
 
 import plotlyExamples
 
@@ -159,7 +159,8 @@ def evilAI():
                 for l in i['links']:
                     try:
                         end = nodes.index(l)
-                        links.append((start,end))
+                        if start >= 0:
+                            links.append((start,end))
                     except ValueError:
                         end = -1
                         
@@ -180,15 +181,45 @@ def evilAI():
             exists = False
 
             for i in myusers:
-                if i['uid'] == uid:
+                if i['uid'] == int(uid):
                     exists = True
+                    print("user already exists")
 
             if not exists:
                 thisUser = {}
                 thisUser["uid"] = int(uid)
                 thisUser["links"] = []
                 myusers.append(thisUser)
-                resp = make_response(render_template('evilAi.html',user=uid, data=myusers) + uid)
+                nodes=[]
+                links=[]
+                annot=[]
+                for i in myusers:
+                    nodes.append(int(i['uid']))
+                    annot.append("agent"+ str(i['uid']))
+
+                    for i in myusers:
+                        start = -1
+                        
+                        try:
+                            start = nodes.index(i['uid']) 
+                        except ValueError:
+                            start = -1
+                        
+                        for l in i['links']:
+                            try:
+                                end = nodes.index(l)
+                                if start >= 0:
+                                    links.append((start,end))
+                            except ValueError:
+                                end = -1
+                        
+
+                print(links)
+                print(nodes)
+                print(annot)
+                print(myusers)
+                graphJSON = plotlyExamples.networkGraphRT(nodes, annot , links)
+                resp = make_response(render_template('evilAi.html',user=uid, data=myusers,graphJSON=graphJSON) + uid)
                 resp.set_cookie('userID', uid)
                 return resp
             else:
