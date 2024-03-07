@@ -29,20 +29,30 @@ padding: 2em 1em;
         Your browser does not support the audio element.
     </audio>
 
-    <button id="gptclearbutton1" class="swagButton" onclick="clearChat()" style="float:right;">CLEAR</button>
-         
-           
-    <img src="static/CAT_thumbs/70.png"><br>    
-    <div id="gptscrollbox" class="swagBox;" style="height:400px; width:800px; overflow:auto; font-size: 30px; line-height: 150%">
     
-    <font color='#13a3e9'>AI: Hello {{user}} !<br>
-    I am an artificial intelligence and i also attend this conference!<br>
-    I would be delighted to chat with you, and if you dont mind i have a little mission for you...<br>
-    Would you like to know, what i would like you to do for me?</font>
-    </div><br>
-    <img src="static/CAT_thumbs/{{user}}.png"><br>
-    <input id="gptText1" type="input"style= "height:100px; width:600px; overflow:auto;  font-size: 40px;"></input><button id="searchbutton1" class="swagButton" style="height:100px; width:200px; font-size: 40px;" onclick=gptChatQuery()>SEND</button> 
-    <div id='chart' class='chart'”></div>
+
+    <div style="width: 100%; overflow: hidden;">
+        <div style="width: 400px; float: left;">
+        
+            <img src="static/CAT_thumbs/70.png"><br>    
+            <div id="gptscrollbox" class="swagBox;" style="height:400px; width:400px; overflow:auto; font-size: 20px; line-height: 150%">
+            
+            <font color='#13a3e9'>AI: Hello {{user}} !<br>
+            I am an artificial intelligence and i also attend this conference!<br>
+            I would be delighted to chat with you, and if you dont mind i have a little mission for you...<br>
+            Would you like to know, what i would like you to do for me?</font>
+            </div><br>
+            <img src="static/CAT_thumbs/{{user}}.png"><br>
+            <input id="gptText1" type="input"style= "height:100px; width:300px; overflow:auto;  font-size: 30px;"></input><button id="searchbutton1" class="swagButton" style="height:100px; width:100px; font-size: 30px;" onclick=gptChatQuery()>SEND</button>    
+            <button id="gptclearbutton1" class="swagButton" onclick="clearChat()" style="float:right;">CLEAR</button>
+        </div>
+        <div style="margin-left: 400px;"> 
+            <div id='chart' class='chart' style= "height:800px; width:1000px; overflow:auto;"></div>
+        </div>
+    </div>
+
+
+    
 </body>
 
 <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>

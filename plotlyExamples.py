@@ -127,13 +127,13 @@ def networkGraphRT(nlist, alist, llist):
                     xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
                     yaxis=dict(showgrid=False, zeroline=False, showticklabels=False))
                     )
-    fig.update_layout(height= 420, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=10, r=10, t=40, b=10))
+    fig.update_layout(height= 800, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=10, r=10, t=40, b=10))
     
     
     xVals = fig['data'][1]['x']
     yVals = fig['data'][1]['y']
     ids = fig['data'][1]["meta"]
-    print(fig['data'][1])
+    #print(fig['data'][1])
 
     for i in range(0, len(xVals)):
         
