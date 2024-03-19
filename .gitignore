@@ -6,6 +6,7 @@ venv/
 **/**.vscode/
 **/**.code-workspace
 projects/
+temp_upload_data/
 openAI_KEY_doNOTcommit.txt
 static/TTSaudio/
 extensions/whisperSpeechRecognition/static/WhisperAudio/

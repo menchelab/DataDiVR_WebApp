@@ -358,19 +358,17 @@ def makeLinkTexNew(project, links, name=None):
  
 
 
-
-
 def makeLinksjson_multipleLinklists(project,links):
     path = 'static/projects/' + project 
 
-    all_linklist = []
-    for l in links:
-        sublist = []
+    all_links = {}
+    for ix,l in enumerate(links):
+
+        linksperlayout = []
         for subdict in l:        
             i = 0
 
-            linklist = {}
-            linklist["links"] = []
+            sublist = []
             try:
                 for row in subdict["data"]:
                     thislink = {}
@@ -379,30 +377,24 @@ def makeLinksjson_multipleLinklists(project,links):
                     thislink["s"] = row[0]
                     thislink["e"] = row[1]
 
-                    linklist["links"].append(thislink)
-                    linklist["layout"] = subdict["name"]
-                
-                    i += 1
 
+                    #------------------------------------------------------------------------------
+                    # TO DO 
+                    # here comes info e.g. COLOR "c" and WEIGHT "w" and DIRECTION "d" per link
+                    #------------------------------------------------------------------------------
+
+                    sublist.append(thislink)
+                    i += 1
+            
             except (IndexError, ValueError):
                 return '<a style="color:red;">ERROR </a>'  +  subdict["name"] + " Linkfile malformated?" 
             
-            sublist.append(linklist)
-    all_linklist.append(sublist)
-    flattened_all_linklist = [d for sub in all_linklist for d in sub]
-        
-    # save links by layout 
-    with open(path + '/linksperlayout.json', 'w') as outfile:
-        json.dump(flattened_all_linklist, outfile)
-   
-    # save all links of all layouts uploaded
-    # POTENTIAL ISSUE: links ids remain the same as in declared in layouts; consider to transform to 0-all instead of 0-(len(layout1)), 0-(len(layout2)).. 
-    d_links = [d["links"] for d in flattened_all_linklist]
-    links_all = [item for sub in d_links for item in sub]
-    d_linksall = {"links": links_all}
+            linksperlayout.append(sublist)
+
+    all_links["links"] = linksperlayout
 
     with open(path + '/links.json', 'w') as outfile:
-        json.dump(d_linksall, outfile)
+        json.dump(all_links, outfile)
 
 
 

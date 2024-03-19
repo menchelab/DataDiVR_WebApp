@@ -181,7 +181,6 @@ function updateMcElements() {
     socket.emit('ex', { usr: uid, id: "annotationRun", fn: "annotation", val: "init" });
     socket.emit('ex', { usr: uid, id: "layoutInit", fn: "layout", val: "init" });
     //socket.emit('ex', { usr:uid, id: "annotationInit", fn: "annotation", val:"init"})
-<<<<<<< HEAD
     socket.emit('ex', {usr:uid,  val: "init", id: "annotation-dd-1", fn: "annotation"});
     socket.emit('ex', {usr:uid,  val: "init", id: "annotation-dd-2", fn: "annotation"});
     socket.emit('ex', {usr:uid,  val: "init", id: "init", fn: "enrichment"});
@@ -192,12 +191,6 @@ function updateMcElements() {
 
 
 
-=======
-    socket.emit('ex', { usr: uid, val: "init", id: "annotation-dd-1", fn: "annotation" });
-    socket.emit('ex', { usr: uid, val: "init", id: "annotation-dd-2", fn: "annotation" });
-    socket.emit('ex', { usr: uid, val: "init", id: "init", fn: "enrichment" })
-    socket.emit("ex", { fn: "legend_scene_display", id: "legend_scene_display", val: 0 });
->>>>>>> dev
 }
 
 function reconnect() {
@@ -274,12 +267,7 @@ $(document).ready(function() {
         if (data.usr == uid) {
             if (isMain || isPreview) {
                 // START initialization routine
-<<<<<<< HEAD
-                socket.emit('ex', { id: "projDD", fn: "dropdown", val:"init", usr:uid});
-
-=======
                 socket.emit('ex', { id: "projDD", fn: "dropdown", val: "init", usr: uid });
->>>>>>> dev
             }
 
             if (document.getElementById("disconnected")) {
@@ -288,16 +276,12 @@ $(document).ready(function() {
             if (document.getElementById("outer")) {
                 document.getElementById("outer").style.backgroundColor = "rgb(0 0 0 / 0%)"
             }
-<<<<<<< HEAD
             socket.emit('ex', { usr:uid, id: "analytics", fn: "dropdown", val:"init"});
 
             // VRrooms
             socket.emit('ex', { usr:uid, id: "VRrooms", fn: "dropdown", val:"init"});
 
 
-=======
-            socket.emit('ex', { usr: uid, id: "analytics", fn: "dropdown", val: "init" });
->>>>>>> dev
         }
         //CONNECTION Established - initialize the project (Ui elements initialize when project changes)
 
@@ -559,12 +543,8 @@ $(document).ready(function() {
                             actLayoutRGB = data.sel;
                             makeNetwork();
                         }
-<<<<<<< HEAD
-                        if(data.id == "linksRGBDD"){                            
-=======
                         if (data.id == "linksRGBDD") {
                             //actLinks = data.sel;
->>>>>>> dev
                             actLinksRGB = data.sel;
                             makeNetwork();
                         } 
@@ -604,7 +584,6 @@ $(document).ready(function() {
 
                         }
                     }
-<<<<<<< HEAD
                     // VRrooms
                     if (data.id == "VRrooms"){
                         switch (data.name){
@@ -620,10 +599,8 @@ $(document).ready(function() {
                         }
                     }
 
-                    if (data.id == "layout"){
-=======
+                    //if (data.id == "layout"){
                     if (data.id == "layoutModule") {
->>>>>>> dev
                         $('.layoutOption').css('display', 'none');
                         switch (data.name) {
                             case "Random":
@@ -821,10 +798,7 @@ $(document).ready(function() {
                         val: forwardidx
                     });
 
-<<<<<<< HEAD
                     // link colors 
-=======
->>>>>>> dev
                     if (pfile.linksRGB.length <= forwardidx) {
                         linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
                         linksRGB_DD.setAttribute("sel", parseInt(0));
@@ -975,10 +949,7 @@ $(document).ready(function() {
                 // console.log("C_DEBUG: print text message")
                 // ue4(data["fn"], data); // NOT TESTED IF Username taken from ue4
                 break;
-<<<<<<< HEAD
             
-=======
->>>>>>> dev
 
             case "analytics":
 

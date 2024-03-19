@@ -19,11 +19,21 @@ def hex_to_rgba(hex_color):
     return rgba_color
 
 def upload_filesJSON(request):
-    form = request.form.to_dict()
+
+    # check if dict("upload via notebook on backend") or request form(using any uploader via webbrowser) 
+    if isinstance(request, dict):
+        # using "_GeneratedProject.ipynb" 
+        print("C_DEBUG: is dict")
+        form = request #request.get_json()
+        namespace = form["graph"]["name"]
+        
+    else:
+        # original processing via uploader / webbrowser
+        form = request.form.to_dict()
+        namespace = form["namespaceJSON"]
+    
     prolist = GD.plist
 
-    namespace = form["namespaceJSON"]
-    
     if not namespace:
         return "namespace fail"
     
@@ -56,8 +66,11 @@ def upload_filesJSON(request):
     linkcolors = []
     labels = []
     
-
-    loadGraphJSON(request.files.getlist("graphJSON"), jsonfiles)
+    if isinstance(request, dict):
+        # using "_GeneratedProject.ipynb" 
+        loadGraphDict([form], jsonfiles)
+    else:
+        loadGraphJSON(request.files.getlist("graphJSON"), jsonfiles)
 
     # decide which annotation type to go with
     # if complex_annotations is True it uses a dict to store annotations and their types
@@ -78,7 +91,6 @@ def upload_filesJSON(request):
     parseGraphJSON_nodecolors(jsonfiles, nodecolors)
     
     #parseGraphJSON_links(jsonfiles, links)
-
     # for multiple linklists - store all links from all layouts in one dictionary for analytics
     parseGraphJSON_links_many(jsonfiles, linksdicts)
     parseGraphJSON_append_links(linksdicts, links)
@@ -88,8 +100,9 @@ def upload_filesJSON(request):
     names = parseGraphJSON_textureNames(jsonfiles)  # list, containing names for textures defined in uploaded json as "textureName"
     scene_description = parseGraphJSON_scene_description(jsonfiles)
 
+
     #----------------------------------
-    # FOR GRAPH TITLE + DESCRIPTION 
+    # processing graph information
     #----------------------------------
     graphtitle = []
     parseGraphJSON_graphtitle(jsonfiles,graphtitle)
@@ -105,9 +118,13 @@ def upload_filesJSON(request):
     else:
         descr_of_graph = "Graph decription not specified."
 
+
+    #----------------------------------
+    # processing annotations
+    #----------------------------------
     numnodes = len(nodepositions[0]["data"])
 
-    # generate node.json
+
     if complex_annotations is False:
         for i in range(len(nodepositions[0]["data"])):
             thisnode = {}
@@ -134,7 +151,9 @@ def upload_filesJSON(request):
             this_node["attrlist"] = nodeinfo[i]["annotation"]
             nodelist["nodes"].append(this_node)
 
-    
+    #----------------------------------
+    # processing labels (clusters, nodegroups)
+    #----------------------------------
     for labellist in labels:   
         name = ""
         i = 0
@@ -189,7 +208,9 @@ def upload_filesJSON(request):
         else: 
             pass
         
-
+    #----------------------------------
+    # processing node positions
+    #----------------------------------
     for file_index in range(len(nodepositions)):  # for layout in nodepositions:
         layout = nodepositions[file_index]
         if len(layout["data"]) > 0 and len(layout["data"][int(0)]) == 3:
@@ -254,6 +275,9 @@ def upload_filesJSON(request):
         pfile["labelcount"] = 0
 
 
+    #----------------------------------
+    # processing node colors 
+    #----------------------------------
     for file_index in range(len(nodecolors)):  # for color in nodecolors:
         
         color = nodecolors[file_index]
@@ -270,8 +294,7 @@ def upload_filesJSON(request):
         pfile["layoutsRGB"].append(color["name"]+ "RGB")
 
     
-
-
+    # O L D 
     # for file_index in range(len(links)): 
     #     linklist = links[file_index]  
     #     print("C_DEBUG: LINKLIST - ", linklist)
@@ -287,6 +310,9 @@ def upload_filesJSON(request):
     #     pfile["links"].append(linklist["name"]+ "XYZ")
 
 
+    #----------------------------------
+    # processing links
+    #----------------------------------
     for sublist in linksdicts:  
         for file_index in range(len(sublist)): 
             linklist = sublist[file_index]
@@ -305,6 +331,10 @@ def upload_filesJSON(request):
         # save links json with links per layout information : 
         makeLinksjson_multipleLinklists(namespace, linksdicts)
 
+        
+    #----------------------------------
+    # processing link colors 
+    #----------------------------------
     for file_index in range(len(linkcolors)):  # for lcolors in linkcolors:
         lcolors = linkcolors[file_index]
 
@@ -324,12 +354,29 @@ def upload_filesJSON(request):
     #pfile["labelcount"] = len(labels[0]["data"])
 
 
-    pfile["linkcount"] = len(links[0]["data"]) 
 
-    
 
+    #----------------------------------
+    # count links total
+    #----------------------------------
+    linkscount_all = [] 
+    for sub in links:    
+        for key,values in sub.items():
+            linkscount_all.append(len(values))
+
+    pfile["linkcount"] = sum(linkscount_all) 
+    # old: 
+    #pfile["linkcount"] = len(links[0]["data"]) 
+
+
+
+
+    #----------------------------------
+    # processing labels
+    #----------------------------------
     # update new labels
     pfile["labels"] = [pfile["nodecount"], pfile["labelcount"]]
+
 
     #----------------------------------
     # adding graph info to pfile 
@@ -341,15 +388,22 @@ def upload_filesJSON(request):
     
     pfile["annotationTypes"] = complex_annotations    # define in pfile if you use annotation types or default flat annotation list
 
+
     #----------------------------------
-    # uploading and storing Legends files in folder
-    # and adding filenames to pfile 
+    # processing legends (if any)
     #----------------------------------
     legendfiles = []
-    loadLegendFiles(request.files.getlist("legendFiles"), folder+'legends/', legendfiles)
-    pfile["legendfiles"] = legendfiles
+    if isinstance(request, dict):
+        #os.mkdir(folder+'legends/') # just generate legends folder
+        pfile["legendfiles"] = None
+    else: 
+        loadLegendFiles(request.files.getlist("legendFiles"), folder+'legends/', legendfiles)
+        pfile["legendfiles"] = legendfiles
 
 
+    #----------------------------------
+    # make essential json files for DataDiVR (nodes, links, etc.) 
+    #----------------------------------
     with open(folder + '/pfile.json', 'w') as outfile:
         json.dump(pfile, outfile)
 
@@ -360,9 +414,14 @@ def upload_filesJSON(request):
     return state
 
 
-# -------------------------------------------
+
+
+
+#########################################################################################
+# 
 # PARSE GRAPH FUNCTIONS 
-# -------------------------------------------
+#
+#########################################################################################
 
 def loadGraphJSON(files, target):
     if len(files) > 0: 
@@ -371,6 +430,11 @@ def loadGraphJSON(files, target):
             G_json = json.loads(G_upload)
             target.append(G_json)
 
+def loadGraphDict(files, target):
+    if len(files) > 0: 
+        for file in files: 
+            G_json = file
+            target.append(G_json)
 
 def parseGraphJSON_nodepositions(files, target):
     if len(files) > 0: 
@@ -429,7 +493,7 @@ def parseGraphJSON_links(files, target):
 def parseGraphJSON_links_many(files, target):
     if len(files) > 0: 
 
-        all_dicts = []  
+        all = []  
         for idx,file in enumerate(files):
 
             name_of_file = file["graph"]["name"]+"_links"
@@ -442,8 +506,8 @@ def parseGraphJSON_links_many(files, target):
             vecList["data"] = links
             vecList["name"] = name_of_file
             
-            all_dicts.append(vecList)
-        target.append(all_dicts)
+            all.append(vecList)
+        target.append(all)
     
 
 def parseGraphJSON_append_links(all_dicts, target):
