@@ -166,39 +166,39 @@ def path_node2_event(message, room):
     emit("ex", response, room=room)
 
 
-def path_run_old_event(message, room, project):
-    if "analyticsData" not in GD.pdata.keys():
-        print("[Fail] analytics shortest path run: 2 nodes have to be selected.")
-        return
-    if "shortestPathNode1" not in GD.pdata["analyticsData"].keys():
-        print("[Fail] analytics shortest path run: 2 nodes have to be selected.")
-        return
-    if "shortestPathNode1" not in GD.pdata["analyticsData"].keys():
-        print("[Fail] analytics shortest path run: 2 nodes have to be selected.")
-        return
+# def path_run_old_event(message, room, project):
+#     if "analyticsData" not in GD.pdata.keys():
+#         print("[Fail] analytics shortest path run: 2 nodes have to be selected.")
+#         return
+#     if "shortestPathNode1" not in GD.pdata["analyticsData"].keys():
+#         print("[Fail] analytics shortest path run: 2 nodes have to be selected.")
+#         return
+#     if "shortestPathNode1" not in GD.pdata["analyticsData"].keys():
+#         print("[Fail] analytics shortest path run: 2 nodes have to be selected.")
+#         return
 
-    node_1 = GD.pdata["analyticsData"]["shortestPathNode1"]["id"]
-    node_2 = GD.pdata["analyticsData"]["shortestPathNode2"]["id"]
-    if "graph" not in GD.session_data.keys():
-        GD.session_data["graph"] = util.project_to_graph(project)
-    graph = GD.session_data["graph"]
-    path = analytics.analytics_shortest_path(graph, node_1, node_2)
-    shortest_path_textures = analytics.analytics_color_shortest_path(path)
+#     node_1 = GD.pdata["analyticsData"]["shortestPathNode1"]["id"]
+#     node_2 = GD.pdata["analyticsData"]["shortestPathNode2"]["id"]
+#     if "graph" not in GD.session_data.keys():
+#         GD.session_data["graph"] = util.project_to_graph(project)
+#     graph = GD.session_data["graph"]
+#     path = analytics.analytics_shortest_path(graph, node_1, node_2)
+#     shortest_path_textures = analytics.analytics_color_shortest_path(path)
 
-    if shortest_path_textures["textures_created"] is False:
-        print("Failed to create textures for Analytics/Shortest Path.")
-        return
-    response = {}
-    response["usr"] = message["usr"]
-    response["fn"] = "updateTempTex"
-    response["textures"] = []
-    response["textures"].append(
-        {"channel": "nodeRGB", "path": shortest_path_textures["path_nodes"]}
-    )
-    response["textures"].append(
-        {"channel": "linkRGB", "path": shortest_path_textures["path_links"]}
-    )
-    emit("ex", response, room=room)
+#     if shortest_path_textures["textures_created"] is False:
+#         print("Failed to create textures for Analytics/Shortest Path.")
+#         return
+#     response = {}
+#     response["usr"] = message["usr"]
+#     response["fn"] = "updateTempTex"
+#     response["textures"] = []
+#     response["textures"].append(
+#         {"channel": "nodeRGB", "path": shortest_path_textures["path_nodes"]}
+#     )
+#     response["textures"].append(
+#         {"channel": "linkRGB", "path": shortest_path_textures["path_links"]}
+#     )
+#     emit("ex", response, room=room)
 
 
 def path_run_event(message, room, project):
@@ -206,6 +206,7 @@ def path_run_event(message, room, project):
     if "graph" not in GD.session_data.keys():
         GD.session_data["graph"] = util.project_to_graph(project)
     graph = GD.session_data["graph"]
+
     shortest_path_result_obj = analytics.analytics_shortest_path_run(graph=graph)
     if shortest_path_result_obj["success"] is False:
         print("ERROR: analytics/shortest_path:", shortest_path_result_obj["error"])
@@ -239,6 +240,75 @@ def path_run_event(message, room, project):
         "pathLength": shortest_path_display_obj["pathLength"],
     }
     emit("ex", response_info, room=room)
+
+
+
+
+
+# --------------------------------------------------------------------------------------------
+def path_run_event_perlayout(message, room, project):
+    # generate paths
+    if "graph" not in GD.session_data.keys():
+        GD.session_data["graph"] = util.project_to_graph(project)
+    graph = GD.session_data["graph"]
+
+
+
+
+    # TO DO
+
+    # use links from links_per_layout.json
+    if path.exists("static/projects/" + data["actPro"] + "/link_per_layout.json"):
+        with open(
+            "static/projects/" + data["actPro"] + "/links_per_layout.json", "r"
+        ) as json_file:
+
+            links_per_layout = json.load(json_file)
+            print("links_per_layout.json loaded")
+
+        json_file.close()
+    else:
+        pass
+
+    shortest_path_result_obj = analytics.analytics_shortest_path_run(graph=graph)
+    if shortest_path_result_obj["success"] is False:
+        print("ERROR: analytics/shortest_path:", shortest_path_result_obj["error"])
+        return
+    # apply coloring and
+    shortest_path_display_obj = analytics.analytics_shortest_path_display()
+    if shortest_path_display_obj["textures_created"] is False:
+        print("ERROR: analytics/shortest_path: Texture Generation Failed")
+        return
+
+    # send to frontend
+    response_textures = {}
+    response_textures["usr"] = message["usr"]
+    response_textures["fn"] = "updateTempTex"
+    response_textures["textures"] = []
+    response_textures["textures"].append(
+        {"channel": "nodeRGB", "path": shortest_path_display_obj["path_nodes"]}
+    )
+    response_textures["textures"].append(
+        {"channel": "linkRGB", "path": shortest_path_display_obj["path_links"]}
+    )
+    emit("ex", response_textures, room=room)
+
+    response_info = {}
+    response_info["usr"] = message["usr"]
+    response_info["fn"] = "analytics"
+    response_info["id"] = "analyticsPathInfo"
+    response_info["val"] = {
+        "numPathsAll": shortest_path_display_obj["numPathsAll"],
+        "numPathCurrent": shortest_path_display_obj["numPathCurrent"],
+        "pathLength": shortest_path_display_obj["pathLength"],
+    }
+    emit("ex", response_info, room=room)
+# --------------------------------------------------------------------------------------------
+
+
+
+
+
 
 
 def path_backwards_event(message, project, room):
@@ -515,12 +585,18 @@ def main(message, room, project):
     if message["id"] == "analyticsPathNode2":
         path_node2_event(message, room)
 
-    if message["id"] == "analyticsPathRunOLD":
-        path_run_old_event(message, room, project)
+    #if message["id"] == "analyticsPathRunOLD":
+    #    path_run_old_event(message, room, project)
 
     # following 3 cases are for shortest Path buttons
     if message["id"] == "analyticsPathRun":
-        path_run_event(message, room, project)
+        # checkbox -> all links = links.json 
+        if message["id"] == "analyticsPathRun":
+            path_run_event(message, room, project)
+        # checkbox -> only layout-specific links = links_per_layout.json 
+        elif message["id"] == "analyticsPathRun":
+            path_run_event_perlayout(message, room, project)
+        
 
     if message["id"] == "analyticsPathBackw":
         path_backwards_event(message, room, project)

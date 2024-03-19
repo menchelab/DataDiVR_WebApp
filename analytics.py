@@ -189,7 +189,7 @@ def update_network_colors(node_colors, link_colors=None):
         links = json.load(links_file)
     # set link colors
     if link_colors is None:
-        link_colors = [(55, 55, 55, 30) for _ in links["links"]]
+        link_colors = [(10,10,10, 30) for _ in links["links"]] #[(55, 55, 55, 30) for _ in links["links"]]
 
     # create images
     texture_nodes_active = Image.open("static/projects/" + GD.data["actPro"] + "/layoutsRGB/" + GD.pfile["layoutsRGB"][int(GD.pdata["layoutsRGBDD"])] + ".png", "r")
@@ -687,3 +687,5 @@ def plotly_clustering_coefficient(assignment_list, highlighted_bar=None):
     plotly_json = json.dumps(fig, cls=pu.PlotlyJSONEncoder)
 
     return (plotly_json, highlighted_assignments)
+
+

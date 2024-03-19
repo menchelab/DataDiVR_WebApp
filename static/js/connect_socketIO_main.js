@@ -773,6 +773,16 @@ $(document).ready(function(){
                 if(data["id"]=="linkblendCHK"){
                     ue4("linkblend", data);
                 }
+
+                // --------------------------------------------------------------------------------------------
+                // checkbox of analytics - on or off states
+                if(data["id"]=="definelinklist"){
+                    
+
+                // --------------------------------------------------------------------------------------------
+
+
+                }
                 break;
             
             case "ue4":    

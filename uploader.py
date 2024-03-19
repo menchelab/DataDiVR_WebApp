@@ -359,6 +359,113 @@ def makeLinkTexNew(project, links, name=None):
 
 
 
+
+def makeLinksjson_multipleLinklists(project,links):
+    path = 'static/projects/' + project 
+
+    all_linklist = []
+    for l in links:
+        sublist = []
+        for subdict in l:        
+            i = 0
+
+            linklist = {}
+            linklist["links"] = []
+            try:
+                for row in subdict["data"]:
+                    thislink = {}
+
+                    thislink["id"] = i
+                    thislink["s"] = row[0]
+                    thislink["e"] = row[1]
+
+                    linklist["links"].append(thislink)
+                    linklist["layout"] = subdict["name"]
+                
+                    i += 1
+
+            except (IndexError, ValueError):
+                return '<a style="color:red;">ERROR </a>'  +  subdict["name"] + " Linkfile malformated?" 
+            
+            sublist.append(linklist)
+    all_linklist.append(sublist)
+    flattened_all_linklist = [d for sub in all_linklist for d in sub]
+        
+    # save links by layout 
+    with open(path + '/linksperlayout.json', 'w') as outfile:
+        json.dump(flattened_all_linklist, outfile)
+   
+    # save all links of all layouts uploaded
+    # POTENTIAL ISSUE: links ids remain the same as in declared in layouts; consider to transform to 0-all instead of 0-(len(layout1)), 0-(len(layout2)).. 
+    d_links = [d["links"] for d in flattened_all_linklist]
+    links_all = [item for sub in d_links for item in sub]
+    d_linksall = {"links": links_all}
+
+    with open(path + '/links.json', 'w') as outfile:
+        json.dump(d_linksall, outfile)
+
+
+
+def makeLinkTexNew_multipleLinklists(project, links, name=None): 
+    hight = 64 * (int((len(links["data"])) / 32768) + 1)
+    print("image hight = " + str(hight))
+    #hight = 512 #int(elem / 512)+1
+    path = 'static/projects/' + project 
+
+    texl = [(0,0,0)] * 1024 * hight
+    new_imgl = Image.new('RGB', (1024, hight))
+    i = 0
+
+    linklist = {}
+    linklist["links"] = []
+    try:
+        for row in links["data"]:
+            thislink = {}
+            thislink["id"] = i
+            thislink["s"] = row[0]
+            thislink["e"] = row[1]
+            linklist["links"].append(thislink)
+
+            sx = int(row[0]) % 128 # R
+            syl = int(int(row[0]) / 128) % 128 # G
+            syh = int(int(row[0]) / 16384) # B
+
+            ex = int(row[1]) % 128
+            eyl = int(int(row[1]) / 128) % 128
+            eyh = int(int(row[1]) / 16384)
+
+
+            pixell1 = (sx,syl,syh)
+            pixell2 = (ex,eyl,eyh)
+
+            #if i < 262144:
+
+            texl[i*2] = pixell1
+            texl[i*2+1] = pixell2
+
+            i += 1
+
+    except (IndexError, ValueError):
+        return '<a style="color:red;">ERROR </a>'  +  links["name"] + " Linkfile malformated?" 
+
+    new_imgl.putdata(texl)
+    pathl = path + '/links/' +  links["name"] + 'XYZ.bmp'
+    if name is not None:
+        pathl = path + '/links/' +  name +  '.bmp'
+
+    if os.path.exists(pathl):
+        return '<a style="color:red;">ERROR </a>' +  links["name"]  + " linklist already in project"
+    else:
+        new_imgl.save(pathl)
+        return '<a style="color:green;">SUCCESS </a>' +  links["name"] +  " Link Textures Created"
+ 
+
+
+
+
+
+
+
 def makeLinkRGBTex(project, linksRGB, name=None):
     
     hight = 64 * (int((len(linksRGB["data"])) / 32768) + 1)

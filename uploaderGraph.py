@@ -49,7 +49,10 @@ def upload_filesJSON(request):
     nodepositions = []
     nodeinfo = []
     nodecolors = []
-    links = []
+    
+    linksdicts = [] # this is where links per layout are stored to match visualization accordingly
+    links = [] # this is the original linklist including all uploaded links 
+
     linkcolors = []
     labels = []
     
@@ -73,7 +76,13 @@ def upload_filesJSON(request):
         nodeinfo = parseGraphJSON_nodeinfo_complex(jsonfiles)
     
     parseGraphJSON_nodecolors(jsonfiles, nodecolors)
-    parseGraphJSON_links(jsonfiles, links)
+    
+    #parseGraphJSON_links(jsonfiles, links)
+
+    # for multiple linklists - store all links from all layouts in one dictionary for analytics
+    parseGraphJSON_links_many(jsonfiles, linksdicts)
+    parseGraphJSON_append_links(linksdicts, links)
+
     parseGraphJSON_linkcolors(jsonfiles, linkcolors)
     parseGraphJSON_labels(jsonfiles, labels)
     names = parseGraphJSON_textureNames(jsonfiles)  # list, containing names for textures defined in uploaded json as "textureName"
@@ -261,20 +270,40 @@ def upload_filesJSON(request):
         pfile["layoutsRGB"].append(color["name"]+ "RGB")
 
     
-    for file_index in range(len(links)):  # for linklist in links:
-        linklist = links[file_index]
 
-        if len(linklist["data"]) == 0:
-            linklist["name"] = "nan"
 
-        if names[file_index] is not None:
-            # if texture name specified
-            state =  state + makeLinkTexNew(namespace, linklist, names[file_index]) + '<br>'
-            pfile["links"].append(names[file_index])    
-            continue
-        state =  state + makeLinkTexNew(namespace, linklist) + '<br>'
-        pfile["links"].append(linklist["name"]+ "XYZ")
+    # for file_index in range(len(links)): 
+    #     linklist = links[file_index]  
+    #     print("C_DEBUG: LINKLIST - ", linklist)
+    #     if len(linklist["data"]) == 0:
+    #         linklist["name"] = "nan"
 
+    #     if names[file_index] is not None:
+    #         # if texture name specified
+    #         state =  state + makeLinkTexNew(namespace, linklist, names[file_index]) + '<br>'
+    #         pfile["links"].append(names[file_index])    
+    #         continue
+    #     state =  state + makeLinkTexNew(namespace, linklist) + '<br>'
+    #     pfile["links"].append(linklist["name"]+ "XYZ")
+
+
+    for sublist in linksdicts:  
+        for file_index in range(len(sublist)): 
+            linklist = sublist[file_index]
+
+            if len(linklist["data"]) == 0:
+                linklist["name"] = "nan"
+
+            if names[file_index] is not None:
+                # if texture name specified
+                state =  state + makeLinkTexNew(namespace, linklist, names[file_index]) + '<br>'
+                pfile["links"].append(names[file_index])    
+                continue
+            state =  state + makeLinkTexNew_multipleLinklists(namespace, linklist) + '<br>'
+            pfile["links"].append(linklist["name"]+ "XYZ")
+    	
+        # save links json with links per layout information : 
+        makeLinksjson_multipleLinklists(namespace, linksdicts)
 
     for file_index in range(len(linkcolors)):  # for lcolors in linkcolors:
         lcolors = linkcolors[file_index]
@@ -293,7 +322,11 @@ def upload_filesJSON(request):
 
     pfile["nodecount"] = numnodes
     #pfile["labelcount"] = len(labels[0]["data"])
+
+
     pfile["linkcount"] = len(links[0]["data"]) 
+
+    
 
     # update new labels
     pfile["labels"] = [pfile["nodecount"], pfile["labelcount"]]
@@ -386,7 +419,53 @@ def parseGraphJSON_links(files, target):
             all_lists.append(vecList)
         longest_list = max(all_lists, key=len)
         target.append(longest_list)
-        #print("C_DEBUG: all_lists", target)
+
+
+
+
+# --------------------------------------------------------------
+# keep more than first links - WIP
+# ---------------------------------------------------------
+def parseGraphJSON_links_many(files, target):
+    if len(files) > 0: 
+
+        all_dicts = []  
+        for idx,file in enumerate(files):
+
+            name_of_file = file["graph"]["name"]+"_links"
+            num_of_links = len(file["links"])
+
+            links = []
+            for i in range(0,num_of_links):
+                links.append([str(file["links"][i]["source"]),str(file["links"][i]["target"])])
+            vecList = {}
+            vecList["data"] = links
+            vecList["name"] = name_of_file
+            
+            all_dicts.append(vecList)
+        target.append(all_dicts)
+    
+
+def parseGraphJSON_append_links(all_dicts, target):
+    
+    if len(*all_dicts) > 1:
+        merged_dict = {}
+        sublist_data = []
+        sublist_name = []
+
+        for sublist in all_dicts:
+            for d in sublist:
+                sublist_data.append(d["data"])
+                sublist_name.append(d["name"])
+
+        merged_dict["data"] = [item for slist in sublist_data for item in slist] # flatten list in list
+        merged_dict["name"] = "Merged Linklist"
+    else:
+        merged_dict = all_dicts 
+
+    target.append(merged_dict)
+# ---------------------------------------------------------
+
 
 
 def parseGraphJSON_links_wip(files, target):
