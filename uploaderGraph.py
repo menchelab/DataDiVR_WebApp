@@ -354,21 +354,18 @@ def upload_filesJSON(request):
     #pfile["labelcount"] = len(labels[0]["data"])
 
 
-
-
     #----------------------------------
     # count links total
     #----------------------------------
     linkscount_all = [] 
-    for sub in links:    
+
+    for sub in links:
         for key,values in sub.items():
             linkscount_all.append(len(values))
 
     pfile["linkcount"] = sum(linkscount_all) 
     # old: 
     #pfile["linkcount"] = len(links[0]["data"]) 
-
-
 
 
     #----------------------------------
@@ -518,6 +515,11 @@ def parseGraphJSON_append_links(all_dicts, target):
         sublist_name = []
 
         for sublist in all_dicts:
+            
+            
+            print("C_DEBUG: sublist: ", sublist)
+
+
             for d in sublist:
                 sublist_data.append(d["data"])
                 sublist_name.append(d["name"])
