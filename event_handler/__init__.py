@@ -80,6 +80,7 @@ def handle_socket_execute(message, room, project):
         enrichment_events.main(message, room)
 
     elif message["fn"] == "dropdown":
+        # ALSO CONTAINS THE PROJECT INITIALIZATION
         drop_down_events.main(message, room)
 
     # EXPERIMENTAL dynamic svg creation with matplotlib
