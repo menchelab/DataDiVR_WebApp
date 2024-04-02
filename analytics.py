@@ -26,8 +26,6 @@ ANALYTICS_TABS = [
 ]
 
 
-
-
 def __compute_histogram_bins(values, min_bins=2, max_bins=15):
     min_value = np.min(values)
     max_value = np.max(values)
@@ -317,7 +315,7 @@ def analytics_color_shortest_path(path):
         if node in path:
             node_colors.append((255, 166, 0, 150))
             continue
-        node_colors.append((55, 55, 55, 100))
+        node_colors.append((30,30,30, 60))
     
     # get links
     link_colors = []
@@ -329,7 +327,7 @@ def analytics_color_shortest_path(path):
             if int(link["s"]) in path and int(link["e"]) in path:
                 link_colors.append((255, 166, 0, 150))
                 continue
-            link_colors.append((55, 55, 55, 30))
+            link_colors.append((25,25,25, 30))
         
         # create images
         texture_nodes_active = Image.open("static/projects/"+ GD.data["actPro"]  + "/layoutsRGB/"+ GD.pfile["layoutsRGB"][int(GD.pdata["layoutsRGBDD"])]+".png","r")

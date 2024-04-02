@@ -3,6 +3,8 @@ from flask_socketio import emit
 import analytics
 import GlobalData as GD
 import util
+import json 
+
 
 
 def degree_run_event(message, room, project):
@@ -11,6 +13,7 @@ def degree_run_event(message, room, project):
         if "graph" not in GD.session_data.keys():
             GD.session_data["graph"] = util.project_to_graph(project)
         graph = GD.session_data["graph"]
+
         result = analytics.analytics_degree_distribution(graph)
         ###
         GD.session_data["analyticsDegreeRun"] = result
@@ -240,74 +243,6 @@ def path_run_event(message, room, project):
         "pathLength": shortest_path_display_obj["pathLength"],
     }
     emit("ex", response_info, room=room)
-
-
-
-
-
-# --------------------------------------------------------------------------------------------
-def path_run_event_perlayout(message, room, project):
-    # generate paths
-    if "graph" not in GD.session_data.keys():
-        GD.session_data["graph"] = util.project_to_graph(project)
-    graph = GD.session_data["graph"]
-
-
-
-
-    # TO DO
-
-    # use links from links_per_layout.json
-    if path.exists("static/projects/" + data["actPro"] + "/link_per_layout.json"):
-        with open(
-            "static/projects/" + data["actPro"] + "/links_per_layout.json", "r"
-        ) as json_file:
-
-            links_per_layout = json.load(json_file)
-            print("links_per_layout.json loaded")
-
-        json_file.close()
-    else:
-        pass
-
-    shortest_path_result_obj = analytics.analytics_shortest_path_run(graph=graph)
-    if shortest_path_result_obj["success"] is False:
-        print("ERROR: analytics/shortest_path:", shortest_path_result_obj["error"])
-        return
-    # apply coloring and
-    shortest_path_display_obj = analytics.analytics_shortest_path_display()
-    if shortest_path_display_obj["textures_created"] is False:
-        print("ERROR: analytics/shortest_path: Texture Generation Failed")
-        return
-
-    # send to frontend
-    response_textures = {}
-    response_textures["usr"] = message["usr"]
-    response_textures["fn"] = "updateTempTex"
-    response_textures["textures"] = []
-    response_textures["textures"].append(
-        {"channel": "nodeRGB", "path": shortest_path_display_obj["path_nodes"]}
-    )
-    response_textures["textures"].append(
-        {"channel": "linkRGB", "path": shortest_path_display_obj["path_links"]}
-    )
-    emit("ex", response_textures, room=room)
-
-    response_info = {}
-    response_info["usr"] = message["usr"]
-    response_info["fn"] = "analytics"
-    response_info["id"] = "analyticsPathInfo"
-    response_info["val"] = {
-        "numPathsAll": shortest_path_display_obj["numPathsAll"],
-        "numPathCurrent": shortest_path_display_obj["numPathCurrent"],
-        "pathLength": shortest_path_display_obj["pathLength"],
-    }
-    emit("ex", response_info, room=room)
-# --------------------------------------------------------------------------------------------
-
-
-
-
 
 
 
@@ -590,13 +525,7 @@ def main(message, room, project):
 
     # following 3 cases are for shortest Path buttons
     if message["id"] == "analyticsPathRun":
-        # checkbox -> all links = links.json 
-        if message["id"] == "analyticsPathRun":
-            path_run_event(message, room, project)
-        # checkbox -> only layout-specific links = links_per_layout.json 
-        elif message["id"] == "analyticsPathRun":
-            path_run_event_perlayout(message, room, project)
-        
+        path_run_event(message, room, project)
 
     if message["id"] == "analyticsPathBackw":
         path_backwards_event(message, room, project)

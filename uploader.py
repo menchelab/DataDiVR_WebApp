@@ -346,7 +346,7 @@ def makeLinkTexNew(project, links, name=None):
         json.dump(linklist, outfile)
 
     new_imgl.putdata(texl)
-    pathl = path + '/links/' +  links["name"] + 'XYZ.bmp'
+    pathl = path + '/links/' +  links["name"] + '_linksXYZ.bmp' #_linksXYZ.bmp'
     if name is not None:
         pathl = path + '/links/' +  name +  '.bmp'
 
@@ -358,47 +358,7 @@ def makeLinkTexNew(project, links, name=None):
  
 
 
-def makeLinksjson_multipleLinklists(project,links):
-    path = 'static/projects/' + project 
-
-    all_links = {}
-    for ix,l in enumerate(links):
-
-        linksperlayout = []
-        for subdict in l:        
-            i = 0
-
-            sublist = []
-            try:
-                for row in subdict["data"]:
-                    thislink = {}
-
-                    thislink["id"] = i
-                    thislink["s"] = row[0]
-                    thislink["e"] = row[1]
-
-
-                    #------------------------------------------------------------------------------
-                    # TO DO 
-                    # here comes info e.g. COLOR "c" and WEIGHT "w" and DIRECTION "d" per link
-                    #------------------------------------------------------------------------------
-
-                    sublist.append(thislink)
-                    i += 1
-            
-            except (IndexError, ValueError):
-                return '<a style="color:red;">ERROR </a>'  +  subdict["name"] + " Linkfile malformated?" 
-            
-            linksperlayout.append(sublist)
-
-    all_links["links"] = linksperlayout
-
-    with open(path + '/links.json', 'w') as outfile:
-        json.dump(all_links, outfile)
-
-
-
-def makeLinkTexNew_multipleLinklists(project, links, name=None): 
+def makeLinkTexNew_withoutJSON(project, links, name=None): 
     hight = 64 * (int((len(links["data"])) / 32768) + 1)
     print("image hight = " + str(hight))
     #hight = 512 #int(elem / 512)+1
@@ -440,8 +400,11 @@ def makeLinkTexNew_multipleLinklists(project, links, name=None):
     except (IndexError, ValueError):
         return '<a style="color:red;">ERROR </a>'  +  links["name"] + " Linkfile malformated?" 
 
+    #with open(path + '/links.json', 'w') as outfile:
+    #    json.dump(linklist, outfile)
+
     new_imgl.putdata(texl)
-    pathl = path + '/links/' +  links["name"] + 'XYZ.bmp'
+    pathl = path + '/links/' +  links["name"] + '_linksXYZ.bmp' #_linksXYZ.bmp'
     if name is not None:
         pathl = path + '/links/' +  name +  '.bmp'
 
@@ -453,7 +416,129 @@ def makeLinkTexNew_multipleLinklists(project, links, name=None):
  
 
 
+def makeLinksjson(project,links):
+    path = 'static/projects/' + project 
 
+    i = 0
+
+    linklist = {}
+    linklist["links"] = []
+    try:
+        for row in links[0]["data"]:
+            thislink = {}
+            thislink["id"] = i
+            thislink["s"] = row[0]
+            thislink["e"] = row[1]
+            linklist["links"].append(thislink)
+
+            #------------------------------------------------------------------------------
+            # TO DO 
+            # here comes info e.g. COLOR "c" and WEIGHT "w" and DIRECTION "d" per link
+            #------------------------------------------------------------------------------
+
+            i += 1
+            
+    except (IndexError, ValueError):
+        return '<a style="color:red;">ERROR </a>'  +  links["name"] + " Linkfile malformated?" 
+
+    with open(path + '/links.json', 'w') as outfile:
+        json.dump(linklist, outfile)
+
+
+
+def makeLinksjson_multipleLinklists(project,links):
+    path = 'static/projects/' + project 
+
+    all_links = {}
+    for ix,l in enumerate(links):
+
+        linksperlayout = []
+        for subdict in l:        
+            i = 0
+
+            sublist = []
+            try:
+                for row in subdict["data"]:
+                    thislink = {}
+
+                    thislink["id"] = i
+                    thislink["s"] = row[0]
+                    thislink["e"] = row[1]
+
+
+                    #------------------------------------------------------------------------------
+                    # TO DO 
+                    # here comes info e.g. COLOR "c" and WEIGHT "w" and DIRECTION "d" per link
+                    #------------------------------------------------------------------------------
+
+                    sublist.append(thislink)
+                    i += 1
+            
+            except (IndexError, ValueError):
+                return '<a style="color:red;">ERROR </a>'  +  subdict["name"] + " Linkfile malformated?" 
+            
+            linksperlayout.append(sublist)
+
+    all_links["links"] = linksperlayout
+
+    with open(path + '/linkslayouts.json', 'w') as outfile:
+        json.dump(all_links, outfile)
+
+
+
+# def makeLinkTexNew_multipleLinklists(project, links, name=None): 
+#     hight = 64 * (int((len(links["data"])) / 32768) + 1)
+#     print("image hight = " + str(hight))
+#     #hight = 512 #int(elem / 512)+1
+#     path = 'static/projects/' + project 
+
+#     texl = [(0,0,0)] * 1024 * hight
+#     new_imgl = Image.new('RGB', (1024, hight))
+#     i = 0
+
+#     linklist = {}
+#     linklist["links"] = []
+#     try:
+#         for row in links["data"]:
+#             thislink = {}
+#             thislink["id"] = i
+#             thislink["s"] = row[0]
+#             thislink["e"] = row[1]
+#             linklist["links"].append(thislink)
+
+#             sx = int(row[0]) % 128 # R
+#             syl = int(int(row[0]) / 128) % 128 # G
+#             syh = int(int(row[0]) / 16384) # B
+
+#             ex = int(row[1]) % 128
+#             eyl = int(int(row[1]) / 128) % 128
+#             eyh = int(int(row[1]) / 16384)
+
+
+#             pixell1 = (sx,syl,syh)
+#             pixell2 = (ex,eyl,eyh)
+
+#             #if i < 262144:
+
+#             texl[i*2] = pixell1
+#             texl[i*2+1] = pixell2
+
+#             i += 1
+
+#     except (IndexError, ValueError):
+#         return '<a style="color:red;">ERROR </a>'  +  links["name"] + " Linkfile malformated?" 
+
+#     new_imgl.putdata(texl)
+#     pathl = path + '/links/' +  links["name"] + 'XYZ.bmp' #_linksXYZ.bmp'
+#     if name is not None:
+#         pathl = path + '/links/' +  name +  '.bmp'
+
+#     if os.path.exists(pathl):
+#         return '<a style="color:red;">ERROR </a>' +  links["name"]  + " linklist already in project"
+#     else:
+#         new_imgl.save(pathl)
+#         return '<a style="color:green;">SUCCESS </a>' +  links["name"] +  " Link Textures Created"
+ 
 
 
 
@@ -645,7 +730,7 @@ def upload_filesNew(request):
         if len(linklist["data"]) == 0:
             linklist["name"] = "nan"
         state =  state + makeLinkTexNew(namespace, linklist) + '<br>'
-        pfile["links"].append(linklist["name"]+ "XYZ")
+        pfile["links"].append(linklist["name"]+ "_linksXYZ") #"XYZ"
 
     for lcolors in linkcolors:
         if len(lcolors["data"]) == 0:
@@ -877,7 +962,7 @@ def upload_files(request):
         for file in edge_files:
             name = file.filename.split(".")[0]
             contents = file.read().decode('utf-8')
-            pfile["links"].append(name + "XYZ")
+            pfile["links"].append(name + "_linksXYZ") #"XYZ"
             pfile["linksRGB"].append(name + "RGB")
             out = makeLinkTex(namespace, name, contents)
             pfile["linkcount"] = out[1]

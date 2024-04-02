@@ -147,9 +147,24 @@ class OrderedGraph(nx.Graph):
         self.node_order.extend(nodes_for_adding)
 
 
-def project_to_graph(project):
-    with open(f"./static/projects/{project}/links.json") as links_json:
-        links = json.load(links_json)
+def project_to_graph(project,bool_links=False):
+
+    # --------------------------------------------------
+    # get checkbox value here
+    #bool_links = 
+    # --------------------------------------------------
+
+
+
+    print("C_DEBUG: in project to graph: ", bool_links)
+
+    if bool_links == False:
+        with open(f"./static/projects/{project}/links.json") as links_json:
+            links = json.load(links_json)
+    elif bool_links == True:
+        with open(f"./static/projects/{project}/linkslayouts.json") as links_json:
+            links = json.load(links_json)
+        
     try:
         with open(f"./static/projects/{project}/nodes.json") as nodes_json:
             nodes = json.load(nodes_json)

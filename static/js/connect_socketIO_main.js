@@ -217,7 +217,7 @@ function speakNow(text) {
 
 $(document).ready(function() {
 
-    speakNow("Hello Human! Welcome to the data diver.")
+    //speakNow("Hello Human! Welcome to the data diver.")
 
     if (document.getElementById("preview")) {
         isPreview = true;
@@ -589,13 +589,13 @@ $(document).ready(function() {
                         switch (data.name){
                             case "Dome":
                                 ue4(data["name"], data.name);
-                            break;
+                                break;
                             case "Landscape":
                                 ue4(data["name"], data.name);
-                            break;
+                                break;
                             // case "Platforms":
                             //     ue4(data["name"], data.name);
-                            // break;
+                            //     break;
                         }
                     }
 
@@ -774,16 +774,16 @@ $(document).ready(function() {
                     ue4("linkblend", data);
                 }
 
-                // --------------------------------------------------------------------------------------------
-                // checkbox of analytics - on or off states
+                // checkbox for analytics LINKS
                 if(data["id"]=="definelinklist"){
-                    
-
-                // --------------------------------------------------------------------------------------------
-
-
-                }
+                    socket.emit("ex", {
+                            fn: "checkbox",
+                            id: "definedlinkslist",
+                            val: data["val"]
+                        });
+                    console.log("C_DEBUG: checkbox for analytics LINKS" , data["val"]);
                 break;
+                }
 
             case "ue4":
 
