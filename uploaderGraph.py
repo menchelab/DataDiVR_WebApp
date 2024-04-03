@@ -96,11 +96,9 @@ def upload_filesJSON(request):
     scene_description = parseGraphJSON_scene_description(jsonfiles)
 
 
-    # NEW JSON FORMAT - one file for multiple layouts; with graph/nodes/links/layouts keys on most upper level
     #----------------------------------------------
     # PARSING ANALYTICS INFORMATION  ("nodes", "links" keys on most upper level)
     #----------------------------------------------
-
     # ALL LINKS 
     parseGraphJSON_links(jsonfiles, links)  
     pfile["linkcount"] = len(links[0]["data"])
@@ -239,7 +237,7 @@ def upload_filesJSON(request):
     for file_index in range(len(nodepositions)):  # for layout in nodepositions:
 
         layout = nodepositions[file_index]
-
+        
         if len(layout["data"]) > 0 and len(layout["data"][int(0)]) == 3:
             if names[file_index] is not None:
                 # if texture name specified
@@ -405,7 +403,7 @@ def upload_filesJSON(request):
 
 
     #----------------------------------
-    # make essential json files for DataDiVR (nodes, links, etc.) 
+    # make essential json files for DataDiVR
     #----------------------------------
     with open(folder + '/pfile.json', 'w') as outfile:
         json.dump(pfile, outfile)
@@ -743,7 +741,10 @@ def parseGraphJSON_labels(files,target):
 def parseGraphJSON_graphtitle(files,target):
     if len(files) > 0: 
         for file in files:
-            name_of_graph = file["graph"]["name"]
+            try:
+                name_of_graph = file["graph"]["name"]
+            except:
+                name_of_graph = file["graphtitle"]
             vecList = {}
             vecList["graphtitle"] = name_of_graph 
             target.append(vecList)

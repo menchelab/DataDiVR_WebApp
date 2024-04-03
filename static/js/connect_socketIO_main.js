@@ -217,7 +217,7 @@ function speakNow(text) {
 
 $(document).ready(function() {
 
-    //speakNow("Hello Human! Welcome to the data diver.")
+    speakNow("Hello Human! Welcome to the data diver.")
 
     if (document.getElementById("preview")) {
         isPreview = true;

@@ -264,7 +264,9 @@ def makeXYZTexture(project, pixeldata, name=None):
         new_imgl.save(pathXYZl)
         return '<a style="color:green;">SUCCESS </a>' + pixeldata["name"]  + " Node Textures Created"
 
+
 def makeNodeRGBTexture(project, pixeldata, name=None): 
+    print("im makeNodeRGBTexture: , pixeldata", pixeldata)
 
     # check if data is rgba or hex string
     for i in (pixeldata["data"]):
