@@ -140,7 +140,7 @@ def makeXYZTexture(project, pixeldata, name=None):
 
     hight = 128 * (int((len(pixeldata["data"])) / 16384) + 1)
 
-    print ("hight is " + str(hight))
+    #print ("hight is " + str(hight))
     size = 128 * hight 
     path = 'static/projects/' + project 
     
@@ -266,8 +266,6 @@ def makeXYZTexture(project, pixeldata, name=None):
 
 
 def makeNodeRGBTexture(project, pixeldata, name=None): 
-    print("im makeNodeRGBTexture: , pixeldata", pixeldata)
-
     # check if data is rgba or hex string
     for i in (pixeldata["data"]):
         rgba_colors = []
@@ -279,7 +277,7 @@ def makeNodeRGBTexture(project, pixeldata, name=None):
 
     hight = 128 * (int((len(pixeldata["data"])) / 16384) + 1)
 
-    print ("hight is " + str(hight))
+    #print ("hight is " + str(hight))
     size = 128 * hight 
     path = 'static/projects/' + project 
     tex = [(128,0,0,100)] * size
@@ -304,7 +302,7 @@ def makeNodeRGBTexture(project, pixeldata, name=None):
 
 def makeLinkTexNew(project, links, name=None): 
     hight = 64 * (int((len(links["data"])) / 32768) + 1)
-    print("image hight = " + str(hight))
+    #print("image hight = " + str(hight))
     #hight = 512 #int(elem / 512)+1
     path = 'static/projects/' + project 
 
@@ -362,7 +360,7 @@ def makeLinkTexNew(project, links, name=None):
 
 def makeLinkTexNew_withoutJSON(project, links, name=None): 
     hight = 64 * (int((len(links["data"])) / 32768) + 1)
-    print("image hight = " + str(hight))
+    #print("image hight = " + str(hight))
     #hight = 512 #int(elem / 512)+1
     path = 'static/projects/' + project 
 
@@ -1081,7 +1079,7 @@ def makeNodeTex(project, name, file, labelfile):
     csvreader = csv.reader(f, delimiter=',')
     hight = 128 * (int((elem + eleml) / 16384) + 1)
 
-    print ("hight is " + str(hight))
+    #print ("hight is " + str(hight))
     size = 128 * hight 
     path = 'static/projects/' + project 
     
