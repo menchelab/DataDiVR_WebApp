@@ -15,8 +15,8 @@ plotly
 pandas
 networkx
 matplotlib
-#scipy
-#scikit-learn
+scipy
+scikit-learn
 #pymysql
 #shapely
 #cartoGRAPHs
@@ -25,11 +25,11 @@ urllib3==1.26.6
 #torch==1.13.1+cu116
 #whisper
 #openai-whisper
-playsound
-PyDub 
-pyttsx3
+#playsound
+#PyDub 
+#pyttsx3
 openai
-igraph
+#igraph
 uvicorn
 #umap-learn
-distutils
+#distutils

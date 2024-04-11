@@ -36,15 +36,15 @@ from flask_socketio import SocketIO, emit, join_room, leave_room
 from werkzeug.utils import secure_filename
 
 import chatGPTTest
-import event_handler
+#import event_handler
 import GlobalData as GD
 import spam_protection as spam
 
 # load audio and pad/trim it to fit 30 seconds
-import TextToSpeech
-import uploader
-import uploaderGraph
-import util
+#import TextToSpeech
+#import uploader
+#import uploaderGraph
+#import util
 import websocket_functions as webfunc
 from extensions import load_extensions
 
