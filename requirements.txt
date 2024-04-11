@@ -15,11 +15,11 @@ plotly
 pandas
 networkx
 matplotlib
-scipy
-scikit-learn
-pymysql
-shapely
-cartoGRAPHs
+#scipy
+#scikit-learn
+#pymysql
+#shapely
+#cartoGRAPHs
 urllib3==1.26.6
 #--find-links https://download.pytorch.org/whl/torch_stable.html
 #torch==1.13.1+cu116
@@ -31,5 +31,4 @@ pyttsx3
 openai
 igraph
 uvicorn
-umap-learn
-setuptools
+#umap-learn
