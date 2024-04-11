@@ -73,6 +73,7 @@ app, extensions = load_extensions.load(app)
 
 
 ### Execute code before first request ###
+'''
 @app.before_first_request
 def execute_before_first_request():
     uploader.check_ProjectFolder()
@@ -83,23 +84,13 @@ def execute_before_first_request():
     GD.loadColor()
     GD.loadLinks()
     GD.load_annotations()
-
-@app.route("/map")
-def osmmap():
-    lat = 0
-    lon = 0
-    if request.args.get('lat'):
-        lat = request.args.get('lat')
-    if request.args.get('lon'):
-        lon = request.args.get('lon')
-        
-    return render_template("map.html", lat = lat, lon = lon)
+'''
 
 @app.route("/")
 def index():
     return flask.redirect("/home")
 
-
+'''
 @app.route("/preview")
 def preview():
     return render_template("preview.html", extensions=extensions)
@@ -124,7 +115,7 @@ def main():
     else:
         return "error"
 
-
+'''
 
 myusers = [{'uid': 4, 'links': [2, 2, 2, 2, 2, 133, 666, 666, 666, 666, 125, 125]}, {'uid': 666, 'links': [133]}, {'uid': 133, 'links': [666]}, {'uid': 555, 'links': [666, 133, 4, 123, 124, 125, 125, 125]}, {'uid': 125, 'links': [555, 128]}, {'uid': 128, 'links': [555]}, {'uid': 130, 'links': [555]}]
  
@@ -267,11 +258,11 @@ def GPT():
     if request.method == "POST":
         data = flask.request.get_json()
         answer = chatGPTTest.NewGPTrequest(data.get("text"))
-        fname = TextToSpeech.makeogg(answer, 0)
+        #fname = TextToSpeech.makeogg(answer, 0)
         print(answer)
-        return {"text": answer, "audiofile": fname + ".ogg"}
+        return {"text": answer}
 
-
+'''
 @app.route("/TTS", methods=["POST", "GET"])
 def TTS():
     result = {}
@@ -441,3 +432,4 @@ def left(message):
 
 if __name__ == "__main__":
     socketio.run(app, debug=True)
+'''
