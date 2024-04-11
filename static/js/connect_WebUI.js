@@ -22,3 +22,4 @@ function logger(message) {
     console.log(message);
     ue4("log", message);
 }
+

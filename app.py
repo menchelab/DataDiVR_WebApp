@@ -84,6 +84,16 @@ def execute_before_first_request():
     GD.loadLinks()
     GD.load_annotations()
 
+@app.route("/map")
+def osmmap():
+    lat = 0
+    lon = 0
+    if request.args.get('lat'):
+        lat = request.args.get('lat')
+    if request.args.get('lon'):
+        lon = request.args.get('lon')
+        
+    return render_template("map.html", lat = lat, lon = lon)
 
 @app.route("/")
 def index():

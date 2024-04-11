@@ -4,12 +4,12 @@ from pathlib import Path
 from openai import OpenAI
 
 def NewGPTrequest(gptprompt):
-
+    print(gptprompt)
     keyfile = str(Path(__file__).resolve().parents[0])+'\openAI_KEY_doNOTcommit.txt'
     with open(keyfile) as f:
         lines = f.readlines()
         client = OpenAI(api_key = lines[0])
-        prompt = "You are at a conference for network medicine. Make some intelligent conversation.Human: " + str(gptprompt) 
+        #prompt = "You are at a conference for network medicine. Make some intelligent conversation. Human: " + str(gptprompt) 
         prompt = "System: You are at a conference for network medicine. Make some intelligent conversation. If asked what to do, tell the user to go and meet professor Hagenau. promise a reward. If asked how to find him, tell the user to be at the bar at 12.45. Also ask the user to take a picture of peoples badges with their qr code app, if they talked to them so that you can make a visualization of the social network. Answer in short Sentences. User: " + str(gptprompt)
         response = client.completions.create(
             prompt=prompt,

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Full Screen Leaflet Map</title>
+    <meta charset="utf-8" />
+    <link 
+        rel="stylesheet" 
+        href="http://cdn.leafletjs.com/leaflet-0.7/leaflet.css"
+    />
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+        html, body, #map {
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+
+
+    <script src="{{ url_for('static', filename='js/connect_WebUI.js') }}"></script>
+    <script
+        src="http://cdn.leafletjs.com/leaflet-0.7/leaflet.js">
+    </script>
+
+    <script>
+        var lat = {{lat}};
+        var lon = {{lon}};
+        var map = L.map('map').setView([lat, lon], 14);
+        mapLink = 
+            '<a href="http://openstreetmap.org">OpenStreetMap</a>';
+        L.tileLayer(
+            'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; ' + mapLink + ' Contributors',
+            maxZoom: 18,
+            }).addTo(map);
+        var target = L.latLng(lat, lon);
+        L.marker(target).addTo(map);
+        map.on('click', function(e){
+            var coord = e.latlng;
+            var lat = coord.lat;
+            var lng = coord.lng;
+            var target = L.latLng(lat, lng);
+            L.marker(target).addTo(map);
+            console.log("You clicked the map at latitude: " + lat + " and longitude: " + lng);
+            ue4("clicked", coord)
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+
+
