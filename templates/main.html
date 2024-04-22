@@ -48,9 +48,9 @@
 
                 {% include 'mProject.html' %}
 
-                {% include 'mVRrooms.html' %}
-
                 {% include 'mSliders.html' %}
+
+                {% include 'mVRrooms.html' %}
 
 
                 {% for ext in extensions["ext"] %}
@@ -69,10 +69,16 @@
             <div style="width: 426px; height:100vh; overflow-y:auto;  overflow-x:hidden">
                 <br>
 
+                {% include 'mGPT.html' %}
+                {% include 'mAudio.html' %}
                 {% include 'mLegend.html' %}
                 <!-- {% include 'mChat.html' %} -->
-                {% include 'mDebug.html' %}
-                {% include 'mClipboard.html' %}
+
+                {% include 'mLayout.html' %}
+
+
+
+                <!-- {% include 'mCartographs.html' %} -->
 
                 {% for ext in extensions["ext"] %}
                 {% if "column_2" in ext.keys() %}
@@ -90,12 +96,13 @@
 
             <div style="width: 426px; height:100vh; overflow-y:auto;  overflow-x:hidden">
                 <br>
-                {% include 'mAudio.html' %}
-                {% include 'mGPT.html' %}
+                <!-- {% include 'mAudio.html' %}
+                {% include 'mGPT.html' %} -->
                 <!--{% include 'mCartographs.html' %} -->
                 {% include 'mConnections.html' %}
                 {% include 'mAnalytics.html' %}
                 {% include 'mAnnotations.html' %}
+                {% include 'mEnrichment.html' %}
 
                 {% for ext in extensions["ext"] %}
                 {% if "column_3" in ext.keys() %}
@@ -114,11 +121,13 @@
             <div style="width: 426px; height:100vh; overflow-y:auto;  overflow-x:hidden">
                 <br>
 
-                {% include 'mSelections.html' %}
-                {% include 'mNodesearch.html' %}
-                {% include 'mEnrichment.html' %}
                 {% include 'mNodeinfo.html' %}
-                {% include 'mLayout.html' %}
+                {% include 'mNodesearch.html' %}
+
+                {% include 'mSelections.html' %}
+                
+                {% include 'mDebug.html' %}
+                {% include 'mClipboard.html' %}
 
 
                 {% for ext in extensions["ext"] %}

@@ -149,3 +149,30 @@ def children_event(message, room):
         response2["val"].append(node)
     print(response2)
     emit("ex", response2, room=room)
+
+
+import json
+def checkbox_event(message, room):
+    if message["id"] == "cbdefinelinklist":
+        #     GD.pdata[message["id"]] = ""
+        #     print("newGD Variable created")
+        # if message["val"] != "init":
+        #     GD.pdata[message["id"]] = message["val"]
+        #     GD.savePD()
+        response = {}
+        response["usr"] = message["usr"]
+        response["fn"] = "checkbox"
+        response["id"] = message["id"]
+        response["val"] = GD.pdata[message["id"]]
+
+        if message["val"] == True:
+            print("C_DEBUG message false, use LAYOUT specific LINKS =", message)  
+            name_linkfile = "linkslayouts"
+            
+        if message["val"] == False:
+            print("C_DEBUG message false, use ALL LINKS =", message)  
+            name_linkfile = "links"
+
+        response["definedlinklist"] = name_linkfile
+
+    emit("ex", response, room=room)

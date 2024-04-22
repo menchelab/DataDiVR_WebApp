@@ -105,5 +105,12 @@ def handle_socket_execute(message, room, project):
 
     elif message["fn"] == "children":
         ui_events.children_event
+
+        
+    elif message["fn"] == "checkbox":
+        if message["id"] == "cbdefinelinklist":
+            ui_events.checkbox_event(message, room)
+
+
     else:
         emit("ex", message, room=room)

@@ -26,6 +26,19 @@ ANALYTICS_TABS = [
 ]
 
 
+def get_linklist(message, room):
+    message["fn"] = "checkbox"
+    if "definedlinklist" in GD.pdata.keys():
+        if GD.pdata["definedlinklist"] == "links":
+            links = None # GD[]
+            print("Links all." ) #links = GD[]
+        elif GD.pdata["definedlinklist"] == "linkslayouts":
+            print("Links layout specific.")
+            links = None # GD[]
+    return links 
+
+
+
 def __compute_histogram_bins(values, min_bins=2, max_bins=15):
     min_value = np.min(values)
     max_value = np.max(values)

@@ -775,13 +775,12 @@ $(document).ready(function() {
                 }
 
                 // checkbox for analytics LINKS
-                if(data["id"]=="definelinklist"){
+                if(data["id"]=="cbdefinelinklist"){
                     socket.emit("ex", {
                             fn: "checkbox",
-                            id: "definedlinkslist",
+                            id: "cbdefinedlinkslist",
                             val: data["val"]
                         });
-                    console.log("C_DEBUG: checkbox for analytics LINKS" , data["val"]);
                 break;
                 }
 
