@@ -216,6 +216,8 @@ def _fisher_test(sig_level, sampleset, d_sample_attributes, d_attributes_sample,
 
 
 def _gen_highlight_textures(query_ids, feature_type, feature):
+    
+    print(1)
     path_nodes = "static/projects/"+ GD.data["actPro"] + "/layoutsRGB/temp_enrichment.png"
     path_links = "static/projects/"+ GD.data["actPro"] + "/linksRGB/temp_enrichment.png"
     nodes = GD.nodes["nodes"]
@@ -272,6 +274,10 @@ def _gen_highlight_textures(query_ids, feature_type, feature):
 
 
 def main(highlight=None):
+    
+    
+    print(highlight)
+    
     # main process
     query_set = []
     test_result = {}

@@ -44,6 +44,12 @@ def __compute_histogram_bins(values, min_bins=2, max_bins=15):
 def analytics_degree_distribution(graph):
     # nx graph to degree distribution
     degree_sequence = [d for n, d in graph.degree()] # index is node id, value is degree
+    
+    print(GD.nodes["nodes"])
+    print(len(GD.nodes["nodes"]))
+    print({GD.nodes["nodes"][i]["n"]: degree_sequence[i] for i in range(len(GD.nodes["nodes"]))})
+    
+    
     return degree_sequence
 
 
@@ -124,7 +130,7 @@ def analytics_color_degree_distribution(degrees, highlight):
     node_colors = []
     for node in range(len(GD.pixel_valuesc)):
         if node in highlight_nodes:
-            node_colors.append((255, 166, 0, 100))
+            node_colors.append((255, 166, 0, 150))
             continue
         node_colors.append((55, 55, 55, 100))
     # get links
