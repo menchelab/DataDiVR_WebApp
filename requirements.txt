@@ -9,7 +9,7 @@ requests
 flask_cors
 Pillow >= 8.3.2
 gunicorn
-numpy==1.22
+numpy==1.25
 beautifulsoup4
 plotly
 pandas
