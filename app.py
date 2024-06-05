@@ -91,6 +91,8 @@ def execute_before_first_request():
     GD.load_annotations()
 
 
+
+
 @app.route("/")
 def index():
     return flask.redirect("/home")
@@ -99,6 +101,17 @@ def index():
 @app.route("/preview")
 def preview():
     return render_template("preview.html", extensions=extensions)
+
+
+#----------------------------------------------------------------------
+# Natural Language UI 
+@app.route("/languageUI")
+def languageUI():
+    return render_template("languageUI.html", extensions=extensions)
+#----------------------------------------------------------------------
+
+
+
 
 
 @app.route("/main", methods=["GET"])
@@ -402,6 +415,7 @@ def left(message):
         + " has left the room."
         + webfunc.bcolors.ENDC
     )
+
 
 
 if __name__ == "__main__":
