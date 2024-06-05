@@ -380,7 +380,7 @@ def join(message):
         + message["usr"]
         + " has entered the room."
         + webfunc.bcolors.ENDC
-    )
+    )   
     emit("status", {"usr": message["usr"], "msg": " has entered the room."}, room=room)
 
 

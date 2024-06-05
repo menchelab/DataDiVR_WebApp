@@ -35,7 +35,9 @@ def clear_event(message, room):
 def run_event(message, room):
     if not enrichment_module.validate():
         return
-
+    
+    print(message, message.get("val", None))
+    
     result_plot, highlight_payload, highlight_texture_obj, display_note = (
         enrichment_module.main(highlight=message.get("val", None))
     )
@@ -104,8 +106,8 @@ def main(message, room):
         return
 
     elif message["id"] == "enrichment-run":
-        run_event(response, room)
+        run_event(message, room)
         return
 
     if message["id"] == "enrichment-plotClick":
-        plot_click_event(response, room)
+        plot_click_event(message, room)
