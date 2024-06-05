@@ -5,7 +5,6 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
 </link>
 
-
 <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
@@ -36,34 +35,31 @@
     }
 </style>
 
-
 <body class="unselectable" style="width:1750px">
 
-
     <mc-module id="module-chatGPT" name="ChatGPT">
-        <audio id="GPTAudio"  src="" type="audio/ogg">
-        <source id = "GPTAudioS">
-            Your browser does not support the audio element.
+        <audio id="GPTAudio" src="" type="audio/ogg">
+            <source id="GPTAudioS">
+                Your browser does not support the audio element.
         </audio>
 
         <button id="gptclearbutton1" class="swagButton" onclick="clearChat()" style="float:right;">CLEAR</button>
-            <mc-scrollbox id='gptscrollbox'></mc-scrollbox>
-            
-            <mc-TextInput id="gptText1" type="textinput" fn="textinput"></mc-TextInput>
-            <button id="searchbutton1" class="swagButton" onclick="gptQuery()">GO</button>   
+        <mc-scrollbox id='gptscrollbox'></mc-scrollbox>
+
+        <mc-TextInput id="gptText1" type="textinput" fn="textinput"></mc-TextInput>
+        <button id="searchbutton1" class="swagButton" onclick="gptQuery()">GO</button>
 
     </mc-module>
-
 
 </body>
 
 </html>
 
-
 <script>
 function clearChat(){
     document.getElementById("gptscrollbox").shadowRoot.getElementById("box").innerHTML = '';
 }
+
 function gptQuery(){
     var text = document.getElementById("gptText1").shadowRoot.getElementById("text").value;
     var chatwin = document.getElementById("gptscrollbox").shadowRoot.getElementById("box");
@@ -82,26 +78,31 @@ function gptQuery(){
             })
             .then((response) => response.json())
             .then((json) => {
-                //console.log(json.text);
-                // SET CHAT DIV
                 chatwin.innerHTML += '<br>HUMAN: ' + text + "</font>" + '<br>'; 
                 chatwin.innerHTML += "<br>AI: " + json.text + '<br>';
-                chatwin.scrollTop =  chatwin.scrollHeight;  
+                chatwin.scrollTop = chatwin.scrollHeight;  
                 
                 if (json.text.indexOf('[') > -1) {
                     json.text = json.text.substring(json.text.indexOf("["));
                     console.log("is a list! sending it to server");
                     console.log(json.text);
                 }
-                //var source = document.getElementById('GPTAudioS');
-                // load and play texttospeech audio
+                
                 var audio = document.getElementById("GPTAudio");
                 path =  "http://127.0.0.1:5000/static/TTSaudio/" + json.audiofile;
                 audio.src = path;
                 audio.load();
                 audio.play();
 
+                // Clear the input field
+                document.getElementById("gptText1").shadowRoot.getElementById("text").value = '';
             });
-    }
-</script>
+}
 
+// Add event listener for Enter key
+document.getElementById("gptText1").shadowRoot.getElementById("text").addEventListener("keydown", function(event) {
+    if (event.key === "Enter") {
+        gptQuery();
+    }
+});
+</script>
