@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui.css') }}">
@@ -35,20 +37,14 @@
     }
 </style>
 
-<body class="unselectable" style="width:1750px">
+<body class="unselectable" style="width:1750px"> 
 
-    <mc-module id="module-chatGPT" name="ChatGPT">
-        <audio id="GPTAudio" src="" type="audio/ogg">
-            <source id="GPTAudioS">
-                Your browser does not support the audio element.
-        </audio>
+    <mc-module id="module-chat" name="Chat">
+        <button id="clearbutton" class="swagButton" onclick="clearChat()" style="float:right;">CLEAR</button>
+        <mc-scrollbox id='scrollbox'></mc-scrollbox>
 
-        <button id="gptclearbutton1" class="swagButton" onclick="clearChat()" style="float:right;">CLEAR</button>
-        <mc-scrollbox id='gptscrollbox'></mc-scrollbox>
-
-        <mc-TextInput id="gptText1" type="textinput" fn="textinput"></mc-TextInput>
-        <button id="searchbutton1" class="swagButton" onclick="gptQuery()">GO</button>
-
+        <mc-TextInput id="textInput" type="textinput" fn="textinput" ></mc-TextInput>
+        <button id="searchbutton" class="swagButton" onclick="processQuery()">GO</button>
     </mc-module>
 
 </body>
@@ -57,52 +53,45 @@
 
 <script>
 function clearChat(){
-    document.getElementById("gptscrollbox").shadowRoot.getElementById("box").innerHTML = '';
+    document.getElementById("scrollbox").shadowRoot.getElementById("box").innerHTML = '';
 }
 
-function gptQuery(){
-    var text = document.getElementById("gptText1").shadowRoot.getElementById("text").value;
-    var chatwin = document.getElementById("gptscrollbox").shadowRoot.getElementById("box");
-    var chat = chatwin.innerHTML + " HUMAN: " + text +" AI: ";
-   
-    fetch("{{ url_for('GPT') }}", {
+function processQuery(){
+    var text = document.getElementById("textInput").shadowRoot.getElementById("text").value;
+    var chatwin = document.getElementById("scrollbox").shadowRoot.getElementById("box");
+
+    fetch("/languageUI_process", {
             method: "POST",
-            body: JSON.stringify({
-                userId: uid,
-                text: chat.replace("<br>", "\\n"),
-                completed: false
-            }),
+            body: JSON.stringify({ text: text }),
             headers: {
                 "Content-type": "application/json; charset=UTF-8"
             }
             })
             .then((response) => response.json())
             .then((json) => {
-                chatwin.innerHTML += '<br>HUMAN: ' + text + "</font>" + '<br>'; 
-                chatwin.innerHTML += "<br>AI: " + json.text + '<br>';
+                chatwin.innerHTML += '<br>HUMAN: ' + text + "<br>"; 
+                chatwin.innerHTML += "<br>RESPONSE: " + json.result + '<br>';
                 chatwin.scrollTop = chatwin.scrollHeight;  
-                
-                if (json.text.indexOf('[') > -1) {
-                    json.text = json.text.substring(json.text.indexOf("["));
-                    console.log("is a list! sending it to server");
-                    console.log(json.text);
-                }
-                
-                var audio = document.getElementById("GPTAudio");
-                path =  "http://127.0.0.1:5000/static/TTSaudio/" + json.audiofile;
-                audio.src = path;
-                audio.load();
-                audio.play();
 
                 // Clear the input field
-                document.getElementById("gptText1").shadowRoot.getElementById("text").value = '';
+                document.getElementById("textInput").shadowRoot.getElementById("text").value = '';
             });
 }
 
 // Add event listener for Enter key
-document.getElementById("gptText1").shadowRoot.getElementById("text").addEventListener("keydown", function(event) {
+document.getElementById("textInput").shadowRoot.getElementById("text").addEventListener("keydown", function(event) {
     if (event.key === "Enter") {
-        gptQuery();
+        processQuery();
     }
 });
+
+// Change the placeholder text for the specific element
+document.addEventListener("DOMContentLoaded", function() {
+            var specificElement = document.getElementById("textInput");
+            var shadowRoot = specificElement.shadowRoot;
+            var textArea = shadowRoot.getElementById("text");
+            textArea.placeholder = "My specific message here...";
+});
+
+
 </script>

@@ -32,3 +32,4 @@ openai
 igraph
 uvicorn
 umap-learn
+nltk

@@ -105,9 +105,21 @@ def preview():
 
 #----------------------------------------------------------------------
 # Natural Language UI 
+
+from functionmapping import process_input
+
+
 @app.route("/languageUI")
 def languageUI():
     return render_template("languageUI.html", extensions=extensions)
+
+@app.route('/languageUI_process', methods=['POST'])
+def process():
+    data = request.get_json()
+    user_input = data.get('text')
+    result = process_input(user_input)
+    return jsonify({"result": result})
+
 #----------------------------------------------------------------------
 
 
