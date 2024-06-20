@@ -493,7 +493,7 @@ function animate() {
     controls.update();
     renderer.render(scene, camera);
 }
-function rigth() {
+function right() {
     camera.position.set(0, 0, 20);
     camera.lookAt(0, 0, 0);
     camera.rotation.z += Math.PI / 2
