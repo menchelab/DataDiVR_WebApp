@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
 
 </link>
 
@@ -13,6 +13,7 @@
 <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
 <script>hljs.highlightAll();</script>
 <script src="{{ url_for('static', filename='js/connect_WebUI.js') }}"></script>
+<script src="{{ url_for('static', filename='js/util.js') }}"></script>
 <script src="{{ url_for('static', filename='js/connect_socketIO_main.js') }}"></script>
 <script src="{{ url_for('static', filename='js/mc_UI_Elements.js') }}"></script>
 
@@ -26,59 +27,63 @@
 
 </head>
 
-<body>   
+<body>
     <div id="outer" style="width: 420px; height: auto;">
- 
 
-    <div class="gradientBox">
-        <div  class='swagBox' style="width:420px; background-color: rgba(16, 3, 0, 0.3);">
-            <h5  style="float:left; font-size: 25px;  color: rgb(102, 102, 102); margin-top:5px; margin-bottom:5px;">
-            SVG</h5>
 
-            <br>
-            <div  class="gradient"></div>
-            <br>
-            <mc-button1 id = "showSVG" parent = "" val ="" name = "Load SVG" fn = "showSVG" ></mc-button1> 
-            <div id="svgtest" style="width:100%; height:300px"></div>
-            Generates a SVG file using Matplotlib on the server and returns the result as string that is then set as inner html of div
+        <div class="gradientBox">
+            <div class='swagBox' style="width:420px; background-color: rgba(16, 3, 0, 0.3);">
+                <h5 style="float:left; font-size: 25px;  color: rgb(102, 102, 102); margin-top:5px; margin-bottom:5px;">
+                    SVG</h5>
+
+                <br>
+                <div class="gradient"></div>
+                <br>
+                <mc-button1 id="showSVG" parent="" val="" name="Load SVG" fn="showSVG"></mc-button1>
+                <div id="svgtest" style="width:100%; height:300px"></div>
+                Generates a SVG file using Matplotlib on the server and returns the result as string that is then set as
+                inner html of div
+            </div>
         </div>
-    </div>
 
-    <div class="gradientBox">
-        <div  class='swagBox' style="width:420px; overflow: auto; background-color: rgba(16, 3, 0, 0.3);">
-            <h5  style="float:left; font-size: 25px;  color: rgb(102, 102, 102); margin-top:5px; margin-bottom:5px;">
-            HTML</h5>
+        <div class="gradientBox">
+            <div class='swagBox' style="width:420px; overflow: auto; background-color: rgba(16, 3, 0, 0.3);">
+                <h5 style="float:left; font-size: 25px;  color: rgb(102, 102, 102); margin-top:5px; margin-bottom:5px;">
+                    HTML</h5>
 
-            <br>
-            <div  class="gradient"></div>
-            <br>
-            <mc-button1 id = "plotly" parent = "" val ="" name = "Load HTML" fn = "showPlotly" ></mc-button1>
-            
-            <div id="plotlytest" style="width:100%; height:300px"></div>
-            Generates a HTML file using plotly on the server and returns the name that is then loded into the div with jquery
+                <br>
+                <div class="gradient"></div>
+                <br>
+                <mc-button1 id="plotly" parent="" val="" name="Load HTML" fn="showPlotly"></mc-button1>
+
+                <div id="plotlytest" style="width:100%; height:300px"></div>
+                Generates a HTML file using plotly on the server and returns the name that is then loded into the div
+                with jquery
+            </div>
         </div>
-    </div>
 
 
-    <div class="gradientBox">
-        <div  class='swagBox' style="width:420px; overflow: auto; background-color: rgba(16, 3, 0, 0.3);">
-            <h5  style="float:left; font-size: 25px;  color: rgb(102, 102, 102); margin-top:5px; margin-bottom:5px;">
-            PLOTLY</h5>
+        <div class="gradientBox">
+            <div class='swagBox' style="width:420px; overflow: auto; background-color: rgba(16, 3, 0, 0.3);">
+                <h5 style="float:left; font-size: 25px;  color: rgb(102, 102, 102); margin-top:5px; margin-bottom:5px;">
+                    PLOTLY</h5>
 
-            <br>
-            <div  class="gradient"></div>
-            <br>
-            <mc-button1 id = "plotly2jsB" parent = "plotly2js" val ="" name = "Graph" fn = "Plotly2js" ></mc-button1>
-            <mc-button1 id = "plotly2jsB2" parent = "plotly2js" val ="" name = "Barchart" fn = "Plotly2js" ></mc-button1>
-            <mc-button1 id = "plotly2jsB3" parent = "plotly2js" val ="" name = "timeGraph" fn = "Plotly2js" ></mc-button1>
-            <mc-button1 id = "plotly2jsB4" parent = "plotly2js" val ="" name = "scatterGraph" fn = "Plotly2js" ></mc-button1>
+                <br>
+                <div class="gradient"></div>
+                <br>
+                <mc-button1 id="plotly2jsB" parent="plotly2js" val="" name="Graph" fn="Plotly2js"></mc-button1>
+                <mc-button1 id="plotly2jsB2" parent="plotly2js" val="" name="Barchart" fn="Plotly2js"></mc-button1>
+                <mc-button1 id="plotly2jsB3" parent="plotly2js" val="" name="timeGraph" fn="Plotly2js"></mc-button1>
+                <mc-button1 id="plotly2jsB4" parent="plotly2js" val="" name="scatterGraph" fn="Plotly2js"></mc-button1>
 
-            <div id="plotly2js"></div>
-            
+                <div id="plotly2js"></div>
+
+            </div>
+            Generates a plotly graph on the server and returns the .fig data (much smaller then the rendered svg) that
+            is then rendered in the browser using plotly.js
+            <br>This is the most flexible method and should be used if possible. <br>It Does not work together with
+            D3.js so only either one can be used
         </div>
-        Generates a plotly graph on the server and returns the .fig data (much smaller then the rendered svg) that is then rendered in the browser using plotly.js
-            <br>This is the most flexible method and should be used if possible. <br>It Does not work together with D3.js so only either one can be used
-    </div>
 
 
 
