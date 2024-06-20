@@ -20,6 +20,16 @@
 <html>
 
 <body style="margin:0px; overflow: hidden;" class="unselectable">
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            init();
+            animate();
+            rigth();
+            //doAjaxThings(pfile); //is called from connect socketio
+            // create and manipulate your DOM here. doAjaxThings() will run asynchronously and not block your DOM rendering
+
+        });
+    </script>
     <div id='label'
         style='z-index: 2; position: absolute; top: 0; left: 0; color:white; margin-left: 10px; font-size: 30px;'></div>
     <div id="preview"
