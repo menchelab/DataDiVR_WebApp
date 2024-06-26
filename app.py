@@ -104,14 +104,14 @@ def preview():
 
 
 #----------------------------------------------------------------------
-# Natural Language UI 
+# Language UI 
 
 from functionmapping import process_input
 
 
 @app.route("/languageUI")
 def languageUI():
-    return render_template("languageUI.html", extensions=extensions)
+    return render_template("mLanguageUI.html", extensions=extensions)
 
 @app.route('/languageUI_process', methods=['POST'])
 def process():

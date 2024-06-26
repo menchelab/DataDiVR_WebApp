@@ -70,7 +70,7 @@ function processQuery(){
             .then((response) => response.json())
             .then((json) => {
                 chatwin.innerHTML += '<br>HUMAN: ' + text + "<br>"; 
-                chatwin.innerHTML += "<br>RESPONSE: " + json.result + '<br>';
+                chatwin.innerHTML += "<br>DATA: " + json.result + '<br>';
                 chatwin.scrollTop = chatwin.scrollHeight;  
 
                 // Clear the input field
@@ -90,7 +90,7 @@ document.addEventListener("DOMContentLoaded", function() {
             var specificElement = document.getElementById("textInput");
             var shadowRoot = specificElement.shadowRoot;
             var textArea = shadowRoot.getElementById("text");
-            textArea.placeholder = "My specific message here...";
+            textArea.placeholder = "Type something. e.g. 'Open project teapot.' ...";
 });
 
 
