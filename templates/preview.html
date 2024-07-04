@@ -21,6 +21,8 @@
 <html>
 
 <body style="margin:0px; overflow: hidden;" class="unselectable">
+
+ 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             init();
@@ -30,7 +32,9 @@
             // create and manipulate your DOM here. doAjaxThings() will run asynchronously and not block your DOM rendering
 
         });
-    </script>
+    </script> 
+
+
     <div id='label'
         style='z-index: 2; position: absolute; top: 0; left: 0; color:white; margin-left: 10px; font-size: 30px;'></div>
     <div id="preview"
@@ -38,6 +42,13 @@
 
         <div id="outer" style="height: 100vh; overflow: auto;">
             {% include 'mProject.html' %}
+        
+            {% include 'mLegend.html' %}
+
+
+        </div>
+
+        <div id="outer" style="height: 100vh; overflow: auto; display:None">  
             {% include 'mNodesearch.html' %}
             {% include 'mNodeinfo.html' %}
             {% include 'mConnections.html' %}
@@ -47,7 +58,7 @@
             {% include 'mEnrichment.html' %}
             {% include 'mAnnotations.html' %}
             {% include 'mLayout.html' %}
-            {% include 'mLegend.html' %}
+
 
             {% for ext in extensions["ext"] %}
             {% for key in ext.keys() %}
@@ -58,7 +69,6 @@
             {% endif %}
             {% endfor %}
             {% endfor %}
-
         </div>
 
 

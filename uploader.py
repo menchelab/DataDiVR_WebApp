@@ -83,6 +83,7 @@ def makeProjectFolders(name):
     pfile["links"] = []
     pfile["linksRGB"] = []
     pfile["selections"] = []
+    #pfile["scenes"] = []
 
     try:
         os.mkdir(path)

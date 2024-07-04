@@ -33,3 +33,5 @@ igraph
 uvicorn
 umap-learn
 nltk
+rapidfuzz
+pyspellchecker

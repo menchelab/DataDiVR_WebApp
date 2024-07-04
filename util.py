@@ -50,8 +50,8 @@ def has_no_empty_params(rule):
     arguments = rule.arguments if rule.arguments is not None else ()
     return len(defaults) >= len(arguments)
 
-
-def get_all_links(app) -> list[list[str, str]]:
+from typing import List, Tuple 
+def get_all_links(app) -> List[Tuple[str, str]]: #list[list[str, str]]:
     """Extracts all routes from flask app and return a list of tuples of which the first value is the route and the seconds is the name of the corresponding python function."""
     links = []
     for rule in app.url_map.iter_rules():
@@ -154,10 +154,8 @@ def project_to_graph(project,bool_links=False):
     #bool_links = 
     # --------------------------------------------------
 
-
-
-    print("C_DEBUG: in project to graph: ", bool_links)
-
+    #print("C_DEBUG: in project to graph: ", bool_links)
+    
     if bool_links == False:
         with open(f"./static/projects/{project}/links.json") as links_json:
             links = json.load(links_json)

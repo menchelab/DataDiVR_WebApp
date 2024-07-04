@@ -102,7 +102,7 @@ function updateMcElements() {
     socket.emit('ex', {usr:uid,  val: "init", id: "annotation-dd-1", fn: "annotation"});
     socket.emit('ex', {usr:uid,  val: "init", id: "annotation-dd-2", fn: "annotation"});
     socket.emit('ex', {usr:uid,  val: "init", id: "init", fn: "enrichment"});
-    socket.emit("ex", {fn: "legend_scene_display", id: "legend_scene_display", val: 0});
+    socket.emit("ex", {usr:uid,  fn: "legend_scene_display", id: "legend_scene_display", val: "init"});
 
     // VRrooms
     socket.emit('ex', {usr:uid,  val: "init", id: "VRrooms", fn: "dropdown"});
@@ -644,6 +644,7 @@ $(document).ready(function() {
                 //clearProject();
                 //if (data["usr"]==uid){
                 pfile = data["val"];
+                console.log("C_DEBUG: in CASE PROJECT _ project data = ", pfile);
 
                 // init analytics container
                 document.getElementById('analyticsContainer').innerHTML = '';
@@ -699,6 +700,32 @@ $(document).ready(function() {
                 }
 
             case "ue4":
+
+                if (data.id == "resetlayout") {
+
+                    reset_value = 0;
+                    //data["val"] = reset_value;
+
+                    socket.emit("ex", {
+                        fn: "legend_scene_display",
+                        id: "legend_scene_display",
+                        val: reset_value
+                    });
+
+                    Legend_displayNodeInfobyID(pfile.name, reset_value);
+                    Legend_displayLinkInfobyID(pfile.name, reset_value);
+                    Legend_displayGraphLayoutbyID(pfile.name, reset_value, "layouts", "graphlayout");
+                    Legend_displayGraphLayoutbyID(pfile.name, reset_value, "layouts", "graphlayout_nodecolors");
+                    Legend_displayGraphLayoutbyID(pfile.name, reset_value, "layouts", "graphlayout_linkcolors");
+
+                    if (isPreview) {
+                        actLayout = reset_value;
+                        actLayoutRGB = reset_value;
+                        actLinks = reset_value
+                        makeNetwork();
+                    }
+                }   
+
 
                 if (data.id == "forwardstep") {
 
@@ -844,7 +871,7 @@ $(document).ready(function() {
 
                 }
                 ue4("but", data);
-                //console.log("C_DEBUG: ue4 data = ", data);
+                console.log("C_DEBUG: ue4 data = ", data);
 
                 break;
 
@@ -1282,15 +1309,15 @@ $(document).ready(function() {
                     $("#enrichment-note-result").html(data.val)
                 }
 
-            case "legend_scene_display":
-                if (data.has_scenes === true) {
-                    $("#legend-scene-description-container").css('display', 'block');
-                    $("#legend-scene-description-element").html("SCENE : : " + data.text)
-                }
-                else {
-                    $("#legend-scene-description-container").css('display', 'none');
-                    $("#legend-scene-description-element").html("")
-                }
+            // case "legend_scene_display":
+            //     if (data.has_scenes === true) {
+            //         $("#legend-scene-description-container").css('display', 'block');
+            //         $("#legend-scene-description-element").html("SCENE : : " + data.text)
+            //     }
+            //     else {
+            //         $("#legend-scene-description-container").css('display', 'none');
+            //         $("#legend-scene-description-element").html("")
+            //     }
         }
     });
 

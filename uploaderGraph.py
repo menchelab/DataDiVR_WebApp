@@ -60,6 +60,9 @@ def upload_filesJSON(request):
     with open(folder + 'pfile.json', 'r') as json_file:
         pfile = json.load(json_file)
     json_file.close()
+    
+    #print("C_DEBUG: created folder and pfile.json")
+    #print("C_DEBUG: pfile : ", pfile)
 
     #-----------------------------------
     # CREATING necessary variables to store data
@@ -96,12 +99,12 @@ def upload_filesJSON(request):
         descr_of_graph = graphdesc[0]["graphdesc"]
     else:
         descr_of_graph = "Graph decription not specified."
-    scene_description = parseGraphJSON_scene_description(jsonfiles)
+    #scene_description = parseGraphJSON_scene_description(jsonfiles)
     
     pfile["graphtitle"] = title_of_graph
     pfile["graphdesc"] = descr_of_graph
-    if scene_description:
-        pfile["scenes"] = scene_description
+    #if scene_description:
+        #pfile["scenes"] = scene_description
 
     #----------------------------------------------
     # ALL LINKS - for analytics
@@ -116,13 +119,16 @@ def upload_filesJSON(request):
     # in case of new json format
     if "layouts" in jsonfiles[0].keys():
         layout = jsonfiles[0]["layouts"] 
-        parseGraphJSON_nodepositions(layout, nodepositions)# jsonfiles, nodepositions)
-        parseGraphJSON_nodecolors(layout, nodecolors) #jsonfiles
-        parseGraphJSON_labels(layout, labels) #jsonfiles
-        parseGraphJSON_links_many(layout, linksdicts) #jsonfiles#    
-        parseGraphJSON_linkcolors(layout, linkcolors) #jsonfiles
+        parseGraphJSON_nodepositions(layout, nodepositions)
+        parseGraphJSON_nodecolors(layout, nodecolors)
+        
+        parseGraphJSON_labels(layout, labels) 
+        #print("C_DEBUG: layout: ", labels)
+        
+        parseGraphJSON_links_many(layout, linksdicts)
+        parseGraphJSON_linkcolors(layout, linkcolors)
         names = parseGraphJSON_textureNames(layout)  # list, containing names for textures defined in uploaded json as "textureName"
-    # in case of no öayouts key (i e "old" json format)
+    # in case of no layouts key (i e "old" json format)
     else: 
         parseGraphJSON_nodepositions(jsonfiles, nodepositions)
         parseGraphJSON_nodecolors(jsonfiles, nodecolors)
@@ -190,7 +196,9 @@ def upload_filesJSON(request):
 
                 #add to pfile
                 pfile["selections"].append({"name":name, "nodes":row, "layoutname": labellist["name"]})               
-
+                #if labellist["name"] not in pfile["scenes"]:
+                #    pfile["scenes"].append(labellist["name"])
+                
                 # get average pos for Each layout            
                 for layout in nodepositions:
                     accPos = [0,0,0]
@@ -772,17 +780,17 @@ def parseGraphJSON_textureNames(files):
     return out
 
 
-def parseGraphJSON_scene_description(files):
-    out = []
-    for file in files:
-        try:
-            if "scene" in file["graph"].keys():
-                out.append(file["graph"]["scene"])
-            elif "scene" in file.keys():
-                out.append(file["scene"])
-        except:
-            out.append(None)
-    if len(out) != len(files):
-        return False
-    return out 
+# def parseGraphJSON_scene_description(files):
+#     out = []
+#     for file in files:
+#         try:
+#             if "scene" in file["graph"].keys():
+#                 out.append(file["graph"]["scene"])
+#             elif "scene" in file.keys():
+#                 out.append(file["scene"])
+#         except:
+#             out.append(None)
+#     if len(out) != len(files):
+#         return False
+#     return out 
         

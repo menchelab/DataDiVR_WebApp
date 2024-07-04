@@ -5,6 +5,7 @@ import shutil
 import numpy as np
 from PIL import Image
 
+from typing import List,Tuple, Dict
 
 class ProjectTag:
     """
@@ -189,7 +190,7 @@ class Project:
 
     @staticmethod
     def run_functions(
-        functions: list, args: list[tuple] = None, kwargs: list[dict] = None
+        functions: list, args: List[Tuple] = None, kwargs: List[Dict] = None
     ):
         """Runs all functions in list functions. For each function, the args and kwargs are passed.
 
@@ -294,7 +295,7 @@ class Project:
 
     def read_annotations(
         self,
-        data_type: list[str] = ["node", "link"],
+        data_type: List[str] = ["node", "link"],
         set_annotations: bool = True,
     ):
         annotations = self.read_json(self.annotations_file, DEFAULT_ANNOTATIONS)
