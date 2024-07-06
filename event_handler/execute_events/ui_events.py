@@ -59,7 +59,7 @@ def colorbox_event(message, room):
 def legend_scene_display_event(message, room):
     # only here for managing forward and backward click
     if "scenes" in GD.pfile.keys():
-        new_scene = GD.pfile["scenes"][message["val"]]
+        new_scene = GD.pfile["scenes"][int(message["val"])]
         emit(
             "ex",
             {"fn": "legend_scene_display", "has_scenes": True, "text": new_scene},

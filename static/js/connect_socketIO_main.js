@@ -84,10 +84,18 @@ function updateMcElements() {
                 break;
             case "module":
                 dynelem[i].init();
-                break
+                break;
             case "annotationDD":
                 socket.emit('ex', { usr: uid, id: dynelem[i].getAttribute('id'), fn: "annotationDD", val: "init" });
-                break
+                break;
+
+            // this seems not to change anything 
+            // case "ue4":
+            //     socket.emit('ex', { usr: uid, id: dynelem[i].getAttribute('id'), fn: "ue4", val: "init" });
+            //     break;
+            // case "button":
+            //     socket.emit('ex', { usr: uid, id: dynelem[i].getAttribute('id'), fn: "resetlayout", val: "init" });
+            //     break;
         }
         //console.log(dynelem[i].getAttribute('container'));
     }
@@ -103,6 +111,13 @@ function updateMcElements() {
     socket.emit('ex', {usr:uid,  val: "init", id: "annotation-dd-2", fn: "annotation"});
     socket.emit('ex', {usr:uid,  val: "init", id: "init", fn: "enrichment"});
     socket.emit("ex", {usr:uid,  fn: "legend_scene_display", id: "legend_scene_display", val: "init"});
+
+    // // buttons (forward backward reset) for layout changes
+    // console.log("C_DEBUG: updateMcElements - init values for new joined client")
+    // socket.emit('ex', { usr: uid, id: "forwardstep", fn: "ue4", val: "init" });
+    // socket.emit('ex', { usr: uid, id: "backwardstep", fn: "ue4", val: "init" });
+    // socket.emit('ex', { usr: uid, id: "resetlayout", fn: "ue4", val: "init" });
+
 
     // VRrooms
     socket.emit('ex', {usr:uid,  val: "init", id: "VRrooms", fn: "dropdown"});
@@ -131,7 +146,7 @@ function speakNow(text) {
 
 $(document).ready(function() {
 
-    speakNow("Hello Human! Welcome to the data diver.")
+    // speakNow("Hello Human! Welcome to the data diver.")
 
     if (document.getElementById("preview")) {
         isPreview = true;
@@ -223,7 +238,7 @@ $(document).ready(function() {
                         setTimeout(function() {
                             initialized = true;
                             makeNetwork();
-                        }, 1000);
+                        }, 2000);
                     }
 
                 }
@@ -458,7 +473,6 @@ $(document).ready(function() {
                             makeNetwork();
                         }
                         if (data.id == "linksRGBDD") {
-                            //actLinks = data.sel;
                             actLinksRGB = data.sel;
                             makeNetwork();
                         } 
@@ -549,13 +563,13 @@ $(document).ready(function() {
                                 layouts_DD.setAttribute("sel", parseInt(data.sel));
                                 layouts_DD.setAttribute("value", pfile.layouts[data.sel]);
 
-                                // // update arrow buttons with new index
+                                // update arrow buttons with new index
                                 nextButton = document.getElementById("forwardstep");
                                 nextButton.setAttribute('val', data.sel);
                                 backButton = document.getElementById("backwardstep");
                                 backButton.setAttribute('val', data.sel);
-                                //console.log("C_DEBUG updating Buttons in layoutsDD: ", nextButton.getAttribute("val"));
 
+                                console.log("C_DEBUG updating Buttons in layoutsDD: ", nextButton.getAttribute("val"));
 
                                 break;
                         }
@@ -635,9 +649,11 @@ $(document).ready(function() {
                                 break;
                         }
                     }
-                }
+                
                 ue4(data["fn"], data);
+                }
                 break;
+                
 
             case "project":
 
@@ -654,20 +670,30 @@ $(document).ready(function() {
                 var content = document.getElementById('cbscrollbox').shadowRoot.getElementById("box");
                 removeAllChildNodes(content);
 
-                // initial info on L E G E N D P A N E L 
+                // initial info on L E G E N D P A N E L based on DD
                 Legend_displayGraphInfo(pfile.name);
                 Legend_displayfirstFile(pfile.name);
 
-                Legend_displayNodeInfobyID(pfile.name, 0);
-                Legend_displayLinkInfobyID(pfile.name, 0);
-                Legend_displayGraphLayoutbyID(pfile.name, 0, "layouts", "graphlayout");
-                Legend_displayGraphLayoutbyID(pfile.name, 0, "layouts", "graphlayout_nodecolors");
-                Legend_displayGraphLayoutbyID(pfile.name, 0, "layouts", "graphlayout_linkcolors");
+                if (data.sel == NaN || data.sel == undefined) {
+                    data.sel = 0;
+                }
+                
+                console.log("C_DEBUG: project data sel = ", data.sel);
+
+                Legend_displayNodeInfobyID(pfile.name, data.sel);
+                Legend_displayLinkInfobyID(pfile.name, data.sel);
+                Legend_displayGraphLayoutbyID(pfile.name, data.sel, "layouts", "graphlayout");
+                Legend_displayGraphLayoutbyID(pfile.name, data.sel, "layouts", "graphlayout_nodecolors");
+                Legend_displayGraphLayoutbyID(pfile.name, data.sel, "layouts", "graphlayout_linkcolors");
 
 
-                // update dropdowns
-                document.getElementById("layoutsDD").shadowRoot.getElementById("sel");
-                //layouts_DD.setAttribute("sel", parseInt(data.sel));
+                // set arrow buttons with index of DD
+                nextButton = document.getElementById("forwardstep");
+                nextButton.setAttribute('val', data.sel);
+                backButton = document.getElementById("backwardstep");
+                backButton.setAttribute('val', data.sel);
+
+                console.log("C_DEBUG updating Buttons while load project: ", nextButton.getAttribute("val"));
 
                 if (isPreview) {
                     downloadProjectTextures(); // download textures for preview, report when done
@@ -703,25 +729,51 @@ $(document).ready(function() {
 
                 if (data.id == "resetlayout") {
 
-                    reset_value = 0;
-                    //data["val"] = reset_value;
+                    // set value to 0
+                    var reset_value = 0;
+                    data.val = reset_value;
 
-                    socket.emit("ex", {
-                        fn: "legend_scene_display",
-                        id: "legend_scene_display",
-                        val: reset_value
-                    });
+                    // socket.emit("ex", {
+                    //     fn: "legend_scene_display",
+                    //     id: "legend_scene_display",
+                    //     val: reset_value
+                    // });
 
+                    // update legend 
                     Legend_displayNodeInfobyID(pfile.name, reset_value);
                     Legend_displayLinkInfobyID(pfile.name, reset_value);
                     Legend_displayGraphLayoutbyID(pfile.name, reset_value, "layouts", "graphlayout");
                     Legend_displayGraphLayoutbyID(pfile.name, reset_value, "layouts", "graphlayout_nodecolors");
                     Legend_displayGraphLayoutbyID(pfile.name, reset_value, "layouts", "graphlayout_linkcolors");
 
+                    // update DD 
+                    layouts_DD = document.getElementById("layoutsDD").shadowRoot.getElementById("sel");   
+                    layouts_DD.setAttribute("sel", parseInt(reset_value));
+                    layouts_DD.setAttribute("value", pfile.layouts[reset_value]);
+
+                    layoutsRGB_DD = document.getElementById("layoutsRGBDD").shadowRoot.getElementById("sel");
+                    layoutsRGB_DD.setAttribute("sel", parseInt(reset_value));
+                    layoutsRGB_DD.setAttribute("value", pfile.layoutsRGB[reset_value]);
+
+                    linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
+                    linksRGB_DD.setAttribute("sel", parseInt(reset_value));             
+                    linksRGB_DD.setAttribute("value", pfile.linksRGB[reset_value]);
+
+                    links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
+                    links_DD.setAttribute("sel", parseInt(forwardidx));
+                    links_DD.setAttribute("value", pfile.links[forwardidx]);
+
+                    // update arrow buttons with new index
+                    nextButton = document.getElementById("forwardstep");    
+                    nextButton.setAttribute('val', reset_value);        
+                    backButton = document.getElementById("backwardstep");           
+                    backButton.setAttribute('val', reset_value);                
+
                     if (isPreview) {
                         actLayout = reset_value;
                         actLayoutRGB = reset_value;
                         actLinks = reset_value
+                        actLinksRGB = reset_value;
                         makeNetwork();
                     }
                 }   
@@ -729,15 +781,22 @@ $(document).ready(function() {
 
                 if (data.id == "forwardstep") {
 
+                    // 1. get index of DD layout and set backwardidx
+                    var layouts_DD = document.getElementById("layoutsDD").shadowRoot.getElementById("sel");
+                    var forwardidx = parseInt(layouts_DD.getAttribute("sel"));
+                    console.log("C_DEBUG in ue4 forwardidx from layoutsDD = ", forwardidx);
+
+                    // 2. then add an index to it
                     forwardidx = NEWIndexforwardstep(pfile.layouts.length);
-                    //console.log("C_DEBUG in ue4 forwardstep = ", forwardidx);
+                    console.log("C_DEBUG in ue4 forwardstep = ", forwardidx);
 
-                    socket.emit("ex", {
-                        fn: "legend_scene_display",
-                        id: "legend_scene_display",
-                        val: forwardidx
-                    });
+                    // socket.emit("ex", {
+                    //     fn: "legend_scene_display",
+                    //     id: "legend_scene_display",
+                    //     val: forwardidx
+                    // });
 
+                    // 3. then update dropdowns accordingly
                     // link colors 
                     if (pfile.linksRGB.length <= forwardidx) {
                         linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
@@ -786,7 +845,7 @@ $(document).ready(function() {
                     Legend_displayGraphLayoutbyID(pfile.name, forwardidx, "layouts", "graphlayout_linkcolors");
 
                     data["val"] = forwardidx;
-                    //console.log("C_DEBUG: data val forward = ", data["val"]);
+                    console.log("C_DEBUG: data val forwardidx = ", data["val"]);
 
                     if (isPreview) {
                         actLayout = forwardidx;
@@ -801,15 +860,22 @@ $(document).ready(function() {
 
                 if (data.id == "backwardstep") {
 
+                    // 1. get index of DD layout and set backwardidx
+                    var layouts_DD = document.getElementById("layoutsDD").shadowRoot.getElementById("sel");
+                    var backwardidx = parseInt(layouts_DD.getAttribute("sel"));
+                    console.log("C_DEBUG in ue4 backwardidx from layoutsDD = ", backwardidx);
+
+                    // 2. then add an index to it
                     backwardidx = NEWIndexbackwardstep(pfile.layouts.length);
-                    //console.log("C_DEBUG in ue4 backwardidx = ", backwardidx);
+                    console.log("C_DEBUG in ue4 backwardidx = ", backwardidx);
 
-                    socket.emit("ex", {
-                        fn: "legend_scene_display",
-                        id: "legend_scene_display",
-                        val: backwardidx
-                    });
+                    // socket.emit("ex", {
+                    //     fn: "legend_scene_display",
+                    //     id: "legend_scene_display",
+                    //     val: backwardidx
+                    // });
 
+                    // 3. then update dropdowns accordingly
                     // link colors
                     if (pfile.linksRGB.length <= backwardidx) {
                         linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
@@ -860,7 +926,7 @@ $(document).ready(function() {
                     Legend_displayGraphLayoutbyID(pfile.name, backwardidx, "layouts", "graphlayout_linkcolors");
 
                     data["val"] = backwardidx;
-                    //console.log("C_DEBUG: data val back = ", data["val"]);
+                    console.log("C_DEBUG: data val back = ", data["val"]);
 
                     if (isPreview) {
                         actLayout = backwardidx;
@@ -870,6 +936,7 @@ $(document).ready(function() {
                     }
 
                 }
+                
                 ue4("but", data);
                 console.log("C_DEBUG: ue4 data = ", data);
 

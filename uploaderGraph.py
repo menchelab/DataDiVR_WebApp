@@ -99,12 +99,12 @@ def upload_filesJSON(request):
         descr_of_graph = graphdesc[0]["graphdesc"]
     else:
         descr_of_graph = "Graph decription not specified."
-    #scene_description = parseGraphJSON_scene_description(jsonfiles)
+    scene_description = parseGraphJSON_scene_description(jsonfiles)
     
     pfile["graphtitle"] = title_of_graph
     pfile["graphdesc"] = descr_of_graph
-    #if scene_description:
-        #pfile["scenes"] = scene_description
+    if scene_description:
+        pfile["scenes"] = scene_description
 
     #----------------------------------------------
     # ALL LINKS - for analytics
@@ -780,17 +780,17 @@ def parseGraphJSON_textureNames(files):
     return out
 
 
-# def parseGraphJSON_scene_description(files):
-#     out = []
-#     for file in files:
-#         try:
-#             if "scene" in file["graph"].keys():
-#                 out.append(file["graph"]["scene"])
-#             elif "scene" in file.keys():
-#                 out.append(file["scene"])
-#         except:
-#             out.append(None)
-#     if len(out) != len(files):
-#         return False
-#     return out 
+def parseGraphJSON_scene_description(files):
+    out = []
+    for file in files:
+        try:
+            if "scene" in file["graph"].keys():
+                out.append(file["graph"]["scene"])
+            elif "scene" in file.keys():
+                out.append(file["scene"])
+        except:
+            out.append(None)
+    if len(out) != len(files):
+        return False
+    return out 
         
