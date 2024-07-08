@@ -31,6 +31,7 @@ def upload_filesJSON(request):
     # Make Project Folders 
     #-----------------------------------
     if isinstance(request, dict):  #upload via Notebook function 
+        print("C_DEBUG: is dict - Uploading via Notebook function")
         form = request #request.get_json()
         try:
             if "graph" in form.keys():
@@ -41,8 +42,11 @@ def upload_filesJSON(request):
             print("Can not find reference to projectname. Not specified.")
 
     else: # original processing via uploader / webbrowser
+        print("C_DEBUG: Upload via browser.")
         form = request.form.to_dict()
         namespace = form["namespaceJSON"]
+    
+    print("C_DEBUG: namespace: ", namespace)
     
     prolist = GD.plist
     if not namespace:
@@ -95,7 +99,11 @@ def upload_filesJSON(request):
         title_of_graph = namespace
     graphdesc = []
     parseGraphJSON_graphdesc(jsonfiles,graphdesc)
-    if len(graphdesc) > 0:
+
+    print("C_DEBUG: graphdesc: ", graphdesc)
+    
+
+    if len(graphdesc) > 0 or graphdesc[0]["graphdesc"] is not None:
         descr_of_graph = graphdesc[0]["graphdesc"]
     else:
         descr_of_graph = "Graph decription not specified."
@@ -196,8 +204,8 @@ def upload_filesJSON(request):
 
                 #add to pfile
                 pfile["selections"].append({"name":name, "nodes":row, "layoutname": labellist["name"]})               
-                #if labellist["name"] not in pfile["scenes"]:
-                #    pfile["scenes"].append(labellist["name"])
+                if labellist["name"] not in pfile["scenes"]:
+                    pfile["scenes"].append(labellist["name"])
                 
                 # get average pos for Each layout            
                 for layout in nodepositions:

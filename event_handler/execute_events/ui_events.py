@@ -56,18 +56,20 @@ def colorbox_event(message, room):
     emit("ex", message, room=room)
 
 
+# THIS SEEMS REDUDANT (layout title is already in the legend)
 def legend_scene_display_event(message, room):
     # only here for managing forward and backward click
-    if "scenes" in GD.pfile.keys():
-        new_scene = GD.pfile["scenes"][int(message["val"])]
-        emit(
-            "ex",
-            {"fn": "legend_scene_display", "has_scenes": True, "text": new_scene},
-            room=room,
-        )
-    else:
+    try: 
+        if "scenes" in GD.pfile.keys():
+            new_scene = GD.pfile["scenes"][int(message["val"])]
+            emit(
+                "ex",
+                {"fn": "legend_scene_display", "has_scenes": True, "text": new_scene},
+                room=room,
+            )
+       
+    except:
         emit("ex", {"fn": "legend_scene_display", "has_scenes": False}, room=room)
-
 
 def slider_event(message, room):
     if message["id"] not in GD.pdata:
