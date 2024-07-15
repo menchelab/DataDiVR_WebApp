@@ -281,7 +281,7 @@ def makeNodeRGBTexture(project, pixeldata, name=None):
     #print ("hight is " + str(hight))
     size = 128 * hight 
     path = 'static/projects/' + project 
-    tex = [(128,0,0,100)] * size
+    tex = [(0,0,0,10)] * size #black, alpha = 10 used to filter background in legend panel
 
     for i in range(len(rgba_colors)): #pixeldata["data"])):
         #tex[i] = (int(pixeldata["data"][i][0]), int(pixeldata["data"][i][1]),int(pixeldata["data"][i][2]),int(pixeldata["data"][i][3]))
@@ -563,8 +563,8 @@ def makeLinkRGBTex(project, linksRGB, name=None):
         
         print("has no colors")
 
-    texc = [(0,0,0,0)] * 512 * hight
-
+    texc = [(0,0,0,10)] * 512 * hight #black, alpha = 10 used to filter background in legend panel
+ 
     new_imgc = Image.new('RGBA', (512, hight))
     i = 0
 

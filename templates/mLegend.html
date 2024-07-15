@@ -305,6 +305,11 @@
                             const colorKey = `${r},${g},${b}`; 
                             //const colorKey = `${r},${g},${b},${a}`;
 
+                            // filter alpha value to remove background pixels from legend 
+                            if (a === 10) {
+                                continue; // Skip this pixel
+                            }
+
                             // If the color key doesn't exist in the dictionary yet, add it
                             if (!colorsDict.hasOwnProperty(colorKey)) {
                                 const pixelIndex = i / 4; // Get the pixel index
@@ -404,6 +409,11 @@
                         
                         // If the color key doesn't exist in the dictionary yet, add it
                         
+                        // filter alpha values pixel with a = 10 since background pixels
+                        if (a === 10) {
+                            continue; // Skip this pixel
+                        }   
+
                         if (!colorsDict.hasOwnProperty(colorKey)) {
                             const pixelIndex = i / 4; // Get the pixel index
                             namesDict[pixelIndex] = {"name":"Connections ", //+index, 

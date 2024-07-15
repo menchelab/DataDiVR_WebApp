@@ -26,7 +26,6 @@ def hex_to_rgba(hex_color):
 #########################################################################################
 def upload_filesJSON(request):
 
-
     #-----------------------------------
     # Make Project Folders 
     #-----------------------------------
@@ -99,14 +98,10 @@ def upload_filesJSON(request):
         title_of_graph = namespace
     graphdesc = []
     parseGraphJSON_graphdesc(jsonfiles,graphdesc)
-
-    print("C_DEBUG: graphdesc: ", graphdesc)
     
-
     if len(graphdesc) > 0 or graphdesc[0]["graphdesc"] is not None:
         descr_of_graph = graphdesc[0]["graphdesc"]
-    else:
-        descr_of_graph = "Graph decription not specified."
+    
     scene_description = parseGraphJSON_scene_description(jsonfiles)
     
     pfile["graphtitle"] = title_of_graph
@@ -203,9 +198,14 @@ def upload_filesJSON(request):
                 nodelist["nodes"].append(thisnode)
 
                 #add to pfile
-                pfile["selections"].append({"name":name, "nodes":row, "layoutname": labellist["name"]})               
-                if labellist["name"] not in pfile["scenes"]:
-                    pfile["scenes"].append(labellist["name"])
+                pfile["selections"].append({"name":name, "nodes":row, "layoutname": labellist["name"]})     
+
+                print("C_DEBUG: labellist[name]: ",labellist["name"])      
+
+
+
+                #if labellist["name"] not in pfile["scenes"]:
+                #    pfile["scenes"].append(labellist["name"])
                 
                 # get average pos for Each layout            
                 for layout in nodepositions:
@@ -750,25 +750,32 @@ def parseGraphJSON_graphtitle(files,target):
             target.append(vecList)
 
 
+
+
+
+
+#########################################################################################
+# left off here : fix graph description display 
+
 def parseGraphJSON_graphdesc(files,target):
     if len(files) > 0: 
         for file in files:
+            print("C_DEBUG: file: ", file["graphdesc"])
             try:
                 if "desc" in file["graph"].keys():
                     descr_of_graph = file["graph"]["desc"]
                 elif "graphdesc" in file["graph"].keys():
-                    descr_of_graph = file["graph"]["graphdesc"]
-                elif "desc" in file.keys():
-                    descr_of_graph = file["desc"]
-                elif "graphdesc" in file.keys():
+                     descr_of_graph = file["graph"]["graphdesc"]
+                elif "desc" in file.keys() or "graphdesc" in file.keys():
                     descr_of_graph = file["graphdesc"]
-                else: 
-                    descr_of_graph = ""
             except:
-                descr_of_graph = ""
+                descr_of_graph = "Graph decription not specified."
+                
             vecList = {}
             vecList["graphdesc"] = descr_of_graph 
             target.append(vecList)
+#########################################################################################
+
 
 
 def parseGraphJSON_textureNames(files):
