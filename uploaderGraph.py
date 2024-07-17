@@ -30,7 +30,7 @@ def upload_filesJSON(request):
     # Make Project Folders 
     #-----------------------------------
     if isinstance(request, dict):  #upload via Notebook function 
-        print("C_DEBUG: is dict - Uploading via Notebook function")
+        #print("C_DEBUG: is dict - Uploading via Notebook function")
         form = request #request.get_json()
         try:
             if "graph" in form.keys():
@@ -41,11 +41,11 @@ def upload_filesJSON(request):
             print("Can not find reference to projectname. Not specified.")
 
     else: # original processing via uploader / webbrowser
-        print("C_DEBUG: Upload via browser.")
+        #print("C_DEBUG: Upload via browser.")
         form = request.form.to_dict()
         namespace = form["namespaceJSON"]
     
-    print("C_DEBUG: namespace: ", namespace)
+    #print("C_DEBUG: namespace: ", namespace)
     
     prolist = GD.plist
     if not namespace:
@@ -81,6 +81,7 @@ def upload_filesJSON(request):
     links = [] # this is the original linklist including all uploaded links 
     linkcolors = []
     labels = []
+    graphlayouts = []
     
     if isinstance(request, dict): # using "_GeneratedProject.ipynb" 
         loadGraphDict([form], jsonfiles)
@@ -96,18 +97,21 @@ def upload_filesJSON(request):
         title_of_graph = graphtitle[0]["graphtitle"]
     else:
         title_of_graph = namespace
+    
     graphdesc = []
     parseGraphJSON_graphdesc(jsonfiles,graphdesc)
     
+    # consider getting rid of this block and instead use: layoutnames = []  and parseGraphJSON_layoutnames(jsonfiles,layoutnames)
+    #graphlayouts = []
+    #parseGraphJSON_graphlayouts(jsonfiles,graphlayouts)
+
     if len(graphdesc) > 0 or graphdesc[0]["graphdesc"] is not None:
         descr_of_graph = graphdesc[0]["graphdesc"]
-    
-    scene_description = parseGraphJSON_scene_description(jsonfiles)
-    
+
     pfile["graphtitle"] = title_of_graph
     pfile["graphdesc"] = descr_of_graph
-    if scene_description:
-        pfile["scenes"] = scene_description
+    
+
 
     #----------------------------------------------
     # ALL LINKS - for analytics
@@ -120,17 +124,20 @@ def upload_filesJSON(request):
     # VISUALIZATION INFORMATION ("Layouts" key on most upper level)
     #----------------------------------------------
     # in case of new json format
+
     if "layouts" in jsonfiles[0].keys():
         layout = jsonfiles[0]["layouts"] 
         parseGraphJSON_nodepositions(layout, nodepositions)
         parseGraphJSON_nodecolors(layout, nodecolors)
         
         parseGraphJSON_labels(layout, labels) 
-        #print("C_DEBUG: layout: ", labels)
         
         parseGraphJSON_links_many(layout, linksdicts)
         parseGraphJSON_linkcolors(layout, linkcolors)
-        names = parseGraphJSON_textureNames(layout)  # list, containing names for textures defined in uploaded json as "textureName"
+        
+        parseGraphJSON_layoutnames(layout,graphlayouts)
+        graphlayouts = [item for sublist in graphlayouts for item in sublist] # unpack list in lists
+        names = graphlayouts
     # in case of no layouts key (i e "old" json format)
     else: 
         parseGraphJSON_nodepositions(jsonfiles, nodepositions)
@@ -140,6 +147,8 @@ def upload_filesJSON(request):
         parseGraphJSON_linkcolors(jsonfiles, linkcolors)
         names = parseGraphJSON_textureNames(jsonfiles)  # list, containing names for textures defined in uploaded json as "textureName"
     
+    pfile["scenes"] = names
+
     #----------------------------------------------
     # ANNOTATIONS
     #----------------------------------------------
@@ -181,12 +190,14 @@ def upload_filesJSON(request):
     #----------------------------------
     # CLUSTER LABELS
     #----------------------------------
-    for labellist in labels:   
+    for labellist in labels:           
+
         name = ""
         i = 0
 
         if "data" in labellist:
             for row in labellist["data"]:
+                                
                 name = row[0]
                 row.pop(0)
 
@@ -199,10 +210,6 @@ def upload_filesJSON(request):
 
                 #add to pfile
                 pfile["selections"].append({"name":name, "nodes":row, "layoutname": labellist["name"]})     
-
-                print("C_DEBUG: labellist[name]: ",labellist["name"])      
-
-
 
                 #if labellist["name"] not in pfile["scenes"]:
                 #    pfile["scenes"].append(labellist["name"])
@@ -241,16 +248,15 @@ def upload_filesJSON(request):
     #----------------------------------
     # MAKE TEXTURES - FOR NODEPOSITIONS
     #----------------------------------
-    for file_index in range(len(nodepositions)):  # for layout in nodepositions:
-
-        layout = nodepositions[file_index]
-
+    for layout in nodepositions: # for file_index in range(len(nodepositions)):  #
+                
         if len(layout["data"]) > 0 and len(layout["data"][int(0)]) == 3:
-            if names[file_index] is not None:
-                # if texture name specified
-                state =  state + makeXYZTexture(namespace, layout, names[file_index]) + '<br>'
-                pfile["layouts"].append(names[file_index])    
-                continue
+        
+            # if names[file_index] is not None:
+            #     # if texture name specified
+            #     state =  state + makeXYZTexture(namespace, layout, names[file_index]) + '<br>'
+            #     pfile["layouts"].append(names[file_index])    
+            #     continue
 
             state =  state + makeXYZTexture(namespace, layout) + '<br>'
             pfile["layouts"].append(layout["name"] + "XYZ")
@@ -271,12 +277,12 @@ def upload_filesJSON(request):
         else: state = "upload must contain at least 1 node position list"
         
     # match labels to respective layout to get label colors for legend
+    clustercounter = 0
     if len(pfile["selections"]) > 0:
-        all_layouts = pfile["layouts"]
-        #print("C_DEBUG: all_layouts: ", all_layouts)
+        all_layouts = graphlayouts
 
         for e,subdict in enumerate(pfile["selections"]):
-            layoutname_pfile = pfile["selections"][e]["layoutname"]+"XYZ"
+            layoutname_pfile = pfile["selections"][e]["layoutname"] #+"XYZ"
             #print("C_DEBUG: layoutname_pfile: ", layoutname_pfile)
 
             for x,i in enumerate(all_layouts):        
@@ -299,31 +305,32 @@ def upload_filesJSON(request):
                         if nodeid in pfile["selections"][e]["nodes"]:
                             pfile["selections"][e]["labelcolor"] = nodecol # clustercolors
                             #print("C_DEBUG: pfile[selections][clustername and labelcolor] : ", (pfile["selections"][e]["name"], pfile["selections"][e]["labelcolor"]))
+                        
+                    clustercounter += 1
+                    #print("C_DEBUG: clustercounter: ", clustercounter)
 
-        pfile["labelcount"] = len(labels[0]["data"])
+        pfile["labelcount"] = clustercounter # ISSUE: this might only work for one label set per project and not per layout! 
 
     else:
-        print("C_DEBUG: project does not contain labels/clusters.")
+        #print("C_DEBUG: project does not contain labels/clusters.")
         pfile["labelcount"] = 0
 
 
     #----------------------------------
     # processing node colors 
     #----------------------------------
-    for file_index in range(len(nodecolors)):  # for color in nodecolors:
+    for color in nodecolors: #for file_index in range(len(nodecolors)):
         
-        #print("C_DEBUG: nodecolors - ", nodecolors[file_index])
-        #print("C_DEBUG: fileindex - ", file_index)
-        color = nodecolors[file_index]
+        #color = nodecolors[file_index]
 
         if len(color["data"]) == 0:
             color["data"] = [[255,0,255,100]] * numnodes
             color["name"] = "nan"
-        if names[file_index] is not None:
-            # if texture name specified
-            state =  state + makeNodeRGBTexture(namespace, color, names[file_index]) + '<br>'
-            pfile["layoutsRGB"].append(names[file_index])    
-            continue
+        # if names[file_index] is not None:
+        #     # if texture name specified
+        #     state =  state + makeNodeRGBTexture(namespace, color, names[file_index]) + '<br>'
+        #     pfile["layoutsRGB"].append(names[file_index])    
+        #     continue
         state =  state + makeNodeRGBTexture(namespace, color) + '<br>'
         pfile["layoutsRGB"].append(color["name"]+ "RGB")
 
@@ -333,14 +340,15 @@ def upload_filesJSON(request):
     
     # all links
     makeLinksjson(namespace, links)
-
-    # links per layout
-    makeLinksjson_multipleLinklists(namespace, linksdicts)
-
     
     #----------------------------------
     # processing links for VISUALIZATION
     #----------------------------------
+    
+    # links per layout
+    makeLinksjson_multipleLinklists(namespace, linksdicts)
+    #print("C_DEBUG: linksdicts: ", linksdicts)
+
     for sublist in linksdicts:  
         for file_index in range(len(sublist)): 
             linklist = sublist[file_index]
@@ -348,15 +356,16 @@ def upload_filesJSON(request):
             if len(linklist["data"]) == 0:
                 linklist["name"] = "nan"
 
-            if names[file_index] is not None:
-                # if texture name specified
-                state =  state + makeLinkTexNew_withoutJSON(namespace, linklist, names[file_index]) + '<br>'
-                #pfile["links"].append(names[file_index])    
-                continue
+            # if names[file_index] is not None:
+            #     # if texture name specified
+            #     state =  state + makeLinkTexNew_withoutJSON(namespace, linklist, names[file_index]) + '<br>'
+            #     #pfile["links"].append(names[file_index])    
+            #     continue
             state =  state + makeLinkTexNew_withoutJSON(namespace, linklist) + '<br>'
             
+            
             pfile["links"].append(linklist["name"]+ "_linksXYZ") #"XYZ"
-    	
+            #print("C_DEBUG: pfile[links]: ", pfile["links"]) 
 
     #----------------------------------
     # processing link colors 
@@ -368,13 +377,13 @@ def upload_filesJSON(request):
             lcolors["data"] = [[255,0,255,100]] * len(links[0]["data"])
             lcolors["name"] = "nan"
 
-        if names[file_index] is not None:
-            # if texture name specified
-            state =  state + makeLinkRGBTex(namespace, lcolors, names[file_index]) + '<br>'
-            pfile["linksRGB"].append(names[file_index])    
-            continue
+        # if names[file_index] is not None:
+        #     # if texture name specified
+        #     state =  state + makeLinkRGBTex(namespace, lcolors, names[file_index]) + '<br>'
+        #     pfile["linksRGB"].append(names[file_index])    
+        #     continue
         state =  state + makeLinkRGBTex(namespace, lcolors) + '<br>'
-        pfile["linksRGB"].append(lcolors["name"]+ "RGB")
+        pfile["linksRGB"].append(lcolors["name"]+ "_linksRGB")
 
     pfile["nodecount"] = numnodes
     #pfile["labelcount"] = len(labels[0]["data"])
@@ -391,7 +400,7 @@ def upload_filesJSON(request):
 
 
     #----------------------------------
-    # processing legends (if any)
+    # processing legends pictures (if any)
     #----------------------------------
     legendfiles = []
     if isinstance(request, dict):
@@ -442,10 +451,12 @@ def parseGraphJSON_nodepositions(files, target):
     if len(files) > 0: 
         for ix,file in enumerate(files):
 
-            if "graph" in file:
-                name_of_file = file["graph"]["name"]
+            # get layout name
+            if "layoutname" in file:
+                name_of_file = file["layoutname"]
             else:
-                name_of_file = "LayoutID"+str(ix)
+                name_of_file = "Automatic-LayoutID"+str(ix)
+                
 
             num_of_nodes = len(file["nodes"])
             nodepositions = []
@@ -469,10 +480,11 @@ def parseGraphJSON_links(files, target):
     if len(files) > 0: 
         for ix,file in enumerate(files):
             
-            if "graph" in file:
-                name_of_file = file["graph"]["name"]
+            # get layout name
+            if "layoutname" in file:
+                name_of_file = file["layoutname"]
             else:
-                name_of_file = "LayoutID"+str(ix)
+                name_of_file = "Automatic-LayoutID"+str(ix)
             
             num_of_links = len(file["links"])
 
@@ -492,11 +504,15 @@ def parseGraphJSON_links_many(files, target):
         all = []  
         for ix,file in enumerate(files):
         
+            # old JSON format (no "layout" key)
             if "graph" in file:
-                name_of_file = file["graph"]["name"]+"_links"
+                name_of_file = file["graph"]["name"] #+"_linksXYZ"
+            # with new "layout" key -> get layout name
+            elif "layoutname" in file:
+                name_of_file = file["layoutname"] #+"_linksXYZ"
             else:
-                name_of_file = "LayoutID"+str(ix)
-                
+                name_of_file = "Automatic-LayoutID"+str(ix) #+"_linksXYZ"
+
             num_of_links = len(file["links"])
 
             links = []
@@ -534,22 +550,22 @@ def parseGraphJSON_append_links(all_dicts, target):
 
 
 
-def parseGraphJSON_links_wip(files, target):
-    if len(files) > 0: 
+# def parseGraphJSON_links_wip(files, target):
+#     if len(files) > 0: 
 
-        for idx,file in enumerate(files):
+#         for idx,file in enumerate(files):
 
-            name_of_file = file["graph"]["name"]+"_links"
-            num_of_links = len(file["links"])
+#             name_of_file = file["layoutname"]+"_linksXYZ"
+#             num_of_links = len(file["links"])
 
-            links = []
-            for i in range(0,num_of_links):
-                links.append([str(file["links"][i]["source"]),str(file["links"][i]["target"])])
-            vecList = {}
-            vecList["data"] = links
-            vecList["name"] = name_of_file
+#             links = []
+#             for i in range(0,num_of_links):
+#                 links.append([str(file["links"][i]["source"]),str(file["links"][i]["target"])])
+#             vecList = {}
+#             vecList["data"] = links
+#             vecList["name"] = name_of_file
 
-            target.append(vecList)
+#             target.append(vecList)
 
 
 def parseGraphJSON_linkcolors(files,target):
@@ -557,10 +573,14 @@ def parseGraphJSON_linkcolors(files,target):
         #for file in files: 
         for ix,file in enumerate(files):
 
+            # old JSON format (no "layout" key)
             if "graph" in file:
-                name_of_file = file["graph"]["name"]+"_links"
+                name_of_file = file["graph"]["name"] #+"_linksRGB"
+            # with new "layout" key -> get layout name           
+            elif "layoutname" in file:
+                name_of_file = file["layoutname"] #+"_linksRGB"
             else:
-                name_of_file = "LayoutID"+str(ix)+"_links"
+                name_of_file = "Automatic-LayoutID"+str(ix) #+"_linksRGB"
 
             num_of_links = len(file["links"])
 
@@ -651,10 +671,11 @@ def parseGraphJSON_nodecolors(files,target):
     if len(files) > 0: 
         for ix,file in enumerate(files):
             
-            if "graph" in file:
-                name_of_file = file["graph"]["name"]
+            # get layout name
+            if "layoutname" in file:
+                name_of_file = file["layoutname"]
             else:
-                name_of_file = "LayoutID"+str(ix)
+                name_of_file = "Automatic-LayoutID"+str(ix)
 
             num_of_nodes = len(file["nodes"])
             nodecolor_rgba = []
@@ -698,15 +719,19 @@ def parseGraphJSON_nodecolors(files,target):
             #print("C_DEBUG: NODECOLORS:", vecList)
 
 
+
 def parseGraphJSON_labels(files,target):
     if len(files) > 0: 
+        
         # keep loop in case cluster labels per layout in update
         for ix, file in enumerate(files):
-            
-            if "graph" in file:
-                name_of_file = file["graph"]["name"]
+
+            # get layout name
+            if "layoutname" in file:
+                name_of_file = file["layoutname"]
             else:
-                name_of_file = "LayoutID:"+str(ix)
+                name_of_file = "Automatic-LayoutID"+str(ix)
+
 
             # get cluster labels from one file only (file i.e. layout)
             one_file = file #s[0]
@@ -738,6 +763,8 @@ def parseGraphJSON_labels(files,target):
             target.append(vecList)
         
 
+
+# graph / project title
 def parseGraphJSON_graphtitle(files,target):
     if len(files) > 0: 
         for file in files:
@@ -750,34 +777,51 @@ def parseGraphJSON_graphtitle(files,target):
             target.append(vecList)
 
 
-
-
-
-
-#########################################################################################
-# left off here : fix graph description display 
-
+# graph desciption
 def parseGraphJSON_graphdesc(files,target):
     if len(files) > 0: 
         for file in files:
-            print("C_DEBUG: file: ", file["graphdesc"])
+            
             try:
-                if "desc" in file["graph"].keys():
-                    descr_of_graph = file["graph"]["desc"]
-                elif "graphdesc" in file["graph"].keys():
-                     descr_of_graph = file["graph"]["graphdesc"]
-                elif "desc" in file.keys() or "graphdesc" in file.keys():
-                    descr_of_graph = file["graphdesc"]
+                descr_of_graph = file["graphdesc"]
             except:
                 descr_of_graph = "Graph decription not specified."
+            #print("C_DEBUG: descr_of_graph :", descr_of_graph)
                 
             vecList = {}
             vecList["graphdesc"] = descr_of_graph 
             target.append(vecList)
-#########################################################################################
 
 
+# graph layouts / scene -> delete / replace with graph layoutnames function
+def parseGraphJSON_graphlayouts(files,target):
+    if len(files) > 0: 
+        l_graphlayouts = files[0]["graphlayouts"]    
+        vecList = {}
+        vecList["scenes"] = l_graphlayouts
+        target.append(vecList)
 
+
+# graph layoutnames 
+def parseGraphJSON_layoutnames(files, target):
+    if len(files) > 0: 
+        l_layoutnames = []
+        for ix,file in enumerate(files):
+            
+            # get layout names
+            try:
+                name_of_file = file["layoutname"] # ["layouts"]["layoutname"]
+            except:
+                name_of_file = "Automatic-LayoutID"+str(ix)
+            l_layoutnames.append(name_of_file)
+                
+        #vecList = {}
+        #vecList["scenes"] = l_layoutnames
+        vecList = l_layoutnames
+        target.append(vecList)
+
+
+# this is for what exactly ??? 
 def parseGraphJSON_textureNames(files):
     out = []
 
@@ -795,6 +839,7 @@ def parseGraphJSON_textureNames(files):
     return out
 
 
+# is this obsolete?
 def parseGraphJSON_scene_description(files):
     out = []
     for file in files:

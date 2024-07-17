@@ -96,14 +96,14 @@
 
                     if (pfiledata.hasOwnProperty(elementkey)) {
                         graphlayout_pre = pfiledata.layouts[selected_id];
-                        // console.log(graphlayout_pre)
+                        //console.log("C_DEBUG: Graphlayout pre: ",graphlayout_pre);
 
                         if (graphlayout_pre.endsWith("RGB") || graphlayout_pre.endsWith("XYZ")){
                             graphlayout = graphlayout_pre.slice(0, -3); 
                         } else {
                             graphlayout = graphlayout_pre;
                         }
-                        
+                        //console.log("C_DEBUG: current Graphlayout = ", graphlayout);
                     } 
                 
                     const myDiv = document.getElementById(htmlkey);
@@ -196,23 +196,35 @@
             $.getJSON(p_file, (pfiledata) => {
                 
                 let layoutname = pfiledata["layoutsRGB"][selected_id];
-                let l_layout_with_clusters = [];
 
+                let l_layout_with_clusters = [];
                 if (pfiledata["selections"].length != 0) {
                     for (layoutid in pfiledata["selections"]) {
                         if ("layoutname" in pfiledata["selections"][layoutid]) {
-                            let layout_with_clusters = pfiledata["selections"][layoutid]["layoutname"] + "RGB";
-                            l_layout_with_clusters.push(layout_with_clusters); // Use push() to add elements to an array
+                            let layout_with_clusters = pfiledata["selections"][layoutid]["layoutname"]; // do not add anything (RGB already in name) // + "RGB";
+
+                            if (!l_layout_with_clusters.includes(layout_with_clusters)) {
+                                l_layout_with_clusters.push(layout_with_clusters); // Use push() to add elements to an array if not in list already 
+                            }
                         }
                     }
                 }
-                //console.log("C_DEBUG - layoutmame selected = ", layoutname);
+                //console.log("C_DEBUG - layoutname selected = ", layoutname);
                 //console.log("C_DEBUG - list layout_with_clusters = ", l_layout_with_clusters);
 
-                if (l_layout_with_clusters.includes(layoutname)) {
-                    // W I T H   D E F I N E D   C L U S T E R S 
-                    //console.log("C_DEBUG in FOUND CLUSTERS ", l_layout_with_clusters);
+                // remove "RGB" from layoutname
+                let layoutname_withoutRGB;
+                if (layoutname.endsWith("RGB")) {
+                    layoutname_withoutRGB = layoutname.slice(0, -3);
+                }
+                // else {
+                //     layoutname_withoutRGB = layoutname;
+                // }
+                console.log("C_DEBUG : layoutname_withoutRGB  = ", layoutname_withoutRGB);
 
+                if (l_layout_with_clusters.includes(layoutname_withoutRGB)) {
+                    // W I T H   D E F I N E D   C L U S T E R S 
+            
                     const clusterlist = pfiledata["selections"];
                     //console.log("C_DEBUG - clusterlist = ", clusterlist); //.reverse());
                     
@@ -230,19 +242,18 @@
                         const labelColor = clusterlist[key]['labelcolor']; //value.labelcolor.slice(0, -1).join(',');
                         const name = clusterlist[key]['name']; //value.name;
 
-                        console.log(clusterlist[key]['layoutname']);
                         //console.log("C_DEBUG: labelcolor: ", labelColor);
-                        // console.log("C_DEBUG: name: ", name);
+                        //console.log("C_DEBUG: name: ", name);
 
-                        const clusterlist_layoutname = clusterlist[key]['layoutname']+"RGB";
-                        // console.log("C_DEBUG: clusterlist layoutname ",  clusterlist_layoutname);
+                        const clusterlist_layoutname = clusterlist[key]['layoutname']; // +"RGB";
+                        //console.log("C_DEBUG: clusterlist layoutname ",  clusterlist_layoutname);
 
-                        if (layoutname === clusterlist_layoutname) {
-                            // console.log("C_DEBUG matched layoutname with clusterlist");
+                        if (layoutname_withoutRGB  === clusterlist_layoutname) {
+                            console.log("C_DEBUG matched layoutname with clusterlist");
                             labelColorDict[labelColor] = name;
                         } 
                     }
-                    // console.log("C_DEBUG: labelColorDict = ", labelColorDict);
+                    console.log("C_DEBUG: labelColorDict = ", labelColorDict);
             
                     let idx = 0;
                     for (const color in labelColorDict) { 
@@ -268,7 +279,7 @@
                     allnode_Div.appendChild(nodedesc_Div);
                 } else {                    
                     // W I T H O U T   D E F I N E D   C L U S T E R S (in pfiledata["selections"])
-                    // console.log("C_DEBUG - in else");
+                    console.log("C_DEBUG - in else");
 
                     const allnode_Div = document.getElementById("legend_node_all");
 

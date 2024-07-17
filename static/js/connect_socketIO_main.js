@@ -790,11 +790,12 @@ $(document).ready(function() {
                     forwardidx = NEWIndexforwardstep(pfile.layouts.length);
                     console.log("C_DEBUG in ue4 forwardstep = ", forwardidx);
 
-                    // socket.emit("ex", {
-                    //     fn: "legend_scene_display",
-                    //     id: "legend_scene_display",
-                    //     val: forwardidx
-                    // });
+                    // is that necessary??
+                    socket.emit("ex", {
+                        fn: "legend_scene_display",
+                        id: "legend_scene_display",
+                        val: forwardidx
+                    });
 
                     // 3. then update dropdowns accordingly
                     // link colors 

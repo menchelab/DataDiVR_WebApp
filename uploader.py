@@ -347,7 +347,7 @@ def makeLinkTexNew(project, links, name=None):
         json.dump(linklist, outfile)
 
     new_imgl.putdata(texl)
-    pathl = path + '/links/' +  links["name"] + '_linksXYZ.bmp' #_linksXYZ.bmp'
+    pathl = path + '/links/' +  links["name"] + '_linksXYZ.bmp' 
     if name is not None:
         pathl = path + '/links/' +  name +  '.bmp'
 
@@ -580,7 +580,7 @@ def makeLinkRGBTex(project, linksRGB, name=None):
         return '<a style="color:red;">ERROR </a>'  +  linksRGB["name"] + " Linkfile malformated?" 
 
     new_imgc.putdata(texc)
-    pathRGB = path + '/linksRGB/' +  linksRGB["name"] +  'RGB.png'
+    pathRGB = path + '/linksRGB/' +  linksRGB["name"] +  '_linksRGB.png'
     if name is not None:
         pathRGB = path + '/linksRGB/' +  name +  '.png'
 
@@ -738,7 +738,7 @@ def upload_filesNew(request):
             lcolors["data"] = [[255,0,255,100]] * len(links[0]["data"])
             lcolors["name"] = "nan"
         state =  state + makeLinkRGBTex(namespace, lcolors) + '<br>'
-        pfile["linksRGB"].append(lcolors["name"]+ "RGB")
+        pfile["linksRGB"].append(lcolors["name"] + "_linksRGB") #"RGB"
 
     pfile["nodecount"] = numnodes
     pfile["labelcount"] = len(labels[0]["data"])
