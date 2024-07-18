@@ -33,20 +33,27 @@ def upload_filesJSON(request):
         #print("C_DEBUG: is dict - Uploading via Notebook function")
         form = request #request.get_json()
         try:
+            # old (multiple) json files
             if "graph" in form.keys():
-                namespace = form["graph"]["graphtitle"]
-            elif "graphtitle" in form.keys():
-                namespace = form["graphtitle"]
+                if "projectname" in form["graph"].keys():
+                    namespace = form["graph"]["projectname"]
+                elif "graphtitle" in form["graph"].keys():
+                    namespace = form["graph"]["graphtitle"]
+            # one merged json file (with layout key)
+            elif "projectname" in form.keys(): # former graphtitle
+                namespace = form["projectname"] # former graphtitle
+            elif "graphtitle" in form.keys(): # keep only for "old" files
+                namespace = form["graphtitle"] # keep only for "old" files
+            else: 
+                namespace = "Auto_ProjectName"
         except:
             print("Can not find reference to projectname. Not specified.")
 
     else: # original processing via uploader / webbrowser
-        #print("C_DEBUG: Upload via browser.")
         form = request.form.to_dict()
         namespace = form["namespaceJSON"]
-    
-    #print("C_DEBUG: namespace: ", namespace)
-    
+
+
     prolist = GD.plist
     if not namespace:
         return "namespace fail"
@@ -91,25 +98,19 @@ def upload_filesJSON(request):
     #----------------------------------
     # GRAPH DATA
     #----------------------------------
-    graphtitle = []
-    parseGraphJSON_graphtitle(jsonfiles,graphtitle)
-    if len(graphtitle) > 0:
-        title_of_graph = graphtitle[0]["graphtitle"]
-    else:
-        title_of_graph = namespace
+    #title_of_graph = namespace #[]
+    #parseGraphJSON_graphtitle(jsonfiles,graphtitle)
+    #if len(graphtitle) > 0:
+    #    title_of_graph = graphtitle[0]["graphtitle"]
+    #else:
+    #    title_of_graph = namespace
     
     graphdesc = []
-    parseGraphJSON_graphdesc(jsonfiles,graphdesc)
-    
-    # consider getting rid of this block and instead use: layoutnames = []  and parseGraphJSON_layoutnames(jsonfiles,layoutnames)
-    #graphlayouts = []
-    #parseGraphJSON_graphlayouts(jsonfiles,graphlayouts)
+    parseGraphJSON_graphinfo(jsonfiles,graphdesc)
+    if len(graphdesc) > 0 or graphdesc[0]["info"] is not None: #former "graphdesc"
+        descr_of_graph = graphdesc[0]["info"] #former "graphdesc"
 
-    if len(graphdesc) > 0 or graphdesc[0]["graphdesc"] is not None:
-        descr_of_graph = graphdesc[0]["graphdesc"]
-
-    pfile["graphtitle"] = title_of_graph
-    pfile["graphdesc"] = descr_of_graph
+    pfile["info"] = descr_of_graph
     
 
 
@@ -135,18 +136,24 @@ def upload_filesJSON(request):
         parseGraphJSON_links_many(layout, linksdicts)
         parseGraphJSON_linkcolors(layout, linkcolors)
         
-        parseGraphJSON_layoutnames(layout,graphlayouts)
+        parseGraphJSON_layoutnames(layout, graphlayouts)
         graphlayouts = [item for sublist in graphlayouts for item in sublist] # unpack list in lists
         names = graphlayouts
+        
     # in case of no layouts key (i e "old" json format)
     else: 
         parseGraphJSON_nodepositions(jsonfiles, nodepositions)
         parseGraphJSON_nodecolors(jsonfiles, nodecolors)
+    
         parseGraphJSON_labels(jsonfiles, labels)
+        
         parseGraphJSON_links_many(jsonfiles, linksdicts)
         parseGraphJSON_linkcolors(jsonfiles, linkcolors)
-        names = parseGraphJSON_textureNames(jsonfiles)  # list, containing names for textures defined in uploaded json as "textureName"
-    
+        
+        parseGraphJSON_layoutnames(jsonfiles, graphlayouts) 
+        graphlayouts = [item for sublist in graphlayouts for item in sublist] # unpack list in lists
+        names = graphlayouts
+        
     pfile["scenes"] = names
 
     #----------------------------------------------
@@ -451,11 +458,16 @@ def parseGraphJSON_nodepositions(files, target):
     if len(files) > 0: 
         for ix,file in enumerate(files):
 
-            # get layout name
-            if "layoutname" in file:
-                name_of_file = file["layoutname"]
+
+            # old JSON format (no "layout" key)
+            if "graph" in file:
+                name_of_file = file["graph"]["name"]  
+            # with new "layout" key -> get layout name           
+            elif "layoutname" in file:
+                name_of_file = file["layoutname"] 
             else:
-                name_of_file = "Automatic-LayoutID"+str(ix)
+                name_of_file = "Automatic-LayoutID"+str(ix) 
+
                 
 
             num_of_nodes = len(file["nodes"])
@@ -671,11 +683,14 @@ def parseGraphJSON_nodecolors(files,target):
     if len(files) > 0: 
         for ix,file in enumerate(files):
             
-            # get layout name
-            if "layoutname" in file:
-                name_of_file = file["layoutname"]
+            # old JSON format (no "layout" key)
+            if "graph" in file:
+                name_of_file = file["graph"]["name"]  
+            # with new "layout" key -> get layout name           
+            elif "layoutname" in file:
+                name_of_file = file["layoutname"]  
             else:
-                name_of_file = "Automatic-LayoutID"+str(ix)
+                name_of_file = "Automatic-LayoutID"+str(ix)  
 
             num_of_nodes = len(file["nodes"])
             nodecolor_rgba = []
@@ -726,11 +741,15 @@ def parseGraphJSON_labels(files,target):
         # keep loop in case cluster labels per layout in update
         for ix, file in enumerate(files):
 
-            # get layout name
-            if "layoutname" in file:
-                name_of_file = file["layoutname"]
+            # old JSON format (no "layout" key)
+            if "graph" in file:
+                name_of_file = file["graph"]["name"]  
+            # with new "layout" key -> get layout name           
+            elif "layoutname" in file:
+                name_of_file = file["layoutname"]  
             else:
-                name_of_file = "Automatic-LayoutID"+str(ix)
+                name_of_file = "Automatic-LayoutID"+str(ix)  
+
 
 
             # get cluster labels from one file only (file i.e. layout)
@@ -763,94 +782,108 @@ def parseGraphJSON_labels(files,target):
             target.append(vecList)
         
 
-
-# graph / project title
-def parseGraphJSON_graphtitle(files,target):
-    if len(files) > 0: 
-        for file in files:
-            try:
-                name_of_graph = file["graph"]["name"]
-            except:
-                name_of_graph = file["graphtitle"]
-            vecList = {}
-            vecList["graphtitle"] = name_of_graph 
-            target.append(vecList)
+# REMOVE EVENTUALLY 
+# # graph / project title
+# def parseGraphJSON_graphtitle(files,target):
+#     if len(files) > 0: 
+#         for file in files:
+#             try:
+#                 name_of_graph = file["graph"]["name"]
+#             except:
+#                 name_of_graph = file["graphtitle"]
+#             vecList = {}
+#             vecList["graphtitle"] = name_of_graph 
+#             target.append(vecList)
 
 
 # graph desciption
-def parseGraphJSON_graphdesc(files,target):
+def parseGraphJSON_graphinfo(files,target):
     if len(files) > 0: 
         for file in files:
             
             try:
-                descr_of_graph = file["graphdesc"]
+                # new json format
+                if "info" in file.keys():
+                    descr_of_graph = file["info"] # former "graphdesc"
+                # old (multiple) json files
+                elif "graph" in file.keys():
+                    descr_of_graph = file["graph"]["graphdesc"]  
             except:
                 descr_of_graph = "Graph decription not specified."
             #print("C_DEBUG: descr_of_graph :", descr_of_graph)
                 
             vecList = {}
-            vecList["graphdesc"] = descr_of_graph 
+            vecList["info"] = descr_of_graph 
             target.append(vecList)
 
 
-# graph layouts / scene -> delete / replace with graph layoutnames function
-def parseGraphJSON_graphlayouts(files,target):
-    if len(files) > 0: 
-        l_graphlayouts = files[0]["graphlayouts"]    
-        vecList = {}
-        vecList["scenes"] = l_graphlayouts
-        target.append(vecList)
+# # graph layouts / scene -> delete / replace with graph layoutnames function
+# def parseGraphJSON_graphlayouts(files,target):
+#     if len(files) > 0: 
+#         l_graphlayouts = files[0]["graphlayouts"]    
+#         vecList = {}
+#         vecList["scenes"] = l_graphlayouts
+#         target.append(vecList)
 
 
 # graph layoutnames 
 def parseGraphJSON_layoutnames(files, target):
     if len(files) > 0: 
         l_layoutnames = []
-        for ix,file in enumerate(files):
-            
+        for ix,file in enumerate(files):            
+        
             # get layout names
             try:
-                name_of_file = file["layoutname"] # ["layouts"]["layoutname"]
+                # if files = layout key in one JSON file
+                if "layoutname" in file.keys(): 
+                    name_of_file = file["layoutname"] # ["layouts"]["layoutname"]
+                # if files = separate json files 
+                elif "graph" in file.keys():  
+                    name_of_file = file["graph"]["name"]
+
             except:
                 name_of_file = "Automatic-LayoutID"+str(ix)
+
             l_layoutnames.append(name_of_file)
-                
+            print("C_DEBUG : l_layoutnames: ", l_layoutnames)
+
         #vecList = {}
         #vecList["scenes"] = l_layoutnames
-        vecList = l_layoutnames
+        vecList = l_layoutnames 
+        print("C_DEBUG getting layoutnames: ", vecList)
         target.append(vecList)
 
 
-# this is for what exactly ??? 
-def parseGraphJSON_textureNames(files):
-    out = []
+# # this is for what exactly ??? 
+# def parseGraphJSON_textureNames(files):
+#     out = []
 
-    for ix,file in enumerate(files):
+#     for ix,file in enumerate(files):
    
-        if "textureName" not in file.keys():
-            # no texture name specified
-            out.append(None)
-            continue
-        if file["textureName"] in out:
-            # no duplicates allowed
-            out.append(None)
-            continue    
-        out.append(file["textureName"])
-    return out
+#         if "textureName" not in file.keys():
+#             # no texture name specified
+#             out.append(None)
+#             continue
+#         if file["textureName"] in out:
+#             # no duplicates allowed
+#             out.append(None)
+#             continue    
+#         out.append(file["textureName"])
+#     return out
 
 
-# is this obsolete?
-def parseGraphJSON_scene_description(files):
-    out = []
-    for file in files:
-        try:
-            if "scene" in file["graph"].keys():
-                out.append(file["graph"]["scene"])
-            elif "scene" in file.keys():
-                out.append(file["scene"])
-        except:
-            out.append(None)
-    if len(out) != len(files):
-        return False
-    return out 
+# # is this obsolete?
+# def parseGraphJSON_scene_description(files):
+#     out = []
+#     for file in files:
+#         try:
+#             if "scene" in file["graph"].keys():
+#                 out.append(file["graph"]["scene"])
+#             elif "scene" in file.keys():
+#                 out.append(file["scene"])
+#         except:
+#             out.append(None)
+#     if len(out) != len(files):
+#         return False
+#     return out 
         
