@@ -112,13 +112,6 @@ function updateMcElements() {
     socket.emit('ex', {usr:uid,  val: "init", id: "init", fn: "enrichment"});
     // socket.emit("ex", {usr:uid,  fn: "legend_scene_display", id: "legend_scene_display", val: "init"});
 
-    // // buttons (forward backward reset) for layout changes
-    // console.log("C_DEBUG: updateMcElements - init values for new joined client")
-    // socket.emit('ex', { usr: uid, id: "forwardstep", fn: "ue4", val: "init" });
-    // socket.emit('ex', { usr: uid, id: "backwardstep", fn: "ue4", val: "init" });
-    // socket.emit('ex', { usr: uid, id: "resetlayout", fn: "ue4", val: "init" });
-
-
     // VRrooms
     socket.emit('ex', {usr:uid,  val: "init", id: "VRrooms", fn: "dropdown"});
 
@@ -784,11 +777,11 @@ $(document).ready(function() {
                     // 1. get index of DD layout and set backwardidx
                     var layouts_DD = document.getElementById("layoutsDD").shadowRoot.getElementById("sel");
                     var forwardidx = parseInt(layouts_DD.getAttribute("sel"));
-                    //console.log("C_DEBUG in ue4 forwardidx from layoutsDD = ", forwardidx);
+                    console.log("C_DEBUG in ue4 forwardidx from layoutsDD = ", forwardidx);
 
                     // 2. then add an index to it
                     forwardidx = NEWIndexforwardstep(pfile.layouts.length);
-                    //console.log("C_DEBUG in ue4 forwardstep = ", forwardidx);
+                    console.log("C_DEBUG in ue4 forwardstep = ", forwardidx);
 
                     // // is that necessary??
                     // socket.emit("ex", {
@@ -799,7 +792,8 @@ $(document).ready(function() {
 
                     // 3. then update dropdowns accordingly
                     // link colors 
-                    if (pfile.linksRGB.length <= forwardidx) {
+                    let actLinksRGB;
+                    if (pfile.linksRGB.length < forwardidx) {
                         linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
                         linksRGB_DD.setAttribute("sel", parseInt(0));
                         linksRGB_DD.setAttribute("value", pfile.linksRGB[0]);
@@ -825,17 +819,23 @@ $(document).ready(function() {
                     //console.log("C_DEBUG changed Layouts Colors: ", forwardidx);
 
                     // links
-                    if (pfile.links.length <= forwardidx) {
+                    let actLinks;
+                    if (pfile.links.length < forwardidx) {
                         links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
                         links_DD.setAttribute("sel", parseInt(0));
                         links_DD.setAttribute("value", pfile.links[0]);
+
                         actLinks = 0;
+                        console.log("C_DEBUG in Links < than forwardidx");
 
                     } else {
                         links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
                         links_DD.setAttribute("sel", parseInt(forwardidx));
                         links_DD.setAttribute("value", pfile.links[forwardidx]);
+
                         actLinks = forwardidx;
+                        console.log("C_DEBUG in Links forwardidx: ", forwardidx);
+
                     }
                     console.log("C_DEBUG changed Links: ", forwardidx);
                     
@@ -851,7 +851,6 @@ $(document).ready(function() {
                     if (isPreview) {
                         actLayout = forwardidx;
                         actLayoutRGB = forwardidx;
-                        actLinks = forwardidx; // 0
                         makeNetwork();
                     }
 
@@ -878,6 +877,7 @@ $(document).ready(function() {
 
                     // 3. then update dropdowns accordingly
                     // link colors
+                    let actLinksRGB;
                     if (pfile.linksRGB.length <= backwardidx) {
                         linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
                         linksRGB_DD.setAttribute("sel", parseInt(0));
@@ -906,6 +906,7 @@ $(document).ready(function() {
 
 
                     // links
+                    let actLinks;
                     if (pfile.links.length <= backwardidx) {
                         links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
                         links_DD.setAttribute("sel", parseInt(0));
@@ -932,7 +933,6 @@ $(document).ready(function() {
                     if (isPreview) {
                         actLayout = backwardidx;
                         actLayoutRGB = backwardidx;
-                        actLinks = backwardidx; //= 0;
                         makeNetwork();
                     }
 
