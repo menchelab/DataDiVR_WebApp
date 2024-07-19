@@ -99,7 +99,7 @@ $(document).ready(function(){
                 break;
             case 'but':
                     console.log(data.id + " clicked");
-
+                    
                 break;
             
             case 'sres':

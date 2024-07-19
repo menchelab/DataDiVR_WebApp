@@ -30,7 +30,7 @@
             right();
             //doAjaxThings(pfile); //is called from connect socketio
             // create and manipulate your DOM here. doAjaxThings() will run asynchronously and not block your DOM rendering
-
+    
         });
     </script> 
 
@@ -49,6 +49,9 @@
         </div>
 
         <div id="outer" style="height: 100vh; overflow: auto; display:None">  
+            
+            <!-- IMPORTANT: here all panels should be included to not 
+            raise an error but be included and hidden -->
             {% include 'mNodesearch.html' %}
             {% include 'mNodeinfo.html' %}
             {% include 'mConnections.html' %}
@@ -58,6 +61,8 @@
             {% include 'mEnrichment.html' %}
             {% include 'mAnnotations.html' %}
             {% include 'mLayout.html' %}
+            {% include 'mVRrooms.html' %}
+            {% include 'mDebug.html' %}
 
 
             {% for ext in extensions["ext"] %}

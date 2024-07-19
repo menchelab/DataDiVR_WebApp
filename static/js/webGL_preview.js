@@ -664,7 +664,7 @@ async function downloadProjectTextures() {
         linksRGB.push(await DownloadImage(path));
     }
 
-    //makeNetwork();
+    makeNetwork(); //
     var text = '{"id":"x", "success": "true", "fn": "projectLoaded"}';
     var out = JSON.parse(text);
     out['usr'] = uid;

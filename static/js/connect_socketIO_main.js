@@ -110,7 +110,7 @@ function updateMcElements() {
     socket.emit('ex', {usr:uid,  val: "init", id: "annotation-dd-1", fn: "annotation"});
     socket.emit('ex', {usr:uid,  val: "init", id: "annotation-dd-2", fn: "annotation"});
     socket.emit('ex', {usr:uid,  val: "init", id: "init", fn: "enrichment"});
-    socket.emit("ex", {usr:uid,  fn: "legend_scene_display", id: "legend_scene_display", val: "init"});
+    // socket.emit("ex", {usr:uid,  fn: "legend_scene_display", id: "legend_scene_display", val: "init"});
 
     // // buttons (forward backward reset) for layout changes
     // console.log("C_DEBUG: updateMcElements - init values for new joined client")
@@ -192,7 +192,7 @@ $(document).ready(function() {
     });
 
     socket.on('status', function(data) {
-        console.log(data)
+        //console.log(data)
         if (data.usr == uid) {
             if (isMain || isPreview) {
                 // START initialization routine
@@ -569,7 +569,7 @@ $(document).ready(function() {
                                 backButton = document.getElementById("backwardstep");
                                 backButton.setAttribute('val', data.sel);
 
-                                console.log("C_DEBUG updating Buttons in layoutsDD: ", nextButton.getAttribute("val"));
+                                //console.log("C_DEBUG updating Buttons in layoutsDD: ", nextButton.getAttribute("val"));
 
                                 break;
                         }
@@ -660,7 +660,7 @@ $(document).ready(function() {
                 //clearProject();
                 //if (data["usr"]==uid){
                 pfile = data["val"];
-                console.log("C_DEBUG: in CASE PROJECT _ project data = ", pfile);
+                //console.log("C_DEBUG: in CASE PROJECT _ project data = ", pfile);
 
                 // init analytics container
                 document.getElementById('analyticsContainer').innerHTML = '';
@@ -678,7 +678,7 @@ $(document).ready(function() {
                     data.sel = 0;
                 }
                 
-                console.log("C_DEBUG: project data sel = ", data.sel);
+                //console.log("C_DEBUG: project data sel = ", data.sel);
 
                 Legend_displayNodeInfobyID(pfile.name, data.sel);
                 Legend_displayLinkInfobyID(pfile.name, data.sel);
@@ -693,7 +693,7 @@ $(document).ready(function() {
                 backButton = document.getElementById("backwardstep");
                 backButton.setAttribute('val', data.sel);
 
-                console.log("C_DEBUG updating Buttons while load project: ", nextButton.getAttribute("val"));
+                //console.log("C_DEBUG updating Buttons while load project: ", nextButton.getAttribute("val"));
 
                 if (isPreview) {
                     downloadProjectTextures(); // download textures for preview, report when done
@@ -784,18 +784,18 @@ $(document).ready(function() {
                     // 1. get index of DD layout and set backwardidx
                     var layouts_DD = document.getElementById("layoutsDD").shadowRoot.getElementById("sel");
                     var forwardidx = parseInt(layouts_DD.getAttribute("sel"));
-                    console.log("C_DEBUG in ue4 forwardidx from layoutsDD = ", forwardidx);
+                    //console.log("C_DEBUG in ue4 forwardidx from layoutsDD = ", forwardidx);
 
                     // 2. then add an index to it
                     forwardidx = NEWIndexforwardstep(pfile.layouts.length);
-                    console.log("C_DEBUG in ue4 forwardstep = ", forwardidx);
+                    //console.log("C_DEBUG in ue4 forwardstep = ", forwardidx);
 
-                    // is that necessary??
-                    socket.emit("ex", {
-                        fn: "legend_scene_display",
-                        id: "legend_scene_display",
-                        val: forwardidx
-                    });
+                    // // is that necessary??
+                    // socket.emit("ex", {
+                    //     fn: "legend_scene_display",
+                    //     id: "legend_scene_display",
+                    //     val: forwardidx
+                    // });
 
                     // 3. then update dropdowns accordingly
                     // link colors 
@@ -837,7 +837,7 @@ $(document).ready(function() {
                         links_DD.setAttribute("value", pfile.links[forwardidx]);
                         actLinks = forwardidx;
                     }
-                    //console.log("C_DEBUG changed Links: ", forwardidx);
+                    console.log("C_DEBUG changed Links: ", forwardidx);
                     
                     Legend_displayNodeInfobyID(pfile.name, forwardidx);
                     Legend_displayLinkInfobyID(pfile.name, forwardidx);
@@ -846,7 +846,7 @@ $(document).ready(function() {
                     Legend_displayGraphLayoutbyID(pfile.name, forwardidx, "layouts", "graphlayout_linkcolors");
 
                     data["val"] = forwardidx;
-                    console.log("C_DEBUG: data val forwardidx = ", data["val"]);
+                    //console.log("C_DEBUG: data val forwardidx = ", data["val"]);
 
                     if (isPreview) {
                         actLayout = forwardidx;
@@ -864,11 +864,11 @@ $(document).ready(function() {
                     // 1. get index of DD layout and set backwardidx
                     var layouts_DD = document.getElementById("layoutsDD").shadowRoot.getElementById("sel");
                     var backwardidx = parseInt(layouts_DD.getAttribute("sel"));
-                    console.log("C_DEBUG in ue4 backwardidx from layoutsDD = ", backwardidx);
+                    //console.log("C_DEBUG in ue4 backwardidx from layoutsDD = ", backwardidx);
 
                     // 2. then add an index to it
                     backwardidx = NEWIndexbackwardstep(pfile.layouts.length);
-                    console.log("C_DEBUG in ue4 backwardidx = ", backwardidx);
+                    //console.log("C_DEBUG in ue4 backwardidx = ", backwardidx);
 
                     // socket.emit("ex", {
                     //     fn: "legend_scene_display",
@@ -927,7 +927,7 @@ $(document).ready(function() {
                     Legend_displayGraphLayoutbyID(pfile.name, backwardidx, "layouts", "graphlayout_linkcolors");
 
                     data["val"] = backwardidx;
-                    console.log("C_DEBUG: data val back = ", data["val"]);
+                    //console.log("C_DEBUG: data val back = ", data["val"]);
 
                     if (isPreview) {
                         actLayout = backwardidx;
@@ -939,7 +939,7 @@ $(document).ready(function() {
                 }
                 
                 ue4("but", data);
-                console.log("C_DEBUG: ue4 data = ", data);
+                //console.log("C_DEBUG: ue4 data = ", data);
 
                 break;
 

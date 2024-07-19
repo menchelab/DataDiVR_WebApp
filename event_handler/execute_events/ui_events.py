@@ -57,19 +57,19 @@ def colorbox_event(message, room):
 
 
 # THIS SEEMS REDUDANT (layout title is already in the legend)
-def legend_scene_display_event(message, room):
-    # only here for managing forward and backward click
-    try: 
-        if "scenes" in GD.pfile.keys():
-            new_scene = GD.pfile["scenes"][int(message["val"])]
-            emit(
-                "ex",
-                {"fn": "legend_scene_display", "has_scenes": True, "text": new_scene},
-                room=room,
-            )
+# def legend_scene_display_event(message, room):
+#     # only here for managing forward and backward click
+#     try: 
+#         if "scenes" in GD.pfile.keys():
+#             new_scene = GD.pfile["scenes"][int(message["val"])]
+#             emit(
+#                 "ex",
+#                 {"fn": "legend_scene_display", "has_scenes": True, "text": new_scene},
+#                 room=room,
+#             )
        
-    except:
-        emit("ex", {"fn": "legend_scene_display", "has_scenes": False}, room=room)
+#     except:
+#         emit("ex", {"fn": "legend_scene_display", "has_scenes": False}, room=room)
 
 def slider_event(message, room):
     if message["id"] not in GD.pdata:
@@ -178,3 +178,24 @@ def checkbox_event(message, room):
         response["definedlinklist"] = name_linkfile
 
     emit("ex", response, room=room)
+    
+
+
+def reset_layout_event(message, room):
+    print("C_DEBUG ____ RESET LAYOUT EVENT ____")
+    if message["id"] == "resetlayout":
+        GD.pdata["layoutsRGBDD"] = 0
+        GD.pdata["layoutsDD"] = 0
+        GD.pdata["layoutsRGBDD"] = 0
+        GD.pdata["layoutsRGBDD"] = 0
+        GD.savePD()
+        response = {}
+        response["usr"] = message["usr"]
+        response["fn"] = "ue4"
+        response["id"] = "resetlayout"
+        response["parent"] = "resetlayout"
+        response["val"] = "reset"
+        emit("ex", response, room=room)
+    else:
+        emit("ex", message, room=room)
+        

@@ -220,7 +220,7 @@
                 // else {
                 //     layoutname_withoutRGB = layoutname;
                 // }
-                console.log("C_DEBUG : layoutname_withoutRGB  = ", layoutname_withoutRGB);
+                //console.log("C_DEBUG : layoutname_withoutRGB  = ", layoutname_withoutRGB);
 
                 if (l_layout_with_clusters.includes(layoutname_withoutRGB)) {
                     // W I T H   D E F I N E D   C L U S T E R S 
@@ -249,11 +249,11 @@
                         //console.log("C_DEBUG: clusterlist layoutname ",  clusterlist_layoutname);
 
                         if (layoutname_withoutRGB  === clusterlist_layoutname) {
-                            console.log("C_DEBUG matched layoutname with clusterlist");
+                            //console.log("C_DEBUG matched layoutname with clusterlist");
                             labelColorDict[labelColor] = name;
                         } 
                     }
-                    console.log("C_DEBUG: labelColorDict = ", labelColorDict);
+                    //: labelColorDict = ", labelColorDict);
             
                     let idx = 0;
                     for (const color in labelColorDict) { 
@@ -279,7 +279,7 @@
                     allnode_Div.appendChild(nodedesc_Div);
                 } else {                    
                     // W I T H O U T   D E F I N E D   C L U S T E R S (in pfiledata["selections"])
-                    console.log("C_DEBUG - in else");
+                    //console.log("C_DEBUG - in else");
 
                     const allnode_Div = document.getElementById("legend_node_all");
 

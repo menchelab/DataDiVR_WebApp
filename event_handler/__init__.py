@@ -47,8 +47,8 @@ def handle_socket_execute(message, room, project):
         if message["id"] == "selectionsCb":
             clipboard_events.node_selections_event(message, room)
 
-    elif message["fn"] == "legend_scene_display":
-        ui_events.legend_scene_display_event(message, room)
+    #elif message["fn"] == "legend_scene_display":
+    #    ui_events.legend_scene_display_event(message, room)
 
     elif message["fn"] == "clipboard":
         if message["id"] == "cbClear":
@@ -105,8 +105,11 @@ def handle_socket_execute(message, room, project):
 
     elif message["fn"] == "children":
         ui_events.children_event
-
         
+    elif message["fn"] == "but":
+        if message["id"] == "resetlayout":
+            ui_events.reset_layout_event(message, room)
+
     elif message["fn"] == "checkbox":
         if message["id"] == "cbdefinelinklist":
             ui_events.checkbox_event(message, room)

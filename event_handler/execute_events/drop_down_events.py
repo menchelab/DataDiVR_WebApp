@@ -159,6 +159,10 @@ def init(message, response, room=None, namespace="/main"):
 def user_input(message, response, room=None, namespace="/main"):
     if room is None:
         room = flask.session.get("room")
+    
+    # get which user changed
+    #namespace = message["usr"]
+
     # clear analytics container
     if message["id"] == "analytics":
         # check if you actually switch
