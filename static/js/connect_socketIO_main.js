@@ -88,14 +88,12 @@ function updateMcElements() {
             case "annotationDD":
                 socket.emit('ex', { usr: uid, id: dynelem[i].getAttribute('id'), fn: "annotationDD", val: "init" });
                 break;
-
-            // this seems not to change anything 
-            // case "ue4":
-            //     socket.emit('ex', { usr: uid, id: dynelem[i].getAttribute('id'), fn: "ue4", val: "init" });
-            //     break;
-            // case "button":
-            //     socket.emit('ex', { usr: uid, id: dynelem[i].getAttribute('id'), fn: "resetlayout", val: "init" });
-            //     break;
+            case "ue4":
+                socket.emit('ex', { usr: uid, id: dynelem[i].getAttribute('id'), fn: "ue4", val: "init" });
+                break;
+            case "button":
+                socket.emit('ex', { usr: uid, id: dynelem[i].getAttribute('id'), fn: "resetlayout", val: "init" });
+                break;
         }
         //console.log(dynelem[i].getAttribute('container'));
     }
@@ -753,8 +751,8 @@ $(document).ready(function() {
                     linksRGB_DD.setAttribute("value", pfile.linksRGB[reset_value]);
 
                     links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
-                    links_DD.setAttribute("sel", parseInt(forwardidx));
-                    links_DD.setAttribute("value", pfile.links[forwardidx]);
+                    links_DD.setAttribute("sel", parseInt(reset_value));
+                    links_DD.setAttribute("value", pfile.links[reset_value]);
 
                     // update arrow buttons with new index
                     nextButton = document.getElementById("forwardstep");    
@@ -820,13 +818,13 @@ $(document).ready(function() {
 
                     // links
                     let actLinks;
-                    if (pfile.links.length < forwardidx) {
+                    if (pfile.links.length <= forwardidx) {
                         links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
                         links_DD.setAttribute("sel", parseInt(0));
                         links_DD.setAttribute("value", pfile.links[0]);
 
                         actLinks = 0;
-                        console.log("C_DEBUG in Links < than forwardidx");
+                        //console.log("C_DEBUG in Links < than forwardidx - actLinks = ", actLinks);
 
                     } else {
                         links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
@@ -834,10 +832,10 @@ $(document).ready(function() {
                         links_DD.setAttribute("value", pfile.links[forwardidx]);
 
                         actLinks = forwardidx;
-                        console.log("C_DEBUG in Links forwardidx: ", forwardidx);
+                        //console.log("C_DEBUG in Links forwardidx: ", forwardidx);
 
                     }
-                    console.log("C_DEBUG changed Links: ", forwardidx);
+                    //console.log("C_DEBUG changed Links: ", forwardidx);
                     
                     Legend_displayNodeInfobyID(pfile.name, forwardidx);
                     Legend_displayLinkInfobyID(pfile.name, forwardidx);
