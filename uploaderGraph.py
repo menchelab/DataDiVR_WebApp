@@ -845,12 +845,12 @@ def parseGraphJSON_layoutnames(files, target):
                 name_of_file = "Automatic-LayoutID"+str(ix)
 
             l_layoutnames.append(name_of_file)
-            print("C_DEBUG : l_layoutnames: ", l_layoutnames)
+            #print("C_DEBUG : l_layoutnames: ", l_layoutnames)
 
         #vecList = {}
         #vecList["scenes"] = l_layoutnames
         vecList = l_layoutnames 
-        print("C_DEBUG getting layoutnames: ", vecList)
+        #print("C_DEBUG getting layoutnames: ", vecList)
         target.append(vecList)
 
 
@@ -887,3 +887,5 @@ def parseGraphJSON_layoutnames(files, target):
 #         return False
 #     return out 
         
+
+
