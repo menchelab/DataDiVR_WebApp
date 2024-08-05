@@ -468,16 +468,22 @@ def parseGraphJSON_nodepositions(files, target):
             else:
                 name_of_file = "Automatic-LayoutID"+str(ix) 
 
-                
-
             num_of_nodes = len(file["nodes"])
             nodepositions = []
             for i in range(0, num_of_nodes):
                 pos = file["nodes"][i]["pos"]
+
+                # catch if positions are string 
+                if isinstance(pos, str) or isinstance(pos[0], str) or isinstance(pos[1], str) or isinstance(pos[2], str):
+                    nodepositions.append([0, 0, 0])
+                    raise ValueError("Position values are strings. Set positions to 0,0,0. Please upload a valid JSON file.")
+                
                 # catch if positions contain "nan" values
-                if math.isnan(pos[0]) or math.isnan(pos[1]) or math.isnan(pos[2]):
-                    nodepositions.append([0,0,0])
-                else: 
+                elif math.isnan(pos[0]) or math.isnan(pos[1]) or math.isnan(pos[2]):
+                    nodepositions.append([0, 0, 0])
+                    raise ValueError("Position values are NaN. Set positions to 0,0,0. Please upload a valid JSON file.")
+                
+                else:
                     nodepositions.append(file["nodes"][i]["pos"])
 
             vecList = {}

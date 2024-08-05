@@ -713,6 +713,7 @@ $(document).ready(function() {
                             id: "cbdefinedlinkslist",
                             val: data["val"]
                         });
+                console.log("C_DEBUG: data id is cbdefinelinklist - data val = ", data["val"]);
                 break;
                 }
 
