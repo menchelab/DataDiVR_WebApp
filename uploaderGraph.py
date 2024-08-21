@@ -160,39 +160,50 @@ def upload_filesJSON(request):
     # ANNOTATIONS
     #----------------------------------------------
     # decide which annotation type to go with / if complex_annotations is True it uses a dict to store annotations and their types
-    # referenced by "annotationTypes" as true in uploaded JSON
-    complex_annotations = False
-    if "annotationTypes" in jsonfiles[0].keys():
-        if jsonfiles[0]["annotationTypes"] is True:
-            complex_annotations = True
-    if complex_annotations is False:    
-        parseGraphJSON_nodeinfo_simple(jsonfiles, nodeinfo)
-    else:  # complex_annotations is True
-        nodeinfo = parseGraphJSON_nodeinfo_complex(jsonfiles)
+    
+    # # referenced by "annotationTypes" as true in uploaded JSON
+    # complex_annotations = False
+    # if "annotationTypes" in jsonfiles[0].keys():
+    #     if jsonfiles[0]["annotationTypes"] is True:
+    #         complex_annotations = True
+    # if complex_annotations is False:
+    #     parseGraphJSON_nodeinfo_simple(jsonfiles, nodeinfo)
+    # else:  # complex_annotations is True
+    #     nodeinfo = parseGraphJSON_nodeinfo_complex(jsonfiles)
+    
+    nodeinfo = parseGraphJSON_nodeinfo(jsonfiles)
     
     numnodes = len(nodepositions[0]["data"])
-    if complex_annotations is False:
+    #OLD: if complex_annotations is False:
+    #NEW: without complex_annotations flag (json file) instead check for "name" key per node in "nodes" key - EXPLANATION: no complex_annotations flag is needed in json file, but the variabel still exists for analytics if required
+    if "name" in nodeinfo[0]:
+        for i in range(len(nodeinfo)):
+            thisnode = {}
+            thisnode["id"] = i
+            thisnode["n"] = nodeinfo[i]["name"]
+            thisnode["attrlist"] = nodeinfo[i]["annotation"]
+            nodelist["nodes"].append(thisnode)
+            
+            complex_annotations = True # set if required for analytics
+            
+    else:   
         for i in range(len(nodepositions[0]["data"])):
             thisnode = {}
             thisnode["id"] = i
-            if "_geo" in nodepositions[0]["name"]:
-                thisnode["lat"] = nodepositions[0]["data"][i][0]
-                thisnode["lon"] = nodepositions[0]["data"][i][1]
+            
+            # check for "geo" in layout name - needs reimplementation
+            #if "_geo" in nodepositions[0]["name"]:
+            #    thisnode["lat"] = nodepositions[0]["data"][i][0]
+            #    thisnode["lon"] = nodepositions[0]["data"][i][1]
+            
             if len(nodeinfo[0]["data"]) == len(nodepositions[0]["data"]):
-                thisnode["attrlist"] = nodeinfo[0]["data"][i]
-                thisnode["n"] = str(nodeinfo[0]["data"][i][0]) # show first element in node annotation for node label
-            else:
-                thisnode["attrlist"] = ["node" + str(i)]
+                thisnode["attrlist"] = nodeinfo[0]["data"][i]          
                 thisnode["n"] = "node" + str(i)
+                #print("C_DEBUG: NO namekey found:  thisnode: ", thisnode)
+
             nodelist["nodes"].append(thisnode)
-    
-    else: # complex_annotations is True -> annotation types and name specified
-        for i in range(len(nodeinfo)):
-            this_node = {}
-            this_node["id"] = i
-            this_node["n"] = nodeinfo[i]["name"]
-            this_node["attrlist"] = nodeinfo[i]["annotation"]
-            nodelist["nodes"].append(this_node)
+            complex_annotations = False # set if required for analytics
+
 
     #----------------------------------
     # CLUSTER LABELS
@@ -204,7 +215,7 @@ def upload_filesJSON(request):
 
         if "data" in labellist:
             for row in labellist["data"]:
-                                
+                
                 name = row[0]
                 row.pop(0)
 
@@ -212,11 +223,15 @@ def upload_filesJSON(request):
                 thisnode = {}
                 thisnode["id"] = i + numnodes
                 thisnode["group"] = row
-                thisnode["n"] = str(name)
+                if "name" in nodeinfo[0]:
+                    thisnode["n"] = nodeinfo[i]["name"] # str(name)
+                else:   
+                    thisnode["n"] = str(name)
                 nodelist["nodes"].append(thisnode)
 
                 #add to pfile
-                pfile["selections"].append({"name":name, "nodes":row, "layoutname": labellist["name"]})     
+                pfile["selections"].append({"name":name, "nodes": row, # use int id instead? e.g. [int(i) for i in row]
+                                            "layoutname": labellist["name"]})     
 
                 #if labellist["name"] not in pfile["scenes"]:
                 #    pfile["scenes"].append(labellist["name"])
@@ -387,7 +402,7 @@ def upload_filesJSON(request):
         # if names[file_index] is not None:
         #     # if texture name specified
         #     state =  state + makeLinkRGBTex(namespace, lcolors, names[file_index]) + '<br>'
-        #     pfile["linksRGB"].append(names[file_index])    
+        #     pfile["["linksRGB"].append(names[file_index])    
         #     continue
         state =  state + makeLinkRGBTex(namespace, lcolors) + '<br>'
         pfile["linksRGB"].append(lcolors["name"]+ "_linksRGB")
@@ -400,8 +415,6 @@ def upload_filesJSON(request):
     #----------------------------------
     # update new labels
     pfile["labels"] = [pfile["nodecount"], pfile["labelcount"]]
-
-
     
     pfile["annotationTypes"] = complex_annotations    # define in pfile if you use annotation types or default flat annotation list
 
@@ -669,6 +682,23 @@ def parseGraphJSON_nodeinfo_simple(files,target):
 
 
 def parseGraphJSON_nodeinfo_complex(files):
+    if len(files) <= 0:
+        return 
+    
+    out = []
+    file = files[0]  # no need to iter over all files since you have to set it for all files the same way 
+    num_of_nodes = len(file["nodes"])
+
+    for i in range(num_of_nodes):
+        node_info = {}
+        node_info["annotation"] = file["nodes"][i]["annotation"]
+        node_info["name"] = file["nodes"][i]["name"]
+        out.append(node_info)
+
+    return out
+
+
+def parseGraphJSON_nodeinfo(files): # without required flag in json for "complex annotations" 
     if len(files) <= 0:
         return 
     

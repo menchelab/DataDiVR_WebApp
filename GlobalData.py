@@ -248,9 +248,11 @@ def load_annotations_complex():
             continue
 
         for anno_type, anno_list in node["attrlist"].items():
+
             if anno_type not in annotation_types:
                 annotation_types.append(anno_type)
                 annotations[anno_type] = {}
+
 
             for anno in anno_list:
                 if anno not in annotations[anno_type].keys():
