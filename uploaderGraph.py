@@ -692,7 +692,10 @@ def parseGraphJSON_nodeinfo_complex(files):
     for i in range(num_of_nodes):
         node_info = {}
         node_info["annotation"] = file["nodes"][i]["annotation"]
-        node_info["name"] = file["nodes"][i]["name"]
+        try: 
+            node_info["name"] = file["nodes"][i]["name"]
+        except: 
+            node_info["name"] = "node" + str(i)
         out.append(node_info)
 
     return out
@@ -709,7 +712,10 @@ def parseGraphJSON_nodeinfo(files): # without required flag in json for "complex
     for i in range(num_of_nodes):
         node_info = {}
         node_info["annotation"] = file["nodes"][i]["annotation"]
-        node_info["name"] = file["nodes"][i]["name"]
+        try: 
+            node_info["name"] = file["nodes"][i]["name"]
+        except: 
+            node_info["name"] = "node" + str(i)
         out.append(node_info)
 
     return out

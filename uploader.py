@@ -731,15 +731,15 @@ def upload_filesNew(request):
         if len(linklist["data"]) == 0:
             linklist["name"] = "nan"
         state =  state + makeLinkTexNew(namespace, linklist) + '<br>'
-        pfile["links"].append(linklist["name"]+ "_linksXYZ") #"XYZ"
+        pfile["links"].append(linklist["name"]+ "_linksXYZ")  
 
     for lcolors in linkcolors:
         if len(lcolors["data"]) == 0:
             lcolors["data"] = [[255,0,255,100]] * len(links[0]["data"])
             lcolors["name"] = "nan"
         state =  state + makeLinkRGBTex(namespace, lcolors) + '<br>'
-        pfile["linksRGB"].append(lcolors["name"] + "_linksRGB") #"RGB"
-
+        pfile["linksRGB"].append(lcolors["name"] + "_linksRGB")  
+ 
     pfile["nodecount"] = numnodes
     pfile["labelcount"] = len(labels[0]["data"])
     pfile["linkcount"] = len(links[0]["data"])
@@ -747,8 +747,8 @@ def upload_filesNew(request):
     #----------------------------------
     # adding graph info to pfile 
     #----------------------------------
-    pfile["graphtitle"] = title_of_graph
-    pfile["graphdesc"] = descr_of_graph
+    pfile["projectname"] = title_of_graph
+    pfile["info"] = descr_of_graph
 
     #----------------------------------
     # uploading and storing Legends files in folder
@@ -796,11 +796,11 @@ def loadLegendFiles(files, legendfolder, target):
             for file in files:
                 file.save(os.path.join(path, file.filename))
                 target.append(file.filename)
-        else: 
-            print("C_DEBUG: Error - files list is empty.")
+        #else: 
+            #print(C_DEBUG: Error - files list is empty.")
 
     except Exception as e:
-        print("") #C_DEBUG: Error in loadLegendFiles. ", e)
+        print("C_DEBUG: Error in loadLegendFiles. ", e)
 
 
 

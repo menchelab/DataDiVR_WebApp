@@ -246,18 +246,23 @@ def load_annotations_complex():
     for node in nodes["nodes"]:
         if "attrlist" not in node.keys():
             continue
+        
+        # check if dict beforehand: 
+        if not isinstance(node["attrlist"], dict):
+            print("C_DEBUG: loading annotations simple due to invalid format.")
+            load_annotations_simple()
+            
+        else: 
+            for anno_type, anno_list in node["attrlist"].items():
 
-        for anno_type, anno_list in node["attrlist"].items():
+                if anno_type not in annotation_types:
+                    annotation_types.append(anno_type)
+                    annotations[anno_type] = {}
 
-            if anno_type not in annotation_types:
-                annotation_types.append(anno_type)
-                annotations[anno_type] = {}
-
-
-            for anno in anno_list:
-                if anno not in annotations[anno_type].keys():
-                    annotations[anno_type][anno] = []
-                annotations[anno_type][anno].append(node["id"])
+                for anno in anno_list:
+                    if anno not in annotations[anno_type].keys():
+                        annotations[anno_type][anno] = []
+                    annotations[anno_type][anno].append(node["id"])
 
 
 def load_annotations_simple():
