@@ -194,7 +194,7 @@ def reset_layout_event(message, room):
         response["fn"] = "ue4"
         response["id"] = "resetlayout"
         response["parent"] = "resetlayout"
-        response["val"] = "reset"
+        response["val"] = 0
         emit("ex", response, room=room)
     else:
         emit("ex", message, room=room)

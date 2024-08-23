@@ -82,12 +82,12 @@ $(document).ready(function () {
           success: function(data)
           {
 			console.log(data); 
-			 $("#upload_message").html(data);
+			 $("#upload_messageJSON").html(data);
 			  
           },
         error: function (err) {
             console.log("Upload failed!"); 
-		    $("#upload_message").html("Upload failed");
+		    $("#upload_messageJSON").html("Upload failed");
 			
         }
         });

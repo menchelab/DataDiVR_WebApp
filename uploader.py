@@ -74,6 +74,7 @@ def check_ProjectFolder():
         print("GD.json not found, copying demo_project")
         copy_tree("static/demo_project", "static/projects")
 
+
 def makeProjectFolders(name):
     path = "static/projects/" + name
     pfile = {}
@@ -95,12 +96,15 @@ def makeProjectFolders(name):
         os.mkdir(path + '/legends')
 
         with open(path + '/pfile.json', 'w') as outfile:
-            json.dump(pfile, outfile)
+            json.dump(pfile, outfile, indent=4)
 
     except OSError:
         print ("Creation of the directory %s failed" % path)
+        
     else:
         print ("Successfully created the directory %s " % path)
+        
+
 
 def loadProjectInfo(name):
     folder = 'static/projects/' + name + '/'
@@ -250,20 +254,31 @@ def makeXYZTexture(project, pixeldata, name=None):
 
     new_imgh.putdata(texh)
     new_imgl.putdata(texl)
+    
 
-    pathXYZ = path + '/layouts/' +  pixeldata["name"] + 'XYZ.bmp'
-    pathXYZl = path + '/layoutsl/' +  pixeldata["name"]  + 'XYZl.bmp' 
+    pathXYZ = path + '/layouts/' +  pixeldata["name"] + '.bmp' # former 'XYZ.bmp'
+    pathXYZl = path + '/layoutsl/' +  pixeldata["name"]  + 'l.bmp' # former 'XYZl.bmp'
+
     if name is not None:
+        name_bool = True
         pathXYZ = path + '/layouts/' +  name + '.bmp'
         pathXYZl = path + '/layoutsl/' +  name  + 'l.bmp' 
-
-    ### integrate name 
-    if os.path.exists(pathXYZ):
-        return '<a style="color:red;">ERROR </a>' + pixeldata["name"]  + " Nodelist already in project"
-    else:
-        new_imgh.save(pathXYZ)
-        new_imgl.save(pathXYZl)
-        return '<a style="color:green;">SUCCESS </a>' + pixeldata["name"]  + " Node Textures Created"
+    
+    if name_bool == False:
+        if os.path.exists(pathXYZ):
+            return '<a style="color:red;">ERROR </a>' + pixeldata["name"]  + " Nodelist already in project"
+        else:
+            new_imgh.save(pathXYZ)
+            new_imgl.save(pathXYZl)
+            return '<a style="color:green;">SUCCESS </a>' + pixeldata["name"]  + " NodeXYZ Textures Created"
+    else: 
+         
+        if os.path.exists(pathXYZ):
+            return '<a style="color:red;">ERROR </a>' + name  + " Nodelist already in project"
+        else:
+            new_imgh.save(pathXYZ)
+            new_imgl.save(pathXYZl)
+            return '<a style="color:green;">SUCCESS </a>' + name  + " NodeXYZ Textures Created"
 
 
 def makeNodeRGBTexture(project, pixeldata, name=None): 
@@ -289,18 +304,31 @@ def makeNodeRGBTexture(project, pixeldata, name=None):
 
     new_img = Image.new('RGBA', (128, hight))
     new_img.putdata(tex)
-    pathXYZ = path + '/layoutsRGB/' +  pixeldata["name"] + 'RGB.png'
-    if name is not None:
-        pathXYZ = path + '/layoutsRGB/' +  name +  '.png'
-
-    if os.path.exists(pathXYZ):
-        return '<a style="color:red;">ERROR </a>' + pixeldata["name"]  + " colors already in project"
-    else:
-        new_img.save(pathXYZ , "PNG")
-        return '<a style="color:green;">SUCCESS </a>' + pixeldata["name"]  + " Node Textures Created"
     
 
+    pathRGB = path + '/layoutsRGB/' +  pixeldata["name"] + '.png' # fits pfile naming , former: 'RGB.bmp'
 
+    if name is not None:
+        name_bool = True
+        pathRGB = path + '/layoutsRGB/' +  name +  '.png'
+
+    if name_bool == False:
+        if os.path.exists(pathRGB):
+            return '<a style="color:red;">ERROR </a>' + pixeldata["name"]  + " colors already in project"
+        else:
+            new_img.save(pathRGB , "PNG")
+            return '<a style="color:green;">SUCCESS </a>' + pixeldata["name"]  + " Nodecolor Textures Created"
+    else: 
+         
+        if os.path.exists(pathRGB):
+            return '<a style="color:red;">ERROR </a>' + name + " colors already in project"
+        else:
+            new_img.save(pathRGB , "PNG")
+            return '<a style="color:green;">SUCCESS </a>' + name + " Nodecolor Textures Created"
+
+
+
+# GENERAL function for link texture and json creation 
 def makeLinkTexNew(project, links, name=None): 
     hight = 64 * (int((len(links["data"])) / 32768) + 1)
     #print("image hight = " + str(hight))
@@ -344,21 +372,32 @@ def makeLinkTexNew(project, links, name=None):
         return '<a style="color:red;">ERROR </a>'  +  links["name"] + " Linkfile malformated?" 
 
     with open(path + '/links.json', 'w') as outfile:
-        json.dump(linklist, outfile)
+        json.dump(linklist, outfile, indent=4)
 
     new_imgl.putdata(texl)
-    pathl = path + '/links/' +  links["name"] + '_linksXYZ.bmp' 
+    pathl = path + '/links/' +  links["name"] + '.bmp' # fits pfile naming , former: '_linksXYZ.bmp'
+    
     if name is not None:
-        pathl = path + '/links/' +  name +  '.bmp'
+        name_bool = True
+        pathl = path + '/links/' +  name + '.bmp'
 
-    if os.path.exists(pathl):
-        return '<a style="color:red;">ERROR </a>' +  links["name"]  + " linklist already in project"
-    else:
-        new_imgl.save(pathl)
-        return '<a style="color:green;">SUCCESS </a>' +  links["name"] +  " Link Textures Created"
+    if name_bool == False:
+        if os.path.exists(pathl):
+            return '<a style="color:red;">ERROR </a>' +  links["name"]  + " linklist already in project"
+        else:
+            new_imgl.save(pathl)
+            return '<a style="color:green;">SUCCESS </a>' +  links["name"] +  " Link Textures Created"
+    else: 
+         
+        if os.path.exists(pathl):
+            return '<a style="color:red;">ERROR </a>' +  name  + " linklist already in project"
+        else:
+            new_imgl.save(pathl)
+            return '<a style="color:green;">SUCCESS </a>' +  name +  " Link Textures Created"
  
 
-
+# processing links for visualization (upload format: "layouts" key > "links" key)
+# used for visualization of network
 def makeLinkTexNew_withoutJSON(project, links, name=None): 
     hight = 64 * (int((len(links["data"])) / 32768) + 1)
     #print("image hight = " + str(hight))
@@ -405,18 +444,31 @@ def makeLinkTexNew_withoutJSON(project, links, name=None):
     #    json.dump(linklist, outfile)
 
     new_imgl.putdata(texl)
-    pathl = path + '/links/' +  links["name"] + '_linksXYZ.bmp' #_linksXYZ.bmp'
+    
+    pathl = path + '/links/' +  links["name"] + '.bmp' # fits pfile naming, former '_linksXYZ.bmp'
+    
     if name is not None:
+        name_bool = True
         pathl = path + '/links/' +  name +  '.bmp'
 
-    if os.path.exists(pathl):
-        return '<a style="color:red;">ERROR </a>' +  links["name"]  + " linklist already in project"
-    else:
-        new_imgl.save(pathl)
-        return '<a style="color:green;">SUCCESS </a>' +  links["name"] +  " Link Textures Created"
- 
+    if name_bool == False:
+        if os.path.exists(pathl):
+            return '<a style="color:red;">ERROR </a>' +  links["name"] + " linklist already in project"
+        else:
+            new_imgl.save(pathl)
+            return '<a style="color:green;">SUCCESS </a>' +  links["name"] +  " Link Textures Created"
+    else: 
+         
+        if os.path.exists(pathl):
+            return '<a style="color:red;">ERROR </a>' +  name + " linklist already in project"
+        else:
+            new_imgl.save(pathl)
+            return '<a style="color:green;">SUCCESS </a>' +  name +  " Link Textures Created"
+        
 
 
+# processing all links (upload JSON format: "links" key)
+# links.json then used for analytics
 def makeLinksjson(project,links):
     path = 'static/projects/' + project 
 
@@ -443,10 +495,11 @@ def makeLinksjson(project,links):
         return '<a style="color:red;">ERROR </a>'  +  links["name"] + " Linkfile malformated?" 
 
     with open(path + '/links.json', 'w') as outfile:
-        json.dump(linklist, outfile)
+        json.dump(linklist, outfile, indent=4)
 
 
-
+# processing links per layout (upload JSON format: "layouts" key > "links" key)
+# linksperlayout.json then used for analytics
 def makeLinksjson_multipleLinklists(project,links):
     path = 'static/projects/' + project 
 
@@ -483,7 +536,8 @@ def makeLinksjson_multipleLinklists(project,links):
     all_links["links"] = linksperlayout
 
     with open(path + '/linkslayouts.json', 'w') as outfile:
-        json.dump(all_links, outfile)
+        json.dump(all_links, outfile, indent=4)
+
 
 
 
@@ -580,16 +634,26 @@ def makeLinkRGBTex(project, linksRGB, name=None):
         return '<a style="color:red;">ERROR </a>'  +  linksRGB["name"] + " Linkfile malformated?" 
 
     new_imgc.putdata(texc)
-    pathRGB = path + '/linksRGB/' +  linksRGB["name"] +  '_linksRGB.png'
+    pathRGB = path + '/linksRGB/' +  linksRGB["name"] + '.png' # fits pfile naming, former '_linksRGB.png'
+    
     if name is not None:
+        name_bool = True
         pathRGB = path + '/linksRGB/' +  name +  '.png'
 
-    if os.path.exists(pathRGB):
-        return '<a style="color:red;">ERROR </a>' +  linksRGB["name"]  + " linklist already in project"
-    else:
-        new_imgc.save(pathRGB, "PNG")
-        return '<a style="color:green;">SUCCESS </a>' +  linksRGB["name"] +  " Link Textures Created"
- 
+    if name_bool == False:
+        if os.path.exists(pathRGB):
+            return '<a style="color:red;">ERROR </a>' +  linksRGB["name"]  + " linklist already in project"
+        else:
+            new_imgc.save(pathRGB, "PNG")
+            return '<a style="color:green;">SUCCESS </a>' +  linksRGB["name"] +  " Linkcolor Textures Created"
+    else: 
+         
+        if os.path.exists(pathRGB):
+            return '<a style="color:red;">ERROR </a>' +  name + " linklist already in project"
+        else:
+            new_imgc.save(pathRGB, "PNG")
+            return '<a style="color:green;">SUCCESS </a>' +  name +  " Linkcolor Textures Created"
+        
 
 
 
@@ -722,21 +786,21 @@ def upload_filesNew(request):
         
         if len(color["data"]) == 0:
             color["data"] = [[255,0,255,100]] * numnodes
-            color["name"] = "nan"
+            color["name"] = "Layoutname"
 
         state =  state + makeNodeRGBTexture(namespace, color) + '<br>'
         pfile["layoutsRGB"].append(color["name"]+ "RGB")
 
     for linklist in links:
         if len(linklist["data"]) == 0:
-            linklist["name"] = "nan"
+            linklist["name"] = "Layoutname"
         state =  state + makeLinkTexNew(namespace, linklist) + '<br>'
-        pfile["links"].append(linklist["name"]+ "_linksXYZ")  
+        pfile["links"].append(linklist["name"]+ "_linksXYZ")
 
     for lcolors in linkcolors:
         if len(lcolors["data"]) == 0:
             lcolors["data"] = [[255,0,255,100]] * len(links[0]["data"])
-            lcolors["name"] = "nan"
+            lcolors["name"] = "Layoutname"
         state =  state + makeLinkRGBTex(namespace, lcolors) + '<br>'
         pfile["linksRGB"].append(lcolors["name"] + "_linksRGB")  
  
@@ -761,10 +825,10 @@ def upload_filesNew(request):
 
 
     with open(folder + '/pfile.json', 'w') as outfile:
-        json.dump(pfile, outfile)
+        json.dump(pfile, outfile, indent=4)
 
     with open(folder + '/nodes.json', 'w') as outfile:
-        json.dump(nodelist, outfile)
+        json.dump(nodelist, outfile, indent=4)
     
     GD.plist =GD.listProjects()
     return state
@@ -863,385 +927,385 @@ def loadLegendFiles(files, legendfolder, target):
 
 
 
-##########################  OLD UPLOADER DONT USE  ##########################
+# ##########################  OLD UPLOADER DONT USE  ##########################
 
 
 
 
 
-def upload_files(request):
-    form = request.form.to_dict()
+# def upload_files(request):
+#     form = request.form.to_dict()
 
-    prolist = GD.plist
-    namespace = '' 
-    if form["namespace"] == "New":
-        namespace = form["new_name"]    #namespace
-    else:
-        namespace = form["existing_namespace"]
-    if not namespace:
-        return "namespace fail"
+#     prolist = GD.plist
+#     namespace = '' 
+#     if form["namespace"] == "New":
+#         namespace = form["new_name"]    #namespace
+#     else:
+#         namespace = form["existing_namespace"]
+#     if not namespace:
+#         return "namespace fail"
     
-    # GET LAYOUT
+#     # GET LAYOUT
     
-    if namespace in prolist:
-        print('project exists')
-    else:
-        # Make Folders
-        makeProjectFolders(namespace)
+#     if namespace in prolist:
+#         print('project exists')
+#     else:
+#         # Make Folders
+#         makeProjectFolders(namespace)
 
 
-    folder = 'static/projects/' + namespace + '/'
-    pfile = {}
+#     folder = 'static/projects/' + namespace + '/'
+#     pfile = {}
 
-    with open(folder + 'pfile.json', 'r') as json_file:
-        pfile = json.load(json_file)
-    json_file.close()
+#     with open(folder + 'pfile.json', 'r') as json_file:
+#         pfile = json.load(json_file)
+#     json_file.close()
 
 
-    state = ''
+#     state = ''
 
-    labels_content = ""
+#     labels_content = ""
     
 
-    label_file = request.files.getlist("labels")
-    if len(label_file) > 0:     
-        for file in label_file:
-            name = file.filename.split(".")[0]
-            labels_content = file.read().decode('utf-8')
-            #print(labels_content)
-            lines = labels_content.splitlines()
-            for line in lines:
-                thislabelText = line.split(";")[0]
-                thislabel = line.split(";")[1]
-                thislabelNodes = thislabel.split(",")
+#     label_file = request.files.getlist("labels")
+#     if len(label_file) > 0:     
+#         for file in label_file:
+#             name = file.filename.split(".")[0]
+#             labels_content = file.read().decode('utf-8')
+#             #print(labels_content)
+#             lines = labels_content.splitlines()
+#             for line in lines:
+#                 thislabelText = line.split(";")[0]
+#                 thislabel = line.split(";")[1]
+#                 thislabelNodes = thislabel.split(",")
 
-                newsel = {}
-                newsel["name"] = thislabelText
-                newsel["nodes"] = thislabelNodes
-                pfile["selections"].append(newsel)
-        #pfile["labelcount"] = len(pfile["selections"])
-    else:
-        print("error parsing labels")
-
-
+#                 newsel = {}
+#                 newsel["name"] = thislabelText
+#                 newsel["nodes"] = thislabelNodes
+#                 pfile["selections"].append(newsel)
+#         #pfile["labelcount"] = len(pfile["selections"])
+#     else:
+#         print("error parsing labels")
 
 
-    layout_files = request.files.getlist("layouts")
 
-    if len(layout_files) > 0 and len(layout_files[0].filename) > 0:
-        #print("loading layouts", len(layout_files))
-        #print(layout_files[0])
+
+#     layout_files = request.files.getlist("layouts")
+
+#     if len(layout_files) > 0 and len(layout_files[0].filename) > 0:
+#         #print("loading layouts", len(layout_files))
+#         #print(layout_files[0])
         
-        for file in layout_files:
-            # TODO: fix the below line to account for dots in filenames
-            name = file.filename.split(".")[0]
-            contents = file.read().decode('utf-8')
-            out = makeNodeTex(namespace, name, contents, labels_content)
-            state = state + ' <br>'+ out[0]
+#         for file in layout_files:
+#             # TODO: fix the below line to account for dots in filenames
+#             name = file.filename.split(".")[0]
+#             contents = file.read().decode('utf-8')
+#             out = makeNodeTex(namespace, name, contents, labels_content)
+#             state = state + ' <br>'+ out[0]
 
-            #clumsy way to do it
-            pfile['labels'] = [out[1],out[2]]
-            pfile['nodecount'] = out[1]
-            pfile['labelcount'] = out[2]
+#             #clumsy way to do it
+#             pfile['labels'] = [out[1],out[2]]
+#             pfile['nodecount'] = out[1]
+#             pfile['labelcount'] = out[2]
 
-            pfile["layouts"].append(name + "XYZ")
-            pfile["layoutsRGB"].append(name + "RGB")
+#             pfile["layouts"].append(name + "XYZ")
+#             pfile["layoutsRGB"].append(name + "RGB")
          
-            # print(contents)
-            #x = validate_layout(contents.split("\n"))
-            #print("layout errors are", x)
-            #if x[1] == 0:
+#             # print(contents)
+#             #x = validate_layout(contents.split("\n"))
+#             #print("layout errors are", x)
+#             #if x[1] == 0:
             
-        #Upload.upload_layouts(namespace, layout_files)
+#         #Upload.upload_layouts(namespace, layout_files)
 
 
-    # GET EDGES
-    edge_files = request.files.getlist("links")
-    if len(edge_files) > 0 and len(edge_files[0].filename) > 0:
-        print("loading links", len(edge_files))
-        #Upload.upload_edges(namespace, edge_files)
-        for file in edge_files:
-            name = file.filename.split(".")[0]
-            contents = file.read().decode('utf-8')
-            pfile["links"].append(name + "_linksXYZ") #"XYZ"
-            pfile["linksRGB"].append(name + "RGB")
-            out = makeLinkTex(namespace, name, contents)
-            pfile["linkcount"] = out[1]
-            state = state + ' <br>'+ out[0]
-    #GET Labels
+#     # GET EDGES
+#     edge_files = request.files.getlist("links")
+#     if len(edge_files) > 0 and len(edge_files[0].filename) > 0:
+#         print("loading links", len(edge_files))
+#         #Upload.upload_edges(namespace, edge_files)
+#         for file in edge_files:
+#             name = file.filename.split(".")[0]
+#             contents = file.read().decode('utf-8')
+#             pfile["links"].append(name + "XYZ")  
+#             pfile["linksRGB"].append(name + "RGB")
+#             out = makeLinkTex(namespace, name, contents)
+#             pfile["linkcount"] = out[1]
+#             state = state + ' <br>'+ out[0]
+#     #GET Labels
 
-    #update the projects file
-    with open(folder + 'pfile.json', 'w') as json_file:
-        json.dump(pfile, json_file)
+#     #update the projects file
+#     with open(folder + 'pfile.json', 'w') as json_file:
+#         json.dump(pfile, json_file)
 
-    #global sessionData
-    #sessionData["proj"] = listProjects()
-    GD.plist =GD.listProjects()
-    return state
-
-
-
+#     #global sessionData
+#     #sessionData["proj"] = listProjects()
+#     GD.plist =GD.listProjects()
+#     return state
 
 
 
-def makeLinkTex(project, name, file):
+
+
+
+# def makeLinkTex(project, name, file):
     
-    f = StringIO(file)
-    csvreader = csv.reader(f, delimiter=',')
-    elem = sum(1 for x in csvreader)
-    f.seek(0)
-    csvreader = csv.reader(f, delimiter=',')
-    hight = 512 #int(elem / 512)+1
-    path = 'static/projects/' + project 
+#     f = StringIO(file)
+#     csvreader = csv.reader(f, delimiter=',')
+#     elem = sum(1 for x in csvreader)
+#     f.seek(0)
+#     csvreader = csv.reader(f, delimiter=',')
+#     hight = 512 #int(elem / 512)+1
+#     path = 'static/projects/' + project 
 
-    texl = [(0,0,0)] * 1024 * hight
-    texc = [(0,0,0,0)] * 512 * hight
-    new_imgl = Image.new('RGB', (1024, hight))
-    new_imgc = Image.new('RGBA', (512, hight))
-    i = 0
+#     texl = [(0,0,0)] * 1024 * hight
+#     texc = [(0,0,0,0)] * 512 * hight
+#     new_imgl = Image.new('RGB', (1024, hight))
+#     new_imgc = Image.new('RGBA', (512, hight))
+#     i = 0
 
-    linklist = {}
-    linklist["links"] = []
-    try:
-        for row in csvreader:
-            thislink = {}
-            thislink["id"] = i
-            thislink["s"] = row[0]
-            thislink["e"] = row[1]
-            linklist["links"].append(thislink)
+#     linklist = {}
+#     linklist["links"] = []
+#     try:
+#         for row in csvreader:
+#             thislink = {}
+#             thislink["id"] = i
+#             thislink["s"] = row[0]
+#             thislink["e"] = row[1]
+#             linklist["links"].append(thislink)
 
-            sx = int(row[0]) % 128 # R
-            syl = int(int(row[0]) / 128) % 128 # G
-            syh = int(int(row[0]) / 16384) # B
+#             sx = int(row[0]) % 128 # R
+#             syl = int(int(row[0]) / 128) % 128 # G
+#             syh = int(int(row[0]) / 16384) # B
 
-            ex = int(row[1]) % 128
-            eyl = int(int(row[1]) / 128) % 128
-            eyh = int(int(row[1]) / 16384)
+#             ex = int(row[1]) % 128
+#             eyl = int(int(row[1]) / 128) % 128
+#             eyh = int(int(row[1]) / 16384)
 
-            if len(row) == 6:
+#             if len(row) == 6:
 
-                r = int(row[2])
-                g = int(row[3])
-                b = int(row[4])
-                a = int(row[5])
+#                 r = int(row[2])
+#                 g = int(row[3])
+#                 b = int(row[4])
+#                 a = int(row[5])
 
-            if len(row) == 2:
-                r = 0
-                g = 100
-                b = 255
-                a = 90
+#             if len(row) == 2:
+#                 r = 0
+#                 g = 100
+#                 b = 255
+#                 a = 90
 
-            pixell1 = (sx,syl,syh)
-            pixell2 = (ex,eyl,eyh)
-            pixelc = (r,g,b,a)
+#             pixell1 = (sx,syl,syh)
+#             pixell2 = (ex,eyl,eyh)
+#             pixelc = (r,g,b,a)
 
-            #if i < 262144:
+#             #if i < 262144:
 
-            texl[i*2] = pixell1
-            texl[i*2+1] = pixell2
-            texc[i] = pixelc
+#             texl[i*2] = pixell1
+#             texl[i*2+1] = pixell2
+#             texc[i] = pixelc
 
-            i += 1
+#             i += 1
 
-    except (IndexError, ValueError):
-        return '<a style="color:red;">ERROR </a>'  +  name + " Linkfile malformated?" 
+#     except (IndexError, ValueError):
+#         return '<a style="color:red;">ERROR </a>'  +  name + " Linkfile malformated?" 
 
-    with open(path + '/links.json', 'w') as outfile:
-        json.dump(linklist, outfile)
+#     with open(path + '/links.json', 'w') as outfile:
+#         json.dump(linklist, outfile)
 
-    new_imgl.putdata(texl)
-    new_imgc.putdata(texc)
-    pathl = path + '/links/' +  name + 'XYZ.bmp'
-    pathRGB = path + '/linksRGB/' +  name +  'RGB.png'
+#     new_imgl.putdata(texl)
+#     new_imgc.putdata(texc)
+#     pathl = path + '/links/' +  name + 'XYZ.bmp'
+#     pathRGB = path + '/linksRGB/' +  name +  'RGB.png'
 
-    if os.path.exists(pathl):
-        return '<a style="color:red;">ERROR </a>' +  name  + " linklist already in project"
-    else:
-        new_imgl.save(pathl, "PNG")
-        new_imgc.save(pathRGB, "PNG")
-        return '<a style="color:green;">SUCCESS </a>' +  name +  " Link Textures Created" , len(linklist["links"])
-    return "successfully created node textures and names file"
+#     if os.path.exists(pathl):
+#         return '<a style="color:red;">ERROR </a>' +  name  + " linklist already in project"
+#     else:
+#         new_imgl.save(pathl, "PNG")
+#         new_imgc.save(pathRGB, "PNG")
+#         return '<a style="color:green;">SUCCESS </a>' +  name +  " Link Textures Created" , len(linklist["links"])
+#     return "successfully created node textures and names file"
 
 
-def makeNodeTex(project, name, file, labelfile):
-    #print(labelfile)
+# def makeNodeTex(project, name, file, labelfile):
+#     #print(labelfile)
     
 
-    fl = StringIO(labelfile)
-    csvreaderl = csv.reader(fl, delimiter=',')
-    eleml = sum(1 for x in csvreaderl)
-    fl.seek(0)
-    csvreaderl = csv.reader(fl, delimiter=',')
+#     fl = StringIO(labelfile)
+#     csvreaderl = csv.reader(fl, delimiter=',')
+#     eleml = sum(1 for x in csvreaderl)
+#     fl.seek(0)
+#     csvreaderl = csv.reader(fl, delimiter=',')
 
-    f = StringIO(file)
-    csvreader = csv.reader(f, delimiter=',')
-    elem = sum(1 for x in csvreader)
-    f.seek(0)
-    csvreader = csv.reader(f, delimiter=',')
-    hight = 128 * (int((elem + eleml) / 16384) + 1)
+#     f = StringIO(file)
+#     csvreader = csv.reader(f, delimiter=',')
+#     elem = sum(1 for x in csvreader)
+#     f.seek(0)
+#     csvreader = csv.reader(f, delimiter=',')
+#     hight = 128 * (int((elem + eleml) / 16384) + 1)
 
-    #print ("hight is " + str(hight))
-    size = 128 * hight 
-    path = 'static/projects/' + project 
+#     #print ("hight is " + str(hight))
+#     size = 128 * hight 
+#     path = 'static/projects/' + project 
     
-    texh = [(0,0,0)] * size
-    texl = [(0,0,0)] * size
-    texc = [(0,0,0,0)] * size
+#     texh = [(0,0,0)] * size
+#     texl = [(0,0,0)] * size
+#     texc = [(0,0,0,0)] * size
 
-    new_imgh = Image.new('RGB', (128, hight))
-    new_imgl = Image.new('RGB', (128, hight))
-    new_imgc = Image.new('RGBA', (128, hight))
+#     new_imgh = Image.new('RGB', (128, hight))
+#     new_imgl = Image.new('RGB', (128, hight))
+#     new_imgc = Image.new('RGBA', (128, hight))
     
-    i = 0
-    attrlist = {}
-    attrlist['names'] = []
+#     i = 0
+#     attrlist = {}
+#     attrlist['names'] = []
 
-    nodelist = {}
-    nodepos = []
-    nodecol = []
-    nodelist["nodes"] = []
-    nodelist["labels"] = []
+#     nodelist = {}
+#     nodepos = []
+#     nodecol = []
+#     nodelist["nodes"] = []
+#     nodelist["labels"] = []
 
-    try:
-        for row in csvreader:
-            #print(row[7])
-            my_list = row[7].split(";")
-            attrlist['names'].append(my_list)
-            thisNodePos=[0,0,0]
-            thisnode = {}
-            thisnode["id"] = i
-            thisnode["n"] = my_list[0]
-            thisnode["attrlist"] = my_list
-            nodelist["nodes"].append(thisnode)
+#     try:
+#         for row in csvreader:
+#             #print(row[7])
+#             my_list = row[7].split(";")
+#             attrlist['names'].append(my_list)
+#             thisNodePos=[0,0,0]
+#             thisnode = {}
+#             thisnode["id"] = i
+#             thisnode["n"] = my_list[0]
+#             thisnode["attrlist"] = my_list
+#             nodelist["nodes"].append(thisnode)
 
 
 
-            x = int(float(row[0])*65280)
-            y = int(float(row[1])*65280)
-            z = int(float(row[2])*65280)
-            r = int(row[3])
-            g = int(row[4])
-            b = int(row[5])
-            a = int(row[6])
-            xh = int(x / 255)
-            yh = int(y / 255)
-            zh = int(z / 255)
-            xl = x % 255
-            yl = y % 255
-            zl = z % 255
-            pixelh = (xh,yh,zh)
-            pixell = (xl,yl,zl)
-            pixelc = (r,g,b,a)
-            texh[i] = pixelh
-            texl[i] = pixell
-            texc[i] = pixelc
+#             x = int(float(row[0])*65280)
+#             y = int(float(row[1])*65280)
+#             z = int(float(row[2])*65280)
+#             r = int(row[3])
+#             g = int(row[4])
+#             b = int(row[5])
+#             a = int(row[6])
+#             xh = int(x / 255)
+#             yh = int(y / 255)
+#             zh = int(z / 255)
+#             xl = x % 255
+#             yl = y % 255
+#             zl = z % 255
+#             pixelh = (xh,yh,zh)
+#             pixell = (xl,yl,zl)
+#             pixelc = (r,g,b,a)
+#             texh[i] = pixelh
+#             texl[i] = pixell
+#             texc[i] = pixelc
 
           
-            nodepos.append([float(row[0]),float(row[1]),float(row[2])])
-            nodecol.append([float(row[3]),float(row[4]),float(row[5]),100])
-            #print(row)
-            i += 1
+#             nodepos.append([float(row[0]),float(row[1]),float(row[2])])
+#             nodecol.append([float(row[3]),float(row[4]),float(row[5]),100])
+#             #print(row)
+#             i += 1
 
-    except (IndexError, ValueError):
-        return '<a style="color:red;">ERROR </a>' + name + " nodefile malformated?" ,0,0
+#     except (IndexError, ValueError):
+#         return '<a style="color:red;">ERROR </a>' + name + " nodefile malformated?" ,0,0
 
 
-    try:
-        l=0
-        for row in csvreaderl:
-            #print(row)
-            thiscolor = [200,200,200]
-            thisnode = {}
-            index = elem + l 
-            thisnode["id"] = index
+#     try:
+#         l=0
+#         for row in csvreaderl:
+#             #print(row)
+#             thiscolor = [200,200,200]
+#             thisnode = {}
+#             index = elem + l 
+#             thisnode["id"] = index
             
-            pos = [0,0,0]
+#             pos = [0,0,0]
             
-            if ";" in row[0]:
-            # A LIST OF NODES
-                my_list = row[0].split(";")
-                row[0] = my_list[1]
-                #print(my_list)
-                accPos = [0,0,0]
-                thisnode["n"] = my_list[0]
+#             if ";" in row[0]:
+#             # A LIST OF NODES
+#                 my_list = row[0].split(";")
+#                 row[0] = my_list[1]
+#                 #print(my_list)
+#                 accPos = [0,0,0]
+#                 thisnode["n"] = my_list[0]
 
-                thislabel = {}
-                thislabel["group"] = []
-                thislabel["n"] = my_list[0]
+#                 thislabel = {}
+#                 thislabel["group"] = []
+#                 thislabel["n"] = my_list[0]
                 
-                for x in row:
-                    thislabel["group"].append(x)
-                    accPos[0] += nodepos[int(x)][0]
-                    accPos[1] += nodepos[int(x)][1]
-                    accPos[2] += nodepos[int(x)][2]
-                    thiscolor = nodecol[int(x)]
+#                 for x in row:
+#                     thislabel["group"].append(x)
+#                     accPos[0] += nodepos[int(x)][0]
+#                     accPos[1] += nodepos[int(x)][1]
+#                     accPos[2] += nodepos[int(x)][2]
+#                     thiscolor = nodecol[int(x)]
 
-                pos[0] = accPos[0] / len(row)
-                pos[1] = accPos[1] / len(row)
-                pos[2] = accPos[2] / len(row)
+#                 pos[0] = accPos[0] / len(row)
+#                 pos[1] = accPos[1] / len(row)
+#                 pos[2] = accPos[2] / len(row)
 
-                nodelist["labels"].append(thislabel)
-                #print(accPos)
+#                 nodelist["labels"].append(thislabel)
+#                 #print(accPos)
 
-            else:
-            # node is fixed position
-                thisnode["n"] = row[0]
-                pos[0]=float(row[1])
-                pos[1]=float(row[2])
-                pos[2]=float(row[3])
+#             else:
+#             # node is fixed position
+#                 thisnode["n"] = row[0]
+#                 pos[0]=float(row[1])
+#                 pos[1]=float(row[2])
+#                 pos[2]=float(row[3])
                  
-            x = int(float(pos[0])*65280)
-            y = int(float(pos[1])*65280)
-            z = int(float(pos[2])*65280)
-            r = int(thiscolor[0])
-            g = int(thiscolor[1])
-            b = int(thiscolor[2])
-            a = 127
-            xh = int(x / 255)
-            yh = int(y / 255)
-            zh = int(z / 255)
-            xl = x % 255
-            yl = y % 255
-            zl = z % 255
-            pixelh = (xh,yh,zh)
-            pixell = (xl,yl,zl)
-            pixelc = (r,g,b,a)
-            texh[index] = pixelh
-            texl[index] = pixell
-            texc[index] = pixelc
+#             x = int(float(pos[0])*65280)
+#             y = int(float(pos[1])*65280)
+#             z = int(float(pos[2])*65280)
+#             r = int(thiscolor[0])
+#             g = int(thiscolor[1])
+#             b = int(thiscolor[2])
+#             a = 127
+#             xh = int(x / 255)
+#             yh = int(y / 255)
+#             zh = int(z / 255)
+#             xl = x % 255
+#             yl = y % 255
+#             zl = z % 255
+#             pixelh = (xh,yh,zh)
+#             pixell = (xl,yl,zl)
+#             pixelc = (r,g,b,a)
+#             texh[index] = pixelh
+#             texl[index] = pixell
+#             texc[index] = pixelc
 
-            attrlist['names'].append([thisnode["n"],"label",])
-            nodelist["nodes"].append(thisnode)
+#             attrlist['names'].append([thisnode["n"],"label",])
+#             nodelist["nodes"].append(thisnode)
 
-            l += 1
-            #print(my_list)
+#             l += 1
+#             #print(my_list)
          
 
-    except (IndexError, ValueError):
-        return '<a style="color:red;">ERROR </a>' + name + " labelfile malformated?", 0,0
+#     except (IndexError, ValueError):
+#         return '<a style="color:red;">ERROR </a>' + name + " labelfile malformated?", 0,0
     
 
 
-    with open(path + '/names.json', 'w') as outfile:
-        json.dump(attrlist, outfile)
+#     with open(path + '/names.json', 'w') as outfile:
+#         json.dump(attrlist, outfile)
 
-    with open(path + '/nodes.json', 'w') as outfile:
-        json.dump(nodelist, outfile)
+#     with open(path + '/nodes.json', 'w') as outfile:
+#         json.dump(nodelist, outfile)
 
-    new_imgh.putdata(texh)
-    new_imgl.putdata(texl)
-    new_imgc.putdata(texc)
+#     new_imgh.putdata(texh)
+#     new_imgl.putdata(texl)
+#     new_imgc.putdata(texc)
         
-    pathXYZ = path + '/layouts/' +  name + 'XYZ.bmp'
-    pathXYZl = path + '/layoutsl/' +  name + 'XYZl.bmp' 
-    pathRGB = path + '/layoutsRGB/' +  name +  'RGB.png'
+#     pathXYZ = path + '/layouts/' +  name + 'XYZ.bmp'
+#     pathXYZl = path + '/layoutsl/' +  name + 'XYZl.bmp' 
+#     pathRGB = path + '/layoutsRGB/' +  name +  'RGB.png'
 
-    if os.path.exists(pathXYZ):
-        return '<a style="color:red;">ERROR </a>' +  name + " Nodelist already in project",0,0
-    else:
-        new_imgh.save(pathXYZ)
-        new_imgl.save(pathXYZl)
-        new_imgc.save(pathRGB, "PNG")
-        return '<a style="color:green;">SUCCESS </a>' + name + " Node Textures Created", elem, eleml
+#     if os.path.exists(pathXYZ):
+#         return '<a style="color:red;">ERROR </a>' +  name + " Nodelist already in project",0,0
+#     else:
+#         new_imgh.save(pathXYZ)
+#         new_imgl.save(pathXYZl)
+#         new_imgc.save(pathRGB, "PNG")
+#         return '<a style="color:green;">SUCCESS </a>' + name + " Node Textures Created", elem, eleml
 
 

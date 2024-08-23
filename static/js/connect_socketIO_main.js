@@ -92,7 +92,7 @@ function updateMcElements() {
                 socket.emit('ex', { usr: uid, id: dynelem[i].getAttribute('id'), fn: "ue4", val: "init" });
                 break;
             case "button":
-                socket.emit('ex', { usr: uid, id: dynelem[i].getAttribute('id'), fn: "resetlayout", val: "init" });
+                socket.emit('ex', { usr: uid, id: dynelem[i].getAttribute('id'), fn: "resetlayout", val: 0});
                 break;
         }
         //console.log(dynelem[i].getAttribute('container'));

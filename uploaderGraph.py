@@ -3,6 +3,8 @@
 from matplotlib.colors import hex2color
 import re 
 import math 
+import random 
+import GlobalData as GD
 
 from uploader import *
 
@@ -25,6 +27,9 @@ def hex_to_rgba(hex_color):
 #
 #########################################################################################
 def upload_filesJSON(request):
+    
+    global create_project
+    create_project = True
 
     #-----------------------------------
     # Make Project Folders 
@@ -39,6 +44,8 @@ def upload_filesJSON(request):
                     namespace = form["graph"]["projectname"]
                 elif "graphtitle" in form["graph"].keys():
                     namespace = form["graph"]["graphtitle"]
+                else: 
+                    namespace = "Auto_ProjectName"
             # one merged json file (with layout key)
             elif "projectname" in form.keys(): # former graphtitle
                 namespace = form["projectname"] # former graphtitle
@@ -53,14 +60,19 @@ def upload_filesJSON(request):
         form = request.form.to_dict()
         namespace = form["namespaceJSON"]
 
+    prolist = GD.listProjects()
 
-    prolist = GD.plist
     if not namespace:
-        return "namespace fail"
+        create_project = False
+        return "Namespace fail. Please specify a projectname."
     if namespace in prolist:
-        print('project exists')
+        create_project = False
+        return "Project creation failed. Projectname exists."        
+    
+    if create_project == True:
+        makeProjectFolders(namespace) 
     else:
-        makeProjectFolders(namespace)
+        return "Process interrupted."
 
     #-----------------------------------
     # CREATING PFILE.json
@@ -69,10 +81,9 @@ def upload_filesJSON(request):
     pfile = {}
     with open(folder + 'pfile.json', 'r') as json_file:
         pfile = json.load(json_file)
-    json_file.close()
     
-    #print("C_DEBUG: created folder and pfile.json")
-    #print("C_DEBUG: pfile : ", pfile)
+    json_file.close()
+
 
     #-----------------------------------
     # CREATING necessary variables to store data
@@ -204,7 +215,6 @@ def upload_filesJSON(request):
             nodelist["nodes"].append(thisnode)
             complex_annotations = False # set if required for analytics
 
-
     #----------------------------------
     # CLUSTER LABELS
     #----------------------------------
@@ -268,36 +278,26 @@ def upload_filesJSON(request):
             pass
         
     #----------------------------------
-    # MAKE TEXTURES - FOR NODEPOSITIONS
+    # MAKE TEXTURES - node positions
     #----------------------------------
-    for layout in nodepositions: # for file_index in range(len(nodepositions)):  #
-                
-        if len(layout["data"]) > 0 and len(layout["data"][int(0)]) == 3:
-        
-            # if names[file_index] is not None:
-            #     # if texture name specified
-            #     state =  state + makeXYZTexture(namespace, layout, names[file_index]) + '<br>'
-            #     pfile["layouts"].append(names[file_index])    
-            #     continue
+    for file_index,layout in enumerate(nodepositions): # for file_index in range(len(nodepositions)):  #
 
-            state =  state + makeXYZTexture(namespace, layout) + '<br>'
-            pfile["layouts"].append(layout["name"] + "XYZ")
+        #print("C_DEBUG: fileindex = ", file_index)
 
         # catch for 2D positions and for empty rows
-        elif len(layout["data"]) > 0 and len(layout["data"][int(x)]) == 2:
+        if len(layout["data"]) > 0 and len(layout["data"][int(0)]) == 2:
             for i,xy in enumerate(layout["data"]):
                 layout["data"][i] = (xy[0],xy[1],0.0)
-            
-            if names[file_index] is not None:
-                # if texture name specified
-                state =  state + makeXYZTexture(namespace, layout, names[file_index]) + '<br>'
-                pfile["layouts"].append(names[file_index])    
-                continue 
-            state =  state + makeXYZTexture(namespace, layout) + '<br>'
-            pfile["layouts"].append(layout["name"] + "XYZ")
 
-        else: state = "upload must contain at least 1 node position list"
-        
+        # handle layout name 
+        if names[file_index] is not None and names[file_index] != "":
+            state =  state + makeXYZTexture(namespace, layout, names[file_index]) + '<br>'
+            pfile["layouts"].append(names[file_index])    
+        else: # if no specified layout name
+            temp_name = "Layoutname"+str(file_index)
+            state =  state + makeXYZTexture(namespace, layout, temp_name) + '<br>'
+            pfile["layouts"].append(temp_name) # + "XYZ")
+
     # match labels to respective layout to get label colors for legend
     clustercounter = 0
     if len(pfile["selections"]) > 0:
@@ -339,56 +339,80 @@ def upload_filesJSON(request):
 
 
     #----------------------------------
-    # processing node colors 
+    # MAKE TEXTURES - node colors 
     #----------------------------------
-    for color in nodecolors: #for file_index in range(len(nodecolors)):
+    for file_index,color in enumerate(nodecolors): #for file_index in range(len(nodecolors)):
         
         #color = nodecolors[file_index]
-
         if len(color["data"]) == 0:
             color["data"] = [[255,0,255,100]] * numnodes
-            color["name"] = "nan"
-        # if names[file_index] is not None:
-        #     # if texture name specified
-        #     state =  state + makeNodeRGBTexture(namespace, color, names[file_index]) + '<br>'
-        #     pfile["layoutsRGB"].append(names[file_index])    
-        #     continue
-        state =  state + makeNodeRGBTexture(namespace, color) + '<br>'
-        pfile["layoutsRGB"].append(color["name"]+ "RGB")
+            
+        # handle layout name 
+        if names[file_index] is not None and names[file_index] != "":
+            state =  state + makeNodeRGBTexture(namespace, color, names[file_index]) + '<br>'
+            pfile["layoutsRGB"].append(names[file_index])    
+        else: # if no specified layout name
+            temp_name = "Layoutname"+str(file_index)
+            state =  state + makeNodeRGBTexture(namespace, color, temp_name) + '<br>'
+            pfile["layoutsRGB"].append(temp_name) # + "RGB")
+            
 
     #----------------------------------
-    # processing Links for ANALYTICS
+    # MAKE TEXTURES - links for VISUALIZATION
     #----------------------------------
     
-    # all links
-    makeLinksjson(namespace, links)
-    
-    #----------------------------------
-    # processing links for VISUALIZATION
-    #----------------------------------
-    
-    # links per layout
-    makeLinksjson_multipleLinklists(namespace, linksdicts)
-    #print("C_DEBUG: linksdicts: ", linksdicts)
-
     for sublist in linksdicts:  
         for file_index in range(len(sublist)): 
             linklist = sublist[file_index]
 
-            if len(linklist["data"]) == 0:
-                linklist["name"] = "nan"
+            # remap link-node ids based on nodelist "id" (in case of link-nodes are specified as nodenames (str)
+            for link in linklist["data"]:
+                try:
+                    link[0] = int(link[0])
+                    link[1] = int(link[1])
+                except: 
+                    link[0] = next(node["id"] for node in nodelist["nodes"] if node["n"] == link[0])
+                    link[1] = next(node["id"] for node in nodelist["nodes"] if node["n"] == link[1])
 
-            # if names[file_index] is not None:
-            #     # if texture name specified
-            #     state =  state + makeLinkTexNew_withoutJSON(namespace, linklist, names[file_index]) + '<br>'
-            #     #pfile["links"].append(names[file_index])    
-            #     continue
-            state =  state + makeLinkTexNew_withoutJSON(namespace, linklist) + '<br>'
-            
-            
-            pfile["links"].append(linklist["name"]+ "_linksXYZ") #"XYZ"
-            #print("C_DEBUG: pfile[links]: ", pfile["links"]) 
+            # handle layout name 
+            if names[file_index] is not None and names[file_index] != "":
+                state =  state + makeLinkTexNew_withoutJSON(namespace, linklist, names[file_index]) + '<br>'
+                pfile["links"].append(names[file_index])    
+            else: # if no specified layout name
+                temp_name = "Layoutname"+str(file_index)
+                state =  state + makeLinkTexNew_withoutJSON(namespace, linklist, temp_name) + '<br>'
+                pfile["links"].append(temp_name) # + "_linksXYZ")
 
+    # Message for user
+    print("Created Textures.")
+
+
+    # links per layout json
+    makeLinksjson_multipleLinklists(namespace, linksdicts)
+    
+
+    #----------------------------------
+    # processing Links for ANALYTICS
+    #----------------------------------
+
+    # remap links to node ids matching them with node "n" names, in case link-nodes are specific as nodenames (str)
+
+    #print("C_DEBUG: links before remapping:", links) 
+    
+    for link in links[0]["data"]:
+        try:
+            link[0] = int(link[0])
+            link[1] = int(link[1])
+        except: 
+            link[0] = next(node["id"] for node in nodelist["nodes"] if node["n"] == link[0])
+            link[1] = next(node["id"] for node in nodelist["nodes"] if node["n"] == link[1])
+
+    #print("C_DEBUG: links remapped:", links)   
+    
+    # all links json
+    makeLinksjson(namespace, links)
+
+    
     #----------------------------------
     # processing link colors 
     #----------------------------------
@@ -399,13 +423,15 @@ def upload_filesJSON(request):
             lcolors["data"] = [[255,0,255,100]] * len(links[0]["data"])
             lcolors["name"] = "nan"
 
-        # if names[file_index] is not None:
-        #     # if texture name specified
-        #     state =  state + makeLinkRGBTex(namespace, lcolors, names[file_index]) + '<br>'
-        #     pfile["["linksRGB"].append(names[file_index])    
-        #     continue
-        state =  state + makeLinkRGBTex(namespace, lcolors) + '<br>'
-        pfile["linksRGB"].append(lcolors["name"]+ "_linksRGB")
+        # handle layout name 
+        if names[file_index] is not None and names[file_index] != "":
+            state =  state + makeLinkRGBTex(namespace, lcolors, names[file_index]) + '<br>'
+            pfile["linksRGB"].append(names[file_index])    
+        else: # if no specified layout name
+            temp_name = "Layoutname"+str(file_index)
+            state =  state + makeLinkRGBTex(namespace, lcolors, temp_name) + '<br>'
+            pfile["linksRGB"].append(temp_name) # + "_linksRGB")
+            
 
     pfile["nodecount"] = numnodes
     #pfile["labelcount"] = len(labels[0]["data"])
@@ -418,30 +444,31 @@ def upload_filesJSON(request):
     
     pfile["annotationTypes"] = complex_annotations    # define in pfile if you use annotation types or default flat annotation list
 
-
-    #----------------------------------
-    # processing legends pictures (if any)
-    #----------------------------------
-    legendfiles = []
-    if isinstance(request, dict):
-        #os.mkdir(folder+'legends/') # just generate legends folder
-        pfile["legendfiles"] = None
-    else: 
-        loadLegendFiles(request.files.getlist("legendFiles"), folder+'legends/', legendfiles)
-        pfile["legendfiles"] = legendfiles
+    # consider reimplementation
+    # #----------------------------------
+    # # processing legends pictures (if any)
+    # #----------------------------------
+    # legendfiles = []
+    # if isinstance(request, dict):
+    #     #os.mkdir(folder+'legends/') # just generate legends folder
+    #     pfile["legendfiles"] = None
+    # else: 
+    #     loadLegendFiles(request.files.getlist("legendFiles"), folder+'legends/', legendfiles)
+    #     pfile["legendfiles"] = legendfiles
 
 
     #----------------------------------
     # make essential json files for DataDiVR
     #----------------------------------
     with open(folder + '/pfile.json', 'w') as outfile:
-        json.dump(pfile, outfile)
-
-    with open(folder + '/nodes.json', 'w') as outfile:
-        json.dump(nodelist, outfile)
+        json.dump(pfile, outfile, indent=4)
     
-    GD.plist = GD.listProjects()
-    return state
+    with open(folder + '/nodes.json', 'w') as outfile:
+        json.dump(nodelist, outfile, indent=4)
+        
+    #GD.plist = GD.listProjects()
+    
+    return state, print("Filestructure finished.") 
 
 
 
@@ -486,15 +513,22 @@ def parseGraphJSON_nodepositions(files, target):
             for i in range(0, num_of_nodes):
                 pos = file["nodes"][i]["pos"]
 
+                # catch if positions are empty
+                if len(pos) == 0:
+                    # create random uniform positions   
+                    x, y, z = random.uniform(0, 0.1), random.uniform(0, 0.1), random.uniform(0, 0.1)
+                    nodepositions.append([x, y, z])                 
+                    #print("C_DEBUG: Position values are empty. Set positions to random.")
+                
                 # catch if positions are string 
-                if isinstance(pos, str) or isinstance(pos[0], str) or isinstance(pos[1], str) or isinstance(pos[2], str):
+                elif isinstance(pos, str) or isinstance(pos[0], str) or isinstance(pos[1], str) or isinstance(pos[2], str):
                     nodepositions.append([0, 0, 0])
-                    raise ValueError("Position values are strings. Set positions to 0,0,0. Please upload a valid JSON file.")
+                    #print("Position values are strings. Set positions to 0,0,0. Please upload a valid JSON file.")
                 
                 # catch if positions contain "nan" values
                 elif math.isnan(pos[0]) or math.isnan(pos[1]) or math.isnan(pos[2]):
                     nodepositions.append([0, 0, 0])
-                    raise ValueError("Position values are NaN. Set positions to 0,0,0. Please upload a valid JSON file.")
+                    #print("Position values are NaN. Set positions to 0,0,0. Please upload a valid JSON file.")
                 
                 else:
                     nodepositions.append(file["nodes"][i]["pos"])
@@ -522,6 +556,7 @@ def parseGraphJSON_links(files, target):
             links = []
             for i in range(0,num_of_links):
                 links.append([str(file["links"][i]["source"]),str(file["links"][i]["target"])])
+
             vecList = {}
             vecList["data"] = links
             vecList["name"] = name_of_file
