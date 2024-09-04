@@ -468,7 +468,7 @@ def upload_filesJSON(request):
         
     #GD.plist = GD.listProjects()
     
-    return state, print("Filestructure finished.") 
+    return state #, print("Filestructure finished.") 
 
 
 
@@ -638,7 +638,10 @@ def parseGraphJSON_linkcolors(files,target):
     if len(files) > 0: 
         #for file in files: 
         for ix,file in enumerate(files):
-
+            
+            print("C_DEBUG: file in linkcolors: ", file)
+            print("C_DEBUG  -  file.keys(): ", file.keys())
+            
             # old JSON format (no "layout" key)
             if "graph" in file:
                 name_of_file = file["graph"]["name"] #+"_linksRGB"

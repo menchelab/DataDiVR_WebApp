@@ -14,9 +14,9 @@ import random
 
 
 # constants, important to keep the order
-LAYOUT_IDS = ["random", "eigen", "local", "global", "importance", "spectral"] # ids used in session data
-LAYOUT_NAMES = ["Random Layout", "EigenUMAPLayout", "cartoGRAPHsLocal", "cartoGRAPHsImportance", "Spectral"] # names used for texture generation  !!! not implemented yet !!!
-LAYOUT_TABS = ["Random", "Eigenlayout", "cartoGRAPHs Local", "cartoGRAPHs Global", "cartoGRAPHs Importance", "Spectral"] # names used in panel display and in connect_socketIO_main.js to switch tabs
+LAYOUT_IDS = ["random", "force-directed", "eigen", "local", "global", "importance", "spectral"] # ids used in session data
+LAYOUT_NAMES = ["Random Layout", "Force-Directed", "EigenUMAPLayout", "cartoGRAPHsLocal", "cartoGRAPHsImportance", "Spectral"] # names used for texture generation  !!! not implemented yet !!!
+LAYOUT_TABS = ["Random",  "Force-Directed", "Eigenlayout", "cartoGRAPHs Local", "cartoGRAPHs Global", "cartoGRAPHs Importance", "Spectral"] # names used in panel display and in connect_socketIO_main.js to switch tabs
 
 
 
@@ -207,7 +207,7 @@ def layout_random(ordered_graph)->dict:
 
 def layout_eigen(ordered_graph)->dict:
     """
-    Random Layout Generation Function
+    Eigen Layout Generation Function
     """
     def eigenlayout(G, dim=3, n_lam=18, n_neighs=10, spread=1.0, method="cosine"):
         """
@@ -339,7 +339,6 @@ def layout_carto_local(ordered_graph)->dict:
         return {"success": False, "error": "cartoGRAPHs Local layout algorithm failed.", "log": {"type": "warning", "msg": "cartoGRAPHs Local layout generation failed."}}
     
 
-
 def layout_carto_global(ordered_graph)->dict:
     """
     global layout from cartoGRAPHs
@@ -365,8 +364,6 @@ def layout_carto_global(ordered_graph)->dict:
     except:
         return {"success": False, "error": "cartoGRAPHs Global layout algorithm failed.", "log": {"type": "warning", "msg": "cartoGRAPHs Global layout generation failed."}}
     
-
-
 
 def layout_carto_importance(ordered_graph)->dict:
     """
@@ -394,8 +391,6 @@ def layout_carto_importance(ordered_graph)->dict:
         return {"success": False, "error": "cartoGRAPHs Importance layout algorithm failed.", "log": {"type": "warning", "msg": "cartoGRAPHs Importance layout generation failed."}}
     
 
-
-
 def layout_spectral(ordered_graph: util.OrderedGraph)->dict:
     """
     Spectral Layout Generation Function
@@ -421,3 +416,32 @@ def layout_spectral(ordered_graph: util.OrderedGraph)->dict:
         return {"success": True, "content": scaled_pos}
     except:
         return {"success": False, "error": "Spectral layout algorithm failed.", "log": {"type": "log", "msg": "Spectral layout generation failed."}}
+
+
+def layout_forcedirected(ordered_graph)->dict:
+    """
+    spring layout
+    """
+    # integrety checks
+    if not isinstance(ordered_graph, util.OrderedGraph):
+        return {"success": False, "error": "Graph is not instance of OrderedGraph class."}
+    
+    # boundary checks
+    # no check set yet
+
+    # actual layout to get node positions
+    try:
+        layout = nx.spring_layout(G=ordered_graph, dim=3, iterations=10)
+        positions = []
+        for node in ordered_graph.node_order:
+            pos = layout[node]
+            positions.append([pos[0], pos[1], pos[2]])
+        
+        # scale positions
+        scaled_pos = scale_positions(positions=positions, node_order=ordered_graph.node_order)
+        # return positions
+        return {"success": True, "content": scaled_pos}
+    except:
+        return {"success": False, "error": "Spring layout algorithm failed.", "log": {"type": "log", "msg": "Spring layout generation failed."}}
+
+

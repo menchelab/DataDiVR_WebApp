@@ -12,7 +12,7 @@ SPAM_MAX_TASKS = 3
 SPAM_EXPENSIVE_IDS = {
     'analyticsDegreeRun', 'analyticsClosenessRun', 'analyticsPathRun', 'analyticsEigenvectorRun', 'analyticsModcommunityRun', 'analyticsModcommunityLayout', 'analyticsClusteringCoeffRun', 
     'annotationRun',
-    'layoutRandomApply', 'layoutEigenApply', 'layoutCartoLocalApply', 'layoutCartoGlobalApply', 'layoutCartoImportanceApply', 'layoutSpectralApply'
+    'layoutRandomApply', 'layoutFDApply', 'layoutEigenApply', 'layoutCartoLocalApply', 'layoutCartoGlobalApply', 'layoutCartoImportanceApply', 'layoutSpectralApply'
 }
 # IDs of socket connection which reponse to expensive task requests
 

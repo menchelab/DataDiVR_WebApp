@@ -525,6 +525,9 @@ $(document).ready(function() {
                             case "Random":
                                 $("#layoutSelectRandom").css('display', 'inline-block');
                                 break;
+                            case "Force-Directed":
+                                $("#layoutSelectFD").css('display', 'inline-block');
+                                break;
                             case "Eigenlayout":
                                 $("#layoutSelectEigen").css('display', 'inline-block');
                                 break;
@@ -713,7 +716,15 @@ $(document).ready(function() {
                             id: "cbdefinedlinkslist",
                             val: data["val"]
                         });
-                console.log("C_DEBUG: data id is cbdefinelinklist - data val = ", data["val"]);
+                //console.log("C_DEBUG: data id is cbdefinelinklist - data val = ", data["val"]);
+
+
+                // TO DO 
+                // define which links json file to use for analytics 
+                // and access variable in operations where needed
+
+
+
                 break;
                 }
 

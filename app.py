@@ -91,9 +91,6 @@ def execute_before_first_request():
     GD.load_annotations()
 
 
-
-
-@app.route("/")
 def index():
     return flask.redirect("/home")
 
@@ -104,10 +101,9 @@ def preview():
 
 
 #----------------------------------------------------------------------
-# Language UI 
+# Language UI
 
 from functionmapping import process_input
-
 
 @app.route("/languageUI")
 def languageUI():
