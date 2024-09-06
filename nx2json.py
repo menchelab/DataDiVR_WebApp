@@ -1,5 +1,7 @@
 import json
 import os
+from uploaderGraph import upload_filesJSON
+
 
 def ensure_json_serializable(obj):
     if isinstance(obj, dict):
@@ -49,7 +51,7 @@ def ensure_json_serializable(obj):
 
 
 # the actual merging function to create a json file in the required structure for the newest uploading procedure (state july 2024)
-def merge_graphs(graphs):
+def make_json(graphs): # former: merge_graphs(graphs):
     all_nodes = []
     all_links = []
     layouts = []
@@ -57,6 +59,10 @@ def merge_graphs(graphs):
     seen_nodes = set()  # To track seen node IDs
     seen_links = set()  # To track seen links by a tuple of (source, target)
 
+    # add check if a list or a single nx.graph object
+    if not isinstance(graphs, list):
+        graphs = [graphs]
+        
     for graph in graphs:
         # Process nodes for global and layout-specific lists
         for node, attrs in graph.nodes(data=True):
@@ -160,4 +166,18 @@ def merge_graphs(graphs):
         
 
     return merged_structure
+
+
+def create_project(graphs):
+    merged_structure = make_json(graphs)
+    print("Merged JSON file created.")
+    
+    try:
+        print("Uploading merged JSON file...")
+        upload_filesJSON(merged_structure)
+        print("Merged JSON file uploaded successfully.")
+        
+    except Exception as e:
+        print("Error: Could not upload merged JSON file.")
+        print("Exception:", e)
 
