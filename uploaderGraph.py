@@ -639,8 +639,8 @@ def parseGraphJSON_linkcolors(files,target):
         #for file in files: 
         for ix,file in enumerate(files):
             
-            print("C_DEBUG: file in linkcolors: ", file)
-            print("C_DEBUG  -  file.keys(): ", file.keys())
+            #print("C_DEBUG: file in linkcolors: ", file)
+            #print("C_DEBUG  -  file.keys(): ", file.keys())
             
             # old JSON format (no "layout" key)
             if "graph" in file:
