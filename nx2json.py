@@ -68,23 +68,23 @@ def make_json(graphs): # former: merge_graphs(graphs):
         for node, attrs in graph.nodes(data=True):
             if node not in seen_nodes:
                 annotation = attrs.get('annotation', [])
-                anntation_mod = {}
+                annotation_mod = {}
                 
                 # Adding catch for annotation types (dict = new, list = old, anything else = no annotations found)
                 if isinstance(annotation, dict):
                     for k, v in annotation.items():
                         if is_json_serializable(v):
-                            anntation_mod[k] = v
+                            annotation_mod[k] = v
                         else:
                             anntation_mod[k] = str(v)  # Convert to string if not JSON serializable
                 elif isinstance(annotation, list):
                     for i in range(len(annotation)):
                         if is_json_serializable(annotation[i]):
-                            anntation_mod['annotation'+str(i)] = annotation[i]
+                            annotation_mod['annotation'+str(i)] = annotation[i]
                         else:
                             anntation_mod['annotation'+str(i)] = str(annotation[i])  # Convert to string if not JSON serializable
                 else:
-                    anntation_mod['annotation'] = " - no annotation found."  # Blank annotation
+                    annotation_mod['annotation'] = " - no annotation found."  # Blank annotation
 
                 if not is_json_serializable(node):
                     node = str(node)  # Convert to string if not JSON serializable
@@ -92,7 +92,7 @@ def make_json(graphs): # former: merge_graphs(graphs):
                 all_nodes.append({
                     'id': node,
                     'name': node,
-                    'annotation': anntation_mod
+                    'annotation': annotation_mod
                 })
                 seen_nodes.add(node)
 
@@ -132,7 +132,13 @@ def make_json(graphs): # former: merge_graphs(graphs):
             'target': to_int_or_str(target) if not is_json_serializable(target) else target
         } for source, target, attrs in graph.edges(data=True)]
 
-        layouts.append({'layoutname': graph.name, 'nodes': layout_nodes, 'links': layout_links})
+        # check if "layoutname" exists
+        try:
+            layout_name = graph.graph["layoutname"]
+        except KeyError:
+            layout_name = "layoutname_" + str(graphs.index(graph))
+                    
+        layouts.append({'layoutname': layout_name, 'nodes': layout_nodes, 'links': layout_links})
 
     # Assuming the structure of the graphs are similar, and using the first graph as the base
     merged_structure = {
@@ -140,7 +146,7 @@ def make_json(graphs): # former: merge_graphs(graphs):
         'multigraph': graphs[0].is_multigraph(),
         'projectname': graphs[0].graph.get("projectname", "Template"),
         'info': graphs[0].graph.get("info", "No description specified."),
-        'graphlayouts': [graph.name for graph in graphs],  # CONSIDER REMOVING!!!
+        'graphlayouts': [graph.name for graph in graphs],  # List of layout names
         'annotationTypes': True,
         'nodes': all_nodes,
         'links': all_links,

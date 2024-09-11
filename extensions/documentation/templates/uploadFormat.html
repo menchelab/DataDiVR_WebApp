@@ -15,179 +15,207 @@
 </head>
 
 <body>
-	<div style="margin-left: 20px";>
+	<div>
 
 		<br>
-		<h3 style="font-size: 30px;">How to create a Project with your Data</h3>
+		<h3 style="font-size: 30px;">How to create a Project for the Platform</h3>
 
-		<h5><span>General Info</span></h5>
-		
-		<p style="text-align: justify; margin-right:60px;">
-		To create a project with your data, please use the jupyter notebooks <span> <a style="font-size:20px" href="file:///_GenerateProject_MinimalExample.ipynb"
-							target="_blank">_GenerateProject_MinimalExample</a></span> or the <span> <a style="font-size:20px" href="file://../../../_GenerateProject_Example.ipynb"
-							target="_blank">_GenerateProject_Example</a></span>.
-		<br><br>
-		Both notebooks provide a step-by-step guide on how to create a project with your data, using nx.Graph objects from the networkx library.
-		To generate a project, the server does not have to be running. 	
-		The function "create_project" (in nx2json.py) will generate a project folder with the necessary files for the platform in the "projects" folder.
-		Input for this function can be a list of nx.Graph objects or a single nx.Graph object.
-		For more information on the information that can be provided in the nx.Graph object, please see the file format options below.
-		</p>
-		<br>
-		<br>
-
-
-		Supported formats :: CSV, JSON
-		<br>
-		Depending on the file format, please use the corresponding upload link below.
+		<div class="swagBox">
+			<div style="margin-left: 20px">
+				<br> 
+				<h5><span>Create a Project using Python</span>
+				</h5>
+				
+				<p style="text-align: justify; margin-right:60px;">
+				<br>
+				To create a project with your data, please use the jupyter notebooks <span> <a style="font-size:20px;" href="https://github.com/menchelab/DataDiVR_WebApp/blob/developer/_GenerateProject_MinimalExample.ipynb"
+									target="_blank">_GenerateProject_MinimalExample</a></span> or the <span> <a style="font-size:20px" href="https://github.com/menchelab/DataDiVR_WebApp/blob/developer/_GenerateProject_Example.ipynb"
+									target="_blank">_GenerateProject_Example</a></span> for more detailed instructions.
+				<br><br>
+				Both notebooks provide a step-by-step guide on how to create a project, based on nx.Graph objects from the <span> <a style="font-size:20px;" href="https://networkx.org/" target="_blank">networkx python module</a></span>.
+				<br>
+				The function at the end of each notebook named "create_project" (to be found in nx2json.py) will generate a project folder with the necessary files for the platform in the "projects" folder (the server does not have to be running for this step). 	
+				<br>
+				Input for this function can be a list of nx.Graph objects or a single nx.Graph.
+				For more information on the nx.Graph object data, please see the file format options below or check out the provided notebooks.
+				</p>
+			</div>
+		</div>
 		<br> 
-		<br>
 
-	</div>
-
-	<div class="six columns">
 		<div class="swagBox">
-
-			<div style="margin-left:20px">
-
-				<h4>File Format Option 1 :: CSV tables</h4>
+			<div style="margin-left: 20px">
+				<br> 
+				<h5><span>Create a project using the Web-based Upload process</span>
+				</h5>
+				
+				<p style="text-align: justify; margin-right:60px;">
 				<br>
-				<h5><span>Upload Link:</span> <span> <a style="font-size:20px" href="/upload"
-							target="_blank">/upload</a></span></h5>
+				Supported formats :: CSV, JSON
 				<br>
-				<h5>File Preparation :</h5>
-
-				<div style="margin-left: 20px">
-					<br>
-
-					- NODE POSITIONS
-					are provided as <i>XYZ coordinates</i>
-					<!-- in the range between 0.0 and 1.0 (there is a script in <i>/python_tools </i>called <i>normalize.py </i>to do that) -->
-					<br>
-					<pre><code class="html">1.0,0.0,1.0</code></pre> or can be provided as <i>lat/lon</i> for geo data.
-					In this case the csv file <i>must contain '_geo'</i> in its name. These are then automatically
-					converted into XYZ coordinates.<br>
-					There is also a script in <i>/python_tools </i>called <i>geojson_features.py</i> that shows how to
-					construct a network out of polygons from a .geojson file.
-					<pre><code class="html">9.566134751824677,-82.54619625520348</code></pre>
-
-					- NODE COLORS
-					are provided as <i>RGBA colors</i> in the range between 0 and 255
-					<br>
-					<pre><code class="html">255,0,128,255</code></pre>
-
-					- NODE PROPERTIES
-					are set as a list of attributes for each node.
-					<br>
-					Be aware that commas are used as a delimiter, so if you have them in your input data escape them
-					with <i>& # 4 4</i> (without spaces).
-					<pre><code class="html">node0,vertex</code></pre>
-
-					- LINKS
-					are collected in a list of <i>start and end node indexes </i>for each link. Only a single linklist
-					is supported.<br>
-					<pre><code class="html">0,1</code></pre>
-
-					- LINK COLORS
-					are set as a list of <i>RGBA</i> values in the range from 9 to 255 for each link<br>
-					<pre><code class="html">255,100,0,255</code></pre>
-
-					- LABELS
-					are set as the <i>name</i> of the label followed by a list of an arbitrary number of valid node
-					indexes<br>
-					Note: There can only be one label file for now.
-					<pre><code class="html">GREEN,0,1,4</code></pre>
-
-					<br>
-					<br>
-					NOTE: the old version of the uploader with a different file format is still available under <a
-						style="font-size:20px" href="/uploadOLD">/uploadOLD</a>
-					<br>
-					Please find file examples on the uploader webpage directly.
-					<br>
-					<br>
-					<br>
+				Depending on the file format, please use the corresponding upload link below.
+				</p>
 
 
-					<!-- 
-				<br>
-				- check the <i>'create new project'</i> box<br>
-				- enter <i>"myFirstProject"</i> or any other project title into the textfield<br>
-				- click the first <i>'choose Files'</i> button under <i>node positions</i> and from <i>static/examplefiles/Upload_examples_CSV</i>  choose a graph e.g.<i>cube2nodes_pos.csv </i>and <i>ZacharysKarateClub0_nodepositions.csv </i><br>
-				NOTE: this field must contain at least one file, the others are optional.<br>
-				- click <i>'choose Files'</i> button under <i>node colors</i> and from <i>static/examplefiles/Upload_examples_CSV</i>  choose a graph e.g.<i>ZacharyGraph_CSV/ZacharysKarateClub0_nodecolors.csv </i><br>
-				- click <i>'choose Files'</i> button under <i>node properties</i> and from <i>static/examplefiles/Upload_examples_CSV</i>  choose a graph e.g.<i>ZacharyGraph_CSV/ZacharysKarateClub_nodeproperties.csv </i><br>
-				- click <i>'choose Files'</i> button under <i>links</i> and from <i>static/examplefiles/Upload_examples_CSV</i>  choose a graph e.g.<i>ZacharyGraph_CSV/ZacharysKarateClub_links.csv </i><br>
-				- click <i>'choose Files'</i> button under <i>link Colors</i> and from <i>static/examplefiles/Upload_examples_CSV</i>  choose a graph e.g.<i>ZacharyGraph_CSV/ZacharysKarateClub0_linkcolors.csv </i><br>
-				- click <i>'choose Files'</i> button under <i>labels</i> and from <i>static/examplefiles/Upload_examples_CSV</i>  choose a graph e.g.<i>ZacharyGraph_CSV/ZacharysKarateClub_clusterlabels.csv </i><br>
-				- click <i>'upload'</i> 
-				-->
+				<div class="six columns" style="padding-right:20px; margin-top:20px " > <!-- style="border-right-style: dotted; border-color: dimgrey; padding-right:20px;"> -->
+					<!-- <div class="swagBox"> -->
+						<div style="margin-left:20px">
 
-				</div>
+							<h4>Format :: CSV tables</h4>
+							<br>
+							<h5><span>Upload Link:</span> <span> <a style="font-size:20px" href="/upload"
+										target="_blank">/upload</a></span></h5>
+							<br>
+							Each Layout of your Graph is stored in a separate CSV fileset as listed below.
+							<br>
+
+							<h5>File Preparation :</h5>
+							<br>	
+							<div style="margin-left: 20px">
+								<br>
+
+								- NODE POSITIONS
+								are provided as <i>XYZ coordinates</i>
+								<!-- in the range between 0.0 and 1.0 (there is a script in <i>/python_tools </i>called <i>normalize.py </i>to do that) -->
+								<br>
+								<pre style="line-height: 5px;"><code class="html">1.0,0.0,1.0</code></pre> or can be provided as <i>lat/lon</i> for geo data.
+								In this case the csv file <i>must contain '_geo'</i> in its name. These are then automatically
+								converted into XYZ coordinates.<br>
+								There is also a script in <i>/python_tools </i>called <i>geojson_features.py</i> that shows how to
+								construct a network out of polygons from a .geojson file.
+								<pre style="line-height: 5px;"><code class="html">9.566134751824677,-82.54619625520348</code></pre>
+
+								- NODE COLORS
+								are provided as <i>RGBA colors</i> in the range between 0 and 255
+								<br>
+								<pre style="line-height: 5px;"><code class="html">255,0,128,255</code></pre>
+
+								- NODE PROPERTIES
+								are set as a list of attributes for each node.
+								<br>
+								Be aware that commas are used as a delimiter, so if you have them in your input data escape them
+								with <i>& # 4 4</i> (without spaces).
+								<pre style="line-height: 5px;"><code class="html">node0,vertex</code></pre>
+
+								- LINKS
+								are collected in a list of <i>start and end node indexes </i>for each link. Only a single linklist
+								is supported.<br>
+								<pre style="line-height: 5px;"><code class="html">0,1</code></pre>
+
+								- LINK COLORS
+								are set as a list of <i>RGBA</i> values in the range from 9 to 255 for each link<br>
+								<pre style="line-height: 5px;"><code class="html">255,100,0,255</code></pre>
+
+								- LABELS
+								are set as the <i>name</i> of the label followed by a list of an arbitrary number of valid node
+								indexes<br>
+								Note: There can only be one label file for now.
+								<pre style="line-height: 5px;"><code class="html">GREEN,0,1,4</code></pre>
+
+								<br>
+								<br>
+								Please find file examples on the uploader webpage directly.
+								<br>
+								<br>
+								<br>
+								<p style="color:dimgrey" > NOTE: the old version of the uploader with a different file format is still available under ::</p> <a
+									style="font-size:20px" href="/uploadOLD">/uploadOLD</a>
+								<br>
+								<br>
+
+
+								<!-- 
+							<br>
+							- check the <i>'create new project'</i> box<br>
+							- enter <i>"myFirstProject"</i> or any other project title into the textfield<br>
+							- click the first <i>'choose Files'</i> button under <i>node positions</i> and from <i>static/examplefiles/Upload_examples_CSV</i>  choose a graph e.g.<i>cube2nodes_pos.csv </i>and <i>ZacharysKarateClub0_nodepositions.csv </i><br>
+							NOTE: this field must contain at least one file, the others are optional.<br>
+							- click <i>'choose Files'</i> button under <i>node colors</i> and from <i>static/examplefiles/Upload_examples_CSV</i>  choose a graph e.g.<i>ZacharyGraph_CSV/ZacharysKarateClub0_nodecolors.csv </i><br>
+							- click <i>'choose Files'</i> button under <i>node properties</i> and from <i>static/examplefiles/Upload_examples_CSV</i>  choose a graph e.g.<i>ZacharyGraph_CSV/ZacharysKarateClub_nodeproperties.csv </i><br>
+							- click <i>'choose Files'</i> button under <i>links</i> and from <i>static/examplefiles/Upload_examples_CSV</i>  choose a graph e.g.<i>ZacharyGraph_CSV/ZacharysKarateClub_links.csv </i><br>
+							- click <i>'choose Files'</i> button under <i>link Colors</i> and from <i>static/examplefiles/Upload_examples_CSV</i>  choose a graph e.g.<i>ZacharyGraph_CSV/ZacharysKarateClub0_linkcolors.csv </i><br>
+							- click <i>'choose Files'</i> button under <i>labels</i> and from <i>static/examplefiles/Upload_examples_CSV</i>  choose a graph e.g.<i>ZacharyGraph_CSV/ZacharysKarateClub_clusterlabels.csv </i><br>
+							- click <i>'upload'</i> 
+							-->
+
+							</div>
+						</div>
+					</div>
+
+
+				<div class="six columns" style="border-left-style: dotted; border-color: dimgrey; padding-right:20px; margin-top:20px">
+					<!-- <div class="swagBox"> -->
+						<div style="margin-left:20px">
+
+							<h4>Format :: JSON</h4>
+							<br>
+							<h5><span>Upload Link:</span> <span> <a style="font-size:20px" href="/uploadJSON"
+										target="_blank">/uploadJSON</a></span></h5>
+							<br>
+							<br>
+							Each Layout of your Graph is stored in a separate nx.Graph object. To upload your data with the upload link, please follow the instructions below.
+							<br>
+
+							<h5>File Preparation :</h5>
+							<br>	
+
+							<div style="margin-left: 20px">
+								<br>
+								<div style="font-weight: bold">Create (a) nx.Graph object(s) with the following attributes: </div>
+								<br>
+								GENERAL GRAPH ATTRIBUTES
+								<pre style="line-height: 5px;">
+								<code class="html">G.graph['projectname'] = 'myProject' </code> 
+								<code class="html">G.graph['info'] = 'Information for the project / graph.'</code>
+								<code class="html">G.graph['layoutname'] ='layout1-spring'</code>
+								</pre>
+								
+								NODE ATTRIBUTES 
+								<br><br>
+								Node positions using the key "pos" - dictionary with keys (Graph nodes) and values (x,y,z) 
+								<pre style="line-height: 5px;" ><code class="html">nx.set_node_attributes(G, {0:(0.04, 0.011, 1.0),1:(0.5,0.5,0.35),...}, "pos")"</code></pre>
+								<br>
+								Node colors using the key "nodecolor" - dictionary with keys (Graph nodes) and values (rgba e.g. (255,0,0,50) or hex e.g.
+								'#FF0000')
+								<pre style="line-height: 5px;"> <code class="html">nx.set_node_attributes(G,  {0:'#FF0000', 1:'00FF00',...}, "nodecolors")</code></pre>
+								<br>
+								Cluster labels, to display group/community association per node 
+								<pre style="line-height: 5px;"><code class="html">nx.set_node_attributes(G, {0:'clustername',1:'clustername2', ... }, "cluster")</code></pre>
+								<br>
+								<a style="font-size:18px;" href="/doku/annotations">Node annotations</a>
+								<br>
+								<br>
+								LINK ATTRIBUTES
+								<br><br>
+
+								Link colors using key "linkcolor" - can be either one color value. (rgba e.g. (255,0,0,50) or hex e.g. '#FF0000')
+								<pre style="line-height: 5px;"><code class="html">nx.set_edge_attributes(G, '#FF0000', "linkcolors")</code></pre>
+								<br> or a colorlist, containing a color per edge
+								<pre style="line-height: 5px;"><code class="html">nx.set_edge_attributes(G, {edge:color for edge,color in zip(G.edges(), colorlist)}, "linkcolors")</code></pre>
+								<br>
+								After creating nx.Graph object(s), store in a list (if more than one) and use the following function to generate a json file for upload. 
+								<br>
+								<pre style="line-height: 5px;"><code class="html">import nx2json as nx2j</code></pre>
+								<pre style="line-height: 5px;"><code class="html">mergedGraphs = nx2j.make_json(graphs)</code></pre>
+								The mergedGraphs object can then be saved as a json file using e.g. step 1b in the  <span> <a style="font-size:20px" href="https://github.com/menchelab/DataDiVR_WebApp/blob/developer/_GenerateProject_Example.ipynb"
+									target="_blank">_GenerateProject_Example</a></span> notebook.
+								<br><br>	
+								Please find file examples on the uploader webpage directly.
+								<br><br>
+
+							</div>
+						</div>
+					</div>
 			</div>
-		</div>
-	</div>
 
-	<div class="six columns">
-		<div class="swagBox">
 
-			<div style="margin-left:20px">
-
-				<h4>File Format Option 2 :: JSON</h4>
-				<br>
-				<h5><span>Upload Link:</span> <span> <a style="font-size:20px" href="/uploadJSON"
-							target="_blank">/uploadJSON</a></span></h5>
-				<br>
-				<h5>File Preparation :</h5>
-
-				<div style="margin-left: 20px">
-					<br>
-					<div style="font-weight: bold">Create a nx.Graph object with the following attributes: </div>
-					<br>
-
-					- LAYOUTNAME (string) = the graph name of the nx.Graph
-					<pre><code class="html">G.name="mylayout"</code></pre>
-
-					- NODE POSITION as a dictionary of keys (Graph nodes) and values as (x,y) or (x,y,z) coordinates as
-					floats
-					<pre><code class="html">nx.set_node_attributes(G, {0:(0.04, 0.011, 1.0),1:(0.5,0.5,0.35),...}, "pos")"</code></pre>
-
-					- NODE COLOR dictionary with keys (Graph nodes) and values (rgba e.g. (255,0,0,50) or hex e.g.
-					'#FF0000')
-					<pre><code class="html">nx.set_node_attributes(G,  {0:'#FF0000', 1:'00FF00',...}, "nodecolors")</code></pre>
-					<br>
-
-					<div style="font-weight: bold">optional :</div>
-
-					<br>- <a style="font-size:18px;" href="/doku/annotations">node annotations</a>
-					<br><br>
-
-					- LINK COLOR can be either one color value. (rgba e.g. (255,0,0,50) or hex e.g. '#FF0000')
-					<pre><code class="html">nx.set_edge_attributes(G, '#FF0000', "linkcolors")</code></pre>
-					- or a colorlist, containing a color per edge
-					<pre><code class="html">nx.set_edge_attributes(G, {edge:color for edge,color in zip(G.edges(), colorlist)}, "linkcolors")</code></pre>
-
-					- GRAPH TITLE (string) = title of the graph
-					<pre><code class="html">G.graph["graphtitle"] = "mygraph"</code></pre>
-
-					- GRAPH DESCRIPTION (string) = short information about the graph
-					<pre><code class="html">G.graph["graphdesc"] = "The Graph describes XY."</code></pre>
-
-					- LABELS (string) = to display group/community association per node<br>
-					Note: Only one layout per project can contain the "cluster" key for now.
-					<pre><code class="html">nx.set_node_attributes(G, {0:'clustername',1:'clustername2', ... }, "cluster")</code></pre>
-
-					<br>
-					NOTE: Find example files on the uploader webpage or go to
-					<i>static/examplefiles/Upload_examples_JSON</i>.
-					<br>
-					<br>
-					<br>
-				</div>
 			</div>
+
+			<a class="twelve columns" style="font-size:20px; margin-top:10px; margin-bottom:30px; text-align:center;" href="/doku/">Back to the main documentation</a>
 		</div>
+
+
 	</div>
-	<br><br><a href="/doku/">Back to the main documentation</a><br>
 </body>
 
 </html>
