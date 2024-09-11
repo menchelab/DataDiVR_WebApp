@@ -911,7 +911,6 @@ def parseGraphJSON_layoutnames(files, target):
     if len(files) > 0: 
         l_layoutnames = []
         for ix,file in enumerate(files):            
-        
             # get layout names
             try:
                 # if files = layout key in one JSON file
@@ -920,7 +919,7 @@ def parseGraphJSON_layoutnames(files, target):
                 # if files = separate json files 
                 elif "graph" in file.keys():  
                     name_of_file = file["graph"]["name"]
-
+               
             except:
                 name_of_file = "Automatic-LayoutID"+str(ix)
 

@@ -1,6 +1,10 @@
 import json
 import os
-from uploaderGraph import upload_filesJSON
+
+try:
+    from uploaderGraph import upload_filesJSON
+except:
+    print("Error: Could not import the uploaderGraph module. \n Only importing the necessary functions for the function 'make_json' to run. \n Please ensure the uploader module is in the same directory as this script.")
 
 
 def ensure_json_serializable(obj):
@@ -55,7 +59,8 @@ def make_json(graphs): # former: merge_graphs(graphs):
     all_nodes = []
     all_links = []
     layouts = []
-
+    l_layoutnames = []
+    
     seen_nodes = set()  # To track seen node IDs
     seen_links = set()  # To track seen links by a tuple of (source, target)
 
@@ -76,13 +81,13 @@ def make_json(graphs): # former: merge_graphs(graphs):
                         if is_json_serializable(v):
                             annotation_mod[k] = v
                         else:
-                            anntation_mod[k] = str(v)  # Convert to string if not JSON serializable
+                            annotation_mod[k] = str(v)  # Convert to string if not JSON serializable
                 elif isinstance(annotation, list):
                     for i in range(len(annotation)):
                         if is_json_serializable(annotation[i]):
                             annotation_mod['annotation'+str(i)] = annotation[i]
                         else:
-                            anntation_mod['annotation'+str(i)] = str(annotation[i])  # Convert to string if not JSON serializable
+                            annotation_mod['annotation'+str(i)] = str(annotation[i])  # Convert to string if not JSON serializable
                 else:
                     annotation_mod['annotation'] = " - no annotation found."  # Blank annotation
 
@@ -135,9 +140,11 @@ def make_json(graphs): # former: merge_graphs(graphs):
         # check if "layoutname" exists
         try:
             layout_name = graph.graph["layoutname"]
+            l_layoutnames.append(layout_name)
         except KeyError:
             layout_name = "layoutname_" + str(graphs.index(graph))
-                    
+            l_layoutnames.append(layout_name)
+                
         layouts.append({'layoutname': layout_name, 'nodes': layout_nodes, 'links': layout_links})
 
     # Assuming the structure of the graphs are similar, and using the first graph as the base
@@ -146,7 +153,7 @@ def make_json(graphs): # former: merge_graphs(graphs):
         'multigraph': graphs[0].is_multigraph(),
         'projectname': graphs[0].graph.get("projectname", "Template"),
         'info': graphs[0].graph.get("info", "No description specified."),
-        'graphlayouts': [graph.name for graph in graphs],  # List of layout names
+        'graphlayouts': l_layoutnames,
         'annotationTypes': True,
         'nodes': all_nodes,
         'links': all_links,
@@ -169,7 +176,6 @@ def make_json(graphs): # former: merge_graphs(graphs):
     # except Exception as e:
     #     print("Error: Could not save merged JSON file.")
     #     print("Exception:", e)
-        
 
     return merged_structure
 

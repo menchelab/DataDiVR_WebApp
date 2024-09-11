@@ -259,6 +259,12 @@ def load_annotations_complex():
                     annotation_types.append(anno_type)
                     annotations[anno_type] = {}
 
+                # check if anno_list is a list
+                if not isinstance(anno_list, list):
+                    print("C_DEBUG: loading annotations simple due to invalid format.")
+                    load_annotations_simple()
+                    return
+
                 for anno in anno_list:
                     if anno not in annotations[anno_type].keys():
                         annotations[anno_type][anno] = []
