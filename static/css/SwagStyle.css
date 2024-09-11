@@ -127,13 +127,11 @@ h4 {
     /*font-family: 'Venus', sans-serif;*/
     font-family: 'Michr', sans-serif;
     /*'Akshar-reg', sans-serif; */
-    font-size: 22px;
+    font-size: 24px;
     padding: 0%;
     margin-bottom: 10px;
     margin-top: 15px;
-    font-style: italic;
-    color: rgb(42, 113, 148);
-    font-weight: lighter;
+    color: rgb(100, 100, 100);
 }
 
 h5 {
@@ -1022,14 +1020,14 @@ input[type=checkbox] {
 }
 
 a:link {
-    color: rgb(89, 190, 240);
+    color: rgb(157,157,157);
     font-size:14px;
     text-decoration: None;
   }
   
   /* visited link */
   a:visited {
-    color: rgb(89, 190, 240);
+    color: rgb(157, 157, 157);
   }
   
   /* mouse over link */

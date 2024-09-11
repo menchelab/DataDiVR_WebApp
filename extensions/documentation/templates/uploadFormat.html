@@ -15,16 +15,32 @@
 </head>
 
 <body>
-	<div>
+	<div style="margin-left: 20px";>
 
 		<br>
-		<h3 style="font-size: 30px;">Uploading a Project</h3>
+		<h3 style="font-size: 30px;">How to create a Project with your Data</h3>
 
-		After uploading your project, if the upload was successful, a green message will appear, while any encountered
-		errors will prompt the display of a red error message.
+		<h5><span>General Info</span></h5>
+		
+		<p style="text-align: justify; margin-right:60px;">
+		To create a project with your data, please use the jupyter notebooks <span> <a style="font-size:20px" href="file:///_GenerateProject_MinimalExample.ipynb"
+							target="_blank">_GenerateProject_MinimalExample</a></span> or the <span> <a style="font-size:20px" href="file://../../../_GenerateProject_Example.ipynb"
+							target="_blank">_GenerateProject_Example</a></span>.
+		<br><br>
+		Both notebooks provide a step-by-step guide on how to create a project with your data, using nx.Graph objects from the networkx library.
+		To generate a project, the server does not have to be running. 	
+		The function "create_project" (in nx2json.py) will generate a project folder with the necessary files for the platform in the "projects" folder.
+		Input for this function can be a list of nx.Graph objects or a single nx.Graph object.
+		For more information on the information that can be provided in the nx.Graph object, please see the file format options below.
+		</p>
 		<br>
-		For the web preview go to <a style="font-size:20px" href="/preview">/preview</a>.
 		<br>
+
+
+		Supported formats :: CSV, JSON
+		<br>
+		Depending on the file format, please use the corresponding upload link below.
+		<br> 
 		<br>
 
 	</div>
