@@ -9,6 +9,7 @@ import numpy as np
 import scipy.sparse as sp_sp
 import umap
 from cartoGRAPHs import generate_layout as carto_gen_layout
+from cartoGRAPHs import layout_global_umap as carto_global_layout
 import random
 
 
@@ -353,8 +354,9 @@ def layout_carto_global(ordered_graph)->dict:
 
     # actual layout to get node positions
     try:
-        raw_pos = carto_gen_layout(ordered_graph, dim = 3, layoutmethod = 'global', dimred_method='umap')
-        jitter_pos = adjust_point_positions(raw_pos, 0.03)
+        #raw_pos = carto_gen_layout(ordered_graph, dim = 3, layoutmethod = 'global', dimred_method='umap')
+        raw_pos = carto_global_layout(ordered_graph, dim=3, n_neighbors=10, min_dist=0.1, spread=1.0, metric='cosine')
+        jitter_pos = adjust_point_positions(raw_pos, 0.01)
 
         # scale positions
         scaled_pos = scale_positions(positions=jitter_pos, node_order=ordered_graph.node_order, pos_type=str)
