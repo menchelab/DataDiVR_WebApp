@@ -69,13 +69,26 @@ def hex_to_rgb(hx):
 
 
 def check_ProjectFolder():
+    # add catch if "static/projects" exists
+    if not os.path.exists('static/projects/'):
+            os.mkdir('static/projects/')
+    
     path = "static/projects/GD.json"
     if not os.path.isfile(path):
         print("GD.json not found, copying demo_project")
         copy_tree("static/demo_project", "static/projects")
 
 
-def makeProjectFolders(name):
+def makeProjectFolders(name):    
+    # # add check if folder "static/projects" exists if not create 
+    # try:
+    #     if not os.path.exists('static/projects/'):
+    #         print("C_DEBUG: making projects folders in static/projects - incl mkdir")
+    #         os.mkdir('static/projects/')
+           
+    # except OSError:
+    #     print ("Creation of the directory %s failed" % path)
+
     path = "static/projects/" + name
     pfile = {}
     pfile["name"] = name
@@ -493,6 +506,9 @@ def makeLinksjson(project,links):
             
     except (IndexError, ValueError):
         return '<a style="color:red;">ERROR </a>'  +  links["name"] + " Linkfile malformated?" 
+
+    # check for total number of links in Graph for analytics
+    #print("C_DEBUG: in MAKELINKSJSON : found that many links: ", len(linklist["links"]))
 
     with open(path + '/links.json', 'w') as outfile:
         json.dump(linklist, outfile, indent=4)

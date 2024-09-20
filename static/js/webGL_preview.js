@@ -14,8 +14,8 @@ var pfile = {};
 var mesh, renderer, scene, camera, controls;
 //var data = JSON.parse('{"nodes":[{"p":[0.5,0.5,0.5],"c":[128,128,128,128],"n":"TEST1"},{"p":[0.7,0.7,0.7],"c":[ 0,128,128,128],"n":"TEST2"},{"p":[0.2,0.2,0.2],"c":[128,0,128,128],"n":"TEST3"}],"links":[{"id":0,"s":0,"e":1,"c":[0,128,128,128]},{"id":1,"s":1,"e":2,"c":[0,128,128,128]},{"id":2,"s":2,"e":1,"c":[0,128,128,128]}]}');
 var data = {};
-var scale = 20;
-const nscale = .04;
+var scale = 20; //20
+const nscale = .045; //0.04
 var nodemeshes = [];
 var linkmeshes = [];
 var link_ids = [];
@@ -160,14 +160,14 @@ function updateLinkColors(data) {
             // if alpha is greater than 100, create emissive material
             var material1 = new THREE.LineBasicMaterial({
                 color: RGB2HTML(color[0], color[1], color[2]),
-                opacity: 0.6,
+                opacity: 0.9, //0.6
                 transparent: false
             })
         } else {
             // if alpha is not greater than 100, create regular material
             var material1 = new THREE.LineBasicMaterial({
                 color: RGB2HTML(color[0], color[1], color[2]),
-                opacity: 0.15,
+                opacity: 0.4, //0.15
                 transparent: true
             });
         }
@@ -294,6 +294,7 @@ async function updateLayoutTemp(path_low, path_hi) {
             const line = new THREE.Line(geometry1, material1);
             line.layers.set(1);
             line.linewidth
+            console.log()
             line.name = "line"
             scene.add(line);
             linkmeshes.push(line)

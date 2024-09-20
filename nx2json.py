@@ -182,14 +182,4 @@ def make_json(graphs): # former: merge_graphs(graphs):
 
 def create_project(graphs):
     merged_structure = make_json(graphs)
-    print("Merged JSON file created.")
-    
-    try:
-        print("Uploading merged JSON file...")
-        upload_filesJSON(merged_structure)
-        print("Merged JSON file uploaded successfully.")
-        
-    except Exception as e:
-        print("Error: Could not upload merged JSON file.")
-        print("Exception:", e)
-
+    upload_filesJSON(merged_structure)

@@ -3,6 +3,7 @@ var socket;
 var newcon = true;
 var logAll = true;
 var isPreview = false; logjs
+var isLanguageUI = false; logjs
 var isMain = false;
 var isUE4 = false;
 
@@ -145,6 +146,10 @@ $(document).ready(function() {
     if (document.getElementById("main")) {
         isMain = true;
     }
+    if (document.getElementById("languageUI")) {
+        console.log("C_DEBUG: languageUI is true");
+        isLanguageUI = true;
+    }
 
     if (document.getElementById("scrollbox1")) {
         document.getElementById("scrollbox1").style.display = "none";
@@ -231,6 +236,14 @@ $(document).ready(function() {
                             makeNetwork();
                         }, 2000);
                     }
+
+                    if (isLanguageUI) {
+                        // Wait until ui is initialized
+                        setTimeout(function() {
+                            initialized = true;
+                        }, 2000);
+                    }
+
 
                 }
 
@@ -783,6 +796,10 @@ $(document).ready(function() {
                         actLinksRGB = reset_value;
                         makeNetwork();
                     }
+
+                    if (isUE4) {
+                        ue4(data["fn"], data);
+                    }   
                 }   
 
 
@@ -984,7 +1001,7 @@ $(document).ready(function() {
                 }
                 
                 ue4("but", data);
-                //console.log("C_DEBUG: ue4 data = ", data);
+                console.log("C_DEBUG: ue4 data = ", data);
 
                 break;
 

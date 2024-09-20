@@ -81,8 +81,11 @@ app, extensions = load_extensions.load(app)
 ### Execute code before first request ###
 @app.before_first_request
 def execute_before_first_request():
-    uploader.check_ProjectFolder()
+    uploader.check_ProjectFolder() # checks if GD.json exists
+    
     util.create_dynamic_links(app)
+    
+    GD.checkProjectGDexists() #check if project in GD.json exist / if not exists, using demo project
     GD.loadGD()
     GD.loadPFile()
     GD.loadPD()
@@ -98,28 +101,6 @@ def index():
 @app.route("/preview")
 def preview():
     return render_template("preview.html", extensions=extensions)
-
-
-#----------------------------------------------------------------------
-# Language UI
-
-from functionmapping import process_input
-
-@app.route("/languageUI")
-def languageUI():
-    return render_template("mLanguageUI.html", extensions=extensions)
-
-@app.route('/languageUI_process', methods=['POST'])
-def process():
-    data = request.get_json()
-    user_input = data.get('text')
-    result = process_input(user_input)
-    return jsonify({"result": result})
-
-#----------------------------------------------------------------------
-
-
-
 
 
 @app.route("/main", methods=["GET"])
@@ -144,6 +125,30 @@ def main():
 
 
 myusers = [{'uid': 4, 'links': [2, 2, 2, 2, 2, 133, 666, 666, 666, 666, 125, 125]}, {'uid': 666, 'links': [133]}, {'uid': 133, 'links': [666]}, {'uid': 555, 'links': [666, 133, 4, 123, 124, 125, 125, 125]}, {'uid': 125, 'links': [555, 128]}, {'uid': 128, 'links': [555]}, {'uid': 130, 'links': [555]}]
+
+
+#----------------------------------------------------------------------
+# Language UI
+
+from functionmapping import process_input
+
+@app.route("/languageUI")
+def languageUI():
+    return render_template("mLanguageUI.html", extensions=extensions)
+
+
+@app.route('/languageUI_process', methods=['POST'])
+def process():
+    data = request.get_json()
+    user_input = data.get('text')
+    result = process_input(user_input)
+    return jsonify({"result": result})
+
+#----------------------------------------------------------------------
+
+
+
+
 
 
 import plotlyExamples

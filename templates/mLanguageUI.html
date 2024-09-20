@@ -39,14 +39,15 @@
 
 <body class="unselectable" style="width:1750px"> 
 
-    <mc-module id="module-chat" name="Chat">
+<div id = "languageUI"> 
+    <mc-module name="ASSISTANT ENGINE">
         <button id="clearbutton" class="swagButton" onclick="clearChat()" style="float:right;">CLEAR</button>
         <mc-scrollbox id='scrollbox'></mc-scrollbox>
 
         <mc-TextInput id="textInput" type="textinput" fn="textinput" ></mc-TextInput>
         <button id="searchbutton" class="swagButton" onclick="processQuery()">GO</button>
     </mc-module>
-
+</div>
 </body>
 
 </html>

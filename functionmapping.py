@@ -1,6 +1,9 @@
 import nltk
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords, wordnet as wn
+nltk.download('punkt_tab')
+
+
 from rapidfuzz import fuzz
 from spellchecker import SpellChecker
 import re

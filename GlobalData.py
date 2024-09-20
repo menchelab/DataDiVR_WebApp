@@ -62,12 +62,51 @@ def socket_left(func):
 
 
 def listProjects():
+    # add catch if folder does not exist
+    if not path.exists("static/projects"):
+        os.mkdir("static/projects")
+         
     folder = "static/projects"
     sub_folders = [
         name for name in os.listdir(folder) if os.path.isdir(os.path.join(folder, name))
     ]
-    #print(sub_folders)
     return sub_folders
+
+def listExampleProjects():
+    folder = "static/demo_project"
+    sub_folders = [
+        name for name in os.listdir(folder) if os.path.isdir(os.path.join(folder, name))
+    ]
+    return sub_folders
+
+
+def checkProjectGDexists():
+
+    global data
+    example_projects = listExampleProjects()
+
+    # this is not necessary due to catch in uploader.check_ProjectFolder() 
+    # # in case of GD json not exists
+    # if not path.exists("static/projects/GD.json"):
+    #     data = {}
+    #     data["actPro"] = example_projects[0]
+    #     with open("static/projects/GD.json", "w") as json_file:
+    #         json.dump(data, json_file, indent="\t")
+    
+    #if path.exists("static/projects/GD.json"):
+    
+    with open("static/projects/GD.json", "r") as json_file:
+        data = json.load(json_file)
+
+    # if project does not exist, set to example project 
+    if not path.exists("static/projects/" + data["actPro"]):
+        data["actPro"] = example_projects[0]
+        with open("static/projects/GD.json", "w") as json_file:
+            json.dump(data, json_file, indent="\t")
+            #print("C_DEBUG: Project set to example project since GD.json project not existing ", data["actPro"])
+
+    json_file.close()
+    
 
 
 # how to save and load GD?
@@ -75,14 +114,9 @@ def loadGD():
     global plist
     plist = listProjects()
     # print(globals())
-    if path.exists("static/projects/GD.json"):
-        with open("static/projects/GD.json", "r") as json_file:
-            global data
-            data = json.load(json_file)
-            if not path.exists("static/projects/" + data["actPro"]):
-                print("project does not exist")
-    else:
-        print("GD.json not found")
+    
+    with open("static/projects/GD.json", "r") as json_file:
+        data = json.load(json_file)   
 
     json_file.close()
     # global sessionData
@@ -90,12 +124,10 @@ def loadGD():
 
 
 def loadPFile():
-    # print(globals())
+    global pfile
     with open("static/projects/" + data["actPro"] + "/pfile.json", "r") as json_file:
-        global pfile
         pfile = json.load(json_file)
         print(pfile)
-
     json_file.close()
 
 
@@ -249,7 +281,7 @@ def load_annotations_complex():
         
         # check if dict beforehand: 
         if not isinstance(node["attrlist"], dict):
-            print("C_DEBUG: loading annotations simple due to invalid format.")
+            p#rint("C_DEBUG: loading annotations simple due to invalid format.")
             load_annotations_simple()
             
         else: 
@@ -261,7 +293,7 @@ def load_annotations_complex():
 
                 # check if anno_list is a list
                 if not isinstance(anno_list, list):
-                    print("C_DEBUG: loading annotations simple due to invalid format.")
+                    #print("C_DEBUG: loading annotations simple due to invalid format.")
                     load_annotations_simple()
                     return
 

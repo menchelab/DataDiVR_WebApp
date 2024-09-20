@@ -209,21 +209,23 @@
                         }
                     }
                 }
-                //console.log("C_DEBUG - layoutname selected = ", layoutname);
-                //console.log("C_DEBUG - list layout_with_clusters = ", l_layout_with_clusters);
+                console.log("C_DEBUG - layoutname selected = ", layoutname);
+                console.log("C_DEBUG - list layout_with_clusters = ", l_layout_with_clusters);
 
+                // --------------------- DEPRECATED start
                 // remove "RGB" from layoutname
-                let layoutname_withoutRGB;
-                if (layoutname.endsWith("RGB")) {
-                    layoutname_withoutRGB = layoutname.slice(0, -3);
-                }
+                //let layoutname_withoutRGB;
+                //if (layoutname.endsWith("RGB")) {
+                //    layoutname_withoutRGB = layoutname.slice(0, -3);
+                //}
                 // else {
                 //     layoutname_withoutRGB = layoutname;
                 // }
                 //console.log("C_DEBUG : layoutname_withoutRGB  = ", layoutname_withoutRGB);
+                // --------------------- DEPRECATED end
+                
 
-                if (l_layout_with_clusters.includes(layoutname_withoutRGB)) {
-                    // W I T H   D E F I N E D   C L U S T E R S 
+                if (l_layout_with_clusters.includes(layoutname) || layoutname === l_layout_with_clusters) {   // W I T H   D E F I N E D   C L U S T E R S 
             
                     const clusterlist = pfiledata["selections"];
                     //console.log("C_DEBUG - clusterlist = ", clusterlist); //.reverse());
@@ -245,13 +247,8 @@
                         //console.log("C_DEBUG: labelcolor: ", labelColor);
                         //console.log("C_DEBUG: name: ", name);
 
-                        const clusterlist_layoutname = clusterlist[key]['layoutname']; // +"RGB";
-                        //console.log("C_DEBUG: clusterlist layoutname ",  clusterlist_layoutname);
-
-                        if (layoutname_withoutRGB  === clusterlist_layoutname) {
-                            //console.log("C_DEBUG matched layoutname with clusterlist");
-                            labelColorDict[labelColor] = name;
-                        } 
+                        labelColorDict[labelColor] = name;
+                        
                     }
                     //: labelColorDict = ", labelColorDict);
             
@@ -371,6 +368,107 @@
         }
     }
 
+    // // Link Info by selected ID 
+    // function Legend_displayLinkInfobyID(project_selected, selected_id) {
+    //     if (document.getElementById('legendpanel')) {
+    //         const p_file = 'static/projects/'+project_selected+'/pfile.json';
+
+    //         const alllink_Div = document.getElementById("legend_link_all");
+
+    //         $.getJSON(p_file, (pfiledata) => {
+
+    //             // catch if selected ID is larger than actual list of pfiledata links
+    //             let corrected_id = selected_id;
+    //             if (pfiledata["linksRGB"].length <= selected_id) {
+    //                 //console.log("C_DEBUG in LINK INFO : ", pfiledata["linksRGB"].length);
+    //                 corrected_id = 0;
+    //             }
+
+    //             const clusterlist = pfiledata["selections"];
+    //             const linkdesc_Div = document.getElementById("legend_linkdescription");
+    //             const linkcol_Div = document.getElementById("legend_linkcolor");
+    //             linkdesc_Div.innerHTML = "";
+    //             linkcol_Div.innerHTML = "";
+
+    //             const img_name =  pfiledata["linksRGB"][corrected_id]; 
+    //             const img = new Image();
+    //             img.src = 'static/projects/' + project_selected + '/linksRGB/'+ img_name+".png";
+        
+    //             const canvas = document.createElement('canvas');
+    //             img.onload = function() {
+    //                 canvas.width = img.width;
+    //                 canvas.height = img.height;
+    //                 const ctx = canvas.getContext('2d');
+    //                 ctx.drawImage(img, 0, 0);
+    //                 const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    //                 const pixelData = imageData.data;
+                    
+    //                 // Loop through all the pixels in the image
+    //                 const colorsDict = {};
+    //                 const namesDict = {};
+    //                 let index = 1;
+
+    //                 for (let i = 0; i < pixelData.length; i += 4) {
+    //                     const r = pixelData[i];
+    //                     const g = pixelData[i + 1];
+    //                     const b = pixelData[i + 2];
+    //                     const a = pixelData[i + 3];
+    //                     const colorKey = `${r},${g},${b}`;
+                        
+    //                     // If the color key doesn't exist in the dictionary yet, add it
+                        
+    //                     // filter alpha values pixel with a = 10 since background pixels
+    //                     if (a === 10) {
+    //                         continue; // Skip this pixel
+    //                     }   
+
+    //                     if (!colorsDict.hasOwnProperty(colorKey)) {
+    //                         const pixelIndex = i / 4; // Get the pixel index
+    //                         namesDict[pixelIndex] = {"name":"Connections ", //+index, 
+    //                                                 "nodes": []} //, "color" : []}; // Set the index as the key
+    //                         colorsDict[colorKey] = pixelIndex; // Map the color key to the pixel index
+    //                         index += 1;
+    //                     }
+    //                     const pixelIndex = colorsDict[colorKey]; // Retrieve the pixel index from the color key mapping
+    //                     namesDict[pixelIndex]["nodes"].push(i / 4); 
+    //                 }
+    //                 // Create a new dictionary with the colorKey as the key
+    //                 const newNamesDict = {};
+    //                 for (const pixelIndex in namesDict) {
+    //                         const colorKey = `${pixelData[pixelIndex * 4]},${pixelData[pixelIndex * 4 + 1]},${pixelData[pixelIndex * 4 + 2]}`;
+    //                         newNamesDict[colorKey] = namesDict[pixelIndex];
+    //                     }
+    //                 // console.log("C_DEBUG: newNamesDict: ", newNamesDict);
+                    
+    //                 // Loop through the namesDict and create an element for each node
+    //                 for (const color in newNamesDict) {
+    //                     if (color != '0,0,0') {
+    //                         const color_reformated = 'rgb(' + color + ')';    
+
+    //                         const colorImg = displayColorAsDiv(color_reformated,  18.5,18.5, 5.5, 0);//30, 5, 0, 0); // 20px 20px square
+    //                         linkcol_Div.appendChild(colorImg);
+                        
+    //                         const textdiv = document.createElement("div");
+    //                         textdiv.style.fontSize="14px";
+    //                         textdiv.style.lineHeight="24px"; // this should be same as colorImg.height+colorImg.marginBottom
+    //                         const text = document.createTextNode(newNamesDict[color]["name"]);
+    //                         textdiv.appendChild(text);
+    //                         linkdesc_Div.appendChild(textdiv);
+    //                     } 
+    //                     alllink_Div.appendChild(linkcol_Div);
+    //                     alllink_Div.appendChild(linkdesc_Div);
+    //                 }
+    //             };
+
+    //         })
+    //         .fail(function() {
+    //             console.log("Error: Could not load JSON file");
+    //         });
+    //     }
+    // }
+
+
+
     // Link Info by selected ID 
     function Legend_displayLinkInfobyID(project_selected, selected_id) {
         if (document.getElementById('legendpanel')) {
@@ -383,92 +481,135 @@
                 // catch if selected ID is larger than actual list of pfiledata links
                 let corrected_id = selected_id;
                 if (pfiledata["linksRGB"].length <= selected_id) {
-                    //console.log("C_DEBUG in LINK INFO : ", pfiledata["linksRGB"].length);
                     corrected_id = 0;
                 }
 
-                const clusterlist = pfiledata["selections"];
+                let layoutname = pfiledata["linksRGB"][corrected_id];  // Assuming links also have layout names similar to nodes
+                
+                let l_layout_with_clusters = [];
+                if (pfiledata["selections"].length != 0) {
+                    for (layoutid in pfiledata["selections"]) {
+                        if ("layoutname" in pfiledata["selections"][layoutid]) {
+                            let layout_with_clusters = pfiledata["selections"][layoutid]["layoutname"];
+                            if (!l_layout_with_clusters.includes(layout_with_clusters)) {
+                                l_layout_with_clusters.push(layout_with_clusters); // Push unique layout with clusters
+                            }
+                        }
+                    }
+                }
+
                 const linkdesc_Div = document.getElementById("legend_linkdescription");
                 const linkcol_Div = document.getElementById("legend_linkcolor");
                 linkdesc_Div.innerHTML = "";
                 linkcol_Div.innerHTML = "";
 
-                const img_name =  pfiledata["linksRGB"][corrected_id]; 
-                const img = new Image();
-                img.src = 'static/projects/' + project_selected + '/linksRGB/'+ img_name+".png";
-        
-                const canvas = document.createElement('canvas');
-                img.onload = function() {
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0);
-                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                    const pixelData = imageData.data;
-                    
-                    // Loop through all the pixels in the image
-                    const colorsDict = {};
-                    const namesDict = {};
-                    let index = 1;
+                if (l_layout_with_clusters.includes(layoutname) || layoutname === l_layout_with_clusters) { 
+                    // Handle case when layout is in selections (with clusters)
+                    const clusterlist = pfiledata["selections"];
+                    const labelColorDict = {};
 
-                    for (let i = 0; i < pixelData.length; i += 4) {
-                        const r = pixelData[i];
-                        const g = pixelData[i + 1];
-                        const b = pixelData[i + 2];
-                        const a = pixelData[i + 3];
-                        const colorKey = `${r},${g},${b}`;
-                        
-                        // If the color key doesn't exist in the dictionary yet, add it
-                        
-                        // filter alpha values pixel with a = 10 since background pixels
-                        if (a === 10) {
-                            continue; // Skip this pixel
-                        }   
-
-                        if (!colorsDict.hasOwnProperty(colorKey)) {
-                            const pixelIndex = i / 4; // Get the pixel index
-                            namesDict[pixelIndex] = {"name":"Connections ", //+index, 
-                                                    "nodes": []} //, "color" : []}; // Set the index as the key
-                            colorsDict[colorKey] = pixelIndex; // Map the color key to the pixel index
-                            index += 1;
-                        }
-                        const pixelIndex = colorsDict[colorKey]; // Retrieve the pixel index from the color key mapping
-                        namesDict[pixelIndex]["nodes"].push(i / 4); 
+                    for (const key in clusterlist) {
+                        const labelColor = clusterlist[key]['labelcolor'];
+                        const name = clusterlist[key]['name'];
+                        labelColorDict[labelColor] = name;
                     }
-                    // Create a new dictionary with the colorKey as the key
-                    const newNamesDict = {};
-                    for (const pixelIndex in namesDict) {
+
+                    let idx = 0;
+                    for (const color in labelColorDict) { 
+                        const keys = Object.keys(labelColorDict);
+                        const colorParts = color.split(',').map(Number);
+                        const color_reformated = 'rgb(' + colorParts.slice(0, 3).join(', ') + ')';
+
+                        const textdiv = document.createElement("div");
+                        const text = document.createTextNode(labelColorDict[keys[idx]]);
+                        textdiv.style.fontSize = "14px";
+                        textdiv.style.lineHeight = "24px";
+                        textdiv.appendChild(text);
+                        linkdesc_Div.appendChild(textdiv);
+
+                        const colorImg = displayColorAsDiv(color_reformated, 18.5, 18.5, 5.5, 0);
+                        linkcol_Div.appendChild(colorImg);
+
+                        idx += 1;
+                    } 
+                    alllink_Div.appendChild(linkcol_Div);
+                    alllink_Div.appendChild(linkdesc_Div);
+
+                } else {
+                    // Handle case when layout is NOT in selections (without clusters)
+                    const img_name =  pfiledata["linksRGB"][corrected_id]; 
+                    const img = new Image();
+                    img.src = 'static/projects/' + project_selected + '/linksRGB/'+ img_name+".png";
+            
+                    const canvas = document.createElement('canvas');
+                    img.onload = function() {
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0);
+                        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        const pixelData = imageData.data;
+
+                        const colorsDict = {};
+                        const namesDict = {};
+                        let index = 1;
+
+                        for (let i = 0; i < pixelData.length; i += 4) {
+                            const r = pixelData[i];
+                            const g = pixelData[i + 1];
+                            const b = pixelData[i + 2];
+                            const a = pixelData[i + 3];
+                            const colorKey = `${r},${g},${b}`;
+                            
+                            if (a === 10) {
+                                continue; // Skip background pixels
+                            }
+
+                            if (!colorsDict.hasOwnProperty(colorKey)) {
+                                const pixelIndex = i / 4;
+                                namesDict[pixelIndex] = {"name":"Connections ", "nodes": []};
+                                colorsDict[colorKey] = pixelIndex;
+                                index += 1;
+                            }
+                            const pixelIndex = colorsDict[colorKey];
+                            namesDict[pixelIndex]["nodes"].push(i / 4); 
+                        }
+
+                        const newNamesDict = {};
+                        for (const pixelIndex in namesDict) {
                             const colorKey = `${pixelData[pixelIndex * 4]},${pixelData[pixelIndex * 4 + 1]},${pixelData[pixelIndex * 4 + 2]}`;
                             newNamesDict[colorKey] = namesDict[pixelIndex];
                         }
-                    // console.log("C_DEBUG: newNamesDict: ", newNamesDict);
-                    
-                    // Loop through the namesDict and create an element for each node
-                    for (const color in newNamesDict) {
-                        if (color != '0,0,0') {
-                            const color_reformated = 'rgb(' + color + ')';    
 
-                            const colorImg = displayColorAsDiv(color_reformated,  18.5,18.5, 5.5, 0);//30, 5, 0, 0); // 20px 20px square
-                            linkcol_Div.appendChild(colorImg);
-                        
-                            const textdiv = document.createElement("div");
-                            textdiv.style.fontSize="14px";
-                            textdiv.style.lineHeight="24px"; // this should be same as colorImg.height+colorImg.marginBottom
-                            const text = document.createTextNode(newNamesDict[color]["name"]);
-                            textdiv.appendChild(text);
-                            linkdesc_Div.appendChild(textdiv);
-                        } 
-                        alllink_Div.appendChild(linkcol_Div);
-                        alllink_Div.appendChild(linkdesc_Div);
-                    }
-                };
+                        for (const color in newNamesDict) {
+                            if (color != '0,0,0') {
+                                const color_reformated = 'rgb(' + color + ')';    
 
+                                const colorImg = displayColorAsDiv(color_reformated, 18.5, 18.5, 5.5, 0);
+                                linkcol_Div.appendChild(colorImg);
+                            
+                                const textdiv = document.createElement("div");
+                                textdiv.style.fontSize = "14px";
+                                textdiv.style.lineHeight = "24px";
+                                const text = document.createTextNode(newNamesDict[color]["name"]);
+                                textdiv.appendChild(text);
+                                linkdesc_Div.appendChild(textdiv);
+                            } 
+                            alllink_Div.appendChild(linkcol_Div);
+                            alllink_Div.appendChild(linkdesc_Div);
+                        }
+                    };
+                }
             })
             .fail(function() {
                 console.log("Error: Could not load JSON file");
             });
         }
     }
+
+
+
+
 
     // forward button adding index
     function NEWIndexforwardstep(data){

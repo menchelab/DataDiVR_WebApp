@@ -28,8 +28,10 @@ def hex_to_rgba(hex_color):
 #########################################################################################
 def upload_filesJSON(request):
     
-    global create_project
-    create_project = True
+    print("Creating Project...")
+    
+    global create_project_bool
+    create_project_bool = True
 
     #-----------------------------------
     # Make Project Folders 
@@ -56,28 +58,43 @@ def upload_filesJSON(request):
         except:
             print("Can not find reference to projectname. Not specified.")
 
+
     else: # original processing via uploader / webbrowser
         form = request.form.to_dict()
         namespace = form["namespaceJSON"]
 
+    #print("C_DEBUG: NAMESPACE : ", namespace)
+    
+
     prolist = GD.listProjects()
+    #print("C_DEBUG: PROLIST : ", prolist)
 
     if not namespace:
-        create_project = False
-        return "Namespace fail. Please specify a projectname."
-    if namespace in prolist:
-        create_project = False
-        return "Project creation failed. Projectname exists."        
+        create_project_bool = False
+        return print("Namespace fail. Please specify a projectname.")   
     
-    if create_project == True:
-        makeProjectFolders(namespace) 
-    else:
-        return "Process interrupted."
+    if namespace in prolist:
+        create_project_bool = False
+        return print("Project creation failed. Projectname exists." )  
 
+
+    if create_project_bool == True:
+        # try:
+        makeProjectFolders(namespace) 
+        #except:
+        #    return "Project creation failed."
+    else:   
+        return "Project creation failed."
     #-----------------------------------
     # CREATING PFILE.json
     #-----------------------------------
+    
+    # # add check if folder "static/projects" exists if not create 
+    # if not os.path.exists('static/projects/'):
+    #     os.mkdir('static/projects/')
+        
     folder = 'static/projects/' + namespace + '/'
+    
     pfile = {}
     with open(folder + 'pfile.json', 'r') as json_file:
         pfile = json.load(json_file)
@@ -364,6 +381,10 @@ def upload_filesJSON(request):
     for sublist in linksdicts:  
         for file_index in range(len(sublist)): 
             linklist = sublist[file_index]
+            
+            #print("C_DEBUG: file_index: ", file_index)
+            #print("C_DEBUG: layout has x links: ", len(linklist["data"]))
+            
 
             # remap link-node ids based on nodelist "id" (in case of link-nodes are specified as nodenames (str)
             for link in linklist["data"]:
@@ -382,9 +403,6 @@ def upload_filesJSON(request):
                 temp_name = "Layoutname"+str(file_index)
                 state =  state + makeLinkTexNew_withoutJSON(namespace, linklist, temp_name) + '<br>'
                 pfile["links"].append(temp_name) # + "_linksXYZ")
-
-    # Message for user
-    print("Created Textures.")
 
 
     # links per layout json
@@ -468,6 +486,9 @@ def upload_filesJSON(request):
         
     #GD.plist = GD.listProjects()
     
+    # Message for user
+    print("Project created successfully.")
+
     return state #, print("Filestructure finished.") 
 
 
