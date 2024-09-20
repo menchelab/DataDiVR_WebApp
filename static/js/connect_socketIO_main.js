@@ -751,7 +751,7 @@ $(document).ready(function() {
 
                     // set value to 0
                     var reset_value = 0;
-                    data.val = reset_value;
+                
 
                     // socket.emit("ex", {
                     //     fn: "legend_scene_display",
@@ -789,6 +789,8 @@ $(document).ready(function() {
                     backButton = document.getElementById("backwardstep");           
                     backButton.setAttribute('val', reset_value);                
 
+                    data["val"] = 0;
+                    
                     if (isPreview) {
                         actLayout = reset_value;
                         actLayoutRGB = reset_value;
@@ -797,9 +799,7 @@ $(document).ready(function() {
                         makeNetwork();
                     }
 
-                    if (isUE4) {
-                        ue4(data["fn"], data);
-                    }   
+                
                 }   
 
 
