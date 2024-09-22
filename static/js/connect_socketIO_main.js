@@ -799,7 +799,6 @@ $(document).ready(function() {
                         makeNetwork();
                     }
 
-                
                 }   
 
 
@@ -858,7 +857,7 @@ $(document).ready(function() {
                     // actLinksRGB = forwardidx;
 
                     //let actLinksRGB;
-                    if (pfile.linksRGB.length == 0 || pfile.links.length <= forwardidx) {
+                    if (pfile.linksRGB.length == 0 || pfile.linksRGB.length <= forwardidx) {
                         linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
                         linksRGB_DD.setAttribute("sel", parseInt(0));
                         linksRGB_DD.setAttribute("value", pfile.linksRGB[0]);
@@ -1000,8 +999,9 @@ $(document).ready(function() {
 
                 }
                 
-                ue4("but", data);
-                console.log("C_DEBUG: ue4 data = ", data);
+                ue4(data["fn"], data);
+                //ue4("but", data);
+                //console.log("C_DEBUG: ue4 data = ", data);
 
                 break;
 

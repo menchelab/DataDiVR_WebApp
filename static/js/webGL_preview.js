@@ -268,14 +268,14 @@ async function updateLayoutTemp(path_low, path_hi) {
                 // if alpha is greater than 100, create emissive material
                 var material1 = new THREE.LineBasicMaterial({
                     color: RGB2HTML(color[0], color[1], color[2]),
-                    opacity: 0.6,
+                    opacity: 0.9,
                     transparent: false
                 })
             } else {
                 // if alpha is not greater than 100, create regular material
                 var material1 = new THREE.LineBasicMaterial({
                     color: RGB2HTML(color[0], color[1], color[2]),
-                    opacity: 0.15,
+                    opacity: 0.5,
                     transparent: true
                 });
             }
@@ -294,7 +294,7 @@ async function updateLayoutTemp(path_low, path_hi) {
             const line = new THREE.Line(geometry1, material1);
             line.layers.set(1);
             line.linewidth
-            console.log()
+            console.log(line.linewidth)
             line.name = "line"
             scene.add(line);
             linkmeshes.push(line)

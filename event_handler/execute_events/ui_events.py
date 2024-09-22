@@ -187,9 +187,9 @@ def reset_layout_event(message, room):
         GD.savePD()
         response = {}
         response["usr"] = message["usr"]
-        response["fn"] = "ue4"
+        response["fn"] = "but" #"but"
         response["id"] = "resetlayout"
-        response["parent"] = "resetlayout"
+        response["parent"] = "resetlayoutparent"
         response["val"] = 0
         emit("ex", response, room=room)
     else:

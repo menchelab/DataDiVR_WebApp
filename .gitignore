@@ -7,7 +7,7 @@ venv/
 **/**.code-workspace
 
 projects/
-_jsontemp/
+temp-json/
 
 openAI_KEY_doNOTcommit.txt
 static/TTSaudio/
