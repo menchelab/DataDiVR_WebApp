@@ -278,7 +278,9 @@ def makeXYZTexture(project, pixeldata, name=None):
         name_bool = True
         pathXYZ = path + '/layouts/' +  name + '.bmp'
         pathXYZl = path + '/layoutsl/' +  name  + 'l.bmp' 
-    
+    else:
+        name_bool = False 
+        
     if name_bool == False:
         if os.path.exists(pathXYZ):
             return '<a style="color:red;">ERROR </a>' + pixeldata["name"]  + " Nodelist already in project"
