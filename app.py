@@ -134,15 +134,22 @@ from functionmapping import process_input
 
 @app.route("/languageUI")
 def languageUI():
+    
+    
+    # ISSUE: does not get user name
+
+
     return render_template("mLanguageUI.html", extensions=extensions)
 
 
 @app.route('/languageUI_process', methods=['POST'])
 def process():
     data = request.get_json()
-    user_input = data.get('text')
-    result = process_input(user_input)
-    return jsonify({"result": result})
+    lui_user_input = data.get('text')
+    result = process_input(lui_user_input)
+    username = data.get("usr")
+
+    return jsonify({"userId":username, "result": result})
 
 #----------------------------------------------------------------------
 
