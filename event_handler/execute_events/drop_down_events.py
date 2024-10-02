@@ -8,6 +8,28 @@ import layout_module
 
 import VRrooms
 
+def trigger_change_project_to(project_name) -> bool:
+    """Changes the current project to the respective project.
+
+    Args:
+        project_name (str): Name of the project to which the sever should change the current project
+
+    Returns:
+        bool: True if the project exists and the sever set it to the current project. False if the project does not exists.
+    """
+    GD.plist = GD.listProjects()
+    if project_name not in GD.plist:
+        return False
+    message = {
+        "usr": "backend",
+        "id": "projDD",
+        "fn": "dropdown",
+        "msg": project_name,
+        "val": str(GD.plist.index(project_name)),
+    }
+    main(message)
+    return True
+
 
 def trigger_change_project_to(project_name) -> bool:
     """Changes the current project to the respective project.

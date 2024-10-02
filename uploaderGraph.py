@@ -200,7 +200,9 @@ def upload_filesJSON(request):
     #     nodeinfo = parseGraphJSON_nodeinfo_complex(jsonfiles)
     
     nodeinfo = parseGraphJSON_nodeinfo(jsonfiles)
-    
+    #print("C_DEBUG: nodeinfo: ", nodeinfo)  
+
+
     numnodes = len(nodepositions[0]["data"])
     #OLD: if complex_annotations is False:
     #NEW: without complex_annotations flag (json file) instead check for "name" key per node in "nodes" key - EXPLANATION: no complex_annotations flag is needed in json file, but the variabel still exists for analytics if required
@@ -705,7 +707,7 @@ def parseGraphJSON_linkcolors(files,target):
                 elif isinstance(color, tuple) and len(color) == 4:
                     #print("C_DEBUG: link color is tuple")  
                     linkcolor_rgba.append(color)
-                
+
                 elif isinstance(color, list) and len(color) == 4:
                     #print("C_DEBUG: link color is list")  
                     linkcolor_rgba.append(tuple(color))
@@ -812,12 +814,17 @@ def parseGraphJSON_nodecolors(files,target):
                     elif re.match(r'^#([A-Fa-f0-9]{8})$', color):
                         rgba_color = hex_to_rgba(color)
                         nodecolor_rgba.append(rgba_color)
-
-                    # if RGBA FORMAT
+                    
+                    # if RGBA string
                     elif re.match(r'^rgba\((\d+),(\d+),(\d+),(\d+)\)$', color) or re.match(r'^RGBA\((\d+),(\d+),(\d+),(\d+)\)$', color):
                         rgba = re.findall(r'\d+', color)
                         rgba_color = tuple(map(int, rgba))
                         nodecolor_rgba.append(rgba_color)
+
+                # if color is tuple
+                elif isinstance(color, tuple) and len(color) == 4:
+                    #print("C_DEBUG : color is rgba tuple")
+                    nodecolor_rgba.append(color)
 
                 # if list of rgba int values (like for CSV upload)
                 elif isinstance(color,list) and len(color) == 4:

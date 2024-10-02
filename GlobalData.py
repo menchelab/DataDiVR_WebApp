@@ -281,7 +281,7 @@ def load_annotations_complex():
         
         # check if dict beforehand: 
         if not isinstance(node["attrlist"], dict):
-            p#rint("C_DEBUG: loading annotations simple due to invalid format.")
+            #print("C_DEBUG: loading annotations simple due to invalid format.")
             load_annotations_simple()
             
         else: 
