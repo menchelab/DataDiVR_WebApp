@@ -272,11 +272,15 @@ def makeXYZTexture(project, pixeldata, name=None):
     pathXYZ = path + '/layouts/' +  pixeldata["name"] + '.bmp' # former 'XYZ.bmp'
     pathXYZl = path + '/layoutsl/' +  pixeldata["name"]  + 'l.bmp' # former 'XYZl.bmp'
 
+    name_bool = False
+
     if name is not None:
         name_bool = True
         pathXYZ = path + '/layouts/' +  name + '.bmp'
         pathXYZl = path + '/layoutsl/' +  name  + 'l.bmp' 
-    
+    else:
+        name_bool = False 
+        
     if name_bool == False:
         if os.path.exists(pathXYZ):
             return '<a style="color:red;">ERROR </a>' + pixeldata["name"]  + " Nodelist already in project"
@@ -320,6 +324,8 @@ def makeNodeRGBTexture(project, pixeldata, name=None):
     
 
     pathRGB = path + '/layoutsRGB/' +  pixeldata["name"] + '.png' # fits pfile naming , former: 'RGB.bmp'
+
+    name_bool = False
 
     if name is not None:
         name_bool = True
@@ -390,6 +396,8 @@ def makeLinkTexNew(project, links, name=None):
     new_imgl.putdata(texl)
     pathl = path + '/links/' +  links["name"] + '.bmp' # fits pfile naming , former: '_linksXYZ.bmp'
     
+    name_bool = False
+
     if name is not None:
         name_bool = True
         pathl = path + '/links/' +  name + '.bmp'
@@ -425,6 +433,7 @@ def makeLinkTexNew_withoutJSON(project, links, name=None):
     linklist["links"] = []
     try:
         for row in links["data"]:
+
             thislink = {}
             thislink["id"] = i
             thislink["s"] = row[0]
@@ -438,7 +447,6 @@ def makeLinkTexNew_withoutJSON(project, links, name=None):
             ex = int(row[1]) % 128
             eyl = int(int(row[1]) / 128) % 128
             eyh = int(int(row[1]) / 16384)
-
 
             pixell1 = (sx,syl,syh)
             pixell2 = (ex,eyl,eyh)
@@ -460,6 +468,8 @@ def makeLinkTexNew_withoutJSON(project, links, name=None):
     
     pathl = path + '/links/' +  links["name"] + '.bmp' # fits pfile naming, former '_linksXYZ.bmp'
     
+    name_bool = False
+
     if name is not None:
         name_bool = True
         pathl = path + '/links/' +  name +  '.bmp'
@@ -652,6 +662,8 @@ def makeLinkRGBTex(project, linksRGB, name=None):
     new_imgc.putdata(texc)
     pathRGB = path + '/linksRGB/' +  linksRGB["name"] + '.png' # fits pfile naming, former '_linksRGB.png'
     
+    name_bool = False
+
     if name is not None:
         name_bool = True
         pathRGB = path + '/linksRGB/' +  name +  '.png'
@@ -678,6 +690,7 @@ def makeLinkRGBTex(project, linksRGB, name=None):
 def upload_filesNew(request):
     #print("C_DEBUG: namespace", request.args.get("namespace"))
     form = request.form.to_dict()
+
     #print(request.files)
     #print(form)
     prolist = GD.plist
@@ -784,41 +797,57 @@ def upload_filesNew(request):
             i += 1
 
 
+    #----------------------------------
+    # NODE POSITIONS 
+    #----------------------------------
     for layout in nodepositions:
+
+        # to do: handle no position file - generate random layout
         if len(layout["data"])> 0:
-            state =  state + makeXYZTexture(namespace, layout) + '<br>'
-            pfile["layouts"].append(layout["name"] + "XYZ")
+
+            state =  state + makeXYZTexture(namespace, layout, layout["name"]) + '<br>'
+            pfile["layouts"].append(layout["name"])# + "XYZ")
 
         # catch for 2D positions and for empty rows
         elif len(layout["data"]) > 0 and len(layout["data"][int(x)]) == 2:
             for i,xy in enumerate(layout["data"]):
                 layout["data"][i] = (xy[0],xy[1],0.0)
-            state =  state + makeXYZTexture(namespace, layout) + '<br>'
-            pfile["layouts"].append(layout["name"] + "XYZ")
+
+            state =  state + makeXYZTexture(namespace, layout, layout["name"]) + '<br>'
+            pfile["layouts"].append(layout["name"])# + "XYZ")
 
         else: state = "upload must contain at least 1 node position list"
 
+    #----------------------------------
+    # NODE COLORS     
+    #----------------------------------
     for color in nodecolors:
         
         if len(color["data"]) == 0:
             color["data"] = [[255,0,255,100]] * numnodes
-            color["name"] = "Layoutname"
+            color["name"] = "Layoutname-nodecolors"
 
-        state =  state + makeNodeRGBTexture(namespace, color) + '<br>'
-        pfile["layoutsRGB"].append(color["name"]+ "RGB")
+        state =  state + makeNodeRGBTexture(namespace, color,  color["name"]) + '<br>'
+        pfile["layoutsRGB"].append(color["name"])#+ "RGB")
 
+    #----------------------------------
+    # LINKS
+    #---------------------------------- 
     for linklist in links:
         if len(linklist["data"]) == 0:
-            linklist["name"] = "Layoutname"
-        state =  state + makeLinkTexNew(namespace, linklist) + '<br>'
-        pfile["links"].append(linklist["name"]+ "_linksXYZ")
+            linklist["name"] = "Layoutname-links"
+        state =  state + makeLinkTexNew(namespace, linklist, linklist["name"]) + '<br>'
+        pfile["links"].append(linklist["name"])#+ "_linksXYZ")
 
+    #----------------------------------
+    # LINK COLORS 
+    #----------------------------------
     for lcolors in linkcolors:
         if len(lcolors["data"]) == 0:
             lcolors["data"] = [[255,0,255,100]] * len(links[0]["data"])
-            lcolors["name"] = "Layoutname"
-        state =  state + makeLinkRGBTex(namespace, lcolors) + '<br>'
-        pfile["linksRGB"].append(lcolors["name"] + "_linksRGB")  
+            lcolors["name"] = "Layoutname-linkcolors"
+        state =  state + makeLinkRGBTex(namespace, lcolors, lcolors["name"]) + '<br>'
+        pfile["linksRGB"].append(lcolors["name"])# + "_linksRGB")  
  
     pfile["nodecount"] = numnodes
     pfile["labelcount"] = len(labels[0]["data"])
@@ -837,7 +866,6 @@ def upload_filesNew(request):
     legendfiles = []
     loadLegendFiles(request.files.getlist("legendFiles"), folder+'legends/', legendfiles)
     pfile["legendfiles"] = legendfiles
-
 
 
     with open(folder + '/pfile.json', 'w') as outfile:
