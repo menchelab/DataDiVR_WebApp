@@ -180,16 +180,15 @@ def checkbox_event(message, room):
 def reset_layout_event(message, room):
     print("C_DEBUG ____ RESET LAYOUT EVENT ____")
     if message["id"] == "resetlayout":
-        GD.pdata["layoutsRGBDD"] = 0
-        GD.pdata["layoutsDD"] = 0
-        GD.pdata["layoutsRGBDD"] = 0
-        GD.pdata["layoutsRGBDD"] = 0
-        GD.savePD()
+        # GD.pdata["layoutsRGBDD"] = 0
+        # GD.pdata["layoutsDD"] = 0
+        # GD.pdata["layoutsRGBDD"] = 0
+        # GD.pdata["layoutsRGBDD"] = 0
+        # GD.savePD()
         response = {}
         response["usr"] = message["usr"]
-        response["fn"] = "but" #"but"
+        response["fn"] = "ue4"
         response["id"] = "resetlayout"
-        response["parent"] = "resetlayoutparent"
         response["val"] = 0
         emit("ex", response, room=room)
     else:

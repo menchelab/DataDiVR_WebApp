@@ -39,8 +39,7 @@
 
 <body class="unselectable" style="width:1750px"> 
 
-<div id = "languageUI"> 
-    <mc-module name="ASSISTANT ENGINE">
+    <mc-module id="languageUI" name="ASSISTANT ENGINE">
         <button id="clearbutton" class="swagButton" onclick="clearChat()" style="float:right;">CLEAR</button>
         <mc-scrollbox id='scrollbox'></mc-scrollbox>
 
@@ -63,15 +62,15 @@ function processQuery(){
 
     fetch("/languageUI_process", {
             method: "POST",
-            body: JSON.stringify({ text: text }),
+            body: JSON.stringify({userId: uid, text: text}),
             headers: {
                 "Content-type": "application/json; charset=UTF-8"
             }
             })
             .then((response) => response.json())
             .then((json) => {
-                chatwin.innerHTML += '<br>HUMAN: ' + text + "<br>"; 
-                chatwin.innerHTML += "<br>DATA: " + json.result + '<br>';
+                chatwin.innerHTML += '<br><b>HUMAN : username : ' + uid + '<br>' + text + "<br>"; 
+                chatwin.innerHTML += "<br><b>ENGINE : <br>" + json.result + '<br>';
                 chatwin.scrollTop = chatwin.scrollHeight;  
 
                 // Clear the input field

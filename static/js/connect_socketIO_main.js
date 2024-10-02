@@ -3,7 +3,7 @@ var socket;
 var newcon = true;
 var logAll = true;
 var isPreview = false; logjs
-var isLanguageUI = false; logjs
+var isLanguageUI = false;
 var isMain = false;
 var isUE4 = false;
 
@@ -92,9 +92,6 @@ function updateMcElements() {
             case "ue4":
                 socket.emit('ex', { usr: uid, id: dynelem[i].getAttribute('id'), fn: "ue4", val: "init" });
                 break;
-            case "button":
-                socket.emit('ex', { usr: uid, id: dynelem[i].getAttribute('id'), fn: "resetlayout", val: 0});
-                break;
         }
         //console.log(dynelem[i].getAttribute('container'));
     }
@@ -110,6 +107,9 @@ function updateMcElements() {
     socket.emit('ex', {usr:uid,  val: "init", id: "annotation-dd-2", fn: "annotation"});
     socket.emit('ex', {usr:uid,  val: "init", id: "init", fn: "enrichment"});
     // socket.emit("ex", {usr:uid,  fn: "legend_scene_display", id: "legend_scene_display", val: "init"});
+
+    // language UI 
+    //socket.emit('ex', {usr:uid,  val: "init", id: "languageUI", fn: "textinput"});
 
     // VRrooms
     socket.emit('ex', {usr:uid,  val: "init", id: "VRrooms", fn: "dropdown"});
@@ -147,7 +147,6 @@ $(document).ready(function() {
         isMain = true;
     }
     if (document.getElementById("languageUI")) {
-        console.log("C_DEBUG: languageUI is true");
         isLanguageUI = true;
     }
 
@@ -190,7 +189,7 @@ $(document).ready(function() {
     socket.on('status', function(data) {
         //console.log(data)
         if (data.usr == uid) {
-            if (isMain || isPreview) {
+            if (isMain || isPreview || isLanguageUI) {
                 // START initialization routine
                 socket.emit('ex', { id: "projDD", fn: "dropdown", val: "init", usr: uid });
             }
@@ -236,14 +235,6 @@ $(document).ready(function() {
                             makeNetwork();
                         }, 2000);
                     }
-
-                    if (isLanguageUI) {
-                        // Wait until ui is initialized
-                        setTimeout(function() {
-                            initialized = true;
-                        }, 2000);
-                    }
-
 
                 }
 
@@ -577,8 +568,6 @@ $(document).ready(function() {
                                 backButton.setAttribute('val', data.sel);
 
                                 //console.log("C_DEBUG updating Buttons in layoutsDD: ", nextButton.getAttribute("val"));
-
-                                break;
                         }
                     }
 
@@ -600,8 +589,6 @@ $(document).ready(function() {
                                 backButton = document.getElementById("backwardstep");
                                 backButton.setAttribute('val', data.sel);
                                 //console.log("C_DEBUG updating Buttons in layoutsRGBDD: ", nextButton.getAttribute("val"));
-
-                                break;
                         }
                     }
 
@@ -632,8 +619,6 @@ $(document).ready(function() {
                                 backButton = document.getElementById("backwardstep");
                                 backButton.setAttribute('val', data.sel);
                                 //console.log("C_DEBUG updating Buttons in linksRGBDD: ", nextButton.getAttribute("val"));
-
-                                break;
                         }
                     }
                 
@@ -656,8 +641,6 @@ $(document).ready(function() {
                                 nextButton.setAttribute('val', data.sel);
                                 backButton = document.getElementById("backwardstep");
                                 backButton.setAttribute('val', data.sel);
-
-                                break;
                         }
                     }
                 
@@ -749,10 +732,6 @@ $(document).ready(function() {
 
                 if (data.id == "resetlayout") {
 
-                    // set value to 0
-                    var reset_value = 0;
-                
-
                     // socket.emit("ex", {
                     //     fn: "legend_scene_display",
                     //     id: "legend_scene_display",
@@ -760,42 +739,44 @@ $(document).ready(function() {
                     // });
 
                     // update legend 
-                    Legend_displayNodeInfobyID(pfile.name, reset_value);
-                    Legend_displayLinkInfobyID(pfile.name, reset_value);
-                    Legend_displayGraphLayoutbyID(pfile.name, reset_value, "layouts", "graphlayout");
-                    Legend_displayGraphLayoutbyID(pfile.name, reset_value, "layouts", "graphlayout_nodecolors");
-                    Legend_displayGraphLayoutbyID(pfile.name, reset_value, "layouts", "graphlayout_linkcolors");
+                    Legend_displayNodeInfobyID(pfile.name, 0);
+                    Legend_displayLinkInfobyID(pfile.name, 0);
+                    Legend_displayGraphLayoutbyID(pfile.name, 0, "layouts", "graphlayout");
+                    Legend_displayGraphLayoutbyID(pfile.name, 0, "layouts", "graphlayout_nodecolors");
+                    Legend_displayGraphLayoutbyID(pfile.name, 0, "layouts", "graphlayout_linkcolors");
 
                     // update DD 
                     layouts_DD = document.getElementById("layoutsDD").shadowRoot.getElementById("sel");   
-                    layouts_DD.setAttribute("sel", parseInt(reset_value));
-                    layouts_DD.setAttribute("value", pfile.layouts[reset_value]);
+                    layouts_DD.setAttribute("sel", parseInt(0));
+                    layouts_DD.setAttribute("value", pfile.layouts[0]);
 
                     layoutsRGB_DD = document.getElementById("layoutsRGBDD").shadowRoot.getElementById("sel");
-                    layoutsRGB_DD.setAttribute("sel", parseInt(reset_value));
-                    layoutsRGB_DD.setAttribute("value", pfile.layoutsRGB[reset_value]);
+                    layoutsRGB_DD.setAttribute("sel", parseInt(0));
+                    layoutsRGB_DD.setAttribute("value", pfile.layoutsRGB[0]);
 
                     linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
-                    linksRGB_DD.setAttribute("sel", parseInt(reset_value));             
-                    linksRGB_DD.setAttribute("value", pfile.linksRGB[reset_value]);
+                    linksRGB_DD.setAttribute("sel", parseInt(0));             
+                    linksRGB_DD.setAttribute("value", pfile.linksRGB[0]);
 
                     links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
-                    links_DD.setAttribute("sel", parseInt(reset_value));
-                    links_DD.setAttribute("value", pfile.links[reset_value]);
+                    links_DD.setAttribute("sel", parseInt(0));
+                    links_DD.setAttribute("value", pfile.links[0]);
 
                     // update arrow buttons with new index
                     nextButton = document.getElementById("forwardstep");    
-                    nextButton.setAttribute('val', reset_value);        
+                    nextButton.setAttribute('val', 0);        
                     backButton = document.getElementById("backwardstep");           
-                    backButton.setAttribute('val', reset_value);                
+                    backButton.setAttribute('val', 0);                
 
                     data["val"] = 0;
-                    
+                    console.log("C_DEBUG: data val RESET VALUE = ", data["val"]);
+
+
                     if (isPreview) {
-                        actLayout = reset_value;
-                        actLayoutRGB = reset_value;
-                        actLinks = reset_value
-                        actLinksRGB = reset_value;
+                        actLayout = 0;
+                        actLayoutRGB = 0;
+                        actLinks = 0;
+                        actLinksRGB = 0;
                         makeNetwork();
                     }
 
@@ -838,6 +819,8 @@ $(document).ready(function() {
                         links_DD.setAttribute("value", pfile.links[0]);
                         actLinks = parseInt(0);
                         console.log("C_DEBUG in Links < than forwardidx - actLinks = ", actLinks);
+                        console.log("C_DEBUG: pfile.links.length = ", pfile.links.length);
+                        
 
                     } else {
                         links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
@@ -999,12 +982,14 @@ $(document).ready(function() {
 
                 }
                 
-                ue4(data["fn"], data);
-                //ue4("but", data);
+                //ue4(data["fn"], data);
+                ue4("but", data);
                 //console.log("C_DEBUG: ue4 data = ", data);
 
                 break;
 
+
+                
             case "textinput":
                 console.log(data.val + " --- " + data.id);
                 if (document.getElementById(data.id)) {

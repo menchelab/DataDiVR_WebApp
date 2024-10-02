@@ -103,10 +103,10 @@
                 <!--{% include 'mCartographs.html' %} -->
                 
 
-                {% include 'mConnections.html' %}
-                {% include 'mAnalytics.html' %}
-                {% include 'mAnnotations.html' %}
-                {% include 'mEnrichment.html' %}
+                {% include 'mNodesearch.html' %}
+                {% include 'mNodeinfo.html' %}
+                {% include 'mSelections.html' %}
+
 
                 {% for ext in extensions["ext"] %}
                 {% if "column_3" in ext.keys() %}
@@ -125,11 +125,14 @@
             <div style="width: 426px; height:100vh; overflow-y:auto;  overflow-x:hidden">
                 <br>
 
-                {% include 'mNodeinfo.html' %}
-                {% include 'mNodesearch.html' %}
 
-                {% include 'mSelections.html' %}
-                
+                {% include 'mConnections.html' %}
+                {% include 'mAnalytics.html' %}
+                {% include 'mAnnotations.html' %}
+                {% include 'mEnrichment.html' %}
+
+
+
                 {% include 'mDebug.html' %}
                 {% include 'mClipboard.html' %}
 
