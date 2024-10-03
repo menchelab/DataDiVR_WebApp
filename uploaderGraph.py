@@ -60,11 +60,11 @@ def upload_filesJSON(request):
 
 
     else: # original processing via uploader / webbrowser
+        #print("C_DEBUG: Uploading via Web browser")
         form = request.form.to_dict()
         namespace = form["namespaceJSON"]
 
     #print("C_DEBUG: NAMESPACE : ", namespace)
-    
 
     prolist = GD.listProjects()
     #print("C_DEBUG: PROLIST : ", prolist)
