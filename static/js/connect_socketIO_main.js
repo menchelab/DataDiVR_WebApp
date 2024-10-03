@@ -769,8 +769,7 @@ $(document).ready(function() {
                     backButton.setAttribute('val', 0);                
 
                     data["val"] = 0;
-                    console.log("C_DEBUG: data val RESET VALUE = ", data["val"]);
-
+                    
 
                     if (isPreview) {
                         actLayout = 0;
