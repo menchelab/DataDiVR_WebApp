@@ -85,6 +85,7 @@ def upload_filesJSON(request):
         #    return "Project creation failed."
     else:   
         return "Project creation failed."
+    
     #-----------------------------------
     # CREATING PFILE.json
     #-----------------------------------
@@ -126,34 +127,25 @@ def upload_filesJSON(request):
     #----------------------------------
     # GRAPH DATA
     #----------------------------------
-    #title_of_graph = namespace #[]
-    #parseGraphJSON_graphtitle(jsonfiles,graphtitle)
-    #if len(graphtitle) > 0:
-    #    title_of_graph = graphtitle[0]["graphtitle"]
-    #else:
-    #    title_of_graph = namespace
-    
     graphdesc = []
     parseGraphJSON_graphinfo(jsonfiles,graphdesc)
     if len(graphdesc) > 0 or graphdesc[0]["info"] is not None: #former "graphdesc"
         descr_of_graph = graphdesc[0]["info"] #former "graphdesc"
 
     pfile["info"] = descr_of_graph
+    print("PROGRESS: stored graph data...")
     
-
-
     #----------------------------------------------
     # ALL LINKS - for analytics
     #---------------------------------------------- 
     parseGraphJSON_links(jsonfiles, links)  
     pfile["linkcount"] = len(links[0]["data"])
-
+    #print("C_DEBUG: links: ", links[0]["data"])
 
     #----------------------------------------------
     # VISUALIZATION INFORMATION ("Layouts" key on most upper level)
     #----------------------------------------------
     # in case of new json format
-
     if "layouts" in jsonfiles[0].keys():
         layout = jsonfiles[0]["layouts"] 
         parseGraphJSON_nodepositions(layout, nodepositions)
@@ -183,6 +175,7 @@ def upload_filesJSON(request):
         names = graphlayouts
         
     pfile["scenes"] = names
+    print("PROGRESS: stored layouts...")
 
     #----------------------------------------------
     # ANNOTATIONS
@@ -201,7 +194,7 @@ def upload_filesJSON(request):
     
     nodeinfo = parseGraphJSON_nodeinfo(jsonfiles)
     #print("C_DEBUG: nodeinfo: ", nodeinfo)  
-
+    print("PROGRESS: stored nodeinfo...")
 
     numnodes = len(nodepositions[0]["data"])
     #OLD: if complex_annotations is False:
@@ -295,7 +288,7 @@ def upload_filesJSON(request):
                 i += 1
         else: 
             pass
-        
+
     #----------------------------------
     # MAKE TEXTURES - node positions
     #----------------------------------
@@ -355,6 +348,7 @@ def upload_filesJSON(request):
     else:
         #print("C_DEBUG: project does not contain labels/clusters.")
         pfile["labelcount"] = 0
+    print("PROGRESS: made node position textures...")
 
 
     #----------------------------------
@@ -374,12 +368,19 @@ def upload_filesJSON(request):
             temp_name = "Layoutname"+str(file_index)
             state =  state + makeNodeRGBTexture(namespace, color, temp_name) + '<br>'
             pfile["layoutsRGB"].append(temp_name) # + "RGB")
-            
+    print("PROGRESS: made textures for node colors...")
+
 
     #----------------------------------
     # MAKE TEXTURES - links for VISUALIZATION
     #----------------------------------
-    
+    # make a look up dict where key is id of all links  and value is the link
+    links_ids_project = {i: links[0]["data"][i] for i in range(len(links[0]["data"]))}
+    # sort links_ids_project by key
+    links_ids_project = dict(sorted(links_ids_project.items()))
+    #print("C_DEBUG: num of links_ids_project:", len(links_ids_project))
+    #print("C_DEBUG: links_ids_project: ", links_ids_project)
+
     for sublist in linksdicts:  
         for file_index in range(len(sublist)): 
             linklist = sublist[file_index]
@@ -387,71 +388,99 @@ def upload_filesJSON(request):
             #print("C_DEBUG: file_index: ", file_index)
             #print("C_DEBUG: layout has x links: ", len(linklist["data"]))
             
-
             # remap link-node ids based on nodelist "id" (in case of link-nodes are specified as nodenames (str)
-            for link in linklist["data"]:
-                try:
-                    link[0] = int(link[0])
-                    link[1] = int(link[1])
-                except: 
-                    link[0] = next(node["id"] for node in nodelist["nodes"] if node["n"] == link[0])
-                    link[1] = next(node["id"] for node in nodelist["nodes"] if node["n"] == link[1])
+            #for link in linklist["data"]:
+                # try:
+                #     link[0] = int(link[0])
+                #     link[1] = int(link[1])
+                # except: 
+                #     link[0] = next(node["id"] for node in nodelist["nodes"] if node["n"] == link[0])
+                #     link[1] = next(node["id"] for node in nodelist["nodes"] if node["n"] == link[1])
 
             # handle layout name 
             if names[file_index] is not None and names[file_index] != "":
-                state =  state + makeLinkTexNew_withoutJSON(namespace, linklist, names[file_index]) + '<br>'
+                state =  state + makeLinkTexNew_withoutJSON_2(namespace, links_ids_project, linklist, names[file_index]) + '<br>'
                 pfile["links"].append(names[file_index])    
             else: # if no specified layout name
                 temp_name = "Layoutname"+str(file_index)
-                state =  state + makeLinkTexNew_withoutJSON(namespace, linklist, temp_name) + '<br>'
+                state =  state + makeLinkTexNew_withoutJSON_2(namespace, links_ids_project, linklist, temp_name) + '<br>'
                 pfile["links"].append(temp_name) # + "_linksXYZ")
+    print("PROGRESS: stored link textures...")
 
-
-    # links per layout json
-    makeLinksjson_multipleLinklists(namespace, linksdicts)
-    
+    # NOT USED YET : links per layout json
+    #makeLinksjson_multipleLinklists_2(namespace, links_ids_project, linksdicts)
+    #print("PROGRESS: stored linklists per layout...")
 
     #----------------------------------
     # processing Links for ANALYTICS
     #----------------------------------
-
-    # remap links to node ids matching them with node "n" names, in case link-nodes are specific as nodenames (str)
-
+    # remap links to node ids matching them with node "n" names, in case link-nodes are specified as nodenames (str)
     #print("C_DEBUG: links before remapping:", links) 
-    
-    for link in links[0]["data"]:
-        try:
-            link[0] = int(link[0])
-            link[1] = int(link[1])
-        except: 
-            link[0] = next(node["id"] for node in nodelist["nodes"] if node["n"] == link[0])
-            link[1] = next(node["id"] for node in nodelist["nodes"] if node["n"] == link[1])
-
+    # for link in links[0]["data"]:
+    #     try:
+    #         link[0] = int(link[0])
+    #         link[1] = int(link[1])
+    #     except: 
+    #         link[0] = next(node["id"] for node in nodelist["nodes"] if node["n"] == link[0])
+    #         link[1] = next(node["id"] for node in nodelist["nodes"] if node["n"] == link[1])
     #print("C_DEBUG: links remapped:", links)   
     
     # all links json
+    #print("C_DEBUG: counting all links for json: ", len(links[0]["data"]))
     makeLinksjson(namespace, links)
+    print("PROGRESS: stored all links in json...")
 
-    
     #----------------------------------
     # processing link colors 
     #----------------------------------
-    for file_index in range(len(linkcolors)):  # for lcolors in linkcolors:
-        lcolors = linkcolors[file_index]
+    # What happens here: matching of ID of links given all links in the graph and their respective color
+    # to set pixel index according to link ID and color in bitmap
+    # Match linkdicts with linkcolors to get link colors for visualization
+    link_colors_matched = [
+        {
+            tuple(each): each2
+            for each, each2 in zip(i["data"], j["data"])
+        } | {"name": i["name"]}
+        for i in linksdicts[0]
+        for j in linkcolors
+        if i["name"] == j["name"]
+    ]
+    #print("C_DEBUG: linkcolors matched: ", link_colors_matched)
 
+    # Create a reverse lookup for links_ids_project
+    reverse_links_ids_project = {tuple(map(str, v)): k for k, v in links_ids_project.items()}
+
+    # Match color from link_colors_matched to id of link from links_ids_project
+    link_ids_colors_matched = []  # contains each layout with key = edgeID (from all links in all layouts), val = color
+    for elem in link_colors_matched:
+        d_link_ids_colors_matched = {"name": elem.pop("name")}
+        idcolmatch = [
+            (reverse_links_ids_project[tuple(map(str, edge))], links_ids_project[reverse_links_ids_project[tuple(map(str, edge))]], color)
+            for edge, color in elem.items()
+            if tuple(map(str, edge)) in reverse_links_ids_project
+        ]
+        d_link_ids_colors_matched["data"] = idcolmatch
+        link_ids_colors_matched.append(d_link_ids_colors_matched)
+    #print("C_DEBUG: link_ids_colors_matched: ", link_ids_colors_matched)
+
+
+    for file_index in range(len(link_ids_colors_matched)):  # for lcolors in linkcolors:
+        lcolors = link_ids_colors_matched[file_index] # lcolors, per layout ie fileindex = data : (linkID, link [n1,n2], color), "name" : layoutname
+        
         if len(lcolors["data"]) == 0:
             lcolors["data"] = [[255,0,255,100]] * len(links[0]["data"])
             lcolors["name"] = "nan"
 
         # handle layout name 
         if names[file_index] is not None and names[file_index] != "":
-            state =  state + makeLinkRGBTex(namespace, lcolors, names[file_index]) + '<br>'
+            state =  state + makeLinkRGBTex_2(namespace, links_ids_project, lcolors, names[file_index]) + '<br>'
             pfile["linksRGB"].append(names[file_index])    
         else: # if no specified layout name
             temp_name = "Layoutname"+str(file_index)
-            state =  state + makeLinkRGBTex(namespace, lcolors, temp_name) + '<br>'
+            state =  state + makeLinkRGBTex_2(namespace, links_ids_project, lcolors, temp_name) + '<br>'
             pfile["linksRGB"].append(temp_name) # + "_linksRGB")
-            
+    print("PROGRESS: stored links textures...")
+
 
     pfile["nodecount"] = numnodes
     #pfile["labelcount"] = len(labels[0]["data"])
@@ -480,6 +509,7 @@ def upload_filesJSON(request):
     #----------------------------------
     # make essential json files for DataDiVR
     #----------------------------------
+    print("PROGRESS: writing json files for project and nodes...")
     with open(folder + '/pfile.json', 'w') as outfile:
         json.dump(pfile, outfile, indent=4)
     
@@ -488,10 +518,9 @@ def upload_filesJSON(request):
         
     #GD.plist = GD.listProjects()
     
-    # Message for user
     print("Project created successfully.")
 
-    return state #, print("Filestructure finished.") 
+    return state  
 
 
 
