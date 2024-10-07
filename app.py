@@ -130,7 +130,7 @@ myusers = [{'uid': 4, 'links': [2, 2, 2, 2, 2, 133, 666, 666, 666, 666, 125, 125
 #----------------------------------------------------------------------
 # Language UI
 
-from functionmapping import process_input
+from functionmappingllm import *
 
 @app.route("/languageUI")
 def languageUI():

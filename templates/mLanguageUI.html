@@ -1,4 +1,4 @@
-
+<!-- 
 
 <!DOCTYPE html>
 <html>
@@ -41,10 +41,10 @@
 
     <mc-module id="languageUI" name="ASSISTANT ENGINE">
         <button id="clearbutton" class="swagButton" onclick="clearChat()" style="float:right;">CLEAR</button>
-        <mc-scrollbox id='scrollbox'></mc-scrollbox>
+        <mc-scrollbox id='scrollboxLUI'></mc-scrollbox>
 
-        <mc-TextInput id="textInput" type="textinput" fn="textinput" ></mc-TextInput>
-        <button id="searchbutton" class="swagButton" onclick="processQuery()">GO</button>
+        <mc-TextInput id="LUItextinput" type="textinput" fn="textinput" ></mc-TextInput>
+        <button id="searchbuttonLUI" class="swagButton" onclick="processQuery()">GO</button>
     </mc-module>
 </div>
 </body>
@@ -53,12 +53,12 @@
 
 <script>
 function clearChat(){
-    document.getElementById("scrollbox").shadowRoot.getElementById("box").innerHTML = '';
+    document.getElementById("scrollboxLUI").shadowRoot.getElementById("box").innerHTML = '';
 }
 
 function processQuery(){
-    var text = document.getElementById("textInput").shadowRoot.getElementById("text").value;
-    var chatwin = document.getElementById("scrollbox").shadowRoot.getElementById("box");
+    var text = document.getElementById("LUItextinput").shadowRoot.getElementById("text").value;
+    var chatwin = document.getElementById("scrollboxLUI").shadowRoot.getElementById("box");
 
     fetch("/languageUI_process", {
             method: "POST",
@@ -74,12 +74,13 @@ function processQuery(){
                 chatwin.scrollTop = chatwin.scrollHeight;  
 
                 // Clear the input field
-                document.getElementById("textInput").shadowRoot.getElementById("text").value = '';
+                document.getElementById("LUItextinput").shadowRoot.getElementById("text").value = '';
             });
+    socket.emit('ex', { usr:uid, id: "LUItextinput", parent: "scrollboxLUI", fn: "textinput", val:text});
 }
 
 // Add event listener for Enter key
-document.getElementById("textInput").shadowRoot.getElementById("text").addEventListener("keydown", function(event) {
+document.getElementById("LUItextinput").shadowRoot.getElementById("text").addEventListener("keydown", function(event) {
     if (event.key === "Enter") {
         processQuery();
     }
@@ -87,11 +88,11 @@ document.getElementById("textInput").shadowRoot.getElementById("text").addEventL
 
 // Change the placeholder text for the specific element
 document.addEventListener("DOMContentLoaded", function() {
-            var specificElement = document.getElementById("textInput");
+            var specificElement = document.getElementById("LUItextinput");
             var shadowRoot = specificElement.shadowRoot;
             var textArea = shadowRoot.getElementById("text");
             textArea.placeholder = "Type something. e.g. 'Open project teapot.' ...";
 });
 
 
-</script>
+</script> -->

@@ -20,3 +20,4 @@ extensions/*
 !extensions/load_extensions.py
 !extensions/install_requirements.sh
 !extensions/install_requirements.ps1
+temp_files/Teapot.json
