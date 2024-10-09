@@ -257,12 +257,12 @@ def makeXYZTexture(project, pixeldata, name=None):
         pathXYZl = path + '/layoutsl/' +  name  + 'l.bmp' 
 
     ### integrate name 
-    #if os.path.exists(pathXYZ):
-        #return '<a style="color:red;">ERROR </a>' + pixeldata["name"]  + " Nodelist already in project"
-    #else:
-    new_imgh.save(pathXYZ)
-    new_imgl.save(pathXYZl)
-    return '<a style="color:green;">SUCCESS </a>' + pixeldata["name"]  + " Node Textures Created"
+    if os.path.exists(pathXYZ):
+        return '<a style="color:red;">ERROR </a>' + pixeldata["name"]  + " Nodelist already in project"
+    else:
+        new_imgh.save(pathXYZ)
+        new_imgl.save(pathXYZl)
+        return '<a style="color:green;">SUCCESS </a>' + pixeldata["name"]  + " Node Textures Created"
 
 def makeNodeRGBTexture(project, pixeldata, name=None): 
 
@@ -292,11 +292,11 @@ def makeNodeRGBTexture(project, pixeldata, name=None):
     if name is not None:
         pathXYZ = path + '/layoutsRGB/' +  name +  '.png'
 
-    #if os.path.exists(pathXYZ):
-        #return '<a style="color:red;">ERROR </a>' + pixeldata["name"]  + " colors already in project"
-    #else:
-    new_img.save(pathXYZ , "PNG")
-    return '<a style="color:green;">SUCCESS </a>' + pixeldata["name"]  + " Node Textures Created"
+    if os.path.exists(pathXYZ):
+        return '<a style="color:red;">ERROR </a>' + pixeldata["name"]  + " colors already in project"
+    else:
+        new_img.save(pathXYZ , "PNG")
+        return '<a style="color:green;">SUCCESS </a>' + pixeldata["name"]  + " Node Textures Created"
     
 
 
@@ -350,11 +350,11 @@ def makeLinkTexNew(project, links, name=None):
     if name is not None:
         pathl = path + '/links/' +  name +  '.bmp'
 
-    #if os.path.exists(pathl):
-        #return '<a style="color:red;">ERROR </a>' +  links["name"]  + " linklist already in project"
-    #else:
-    new_imgl.save(pathl)
-    return '<a style="color:green;">SUCCESS </a>' +  links["name"] +  " Link Textures Created"
+    if os.path.exists(pathl):
+        return '<a style="color:red;">ERROR </a>' +  links["name"]  + " linklist already in project"
+    else:
+        new_imgl.save(pathl)
+        return '<a style="color:green;">SUCCESS </a>' +  links["name"] +  " Link Textures Created"
  
 
 
@@ -399,35 +399,21 @@ def makeLinkRGBTex(project, linksRGB, name=None):
     if name is not None:
         pathRGB = path + '/linksRGB/' +  name +  '.png'
 
-    #if os.path.exists(pathRGB):
-        #return '<a style="color:red;">ERROR </a>' +  linksRGB["name"]  + " linklist already in project"
-    #else:
-    new_imgc.save(pathRGB, "PNG")
-    return '<a style="color:green;">SUCCESS </a>' +  linksRGB["name"] +  " Link Textures Created"
+    if os.path.exists(pathRGB):
+        return '<a style="color:red;">ERROR </a>' +  linksRGB["name"]  + " linklist already in project"
+    else:
+        new_imgc.save(pathRGB, "PNG")
+        return '<a style="color:green;">SUCCESS </a>' +  linksRGB["name"] +  " Link Textures Created"
  
 
 
 
 
 
-def upload_filesNew(request):
-    #print("C_DEBUG: namespace", request.args.get("namespace"))
-    form = request.form.to_dict()
-    #print(request.files)
-    #print(form)
-    prolist = GD.plist
+def upload_filesNew(name,nodepositions, nodecolors,links,linkcolors,nodeinfo,labels):
+    makeProjectFolders("live")
 
-    namespace = form["new_name"]
-    if not namespace:
-        return "namespace fail"
-    
-    if namespace in prolist:
-        print('project exists')
-    else:
-        # Make Folders
-        makeProjectFolders(namespace)
-
-    folder = 'static/projects/' + namespace + '/'
+    folder = 'static/projects/live/'
     pfile = {}
 
     with open(folder + 'pfile.json', 'r') as json_file:
@@ -436,40 +422,25 @@ def upload_filesNew(request):
 
     state = ''
     nodelist = {"nodes":[]}
-
-    nodepositions = []
-    nodecolors = []
-    links = []
-    linkcolors = []
-    nodeinfo = []
-    labels = []
-
-    parsefiles(request.files.getlist("nodesXYZ"), nodepositions)      
-    parsefiles(request.files.getlist("nodesRGB"), nodecolors)  
-    parsefiles(request.files.getlist("links"), links)      
-    parsefiles(request.files.getlist("linksRGB"), linkcolors)
-    parsefiles(request.files.getlist("nprop"), nodeinfo)
-    parsefiles(request.files.getlist("labels"), labels)
+    namespace= "test"
 
     #----------------------------------
     # FOR GRAPH TITLE + DESCRIPTION 
     #----------------------------------
-    title_of_graph = namespace
+    title_of_graph = "test"
     descr_of_graph = ""
 
-    numnodes = len(nodepositions[0]["data"])
+    numnodes = len(nodepositions)
 
     # generate node.json
-    for i in range(len(nodepositions[0]["data"])):
+    for i in range(len(nodepositions)):
         thisnode = {}
         thisnode["id"] = i
-        if "_geo" in nodepositions[0]["name"]:
-            thisnode["lat"] = nodepositions[0]["data"][i][0]
-            thisnode["lon"] = nodepositions[0]["data"][i][1]
 
-        if len(nodeinfo[0]["data"]) == len(nodepositions[0]["data"]):
-            thisnode["attrlist"] = nodeinfo[0]["data"][i]
-            thisnode["n"] = str(nodeinfo[0]["data"][i][0])
+
+        if len(nodeinfo) == len(nodepositions):
+            thisnode["attrlist"] = nodeinfo[i]
+            thisnode["n"] = str(nodeinfo[i][0])
         else:
             thisnode["attrlist"] = ["node" + str(i)]
             thisnode["n"] = "node" + str(i)
@@ -520,16 +491,16 @@ def upload_filesNew(request):
 
 
     for layout in nodepositions:
-        if len(layout["data"])> 0:
+        if len(layout)> 0:
             state =  state + makeXYZTexture(namespace, layout) + '<br>'
-            pfile["layouts"].append(layout["name"] + "XYZ")
+            pfile["layouts"].append(name + "XYZ")
 
         # catch for 2D positions and for empty rows
         elif len(layout["data"]) > 0 and len(layout["data"][int(x)]) == 2:
             for i,xy in enumerate(layout["data"]):
                 layout["data"][i] = (xy[0],xy[1],0.0)
             state =  state + makeXYZTexture(namespace, layout) + '<br>'
-            pfile["layouts"].append(layout["name"] + "XYZ")
+            pfile["layouts"].append(name + "XYZ")
 
         else: state = "upload must contain at least 1 node position list"
 

@@ -18,20 +18,9 @@ def hex_to_rgba(hex_color):
     rgba_color = tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4, 6))
     return rgba_color
 
-def upload_filesJSON(request):
-    form = request.form.to_dict()
-    prolist = GD.plist
+def upload_filesJSON(data):
 
-    namespace = form["namespaceJSON"]
-    
-    if not namespace:
-        return "namespace fail"
-    
-    if namespace in prolist:
-        print('project exists')
-    else:
-        # Make Folders
-        makeProjectFolders(namespace)
+    namespace = "live"
 
     folder = 'static/projects/' + namespace + '/'
     pfile = {}
@@ -54,7 +43,9 @@ def upload_filesJSON(request):
     labels = []
     
 
-    loadGraphJSON(request.files.getlist("graphJSON"), jsonfiles)
+    #loadGraphJSON(request.files.getlist("graphJSON"), jsonfiles)
+    #
+    jsonfiles.append(data)
     print(jsonfiles[0])
     # decide which annotation type to go with
     # if complex_annotations is True it uses a dict to store annotations and their types
@@ -321,8 +312,8 @@ def upload_filesJSON(request):
     # and adding filenames to pfile 
     #----------------------------------
     legendfiles = []
-    loadLegendFiles(request.files.getlist("legendFiles"), folder+'legends/', legendfiles)
-    pfile["legendfiles"] = legendfiles
+    #loadLegendFiles(request.files.getlist("legendFiles"), folder+'legends/', legendfiles)
+    #pfile["legendfiles"] = legendfiles
 
 
     with open(folder + '/pfile.json', 'w') as outfile:
