@@ -72,6 +72,8 @@ def make_json(graphs): # former: merge_graphs(graphs):
         # Process nodes for global and layout-specific lists
         for node, attrs in graph.nodes(data=True):
             if node not in seen_nodes:
+                
+                # ANNOTATIONS
                 annotation = attrs.get('annotation', [])
                 annotation_mod = {}
                 
@@ -94,9 +96,15 @@ def make_json(graphs): # former: merge_graphs(graphs):
                 if not is_json_serializable(node):
                     node = str(node)  # Convert to string if not JSON serializable
                 
+                # NODENAME 
+                try:
+                    nodename = attrs.get('name', node)
+                except:
+                    nodename = node
+                
                 all_nodes.append({
                     'id': node,
-                    'name': node,
+                    'name': nodename,
                     'annotation': annotation_mod
                 })
                 seen_nodes.add(node)
@@ -163,7 +171,6 @@ def make_json(graphs): # former: merge_graphs(graphs):
     # Ensure the merged structure is JSON serializable
     merged_structure = ensure_json_serializable(merged_structure)
     
-
     # # store merged json 
     # current_wd = os.getcwd()
     
@@ -172,14 +179,16 @@ def make_json(graphs): # former: merge_graphs(graphs):
     #     file_path = os.path.join(current_wd, merged_structure["projectname"] + '.json')
     #     with open(file_path, 'w') as f:
     #         json.dump(merged_structure, f, indent=4)
+        
     #     print("Merged JSON file saved as: ", file_path)
+    
     # except Exception as e:
     #     print("Error: Could not save merged JSON file.")
     #     print("Exception:", e)
-
+    
     return merged_structure
-
 
 def create_project(graphs):
     merged_structure = make_json(graphs)
     upload_filesJSON(merged_structure)
+    #return merged_structure

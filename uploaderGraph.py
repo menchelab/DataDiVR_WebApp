@@ -99,6 +99,8 @@ def upload_filesJSON(request, overwrite=False):  # <--- **Added overwrite parame
         
         if isinstance(request, dict): # using "_GeneratedProject.ipynb" 
             loadGraphDict([form], jsonfiles)
+            print("PROGRESS: loaded graph JSON...")
+            print("C_DEBUG: len jsonfiles: ", len(jsonfiles))
         else:
             loadGraphJSON(request.files.getlist("graphJSON"), jsonfiles)
 
@@ -170,8 +172,10 @@ def upload_filesJSON(request, overwrite=False):  # <--- **Added overwrite parame
         # else:  # complex_annotations is True
         #     nodeinfo = parseGraphJSON_nodeinfo_complex(jsonfiles)        
 
+        #print("C_DEBUG: jsonfiles[0].keys(): ", jsonfiles[0].keys())
         nodeinfo = parseGraphJSON_nodeinfo(jsonfiles)
-        print("PROGRESS: stored nodeinfo...")
+        print("PROGRESS: stored node info...")
+        
 
         numnodes = len(nodepositions[0]["data"])
         #OLD: if complex_annotations is False:
@@ -783,21 +787,20 @@ def parseGraphJSON_nodeinfo_complex(files):
 
 
 def parseGraphJSON_nodeinfo(files): # without required flag in json for "complex annotations" 
-    
+    # check if files is a list
+    file = files[0]
+    #print("C_DEBUG: files keys : ", file.keys())
     out = []
-    file = files[0]  # no need to iter over all files since you have to set it for all files the same way 
-    
     num_of_nodes = len(file["nodes"])
-
+    
     for i in range(num_of_nodes):
         node_info = {}
         node_info["annotation"] = file["nodes"][i]["annotation"]
-        if "name" in file:
+        try:
             node_info["name"] = file["nodes"][i]["name"]
-        else: 
+        except: 
             node_info["name"] = "Node: " + str(i)
         out.append(node_info)
-
     return out
 
 
