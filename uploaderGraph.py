@@ -100,7 +100,7 @@ def upload_filesJSON(request, overwrite=False):  # <--- **Added overwrite parame
         if isinstance(request, dict): # using "_GeneratedProject.ipynb" 
             loadGraphDict([form], jsonfiles)
             print("PROGRESS: loaded graph JSON...")
-            print("C_DEBUG: len jsonfiles: ", len(jsonfiles))
+            #print("C_DEBUG: len jsonfiles: ", len(jsonfiles))
         else:
             loadGraphJSON(request.files.getlist("graphJSON"), jsonfiles)
 
