@@ -799,6 +799,144 @@ def upload_files(request):
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+import shutil
+
+def update_files(pname, nodelist, linklist, Npos, Ncol, links, linkcol):
+    #form = request.form.to_dict()
+
+    prolist = GD.plist
+    namespace = pname
+    
+    # GET LAYOUT
+    
+    folder = 'static/projects/' + namespace + '/'
+    if os.path.exists(folder):
+        shutil.rmtree(folder)
+    
+        # Make Folders
+    makeProjectFolders(namespace)
+
+    pfile = {}
+
+    state = ''
+
+    labels_content = ""
+    
+    '''
+    label_file = request.files.getlist("labels")
+
+    if len(label_file) > 0:     
+        for file in label_file:
+            name = file.filename.split(".")[0]
+            labels_content = file.read().decode('utf-8')
+            print(labels_content)
+            lines = labels_content.splitlines()
+            for line in lines:
+                thislabelText = line.split(";")[0]
+                thislabel = line.split(";")[1]
+                thislabelNodes = thislabel.split(",")
+
+                newsel = {}
+                newsel["name"] = thislabelText
+                newsel["nodes"] = thislabelNodes
+                pfile["selections"].append(newsel)
+        #pfile["labelcount"] = len(pfile["selections"])
+    else:
+        print("error parsing labels")
+
+    '''
+
+
+    layout_files = [Npos]
+    print(layout_files)
+    if len(layout_files) > 0 :
+        #print("loading layouts", len(layout_files))
+        #print(layout_files[0])
+        
+        for file in layout_files:
+            # TODO: fix the below line to account for dots in filenames
+            name = "test"
+            
+            out = makeNodeTex(pname, name, file, "None")
+            state = state + ' <br>'+ out[0]
+
+            #clumsy way to do it
+            pfile['labels'] = [out[1],out[2]]
+            pfile['nodecount'] = out[1]
+            pfile['labelcount'] = out[2]
+
+            pfile["layouts"].append(name + "XYZ")
+            pfile["layoutsRGB"].append(name + "RGB")
+         
+            # print(contents)
+            #x = validate_layout(contents.split("\n"))
+            #print("layout errors are", x)
+            #if x[1] == 0:
+            
+        #Upload.upload_layouts(namespace, layout_files)
+
+    '''
+    # GET EDGES
+    edge_files = request.files.getlist("links")
+    if len(edge_files) > 0 and len(edge_files[0].filename) > 0:
+        print("loading links", len(edge_files))
+        #Upload.upload_edges(namespace, edge_files)
+        for file in edge_files:
+            name = file.filename.split(".")[0]
+            contents = file.read().decode('utf-8')
+            pfile["links"].append(name + "XYZ")
+            pfile["linksRGB"].append(name + "RGB")
+            out = makeLinkTex(namespace, name, contents)
+            pfile["linkcount"] = out[1]
+            state = state + ' <br>'+ out[0]
+    #GET Labels
+
+    #update the projects file
+    with open(folder + 'pfile.json', 'w') as json_file:
+        json.dump(pfile, json_file)
+
+    #global sessionData
+    #sessionData["proj"] = listProjects()
+    GD.plist =GD.listProjects()
+    return state
+
+
+
+
+
+
+    '''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def makeLinkTex(project, name, file):
     
     f = StringIO(file)

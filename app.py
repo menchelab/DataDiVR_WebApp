@@ -90,6 +90,7 @@ def index():
 
 @app.route("/preview")
 def preview():
+    GD.loadGD()
     return render_template("preview.html", extensions=extensions)
 
 
