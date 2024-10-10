@@ -127,31 +127,31 @@ def main():
 myusers = [{'uid': 4, 'links': [2, 2, 2, 2, 2, 133, 666, 666, 666, 666, 125, 125]}, {'uid': 666, 'links': [133]}, {'uid': 133, 'links': [666]}, {'uid': 555, 'links': [666, 133, 4, 123, 124, 125, 125, 125]}, {'uid': 125, 'links': [555, 128]}, {'uid': 128, 'links': [555]}, {'uid': 130, 'links': [555]}]
 
 
-#----------------------------------------------------------------------
-# Language UI
+# #----------------------------------------------------------------------
+# # Language UI
 
-from functionmappingllm import *
+# from functionmappingllm import *
 
-@app.route("/languageUI")
-def languageUI():
+# @app.route("/languageUI")
+# def languageUI():
     
     
-    # ISSUE: does not get user name
+#     # ISSUE: does not get user name
 
 
-    return render_template("mLanguageUI.html", extensions=extensions)
+#     return render_template("mLanguageUI.html", extensions=extensions)
 
 
-@app.route('/languageUI_process', methods=['POST'])
-def process():
-    data = request.get_json()
-    lui_user_input = data.get('text')
-    result = process_input(lui_user_input)
-    username = data.get("usr")
+# @app.route('/languageUI_process', methods=['POST'])
+# def process():
+#     data = request.get_json()
+#     lui_user_input = data.get('text')
+#     result = process_input(lui_user_input)
+#     username = data.get("usr")
 
-    return jsonify({"userId":username, "result": result})
+#     return jsonify({"userId":username, "result": result})
 
-#----------------------------------------------------------------------
+# #----------------------------------------------------------------------
 
 
 
