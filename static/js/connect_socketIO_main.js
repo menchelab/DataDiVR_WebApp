@@ -645,6 +645,7 @@ $(document).ready(function() {
                     }
                 
                 ue4(data["fn"], data);
+                console.log("C_DEBUG: sending data to UE4 : ", data);
                 }
                 break;
                 
@@ -679,7 +680,9 @@ $(document).ready(function() {
                 Legend_displayGraphLayoutbyID(pfile.name, data.sel, "layouts", "graphlayout");
                 Legend_displayGraphLayoutbyID(pfile.name, data.sel, "layouts", "graphlayout_nodecolors");
                 Legend_displayGraphLayoutbyID(pfile.name, data.sel, "layouts", "graphlayout_linkcolors");
-
+                
+                // display legendfiles
+                console.log("C_DEBUG: display legend display.");
 
                 // set arrow buttons with index of DD
                 nextButton = document.getElementById("forwardstep");

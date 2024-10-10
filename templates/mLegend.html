@@ -685,9 +685,11 @@
         const htmlExtensions = ['html', 'htm'];
 
         if (imageExtensions.includes(fileExtension)) {
+            console.log("C_DEBUG: in image");
             return 'image';
         }
         if (htmlExtensions.includes(fileExtension)) {
+            console.log("C_DEBUG: in html");
             return 'html';
         }
         return 'unknown';
@@ -826,7 +828,7 @@
 
                         if (fileType == "image") {
                             
-                            //console.log("C_DEBUG: display FIRST image - in image");
+                            console.log("C_DEBUG: display FIRST image - in image");
 
                             imageElement.src = 'static/projects/' + project_selected + '/legends/' + zeroIndex;
                             imageElement.style.display = 'block';
@@ -854,7 +856,7 @@
                         }
                         
                     } else {
-                        //console.log("C_DEBUG: in else / hide all");
+                        console.log("C_DEBUG: in else / hide all");
 
                         legendButtons.style.display = 'none';
                         imageElement.style.display = 'none';
