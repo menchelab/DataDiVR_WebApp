@@ -1,7 +1,7 @@
 
 
 
-<mc-module id="module-legend" name="Network Legend">
+<mc-module id="module-legend" name="Data Legend">
 
 
 
@@ -9,25 +9,20 @@
 
 
         
-        <div style="margin-bottom:6px; overflow-y: auto; max-height: 150px; display: inline-block;"> 
+        <div style="margin-bottom:8px; margin-top:8px; overflow-y: auto; max-height: 150px; display: inline-block;"> 
             PROJECT TITLE : :  
-            <span id='graphinfo'></span> 
+            <span id='graphinfo'></span>
         </div>
-
         <div id="legend-scene-description-container" style="display: none;">
             <br>
-            <span id='legend-scene-description-element'></span> 
+            <span id='legend-scene-description-element'> </span> 
+            <br>
         </div>
-
-        <br>
-
+        <br> <br>
         <div style="margin-bottom:6px;"> LAYOUT TITLE : : <span style="font-weight:bold;" id='graphlayout' val=""><span> </span></div>
-        
         <br>
-
         <div style="margin-bottom:6px;"> NODE COLORS : : <span style="font-weight:bold;" id='graphlayout_nodecolors' val=""><span> </span></div>
-        
-
+        <br>
         <div id="legend_node_all" style="display:inline-flex; overflow-y: auto; overflow-x: hidden; max-height: 150px; width: 398px;">
         <div id="legend_nodecolor"></div> 
         <div id="legend_nodedescription"></div> 
@@ -74,6 +69,12 @@
 
                 if (data.hasOwnProperty('graphdesc')) {
                     graphdescription = data.graphdesc;
+                }
+                else if (data.hasOwnProperty('info')) {
+                    graphdescription = data.info;
+                }
+                else {
+                    graphdescription = "";
                 }
 
                 const myDiv = document.getElementById("graphinfo");
