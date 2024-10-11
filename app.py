@@ -75,10 +75,15 @@ app.config["SESSION_TYPE"] = "filesystem"
 socketio = SocketIO(app, manage_session=False)
 app, extensions = load_extensions.load(app)
 
+### HTML ROUTES ###
 
-def updateFileSys():
+
+### Execute code before first request ###
+@app.before_first_request
+def execute_before_first_request():
     uploader.check_ProjectFolder() # checks if GD.json exists
-
+    
+    util.create_dynamic_links(app)
     
     GD.checkProjectGDexists() #check if project in GD.json exist / if not exists, using demo project
     GD.loadGD()
@@ -87,14 +92,7 @@ def updateFileSys():
     GD.loadColor()
     GD.loadLinks()
     GD.load_annotations()
-### HTML ROUTES ###
 
-
-### Execute code before first request ###
-@app.before_first_request
-def execute_before_first_request():
-    util.create_dynamic_links(app)
-    updateFileSys()
 
 def index():
     return flask.redirect("/home")
@@ -102,7 +100,6 @@ def index():
 
 @app.route("/preview")
 def preview():
-    updateFileSys()
     return render_template("preview.html", extensions=extensions)
 
 
@@ -130,34 +127,34 @@ def main():
 myusers = [{'uid': 4, 'links': [2, 2, 2, 2, 2, 133, 666, 666, 666, 666, 125, 125]}, {'uid': 666, 'links': [133]}, {'uid': 133, 'links': [666]}, {'uid': 555, 'links': [666, 133, 4, 123, 124, 125, 125, 125]}, {'uid': 125, 'links': [555, 128]}, {'uid': 128, 'links': [555]}, {'uid': 130, 'links': [555]}]
 
 
-#----------------------------------------------------------------------
-# Language UI
-'''
-from functionmappingllm import *
+# #----------------------------------------------------------------------
+# # Language UI
 
-@app.route("/languageUI")
-def languageUI():
+# from functionmappingllm import *
+
+# @app.route("/languageUI")
+# def languageUI():
     
     
-    # ISSUE: does not get user name
+#     # ISSUE: does not get user name
 
 
-    return render_template("mLanguageUI.html", extensions=extensions)
+#     return render_template("mLanguageUI.html", extensions=extensions)
 
 
-@app.route('/languageUI_process', methods=['POST'])
-def process():
-    data = request.get_json()
-    lui_user_input = data.get('text')
-    result = process_input(lui_user_input)
-    username = data.get("usr")
+# @app.route('/languageUI_process', methods=['POST'])
+# def process():
+#     data = request.get_json()
+#     lui_user_input = data.get('text')
+#     result = process_input(lui_user_input)
+#     username = data.get("usr")
 
-    return jsonify({"userId":username, "result": result})
+#     return jsonify({"userId":username, "result": result})
 
-#----------------------------------------------------------------------
+# #----------------------------------------------------------------------
 
 
-'''
+
 
 
 
