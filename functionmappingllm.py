@@ -2,12 +2,12 @@
 
 # hugging face "dev-datascope" token: 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
 # get a token: https://huggingface.co/docs/api-inference/quicktour#get-your-api-token
-HUGGINGFACEHUB_API_TOKEN = "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"
+#HUGGINGFACEHUB_API_TOKEN = "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"
 
 
-from langchain.chains import LLMChain
-from langchain_core.prompts import PromptTemplate
-from langchain_huggingface import HuggingFaceEndpoint
+#from langchain.chains import LLMChain
+#from langchain_core.prompts import PromptTemplate
+#from langchain_huggingface import HuggingFaceEndpoint
 
 import re
 

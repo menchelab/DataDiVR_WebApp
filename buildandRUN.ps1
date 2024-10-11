@@ -17,5 +17,5 @@ python -m pip install -r requirements.txt
 $env:FLASK_ENV="development"
 $env:FLASK_APP="app.py"
 #flask run --port 5000
-flask run --with-threads --host=0.0.0.0 --port 5000
+flask run --with-threads --no-reload --host=0.0.0.0 --port 5000
 #python app.py

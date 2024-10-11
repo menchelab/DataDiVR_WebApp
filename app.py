@@ -75,15 +75,10 @@ app.config["SESSION_TYPE"] = "filesystem"
 socketio = SocketIO(app, manage_session=False)
 app, extensions = load_extensions.load(app)
 
-### HTML ROUTES ###
 
-
-### Execute code before first request ###
-@app.before_first_request
-def execute_before_first_request():
+def updateFileSys():
     uploader.check_ProjectFolder() # checks if GD.json exists
-    
-    util.create_dynamic_links(app)
+
     
     GD.checkProjectGDexists() #check if project in GD.json exist / if not exists, using demo project
     GD.loadGD()
@@ -92,7 +87,14 @@ def execute_before_first_request():
     GD.loadColor()
     GD.loadLinks()
     GD.load_annotations()
+### HTML ROUTES ###
 
+
+### Execute code before first request ###
+@app.before_first_request
+def execute_before_first_request():
+    util.create_dynamic_links(app)
+    updateFileSys()
 
 def index():
     return flask.redirect("/home")
@@ -100,6 +102,7 @@ def index():
 
 @app.route("/preview")
 def preview():
+    updateFileSys()
     return render_template("preview.html", extensions=extensions)
 
 
@@ -129,7 +132,7 @@ myusers = [{'uid': 4, 'links': [2, 2, 2, 2, 2, 133, 666, 666, 666, 666, 125, 125
 
 #----------------------------------------------------------------------
 # Language UI
-
+'''
 from functionmappingllm import *
 
 @app.route("/languageUI")
@@ -154,7 +157,7 @@ def process():
 #----------------------------------------------------------------------
 
 
-
+'''
 
 
 
