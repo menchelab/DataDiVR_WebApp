@@ -268,7 +268,7 @@
             //name_button.style.background = this.getAttribute('color');//("background",);
             text.addEventListener('change', () => {
 
-                console.log(text.value);
+                //console.log(text.value);
 
 
                 socket.emit('ex', { usr: uid, id: this.getAttribute('id'), parent: this.getAttribute('container'), fn: this.getAttribute('fn'), val: text.value });
@@ -327,8 +327,8 @@
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
     <div id="container" style="display: inline-block; overflow:auto; width:100%; padding: 10px 0px;">
-        <textarea class="swagButton" type="text" id="text" placeholder="Search for a Node, e.g. via ID or Name."
-            style="white-space:pre-wrap;float:left; width:85%;"></textarea>
+        <textarea class="swagButton" type="text" id="text" placeholder="Type id, name or attribute"
+            style="white-space:pre-wrap;float:left; width:85%; height:100%"></textarea>
         <!-- <input type="button" id="x" value="OK" class="swagTextButton" style="width: 12%; float:right; height:58px; text-align: center"></input> -->
         <input type="checkbox" class="rec" id="rec"></input>
         <label for="rec"></label>

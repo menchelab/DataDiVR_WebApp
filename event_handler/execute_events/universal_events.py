@@ -26,6 +26,8 @@ def search_event(message, room):
         emit("ex", results, room=room)
 
 
+
+
 def chat_message_event(message, room):
     response = {}
     response = message

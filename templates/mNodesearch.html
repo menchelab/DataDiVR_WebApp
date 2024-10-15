@@ -9,6 +9,7 @@
 function nodesearch() {
     var text = document.getElementById("search").shadowRoot.getElementById("text").value;
     text = text.toString();
+    console.log("searching for: " + text);
     socket.emit('ex', { usr:uid, id: "search", parent: "scrollbox2", fn: "search", val:text});
 }
 </script>

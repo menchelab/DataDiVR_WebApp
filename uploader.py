@@ -784,7 +784,6 @@ def makeLinkRGBTex(project, linksRGB, name=None):
                 rgba_colors = linksRGB["data"]
 
     except: # quick fix - if only point cloud upload and no links
-        
         print("has no colors")
 
     texc = [(0,0,0,10)] * 512 * hight #black, alpha = 10 used to filter background in legend panel

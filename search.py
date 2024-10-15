@@ -9,25 +9,48 @@ import GlobalData as GD
 def search(term):
     project = GD.data["actPro"]
     if project != "none":
+
+        term = term.replace("\n", "")
+
         results = []
-        i = 0
         
         nodes = GD.nodes["nodes"]
         for node in nodes:
+            
+            # search for term in attributes
             if "attrlist" in node:
-                for attr in node["attrlist"]:
-                    #contains: 
-                    match = re.search(term, attr, re.IGNORECASE)
-                    #match = re.match(term, attr, re.IGNORECASE)
-                    if match:
+                # check if attribute structure is a list or a dict
+                if isinstance(node["attrlist"], list):
+                    for attr in node["attrlist"]:
+                        if term.lower() in attr.lower() or attr.lower() in term.lower() or re.search(r'\b'+term.lower()+r'\b', attr.lower()):
+                            res = {"id": node["id"], "name": node["n"], "color": GD.pixel_valuesc[node["id"]] }
+                            results.append(res)
+                            break
+
+                if isinstance(node["attrlist"], dict):
+                    for key,value in node["attrlist"].items():
+                        if isinstance(value, list):
+                            for v in value:
+                                if term.lower() in v.lower() or v.lower() in term.lower() or re.search(r'\b'+term.lower()+r'\b', v.lower()):
+                                    res = {"id": node["id"], "name": node["n"], "color": GD.pixel_valuesc[node["id"]] }
+                                    results.append(res)
+                                    break
+
+                        elif isinstance(value, str):
+                            if term.lower() in value.lower():
+                                res = {"id": node["id"], "name": node["n"], "color": GD.pixel_valuesc[node["id"]] }
+                                results.append(res)
+                                break  
+                            
+            else:   
+                # search for term in name of node 
+                if "n" in node:
+                    nodename = node["n"] 
+                    if term.lower() in nodename.lower():
                         res = {"id": node["id"], "name": node["n"], "color": GD.pixel_valuesc[node["id"]] }
                         results.append(res)
                         break
-            #else:
-                #print(str(node["id"]) + " does not have attributes")
-        i += 1
-    
-    
+
     return results
 
 
