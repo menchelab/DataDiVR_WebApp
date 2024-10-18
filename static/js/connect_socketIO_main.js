@@ -3,7 +3,7 @@ var socket;
 var newcon = true;
 var logAll = true;
 var isPreview = false; logjs
-var isLanguageUI = false;
+var isLanguageUI = false; logjs
 var isMain = false;
 var isUE4 = false;
 
@@ -108,9 +108,6 @@ function updateMcElements() {
     socket.emit('ex', {usr:uid,  val: "init", id: "init", fn: "enrichment"});
     // socket.emit("ex", {usr:uid,  fn: "legend_scene_display", id: "legend_scene_display", val: "init"});
 
-    // language UI 
-    //socket.emit('ex', {usr:uid,  val: "init", id: "languageUI", fn: "textinput"});
-
     // VRrooms
     socket.emit('ex', {usr:uid,  val: "init", id: "VRrooms", fn: "dropdown"});
 
@@ -189,7 +186,7 @@ $(document).ready(function() {
     socket.on('status', function(data) {
         //console.log(data)
         if (data.usr == uid) {
-            if (isMain || isPreview || isLanguageUI) {
+            if (isMain || isPreview) {
                 // START initialization routine
                 socket.emit('ex', { id: "projDD", fn: "dropdown", val: "init", usr: uid });
             }
@@ -1438,6 +1435,14 @@ $(document).ready(function() {
         }
     });
 
+});
+
+
+
+// Language UI - specific 
+socket.on('reload_page', function() {
+    console.log("Reloading page as instructed by server...");
+    window.location.reload();  // This will reload the entire page
 });
 
 

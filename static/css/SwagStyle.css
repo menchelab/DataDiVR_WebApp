@@ -782,9 +782,7 @@ input[type=checkbox] {
 .swagBoxT {
     border: 9px solid transparent;
     padding: 0px;
-    border-image: url("images/frame1t.png") 10 stretch;
-   
-    
+    border-image: url("images/frame1t.png") 10 stretch;    
     min-height: 58px;
 }
 .swagButton {

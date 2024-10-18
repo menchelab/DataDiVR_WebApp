@@ -134,12 +134,11 @@ from functionmappingllm import *
 
 @app.route("/languageUI")
 def languageUI():
-    
-    
-    # ISSUE: does not get user name
-
-
-    return render_template("LanguageUI.html", extensions=extensions)
+    myusr = session.get('username')
+    if not myusr:
+        return redirect(url_for('main'))
+    print("C_DEBUG : usr: " + myusr) 
+    return render_template("LanguageUI.html", user=myusr, extensions=extensions)
 
 
 @app.route('/languageUI_process', methods=['POST'])
@@ -147,9 +146,8 @@ def process():
     data = request.get_json()
     lui_user_input = data.get('text')
     result = process_input(lui_user_input)
-    username = data.get("usr")
 
-    return jsonify({"userId":username, "result": result})
+    return jsonify({"result": result})
 
 #----------------------------------------------------------------------
 

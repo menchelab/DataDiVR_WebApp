@@ -587,16 +587,17 @@
 
 <template id="mcScrollBox-template">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/SwagStyle.css') }}">
-
-    <!-- <div id = "label" class = "swagLabelSmall">TEXT</div> -->
-    <div id='box' name='box' class='swagBoxT'
-        style="width:398px; max-height: 380px; height:auto; overflow-y: auto; overflow-x: hidden;">
-
+    <style>
+        #box {
+            width: var(--scrollbox-width, 398px); /* Default width is 398px */
+            max-height: 380px;
+            height: auto;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+    </style>
+    <div id='box' name='box' class='swagBoxT'></div>
 </template>
-
-
-
-
 
 
 

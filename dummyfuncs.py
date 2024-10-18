@@ -8,41 +8,38 @@ from flask_socketio import emit
 all_projects_text = '\n'.join(GD.listProjects())
 
 def action_open_project(project_name):
-    
     # Check if project_name is provided
     if project_name is None or not project_name:
-        # Project name not provided, return list of available projects
         return "Please specify the project name. Available projects: " + all_projects_text
     
     # Check if project exists in the list
     if project_name not in GD.listProjects():
-        # Project not found, return list of available projects
         return "Project not found. Available projects: " + all_projects_text
     
     else:
         for proj in GD.listProjects():
             if project_name.lower() == proj.lower():
-                #print("C_DEBUG: Project found: ", proj)
-                
                 GD.data["actPro"] = proj
-              
-
                 namespace = proj
                 room = flask.session.get("room") 
-                usr = flask.session.get("usr")
+                usr = flask.request.args.get("usr")
 
-                print("C_DEBUG: namespace: ", namespace)
-                print("C_DEBUG: room: ", room)
 
-                response = {}
-                response["val"] = proj
-                response["fn"] = "project"
+                response = {
+                    "val": proj,
+                    "fn": "project",
+                    "usr": usr
+                }
 
-                emit("ex", response, usr = usr, room=room, namespace=namespace) 
+                # Emit event to signal the project was successfully opened
+                emit("ex", response, usr=usr, room=room, namespace=namespace)
+                
+                # Emit event to trigger the frontend to reload the page
+                emit("reload_page", {}, usr=usr, room=room, namespace=namespace)
 
-                return f"Project {(proj)} opened successfully."
+                return f"Project {proj} opened successfully."
             else:
-                return "No matching projects found. Please try again. \n Here is a list of all projects : "+ all_projects_text
+                return "No matching projects found. Please try again. \n Here is a list of all projects: " + all_projects_text
 
 
 def action_show_node_info():
