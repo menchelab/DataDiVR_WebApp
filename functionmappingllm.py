@@ -2,7 +2,8 @@
 
 # hugging face "dev-datascope" token: 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
 # get a token: https://huggingface.co/docs/api-inference/quicktour#get-your-api-token
-HUGGINGFACEHUB_API_TOKEN = "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"
+from pathlib import Path
+
 
 
 from langchain.chains import LLMChain
@@ -39,6 +40,12 @@ Summarize: Provide a concise response indicating the identified action. If no ac
 prompt = PromptTemplate.from_template(template)
 
 # Load the LLM
+keyfile = str(Path(__file__).resolve().parents[0])+'/HF_token_doNOTcommit.txt'
+print(keyfile)
+with open(keyfile) as f:
+    lines = f.readlines()
+    HUGGINGFACEHUB_API_TOKEN = lines[0] 
+    
 repo_id = "mistralai/Mistral-7B-Instruct-v0.2"
 llm = HuggingFaceEndpoint(
     repo_id=repo_id,
@@ -51,6 +58,7 @@ llm = HuggingFaceEndpoint(
 llm_chain = LLMChain(prompt=prompt, llm=llm)
 
 def process_input(user_input):
+    
     # Invoke the LLM chain to map the user input to an action
     response = llm_chain.invoke({"question": user_input, "actions": actions})
     generated_text = response["text"].strip()

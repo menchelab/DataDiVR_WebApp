@@ -1,4 +1,4 @@
-<!-- 
+
 
 <!DOCTYPE html>
 <html>
@@ -69,8 +69,8 @@ function processQuery(){
             })
             .then((response) => response.json())
             .then((json) => {
-                chatwin.innerHTML += '<br><b>HUMAN : username : ' + uid + '<br>' + text + "<br>"; 
-                chatwin.innerHTML += "<br><b>ENGINE : <br>" + json.result + '<br>';
+                chatwin.innerHTML += '<br><b>HUMAN :' + text + "<br>"; 
+                chatwin.innerHTML += "<br><b>ENGINE : <br>" + JSON.stringify(json.result) + '<br>';
                 chatwin.scrollTop = chatwin.scrollHeight;  
 
                 // Clear the input field
@@ -95,4 +95,4 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 
-</script> -->
+</script>
