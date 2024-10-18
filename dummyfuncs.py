@@ -25,13 +25,7 @@ def action_open_project(project_name):
                 #print("C_DEBUG: Project found: ", proj)
                 
                 GD.data["actPro"] = proj
-                GD.saveGD()
-                GD.loadGD()
-                GD.loadPFile()
-                GD.loadPD()
-                GD.loadColor()
-                GD.loadLinks()
-                GD.load_annotations()
+              
 
                 namespace = proj
                 room = flask.session.get("room") 

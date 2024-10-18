@@ -21,12 +21,10 @@ import shutil
 
 def upload_filesJSON(request, overwrite=False):
     """
-    Uploads JSON files and processes the data for visualization.
-
+    Generates JSON files and textures in the required folder structure in static/project for data visualization.
     Args:
         request (dict or Flask request object): The request object containing the JSON files or form data.
         overwrite (bool, optional): Flag indicating whether to overwrite an existing project. Defaults to False.
-
     Returns:
         str: A message indicating the status of the project creation or any errors encountered.
     """

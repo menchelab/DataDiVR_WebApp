@@ -4,9 +4,9 @@
 # get a token: https://huggingface.co/docs/api-inference/quicktour#get-your-api-token
 from pathlib import Path
 
-#from langchain.chains import LLMChain
-#from langchain_core.prompts import PromptTemplate
-#from langchain_huggingface import HuggingFaceEndpoint
+from langchain.chains import LLMChain
+from langchain_core.prompts import PromptTemplate
+from langchain_huggingface import HuggingFaceEndpoint
 
 import re
 
@@ -21,18 +21,24 @@ actions = {
 }
 
 # Template for the prompt
-template = """Question: {question}
-Context: ... (rest of your context)
+template = """
+Question: {question}
+Context: You can interact with the platform by using natural language to trigger functions.
 Actions:
-  - Open project (e.g., "open project A")
+  - Open project (e.g., "open project A", "load project Alpha", "retrieve project Bravo")
     Tooltip: Opens a previously saved project file in the project collection.
-  - Show node info (e.g., "get details for node 123")
-    Tooltip: Displays information about a specific node, including its attributes and connections.
-  - Make subnetwork (e.g., "visualize subnetwork centered on node 456")
+  - Show node info (e.g., "get details for node 123", "show node attributes", "display information about node 456")
+    Tooltip: Displays detailed information about a specific node, including its attributes and connections.
+  - Make subnetwork (e.g., "visualize subnetwork centered on node 789", "create subnetwork view for node 456", "show network for node 321")
     Tooltip: Creates a visualization of a subset of nodes and their connections, focusing on a particular node.
-Tooltip: If you're unsure about the available actions, try using more specific terms.
-Identify the intended action based on the user's request and the available actions.
-Summarize: Provide a concise response indicating the identified action. If no action is found, provide a helpful tooltip."""
+Other examples:
+  - "What actions can I perform?" - Displays available actions and a summary of tooltips.
+  - "Show me information about node Alpha" - Triggers node info for node Alpha.
+The LLM should prioritize matching keywords and synonyms precisely to map to the right function.
+If unclear, provide helpful tooltips or ask for more information to refine the request.
+Actions will be processed in the order provided.
+Summarize: Give a clear response including the action being triggered. Estimate calculation time if needed.
+"""
 
 # Create a prompt object
 prompt = PromptTemplate.from_template(template)
@@ -61,10 +67,6 @@ def process_input(user_input):
     response = llm_chain.invoke({"question": user_input, "actions": actions})
     generated_text = response["text"].strip()
 
-    # Log the generated response for debugging or analysis
-    print(f"C_DEBUG: Generated Text: {generated_text}")
-
-
     # Identify the mapped action and extract the project name
     mapped_action = None
     project_name = None
@@ -79,7 +81,7 @@ def process_input(user_input):
 
     if mapped_action:
         if mapped_action == "open project":
-            result = duf.action_open_project(project_name)
+            duf.action_open_project(project_name)
             return {
                 "message": f"Executed action: {mapped_action} for project {project_name}",
                 "generated_text": generated_text
