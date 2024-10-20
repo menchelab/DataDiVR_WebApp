@@ -15,7 +15,7 @@
         //var data = JSON.parse('{"nodes":[{"p":[0.5,0.5,0.5],"c":[128,128,128,128],"n":"TEST1"},{"p":[0.7,0.7,0.7],"c":[ 0,128,128,128],"n":"TEST2"},{"p":[0.2,0.2,0.2],"c":[128,0,128,128],"n":"TEST3"}],"links":[{"id":0,"s":0,"e":1,"c":[0,128,128,128]},{"id":1,"s":1,"e":2,"c":[0,128,128,128]},{"id":2,"s":2,"e":1,"c":[0,128,128,128]}]}');
         var data = {};
         var scale = 20;
-        const nscale = .02;
+        const nscale = .1;
         var nodemeshes = [];
         var linkmeshes = []
         var indexsphere;
@@ -366,9 +366,11 @@
 
                             
                             var name = pfile["selections"][(i - pfile["nodecount"])]["name"];
+
+                            //var name = "reeeeeeeeeeeeee";
                             $('body').append('<div id="lab'+i+'"class="label" text="label"style="z-index: 1; position: absolute; top: 389px; left: 271px; margin-left: 10px; font-size: 20px;">'+ name +'</div>');
                             labels.push("lab" + i);
-
+                            console.log("made label")
 /*                             
                             // match label with layout to show only for specific layout
                             var selected_layout_index = getIndexforwardstep(pfile["layouts"].length);

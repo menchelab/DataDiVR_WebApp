@@ -6,6 +6,8 @@ logjs;
 var isMain = false;
 var isUE4 = false;
 
+
+
 if (String(navigator.userAgent).includes("UnrealEngine")) {
   isUE4 = true;
 } else {
@@ -38,6 +40,25 @@ function logjs(data, id) {
     );
   }
 }
+
+function refresh() {
+  // make Ajax call here, inside the callback call:
+  console.log("ping")
+  var text = '{"id":"x", "success": "true", "fn": "refresh"}';
+  var out = JSON.parse(text);
+  out["usr"] = uid;
+  try {
+    socket.emit("ex", out);
+  }
+  catch(err) {
+    console.log("err");
+  }
+  //
+  setTimeout(refresh, 2000);
+  // ...
+}
+//refresh();
+
 
 function genOptionColorGradient(n) {
   // function to generate a color gradient based on two random picked colors and interpolating Hue for n colors
@@ -186,6 +207,7 @@ function updateMcElements() {
     //console.log(dynelem[i].getAttribute('container'));
   }
   // add here init values for new joined client
+  /*
   socket.emit("ex", { usr: uid, id: "cbaddNode", fn: "addNode", val: "init" });
   socket.emit("ex", {
     usr: uid,
@@ -225,6 +247,7 @@ function updateMcElements() {
     id: "annotation-dd-2",
     fn: "annotation",
   });
+  */
 }
 
 function reconnect() {
@@ -251,7 +274,7 @@ function speakNow(text) {
 }
 
 $(document).ready(function () {
-  speakNow("Hello Human! Welcome to the data diver.");
+  //speakNow("Hello Human! Welcome to the data diver.");
 
   if (document.getElementById("preview")) {
     isPreview = true;
@@ -856,7 +879,8 @@ $(document).ready(function () {
           downloadProjectTextures(); // download textures for preview, report when done
         }
         ue4(data["fn"], data);
-
+        console.log(data)
+        console.log("--------------")
         //}
         break;
 
@@ -1462,3 +1486,5 @@ function handleLayoutExistsDisplay(exists) {
     });
   }
 }
+
+

@@ -300,7 +300,8 @@ def makeNodeRGBTexture(project, pixeldata, name=None):
     
 
 
-def makeLinkTexNew(project, links, name=None): 
+def makeLinkTexNew(project,  name, links, linkcol): 
+    print((len(links["data"])) / 32768)
     hight = 64 * (int((len(links["data"])) / 32768) + 1)
     print("image hight = " + str(hight))
     #hight = 512 #int(elem / 512)+1
@@ -929,9 +930,9 @@ def update_files(pname, nodelist, linklist, Npos, Ncol, links, linkcol):
 
 
 
-def updatePfile(project, nodelist, linklist):
+def updatePfile(project, nodelist,labellist, linklist):
     pfile = {}
-    with open("static/projects/"+ project + "/pfile.json", "rb") as f:
+    with open("static/projects/"+ project + "/pfile.json", "r") as f:
         pfile = json.load(f)
 
         folders = ["layouts","layoutsRGB","links", "linksRGB"]
@@ -945,14 +946,20 @@ def updatePfile(project, nodelist, linklist):
 
             pfile[f] = newlist
 
-        pfile["nodecount"] = len(nodelist)
+        pfile["nodecount"] = len(nodelist) - len(labellist)
         pfile["linkcount"] = len(linklist)
-        pfile["labelcount"] = 0
-        #f.close()
+        pfile["labelcount"] = len(labellist)
+        pfile["selections"] = []
+
+        for x in labellist:
+            thissel = {"name":x["n"],"nodes":x["group"]}
+            pfile["selections"].append(thissel)
+            #print(thissel)
+    #f.close()
 
 
-    with open("static/projects/"+ project + "/pfile.json", 'w') as f:
-        json.dump(pfile, f)
+    with open("static/projects/"+ project + "/pfile.json", 'w') as x:
+        json.dump(pfile, x)
         print(pfile)
 
 
@@ -962,13 +969,13 @@ def updatePfile(project, nodelist, linklist):
 
 
 
-
+import math
 
 def makeLinkTex(project, name, links,linkcol):
     
-    hight = 512 #int(elem / 512)+1
+    hight = 64 * (math.floor((len(links)) / 32768) + 1)
     path = 'static/projects/' + project 
-
+    print(hight)
     texl = [(0,0,0)] * 1024 * hight
     texc = [(0,0,0,0)] * 512 * hight
     new_imgl = Image.new('RGB', (1024, hight))
@@ -1034,7 +1041,22 @@ def makeLinkTex(project, name, links,linkcol):
     return "successfully created node textures and names file"
 
 
-def makeNodeTex(project, name, nodelistIn, nodepos, nodecol):
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def makeNodeTex(project, name, nodelistIn,labellist, nodepos, nodecol):
     #print(labelfile)
     
 
@@ -1058,6 +1080,40 @@ def makeNodeTex(project, name, nodelistIn, nodepos, nodecol):
     attrlist = {}
     attrlist['names'] = []
     nodelist = {"nodes":[]}
+
+
+    
+
+    for label in labellist:
+        #print(row)
+        thiscolor = [200,200,200]
+        #thisnode = {"id":label["id"]}
+        label["name"] = "reee"
+
+        pos = [0,0,0]
+        
+        for n in label["group"]:
+        #if ";" in row[0]:
+        # A LIST OF NODES
+            #my_list = row[0].split(";")
+            #row[0] = my_list[1]
+            #print(my_list)
+            accPos = [0,0,0]
+            
+            accPos[0] += nodepos[int(n)][0]
+            accPos[1] += nodepos[int(n)][1]
+            accPos[2] += nodepos[int(n)][2]
+            thiscolor = nodecol[int(n)]
+        pos[0] = accPos[0] / len(label["group"])
+        pos[1] = accPos[1] / len(label["group"])
+        pos[2] = accPos[2] / len(label["group"])
+        #nodelist["labels"].append(thislabel)
+        print(label)
+
+        nodelistIn.append(label)
+        nodepos.append(pos)
+        nodecol.append([255,0,0,255])
+        
 
 
     #try:
@@ -1088,17 +1144,77 @@ def makeNodeTex(project, name, nodelistIn, nodepos, nodecol):
         pixelh = (xh,yh,zh)
         pixell = (xl,yl,zl)
         pixelc = (r,g,b,a)
-        texh[i] = pixelh
-        texl[i] = pixell
-        texc[i] = pixelc
+
+        texh[count] = pixelh
+        texl[count] = pixell
+        texc[count] = pixelc
 
       
         #nodepos.append([float(row[0]),float(row[1]),float(row[2])])
         #nodecol.append([float(row[3]),float(row[4]),float(row[5]),100])
         #print(row)
-        i += 1
+         
 
 
+    
+    '''
+    for label in labellist:
+        #print(row)
+        thiscolor = [200,200,200]
+        thisnode = {}
+         
+        thisnode["id"] = l
+        thisnode["group"] = label["group"]
+        pos = [0,0,0]
+        
+        for n in label["group"]:
+        #if ";" in row[0]:
+        # A LIST OF NODES
+            #my_list = row[0].split(";")
+            #row[0] = my_list[1]
+            #print(my_list)
+            accPos = [0,0,0]
+
+            
+
+            accPos[0] += nodepos[int(n)][0]
+            accPos[1] += nodepos[int(n)][1]
+            accPos[2] += nodepos[int(n)][2]
+            thiscolor = nodecol[int(n)]
+
+        pos[0] = accPos[0] / len(label["group"])
+        pos[1] = accPos[1] / len(label["group"])
+        pos[2] = accPos[2] / len(label["group"])
+
+        #nodelist["labels"].append(thislabel)
+        #nodelist["nodes"].append(thisnode)
+            #print(accPos)    
+        x = int(float(pos[0])*65280)
+        y = int(float(pos[1])*65280)
+        z = int(float(pos[2])*65280)
+        r = int(thiscolor[0])
+        g = int(thiscolor[1])
+        b = int(thiscolor[2])
+        a = 127
+        xh = int(x / 255)
+        yh = int(y / 255)
+        zh = int(z / 255)
+        xl = x % 255
+        yl = y % 255
+        zl = z % 255
+        pixelh = (xh,yh,zh)
+        pixell = (xl,yl,zl)
+        pixelc = (r,g,b,a)
+        texh[i+l] = pixelh
+        texl[i+l] = pixell
+        texc[i+l] = pixelc
+
+        #attrlist['names'].append([thisnode["n"],"label",])
+        nodelist["nodes"].append(thisnode)
+        
+        l += 1
+            #print(my_list)
+    '''
     new_imgh.putdata(texh)
     new_imgl.putdata(texl)
     new_imgc.putdata(texc)
@@ -1113,94 +1229,15 @@ def makeNodeTex(project, name, nodelistIn, nodepos, nodecol):
     new_imgc.save(pathRGB, "PNG")
     print("saved to "+ pathXYZ)
 
+
+       
+
     with open(path + '/nodes.json', 'w') as outfile:
         json.dump(nodelist, outfile)
-    '''    
-    except (IndexError, ValueError):
-        return '<a style="color:red;">ERROR </a>' + name + " nodefile malformated?" ,0,0
-   
-    try:
-        l=0
-        for row in csvreaderl:
-            print(row)
-            thiscolor = [200,200,200]
-            thisnode = {}
-            index = elem + l 
-            thisnode["id"] = index
-            
-            pos = [0,0,0]
-            
-            if ";" in row[0]:
-            # A LIST OF NODES
-                my_list = row[0].split(";")
-                row[0] = my_list[1]
-                print(my_list)
-                accPos = [0,0,0]
-                thisnode["n"] = my_list[0]
-
-                thislabel = {}
-                thislabel["group"] = []
-                thislabel["n"] = my_list[0]
-                
-                for x in row:
-                    thislabel["group"].append(x)
-                    accPos[0] += nodepos[int(x)][0]
-                    accPos[1] += nodepos[int(x)][1]
-                    accPos[2] += nodepos[int(x)][2]
-                    thiscolor = nodecol[int(x)]
-
-                pos[0] = accPos[0] / len(row)
-                pos[1] = accPos[1] / len(row)
-                pos[2] = accPos[2] / len(row)
-
-                nodelist["labels"].append(thislabel)
-                #print(accPos)
-
-            else:
-            # node is fixed position
-                thisnode["n"] = row[0]
-                pos[0]=float(row[1])
-                pos[1]=float(row[2])
-                pos[2]=float(row[3])
-                 
-            x = int(float(pos[0])*65280)
-            y = int(float(pos[1])*65280)
-            z = int(float(pos[2])*65280)
-            r = int(thiscolor[0])
-            g = int(thiscolor[1])
-            b = int(thiscolor[2])
-            a = 127
-            xh = int(x / 255)
-            yh = int(y / 255)
-            zh = int(z / 255)
-            xl = x % 255
-            yl = y % 255
-            zl = z % 255
-            pixelh = (xh,yh,zh)
-            pixell = (xl,yl,zl)
-            pixelc = (r,g,b,a)
-            texh[index] = pixelh
-            texl[index] = pixell
-            texc[index] = pixelc
-
-            attrlist['names'].append([thisnode["n"],"label",])
-            nodelist["nodes"].append(thisnode)
-
-            l += 1
-            #print(my_list)
-         
-
-    except (IndexError, ValueError):
-        return '<a style="color:red;">ERROR </a>' + name + " labelfile malformated?", 0,0
-    
 
 
-    with open(path + '/names.json', 'w') as outfile:
-        json.dump(attrlist, outfile)
 
-
-    '''
-
-        #return '<a style="color:green;">SUCCESS </a>' + name + " Node Textures Created", elem, eleml
+    #with open(path + '/names.json', 'w') as outfile:
+        #json.dump(attrlist, outfile)
 
 
