@@ -9,8 +9,8 @@ df.index
 
 df = df.iloc[1:,1:]
 df = df.values
-df = df[::4,::1]
-#[time, spectrum]
+df = df[::1,::1]
+#[ spectrum, time]
 #print(df.columns)
 #print(df[4,1])
 #print(df[:,1])
