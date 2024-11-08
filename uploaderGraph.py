@@ -10,105 +10,93 @@ from uploader import *
 
 
 
-def hex_to_rgb(hx):
-    hx = hx.lstrip('#')
-    hlen = len(hx)
-    return [int(hx[i:i+hlen//3], 16) for i in range(0, hlen, hlen//3)]
-
-def hex_to_rgba(hex_color):
-    hex_color = hex_color.lstrip('#')
-    rgba_color = tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4, 6))
-    return rgba_color
-
-
 #########################################################################################
 #
 # U P L O A D I N G 
 #
 #########################################################################################
-def upload_filesJSON(request):
-    
-    print("Creating Project...")
-    
+import json
+import os
+import shutil
+
+def upload_filesJSON(request, overwrite=True):
+    """
+    Generates JSON files and textures in the required folder structure in static/project for data visualization.
+    Args:
+        request (dict or Flask request object): The request object containing the JSON files or form data.
+        overwrite (bool, optional): Flag indicating whether to overwrite an existing project. Defaults to False.
+    Returns:
+        str: A message indicating the status of the project creation or any errors encountered.
+    """
+
     global create_project_bool
     create_project_bool = True
 
-    #-----------------------------------
-    # Make Project Folders 
-    #-----------------------------------
-    if isinstance(request, dict):  #upload via Notebook function 
-        #print("C_DEBUG: is dict - Uploading via Notebook function")
-        form = request #request.get_json()
-        try:
-            # old (multiple) json files
-            if "graph" in form.keys():
-                if "projectname" in form["graph"].keys():
-                    namespace = form["graph"]["projectname"]
-                elif "graphtitle" in form["graph"].keys():
-                    namespace = form["graph"]["graphtitle"]
-                else: 
-                    namespace = "Auto_ProjectName"
-            # one merged json file (with layout key)
-            elif "projectname" in form.keys(): # former graphtitle
-                namespace = form["projectname"] # former graphtitle
-            elif "graphtitle" in form.keys(): # keep only for "old" files
-                namespace = form["graphtitle"] # keep only for "old" files
-            else: 
-                namespace = "Auto_ProjectName"
-        except:
-            print("Can not find reference to projectname. Not specified.")
-
-
-    else: # original processing via uploader / webbrowser
-        #print("C_DEBUG: Uploading via Web browser")
+    #if notebook
+    if isinstance(request, dict):  
+        #print("C_DEBUG NOTEBOOK")
+        form = request
+        if "graph" in form.keys():
+            namespace = form["graph"].get("projectname", form["graph"].get("graphtitle", "Auto_ProjectName"))
+        else:
+            namespace = form.get("projectname", form.get("graphtitle", "Auto_ProjectName"))
+            
+    # if web browser 
+    else: 
+        #print("C_DEBUG WEBBROWSER")
         form = request.form.to_dict()
         namespace = form["namespaceJSON"]
 
-    #print("C_DEBUG: NAMESPACE : ", namespace)
-
-    prolist = GD.listProjects()
-    #print("C_DEBUG: PROLIST : ", prolist)
-
     if not namespace:
         create_project_bool = False
-        return print("Namespace fail. Please specify a projectname.")   
-    
-    if namespace in prolist:
-        create_project_bool = False
-        return print("Project creation failed. Projectname exists." )  
+        return "Namespace fail. Please specify a project name."
 
+    prolist = GD.listProjects()
+
+    # Check if the project already exists
+    if namespace in prolist:  # <--- **Check if project exists**
+        if not overwrite:  # <--- **Check if overwrite flag is False**
+            if isinstance(request, dict):  # Jupyter Notebook
+                response = input(f"Project '{namespace}' exists. Overwrite? (y/n): ").strip().lower()  # <--- **Jupyter prompt**
+                if response == 'y':
+                    folder = f'static/projects/{namespace}/'
+                    if os.path.exists(folder):
+                        shutil.rmtree(folder)  # <--- **Remove existing project directory**
+                    create_project_bool = True
+                    print("PROGRESS: Overwriting Project...")
+                    
+                else: 
+                    create_project_bool = False
+                    return print(f"Project '{namespace}' exists and was not overwritten.")
+                
+            else:  # Web browser
+                return f"Project '{namespace}' exists. Set overwrite=True to overwrite it."  # <--- **Web browser message**
+            
+        else: # if overwrite is True
+            folder = f'static/projects/{namespace}/'
+            create_project_bool = True
+            if os.path.exists(folder):
+                shutil.rmtree(folder)  # <--- **Remove existing project directory**
 
     if create_project_bool == True:
-        # try:
         makeProjectFolders(namespace) 
-        #except:
-        #    return "Project creation failed."
     else:   
         return "Project creation failed."
     
     #-----------------------------------
     # CREATING PFILE.json
     #-----------------------------------
-    
-    # # add check if folder "static/projects" exists if not create 
-    # if not os.path.exists('static/projects/'):
-    #     os.mkdir('static/projects/')
-        
     folder = 'static/projects/' + namespace + '/'
-    
     pfile = {}
     with open(folder + 'pfile.json', 'r') as json_file:
         pfile = json.load(json_file)
-    
     json_file.close()
-
 
     #-----------------------------------
     # CREATING necessary variables to store data
     #-----------------------------------
     state = ''
     nodelist = {"nodes":[]}
-
     jsonfiles = []
     nodepositions = []
     nodeinfo = []
@@ -121,6 +109,7 @@ def upload_filesJSON(request):
     
     if isinstance(request, dict): # using "_GeneratedProject.ipynb" 
         loadGraphDict([form], jsonfiles)
+        print("PROGRESS: loaded graph JSON...")
     else:
         loadGraphJSON(request.files.getlist("graphJSON"), jsonfiles)
 
@@ -131,7 +120,6 @@ def upload_filesJSON(request):
     parseGraphJSON_graphinfo(jsonfiles,graphdesc)
     if len(graphdesc) > 0 or graphdesc[0]["info"] is not None: #former "graphdesc"
         descr_of_graph = graphdesc[0]["info"] #former "graphdesc"
-
     pfile["info"] = descr_of_graph
     print("PROGRESS: stored graph data...")
     
@@ -174,7 +162,7 @@ def upload_filesJSON(request):
         graphlayouts = [item for sublist in graphlayouts for item in sublist] # unpack list in lists
         names = graphlayouts
         
-    pfile["scenes"] = names
+    pfile["scenes"] = names # rrdundant - to be removed
     print("PROGRESS: stored layouts...")
 
     #----------------------------------------------
@@ -190,12 +178,12 @@ def upload_filesJSON(request):
     # if complex_annotations is False:
     #     parseGraphJSON_nodeinfo_simple(jsonfiles, nodeinfo)
     # else:  # complex_annotations is True
-    #     nodeinfo = parseGraphJSON_nodeinfo_complex(jsonfiles)
-    
-    nodeinfo = parseGraphJSON_nodeinfo(jsonfiles)
-    #print("C_DEBUG: nodeinfo: ", nodeinfo)  
-    print("PROGRESS: stored nodeinfo...")
+    #     nodeinfo = parseGraphJSON_nodeinfo_complex(jsonfiles)        
 
+    #print("C_DEBUG: jsonfiles[0].keys(): ", jsonfiles[0].keys())
+    nodeinfo = parseGraphJSON_nodeinfo(jsonfiles)
+    print("PROGRESS: stored node info...")
+    
     numnodes = len(nodepositions[0]["data"])
     #OLD: if complex_annotations is False:
     #NEW: without complex_annotations flag (json file) instead check for "name" key per node in "nodes" key - EXPLANATION: no complex_annotations flag is needed in json file, but the variabel still exists for analytics if required
@@ -206,8 +194,8 @@ def upload_filesJSON(request):
             thisnode["n"] = nodeinfo[i]["name"]
             thisnode["attrlist"] = nodeinfo[i]["annotation"]
             nodelist["nodes"].append(thisnode)
-            
             complex_annotations = True # set if required for analytics
+            
             
     else:   
         for i in range(len(nodepositions[0]["data"])):
@@ -222,7 +210,6 @@ def upload_filesJSON(request):
             if len(nodeinfo[0]["data"]) == len(nodepositions[0]["data"]):
                 thisnode["attrlist"] = nodeinfo[0]["data"][i]          
                 thisnode["n"] = "node" + str(i)
-                #print("C_DEBUG: NO namekey found:  thisnode: ", thisnode)
 
             nodelist["nodes"].append(thisnode)
             complex_annotations = False # set if required for analytics
@@ -523,6 +510,9 @@ def upload_filesJSON(request):
     return state  
 
 
+    #except Exception as e:
+    #    return f"An error occurred: {str(e)}"
+
 
 
 
@@ -531,6 +521,18 @@ def upload_filesJSON(request):
 # PARSE GRAPH FUNCTIONS 
 #
 #########################################################################################
+
+
+def hex_to_rgb(hx):
+    hx = hx.lstrip('#')
+    hlen = len(hx)
+    return [int(hx[i:i+hlen//3], 16) for i in range(0, hlen, hlen//3)]
+
+def hex_to_rgba(hex_color):
+    hex_color = hex_color.lstrip('#')
+    rgba_color = tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4, 6))
+    return rgba_color
+
 
 def loadGraphJSON(files, target):
     if len(files) > 0: 
@@ -550,10 +552,15 @@ def parseGraphJSON_nodepositions(files, target):
     if len(files) > 0: 
         for ix,file in enumerate(files):
 
-
             # old JSON format (no "layout" key)
             if "graph" in file:
-                name_of_file = file["graph"]["name"]  
+                if "name" in file["graph"]:
+                    name_of_file = file["graph"]["name"]  
+                elif "projectname" in file["graph"]:
+                    name_of_file = file["graph"]["projectname"]
+                else:
+                    name_of_file = "Automatic-Projectname"+str(ix)
+                    
             # with new "layout" key -> get layout name           
             elif "layoutname" in file:
                 name_of_file = file["layoutname"] 
@@ -603,15 +610,23 @@ def parseGraphJSON_links(files, target):
             else:
                 name_of_file = "Automatic-LayoutID"+str(ix)
             
-            num_of_links = len(file["links"])
+            # catch if there are links
+            if "links" in file.keys():
+                    
+                num_of_links = len(file["links"])
 
-            links = []
-            for i in range(0,num_of_links):
-                links.append([str(file["links"][i]["source"]),str(file["links"][i]["target"])])
+                links = []
+                for i in range(0,num_of_links):
+                    links.append([str(file["links"][i]["source"]),str(file["links"][i]["target"])])
 
-            vecList = {}
-            vecList["data"] = links
-            vecList["name"] = name_of_file
+                vecList = {}
+                vecList["data"] = links
+                vecList["name"] = name_of_file
+            else: 
+                links = []
+                vecList = {}
+                vecList["data"] = links
+                vecList["name"] = name_of_file
 
         target.append(vecList)
 
@@ -621,26 +636,39 @@ def parseGraphJSON_links_many(files, target):
             
         all = []  
         for ix,file in enumerate(files):
-        
+    
             # old JSON format (no "layout" key)
             if "graph" in file:
-                name_of_file = file["graph"]["name"] #+"_linksXYZ"
+                if "name" in file["graph"]:
+                    name_of_file = file["graph"]["name"]  
+                elif "projectname" in file["graph"]:
+                    name_of_file = file["graph"]["projectname"]
+                else:
+                    name_of_file = "Automatic-Projectname"+str(ix)
+
             # with new "layout" key -> get layout name
             elif "layoutname" in file:
                 name_of_file = file["layoutname"] #+"_linksXYZ"
             else:
                 name_of_file = "Automatic-LayoutID"+str(ix) #+"_linksXYZ"
 
-            num_of_links = len(file["links"])
+            # catch if there are links 
+            if "links" in file.keys():
+                num_of_links = len(file["links"])
 
-            links = []
-            for i in range(0,num_of_links):
-                links.append([str(file["links"][i]["source"]),str(file["links"][i]["target"])])
-            vecList = {}
-            vecList["data"] = links
-            vecList["name"] = name_of_file
-            
-            all.append(vecList)
+                links = []
+                for i in range(0,num_of_links):
+                    links.append([str(file["links"][i]["source"]),str(file["links"][i]["target"])])
+                vecList = {}
+                vecList["data"] = links
+                vecList["name"] = name_of_file
+                all.append(vecList)
+            else:
+                links = []
+                vecList = {}
+                vecList["data"] = links
+                vecList["name"] = name_of_file
+                all.append(vecList)
         target.append(all)
     
 
@@ -668,24 +696,6 @@ def parseGraphJSON_append_links(all_dicts, target):
 
 
 
-# def parseGraphJSON_links_wip(files, target):
-#     if len(files) > 0: 
-
-#         for idx,file in enumerate(files):
-
-#             name_of_file = file["layoutname"]+"_linksXYZ"
-#             num_of_links = len(file["links"])
-
-#             links = []
-#             for i in range(0,num_of_links):
-#                 links.append([str(file["links"][i]["source"]),str(file["links"][i]["target"])])
-#             vecList = {}
-#             vecList["data"] = links
-#             vecList["name"] = name_of_file
-
-#             target.append(vecList)
-
-
 def parseGraphJSON_linkcolors(files,target):
     if len(files) > 0: 
         #for file in files: 
@@ -696,54 +706,65 @@ def parseGraphJSON_linkcolors(files,target):
             
             # old JSON format (no "layout" key)
             if "graph" in file:
-                name_of_file = file["graph"]["name"] #+"_linksRGB"
+                if "name" in file["graph"]:
+                    name_of_file = file["graph"]["name"]  
+                elif "projectname" in file["graph"]:
+                    name_of_file = file["graph"]["projectname"]
+                else:
+                    name_of_file = "Automatic-Projectname"+str(ix)
+                    
             # with new "layout" key -> get layout name           
             elif "layoutname" in file:
                 name_of_file = file["layoutname"] #+"_linksRGB"
             else:
                 name_of_file = "Automatic-LayoutID"+str(ix) #+"_linksRGB"
 
-            num_of_links = len(file["links"])
+            # catch if there are linkcolors
+            if "links" in file.keys():
+                
+                num_of_links = len(file["links"])
 
-            linkcolor_rgba = []
-            for i in range(0,num_of_links):
-                color = file["links"][i]["linkcolor"]
+                linkcolor_rgba = []
+                for i in range(0,num_of_links):
+                    color = file["links"][i]["linkcolor"]
 
-                if isinstance(color, str):
-                    #print("C_DEBUG: color is string")
+                    if isinstance(color, str):
+                        #print("C_DEBUG: color is string")
 
 
-                    # if HEX FORMAT
-                    if re.match(r'^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$', color):
-                        #print("C_DEBUG: link color is hex")
-                        _r, _g, _b = hex_to_rgb(color)
-                        rgba_color = (_r, _g, _b, 100)
-                        linkcolor_rgba.append(rgba_color)
+                        # if HEX FORMAT
+                        if re.match(r'^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$', color):
+                            #print("C_DEBUG: link color is hex")
+                            _r, _g, _b = hex_to_rgb(color)
+                            rgba_color = (_r, _g, _b, 100)
+                            linkcolor_rgba.append(rgba_color)
 
-                    # if HEX FORMAT with alpha
-                    elif re.match(r'^#([A-Fa-f0-9]{8})$', color):
-                        #print("C_DEBUG: link color is hex with alpha")
-                        rgba_color = hex_to_rgba(color)
-                        linkcolor_rgba.append(rgba_color)
+                        # if HEX FORMAT with alpha
+                        elif re.match(r'^#([A-Fa-f0-9]{8})$', color):
+                            #print("C_DEBUG: link color is hex with alpha")
+                            rgba_color = hex_to_rgba(color)
+                            linkcolor_rgba.append(rgba_color)
 
-                    # if RGBA FORMAT
-                    elif re.match(r'^rgba\((\d+),(\d+),(\d+),(\d+)\)$', color) or re.match(r'^\((\d+),(\d+),(\d+),(\d+)\)$', color) or re.match(r'^RGBA\((\d+),(\d+),(\d+),(\d+)\)$', color):
-                        #print("C_DEBUG: link color is rgba")
-                        rgba = re.findall(r'\d+', color)
-                        rgba_color = tuple(map(int, rgba))
-                        linkcolor_rgba.append(rgba_color)
+                        # if RGBA FORMAT
+                        elif re.match(r'^rgba\((\d+),(\d+),(\d+),(\d+)\)$', color) or re.match(r'^\((\d+),(\d+),(\d+),(\d+)\)$', color) or re.match(r'^RGBA\((\d+),(\d+),(\d+),(\d+)\)$', color):
+                            #print("C_DEBUG: link color is rgba")
+                            rgba = re.findall(r'\d+', color)
+                            rgba_color = tuple(map(int, rgba))
+                            linkcolor_rgba.append(rgba_color)
 
-                elif isinstance(color, tuple) and len(color) == 4:
-                    #print("C_DEBUG: link color is tuple")  
-                    linkcolor_rgba.append(color)
+                    elif isinstance(color, tuple) and len(color) == 4:
+                        #print("C_DEBUG: link color is tuple")  
+                        linkcolor_rgba.append(color)
 
-                elif isinstance(color, list) and len(color) == 4:
-                    #print("C_DEBUG: link color is list")  
-                    linkcolor_rgba.append(tuple(color))
+                    elif isinstance(color, list) and len(color) == 4:
+                        #print("C_DEBUG: link color is list")  
+                        linkcolor_rgba.append(tuple(color))
 
-                else:
-                    #print("C_DEBUG: NO LINKCOLOR FOUND")
-                    linkcolor_rgba.append((255, 0, 255, 100))
+                    else:
+                        #print("C_DEBUG: NO LINKCOLOR FOUND")
+                        linkcolor_rgba.append((255, 0, 255, 100))
+            else: 
+                linkcolor_rgba = list()
 
             vecList = {}
             vecList["data"] = linkcolor_rgba
@@ -753,59 +774,15 @@ def parseGraphJSON_linkcolors(files,target):
             #print("C_DEBUG: LINKCOLORS:", vecList)
 
 
-def parseGraphJSON_nodeinfo_simple(files,target):
-    if len(files) > 0: 
-        #for file in files: 
-        for idx,file in enumerate(files):
-
-            name_of_file = "nodeinfo" # name_of_file = file["graph"]["name"]    
-            num_of_nodes = len(file["nodes"])
-
-            nodeinfo = []
-            for i in range(0,num_of_nodes):
-                nodeinfo.append(file["nodes"][i]["annotation"])
-            vecList = {}
-            vecList["data"] = nodeinfo
-            vecList["name"] = name_of_file
-            target.append(vecList)
-            #print("C_DEBUG: NODEINFO:", vecList)
-
-
-def parseGraphJSON_nodeinfo_complex(files):
-    if len(files) <= 0:
-        return 
-    
+def parseGraphJSON_nodeinfo(files):
+    # check if files is a list
+    file = files[0]
     out = []
-    file = files[0]  # no need to iter over all files since you have to set it for all files the same way 
     num_of_nodes = len(file["nodes"])
-
     for i in range(num_of_nodes):
         node_info = {}
-        node_info["annotation"] = file["nodes"][i]["annotation"]
-        try: 
-            node_info["name"] = file["nodes"][i]["name"]
-        except: 
-            node_info["name"] = "node" + str(i)
-        out.append(node_info)
-
-    return out
-
-
-def parseGraphJSON_nodeinfo(files): # without required flag in json for "complex annotations" 
-    if len(files) <= 0:
-        return 
-    
-    out = []
-    file = files[0]  # no need to iter over all files since you have to set it for all files the same way 
-    num_of_nodes = len(file["nodes"])
-
-    for i in range(num_of_nodes):
-        node_info = {}
-        node_info["annotation"] = file["nodes"][i]["annotation"]
-        try: 
-            node_info["name"] = file["nodes"][i]["name"]
-        except: 
-            node_info["name"] = "node" + str(i)
+        node_info["annotation"] = file["nodes"][i].get("annotation", "")
+        node_info["name"] = file["nodes"][i].get("name", "node" + str(i))
         out.append(node_info)
 
     return out
@@ -817,7 +794,13 @@ def parseGraphJSON_nodecolors(files,target):
             
             # old JSON format (no "layout" key)
             if "graph" in file:
-                name_of_file = file["graph"]["name"]  
+                if "name" in file["graph"]:
+                    name_of_file = file["graph"]["name"]  
+                elif "projectname" in file["graph"]:
+                    name_of_file = file["graph"]["projectname"]
+                else:
+                    name_of_file = "Automatic-Projectname"+str(ix)
+
             # with new "layout" key -> get layout name           
             elif "layoutname" in file:
                 name_of_file = file["layoutname"]  
@@ -880,14 +863,18 @@ def parseGraphJSON_labels(files,target):
 
             # old JSON format (no "layout" key)
             if "graph" in file:
-                name_of_file = file["graph"]["name"]  
+                if "name" in file["graph"]:
+                    name_of_file = file["graph"]["name"]  
+                elif "projectname" in file["graph"]:
+                    name_of_file = file["graph"]["projectname"]
+                else:
+                    name_of_file = "Automatic-Projectname"+str(ix)
+
             # with new "layout" key -> get layout name           
             elif "layoutname" in file:
                 name_of_file = file["layoutname"]  
             else:
                 name_of_file = "Automatic-LayoutID"+str(ix)  
-
-
 
             # get cluster labels from one file only (file i.e. layout)
             one_file = file #s[0]
@@ -919,48 +906,27 @@ def parseGraphJSON_labels(files,target):
             target.append(vecList)
         
 
-# REMOVE EVENTUALLY 
-# # graph / project title
-# def parseGraphJSON_graphtitle(files,target):
-#     if len(files) > 0: 
-#         for file in files:
-#             try:
-#                 name_of_graph = file["graph"]["name"]
-#             except:
-#                 name_of_graph = file["graphtitle"]
-#             vecList = {}
-#             vecList["graphtitle"] = name_of_graph 
-#             target.append(vecList)
-
-
 # graph desciption
 def parseGraphJSON_graphinfo(files,target):
     if len(files) > 0: 
         for file in files:
             
-            try:
-                # new json format
-                if "info" in file.keys():
-                    descr_of_graph = file["info"] # former "graphdesc"
-                # old (multiple) json files
-                elif "graph" in file.keys():
+            # new json format
+            if "info" in file.keys():
+                descr_of_graph = file["info"] # former "graphdesc"
+            # old (multiple) json files
+            elif "graph" in file.keys():
+                try:
                     descr_of_graph = file["graph"]["graphdesc"]  
-            except:
+                except:
+                    descr_of_graph = "Graph decription not specified"
+            else:
                 descr_of_graph = "Graph decription not specified."
             #print("C_DEBUG: descr_of_graph :", descr_of_graph)
                 
             vecList = {}
             vecList["info"] = descr_of_graph 
             target.append(vecList)
-
-
-# # graph layouts / scene -> delete / replace with graph layoutnames function
-# def parseGraphJSON_graphlayouts(files,target):
-#     if len(files) > 0: 
-#         l_graphlayouts = files[0]["graphlayouts"]    
-#         vecList = {}
-#         vecList["scenes"] = l_graphlayouts
-#         target.append(vecList)
 
 
 # graph layoutnames 
@@ -975,53 +941,20 @@ def parseGraphJSON_layoutnames(files, target):
                     name_of_file = file["layoutname"] # ["layouts"]["layoutname"]
                 # if files = separate json files 
                 elif "graph" in file.keys():  
-                    name_of_file = file["graph"]["name"]
-               
+                    # old JSON format (no "layout" key)
+                    if "layoutname" in file["graph"]:
+                        name_of_file = file["graph"]["layoutname"]  
+                    else:
+                        name_of_file = "Automatic-LayoutID"+str(ix)
+
             except:
                 name_of_file = "Automatic-LayoutID"+str(ix)
 
             l_layoutnames.append(name_of_file)
-            #print("C_DEBUG : l_layoutnames: ", l_layoutnames)
-
-        #vecList = {}
-        #vecList["scenes"] = l_layoutnames
+            
         vecList = l_layoutnames 
         #print("C_DEBUG getting layoutnames: ", vecList)
         target.append(vecList)
 
-
-# # this is for what exactly ??? 
-# def parseGraphJSON_textureNames(files):
-#     out = []
-
-#     for ix,file in enumerate(files):
-   
-#         if "textureName" not in file.keys():
-#             # no texture name specified
-#             out.append(None)
-#             continue
-#         if file["textureName"] in out:
-#             # no duplicates allowed
-#             out.append(None)
-#             continue    
-#         out.append(file["textureName"])
-#     return out
-
-
-# # is this obsolete?
-# def parseGraphJSON_scene_description(files):
-#     out = []
-#     for file in files:
-#         try:
-#             if "scene" in file["graph"].keys():
-#                 out.append(file["graph"]["scene"])
-#             elif "scene" in file.keys():
-#                 out.append(file["scene"])
-#         except:
-#             out.append(None)
-#     if len(out) != len(files):
-#         return False
-#     return out 
-        
 
 

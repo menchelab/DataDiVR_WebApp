@@ -141,7 +141,6 @@ def evilAI():
     # Create graphJSON
     #graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
 
-
     if  request.cookies.get('userID'): # has cookie, add to links
         if request.args.get('uid'):
             uid = request.args.get('uid')
