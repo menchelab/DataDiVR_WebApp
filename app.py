@@ -127,36 +127,6 @@ def main():
 myusers = [{'uid': 4, 'links': [2, 2, 2, 2, 2, 133, 666, 666, 666, 666, 125, 125]}, {'uid': 666, 'links': [133]}, {'uid': 133, 'links': [666]}, {'uid': 555, 'links': [666, 133, 4, 123, 124, 125, 125, 125]}, {'uid': 125, 'links': [555, 128]}, {'uid': 128, 'links': [555]}, {'uid': 130, 'links': [555]}]
 
 
-#----------------------------------------------------------------------
-# Language UI
-
-from LUI_funcs.functionmappingllm import *
-
-@app.route("/languageUI",methods=["GET"])
-def languageUI():
-   
-    if flask.request.method == "GET":
-        # Store the data in session
-        username = flask.session["username"]
-        room = flask.session["room"]
-        
-        print("C_DEBUG username = ", username)
-
-        return render_template("LanguageUI.html", room=room, user=username, extensions=extensions)
-
-
-@app.route('/languageUI_process', methods=['POST'])
-def process():
-    data = request.get_json()
-    lui_user_input = data.get('text')
-    result = process_input(lui_user_input)
-    return jsonify({"result": result})
-
-#----------------------------------------------------------------------
-
-
-
-
 
 
 import plotlyExamples
@@ -170,7 +140,6 @@ def evilAI():
     
     # Create graphJSON
     #graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-
 
     if  request.cookies.get('userID'): # has cookie, add to links
         if request.args.get('uid'):
@@ -437,7 +406,6 @@ def left(message):
         + " has left the room."
         + webfunc.bcolors.ENDC
     )
-    
 
 
 
