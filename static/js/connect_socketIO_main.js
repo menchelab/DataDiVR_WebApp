@@ -3,7 +3,7 @@ var socket;
 var newcon = true;
 var logAll = true;
 var isPreview = false; logjs
-var isLanguageUI = false; logjs
+var isLanguageUI = false;
 var isMain = false;
 var isUE4 = false;
 
@@ -159,6 +159,7 @@ $(document).ready(function() {
     }
 
 
+
     ///set up and connect to socket
     console.log('http://' + document.domain + ':' + location.port + '/main');
     socket = io.connect('http://' + document.domain + ':' + location.port + '/main');
@@ -186,7 +187,7 @@ $(document).ready(function() {
     socket.on('status', function(data) {
         //console.log(data)
         if (data.usr == uid) {
-            if (isMain || isPreview) {
+            if (isMain || isPreview || isLanguageUI) {
                 // START initialization routine
                 socket.emit('ex', { id: "projDD", fn: "dropdown", val: "init", usr: uid });
             }
@@ -652,7 +653,7 @@ $(document).ready(function() {
                 //clearProject();
                 //if (data["usr"]==uid){
                 pfile = data["val"];
-                //console.log("C_DEBUG: in CASE PROJECT _ project data = ", pfile);
+                console.log("C_DEBUG: in CASE PROJECT _ project data = ", pfile);
 
                 // init analytics container
                 document.getElementById('analyticsContainer').innerHTML = '';
@@ -1435,15 +1436,7 @@ $(document).ready(function() {
         }
     });
 
+
 });
 
 
-
-// Language UI - specific 
-socket.on('reload_page', function() {
-    console.log("Reloading page as instructed by server...");
-    window.location.reload();  // This will reload the entire page
-});
-
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -8,7 +8,7 @@ venv/
 
 projects/
 temp-json/
-temp_files/
+temp-files/
 *.json
 
 openAI_KEY_doNOTcommit.txt

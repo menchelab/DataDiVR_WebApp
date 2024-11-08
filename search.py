@@ -13,10 +13,17 @@ def search(term):
         term = term.replace("\n", "")
 
         results = []
-        
         nodes = GD.nodes["nodes"]
         for node in nodes:
-            
+
+            # search for term in node name
+            if "n" in node:
+                nodename = node["n"] 
+                if term.lower() in nodename.lower():
+                    res = {"id": node["id"], "name": node["n"], "color": GD.pixel_valuesc[node["id"]] }
+                    results.append(res)
+                    #break
+                
             # search for term in attributes
             if "attrlist" in node:
                 # check if attribute structure is a list or a dict
@@ -25,7 +32,7 @@ def search(term):
                         if term.lower() in attr.lower() or attr.lower() in term.lower() or re.search(r'\b'+term.lower()+r'\b', attr.lower()):
                             res = {"id": node["id"], "name": node["n"], "color": GD.pixel_valuesc[node["id"]] }
                             results.append(res)
-                            break
+                            #break
 
                 if isinstance(node["attrlist"], dict):
                     for key,value in node["attrlist"].items():
@@ -34,23 +41,16 @@ def search(term):
                                 if term.lower() in v.lower() or v.lower() in term.lower() or re.search(r'\b'+term.lower()+r'\b', v.lower()):
                                     res = {"id": node["id"], "name": node["n"], "color": GD.pixel_valuesc[node["id"]] }
                                     results.append(res)
-                                    break
+                                    #break
 
                         elif isinstance(value, str):
                             if term.lower() in value.lower():
                                 res = {"id": node["id"], "name": node["n"], "color": GD.pixel_valuesc[node["id"]] }
                                 results.append(res)
-                                break  
-                            
-            else:   
-                # search for term in name of node 
-                if "n" in node:
-                    nodename = node["n"] 
-                    if term.lower() in nodename.lower():
-                        res = {"id": node["id"], "name": node["n"], "color": GD.pixel_valuesc[node["id"]] }
-                        results.append(res)
-                        break
-
+                                #break  
+        # make sure no duplicates are in the results
+        results = [dict(t) for t in {tuple(d.items()) for d in results}]
+    
     return results
 
 

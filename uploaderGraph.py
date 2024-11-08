@@ -19,7 +19,7 @@ import json
 import os
 import shutil
 
-def upload_filesJSON(request, overwrite=False):
+def upload_filesJSON(request, overwrite=True):
     """
     Generates JSON files and textures in the required folder structure in static/project for data visualization.
     Args:
@@ -32,14 +32,18 @@ def upload_filesJSON(request, overwrite=False):
     global create_project_bool
     create_project_bool = True
 
-    
+    #if notebook
     if isinstance(request, dict):  
+        #print("C_DEBUG NOTEBOOK")
         form = request
         if "graph" in form.keys():
             namespace = form["graph"].get("projectname", form["graph"].get("graphtitle", "Auto_ProjectName"))
         else:
             namespace = form.get("projectname", form.get("graphtitle", "Auto_ProjectName"))
-    else:  
+            
+    # if web browser 
+    else: 
+        #print("C_DEBUG WEBBROWSER")
         form = request.form.to_dict()
         namespace = form["namespaceJSON"]
 
@@ -53,13 +57,13 @@ def upload_filesJSON(request, overwrite=False):
     if namespace in prolist:  # <--- **Check if project exists**
         if not overwrite:  # <--- **Check if overwrite flag is False**
             if isinstance(request, dict):  # Jupyter Notebook
-                response = input(f"Project '{namespace}' exists. Overwrite? (yes/no): ").strip().lower()  # <--- **Jupyter prompt**
-                if response == 'yes':
+                response = input(f"Project '{namespace}' exists. Overwrite? (y/n): ").strip().lower()  # <--- **Jupyter prompt**
+                if response == 'y':
                     folder = f'static/projects/{namespace}/'
                     if os.path.exists(folder):
                         shutil.rmtree(folder)  # <--- **Remove existing project directory**
-                    print("PROGRESS: Overwriting Project...")
                     create_project_bool = True
+                    print("PROGRESS: Overwriting Project...")
                     
                 else: 
                     create_project_bool = False
@@ -67,7 +71,8 @@ def upload_filesJSON(request, overwrite=False):
                 
             else:  # Web browser
                 return f"Project '{namespace}' exists. Set overwrite=True to overwrite it."  # <--- **Web browser message**
-        if overwrite:
+            
+        else: # if overwrite is True
             folder = f'static/projects/{namespace}/'
             create_project_bool = True
             if os.path.exists(folder):
@@ -190,6 +195,7 @@ def upload_filesJSON(request, overwrite=False):
             thisnode["attrlist"] = nodeinfo[i]["annotation"]
             nodelist["nodes"].append(thisnode)
             complex_annotations = True # set if required for analytics
+            
             
     else:   
         for i in range(len(nodepositions[0]["data"])):
@@ -546,10 +552,15 @@ def parseGraphJSON_nodepositions(files, target):
     if len(files) > 0: 
         for ix,file in enumerate(files):
 
-
             # old JSON format (no "layout" key)
             if "graph" in file:
-                name_of_file = file["graph"]["name"]  
+                if "name" in file["graph"]:
+                    name_of_file = file["graph"]["name"]  
+                elif "projectname" in file["graph"]:
+                    name_of_file = file["graph"]["projectname"]
+                else:
+                    name_of_file = "Automatic-Projectname"+str(ix)
+                    
             # with new "layout" key -> get layout name           
             elif "layoutname" in file:
                 name_of_file = file["layoutname"] 
@@ -625,10 +636,16 @@ def parseGraphJSON_links_many(files, target):
             
         all = []  
         for ix,file in enumerate(files):
-        
+    
             # old JSON format (no "layout" key)
             if "graph" in file:
-                name_of_file = file["graph"]["name"] #+"_linksXYZ"
+                if "name" in file["graph"]:
+                    name_of_file = file["graph"]["name"]  
+                elif "projectname" in file["graph"]:
+                    name_of_file = file["graph"]["projectname"]
+                else:
+                    name_of_file = "Automatic-Projectname"+str(ix)
+
             # with new "layout" key -> get layout name
             elif "layoutname" in file:
                 name_of_file = file["layoutname"] #+"_linksXYZ"
@@ -679,7 +696,6 @@ def parseGraphJSON_append_links(all_dicts, target):
 
 
 
-
 def parseGraphJSON_linkcolors(files,target):
     if len(files) > 0: 
         #for file in files: 
@@ -690,7 +706,13 @@ def parseGraphJSON_linkcolors(files,target):
             
             # old JSON format (no "layout" key)
             if "graph" in file:
-                name_of_file = file["graph"]["name"] #+"_linksRGB"
+                if "name" in file["graph"]:
+                    name_of_file = file["graph"]["name"]  
+                elif "projectname" in file["graph"]:
+                    name_of_file = file["graph"]["projectname"]
+                else:
+                    name_of_file = "Automatic-Projectname"+str(ix)
+                    
             # with new "layout" key -> get layout name           
             elif "layoutname" in file:
                 name_of_file = file["layoutname"] #+"_linksRGB"
@@ -772,7 +794,13 @@ def parseGraphJSON_nodecolors(files,target):
             
             # old JSON format (no "layout" key)
             if "graph" in file:
-                name_of_file = file["graph"]["name"]  
+                if "name" in file["graph"]:
+                    name_of_file = file["graph"]["name"]  
+                elif "projectname" in file["graph"]:
+                    name_of_file = file["graph"]["projectname"]
+                else:
+                    name_of_file = "Automatic-Projectname"+str(ix)
+
             # with new "layout" key -> get layout name           
             elif "layoutname" in file:
                 name_of_file = file["layoutname"]  
@@ -835,14 +863,18 @@ def parseGraphJSON_labels(files,target):
 
             # old JSON format (no "layout" key)
             if "graph" in file:
-                name_of_file = file["graph"]["name"]  
+                if "name" in file["graph"]:
+                    name_of_file = file["graph"]["name"]  
+                elif "projectname" in file["graph"]:
+                    name_of_file = file["graph"]["projectname"]
+                else:
+                    name_of_file = "Automatic-Projectname"+str(ix)
+
             # with new "layout" key -> get layout name           
             elif "layoutname" in file:
                 name_of_file = file["layoutname"]  
             else:
                 name_of_file = "Automatic-LayoutID"+str(ix)  
-
-
 
             # get cluster labels from one file only (file i.e. layout)
             one_file = file #s[0]
@@ -884,8 +916,10 @@ def parseGraphJSON_graphinfo(files,target):
                 descr_of_graph = file["info"] # former "graphdesc"
             # old (multiple) json files
             elif "graph" in file.keys():
-                descr_of_graph = file["graph"]["graphdesc"]  
-            
+                try:
+                    descr_of_graph = file["graph"]["graphdesc"]  
+                except:
+                    descr_of_graph = "Graph decription not specified"
             else:
                 descr_of_graph = "Graph decription not specified."
             #print("C_DEBUG: descr_of_graph :", descr_of_graph)
@@ -907,7 +941,11 @@ def parseGraphJSON_layoutnames(files, target):
                     name_of_file = file["layoutname"] # ["layouts"]["layoutname"]
                 # if files = separate json files 
                 elif "graph" in file.keys():  
-                    name_of_file = file["graph"]["name"]
+                    # old JSON format (no "layout" key)
+                    if "layoutname" in file["graph"]:
+                        name_of_file = file["graph"]["layoutname"]  
+                    else:
+                        name_of_file = "Automatic-LayoutID"+str(ix)
 
             except:
                 name_of_file = "Automatic-LayoutID"+str(ix)

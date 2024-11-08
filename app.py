@@ -130,15 +130,19 @@ myusers = [{'uid': 4, 'links': [2, 2, 2, 2, 2, 133, 666, 666, 666, 666, 125, 125
 #----------------------------------------------------------------------
 # Language UI
 
-from functionmappingllm import *
+from LUI_funcs.functionmappingllm import *
 
-@app.route("/languageUI")
+@app.route("/languageUI",methods=["GET"])
 def languageUI():
-    myusr = session.get('username')
-    if not myusr:
-        return redirect(url_for('main'))
-    print("C_DEBUG : usr: " + myusr) 
-    return render_template("LanguageUI.html", user=myusr, extensions=extensions)
+   
+    if flask.request.method == "GET":
+        # Store the data in session
+        username = flask.session["username"]
+        room = flask.session["room"]
+        
+        print("C_DEBUG username = ", username)
+
+        return render_template("LanguageUI.html", room=room, user=username, extensions=extensions)
 
 
 @app.route('/languageUI_process', methods=['POST'])
@@ -146,7 +150,6 @@ def process():
     data = request.get_json()
     lui_user_input = data.get('text')
     result = process_input(lui_user_input)
-
     return jsonify({"result": result})
 
 #----------------------------------------------------------------------
@@ -434,6 +437,7 @@ def left(message):
         + " has left the room."
         + webfunc.bcolors.ENDC
     )
+    
 
 
 

@@ -1,5 +1,6 @@
 import json
 import os
+import networkx as nx 
 
 try:
     from uploaderGraph import upload_filesJSON
@@ -69,8 +70,13 @@ def make_json(graphs): # former: merge_graphs(graphs):
         graphs = [graphs]
         
     for graph in graphs:
+        # Remap node IDs to integers
+        mapping = {node: idx for idx, node in enumerate(graph.nodes())}
+        graph_remapped = nx.relabel_nodes(graph, mapping) 
+        
         # Process nodes for global and layout-specific lists
         for node, attrs in graph.nodes(data=True):
+   
             if node not in seen_nodes:
                 
                 # ANNOTATIONS
@@ -93,17 +99,20 @@ def make_json(graphs): # former: merge_graphs(graphs):
                 else:
                     annotation_mod['annotation'] = " - no annotation found."  # Blank annotation
 
-                if not is_json_serializable(node):
-                    node = str(node)  # Convert to string if not JSON serializable
+                # NODE ID
+                nodeid = mapping[node]
                 
+                if not is_json_serializable(node):
+                    nodeid = str(nodeid)  # Convert to string if not JSON serializable
+
                 # NODENAME 
                 try:
                     nodename = attrs.get('name', node)
                 except:
                     nodename = node
-                
+
                 all_nodes.append({
-                    'id': node,
+                    'id': nodeid,
                     'name': nodename,
                     'annotation': annotation_mod
                 })
@@ -112,7 +121,11 @@ def make_json(graphs): # former: merge_graphs(graphs):
         # Process links for global list, now with separate source and target
         for ix, (source, target, attrs) in enumerate(graph.edges(data=True)):
             if (source, target) not in seen_links:
-   
+    
+                # get node id from mapping of source and target
+                source = mapping[source]
+                target = mapping[target]
+                
                 if not is_json_serializable(source):
                     try:
                         source = int(source)
@@ -137,13 +150,13 @@ def make_json(graphs): # former: merge_graphs(graphs):
             'pos': attrs.get('pos', []),
             'cluster': attrs.get('cluster', '') if attrs.get('cluster', '') != "" else None,
             'id': str(node) if not is_json_serializable(node) else node
-        } for node, attrs in graph.nodes(data=True)]
+        } for node, attrs in graph_remapped.nodes(data=True)]
 
         layout_links = [{
             'linkcolor': attrs.get('linkcolor', ''),
             'source': to_int_or_str(source) if not is_json_serializable(source) else source,
             'target': to_int_or_str(target) if not is_json_serializable(target) else target
-        } for source, target, attrs in graph.edges(data=True)]
+        } for source, target, attrs in graph_remapped.edges(data=True)]
 
         # check if "layoutname" exists
         try:
