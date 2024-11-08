@@ -3,7 +3,6 @@ var socket;
 var newcon = true;
 var logAll = true;
 var isPreview = false; logjs
-var isLanguageUI = false;
 var isMain = false;
 var isUE4 = false;
 
@@ -108,9 +107,6 @@ function updateMcElements() {
     socket.emit('ex', {usr:uid,  val: "init", id: "init", fn: "enrichment"});
     // socket.emit("ex", {usr:uid,  fn: "legend_scene_display", id: "legend_scene_display", val: "init"});
 
-    // language UI 
-    //socket.emit('ex', {usr:uid,  val: "init", id: "languageUI", fn: "textinput"});
-
     // VRrooms
     socket.emit('ex', {usr:uid,  val: "init", id: "VRrooms", fn: "dropdown"});
 
@@ -145,9 +141,6 @@ $(document).ready(function() {
     }
     if (document.getElementById("main")) {
         isMain = true;
-    }
-    if (document.getElementById("languageUI")) {
-        isLanguageUI = true;
     }
 
     if (document.getElementById("scrollbox1")) {
@@ -189,7 +182,7 @@ $(document).ready(function() {
     socket.on('status', function(data) {
         //console.log(data)
         if (data.usr == uid) {
-            if (isMain || isPreview || isLanguageUI) {
+            if (isMain || isPreview) {
                 // START initialization routine
                 socket.emit('ex', { id: "projDD", fn: "dropdown", val: "init", usr: uid });
             }

@@ -8,6 +8,7 @@ venv/
 
 projects/
 temp-json/
+temp-files/
 
 openAI_KEY_doNOTcommit.txt
 static/TTSaudio/
