@@ -57,6 +57,7 @@ def ensure_json_serializable(obj):
 
 # the actual merging function to create a json file in the required structure for the newest uploading procedure (state july 2024)
 def make_json(graphs): # former: merge_graphs(graphs):
+    
     all_nodes = []
     all_links = []
     layouts = []
@@ -68,8 +69,13 @@ def make_json(graphs): # former: merge_graphs(graphs):
     # add check if a list or a single nx.graph object
     if not isinstance(graphs, list):
         graphs = [graphs]
-        
+    
+    # order graphs alphabetically 
+    graphs = sorted(graphs, key=lambda x: x.graph["layoutname"])
+    
     for graph in graphs:
+        #print("Processing graph: ", graph.graph["layoutname"])
+        
         # Remap node IDs to integers
         mapping = {node: idx for idx, node in enumerate(graph.nodes())}
         graph_remapped = nx.relabel_nodes(graph, mapping) 
@@ -167,6 +173,7 @@ def make_json(graphs): # former: merge_graphs(graphs):
             l_layoutnames.append(layout_name)
                 
         layouts.append({'layoutname': layout_name, 'nodes': layout_nodes, 'links': layout_links})
+
 
     # Assuming the structure of the graphs are similar, and using the first graph as the base
     merged_structure = {
