@@ -358,45 +358,60 @@ def upload_filesJSON(request, overwrite=True):
     print("PROGRESS: made textures for node colors...")
 
 
+    # modify this to have one bitmap with all links and ids as in links.json 
+    # linkid-pixel spot should match linkid in links.json 
+    # and then also 
     #----------------------------------
     # MAKE TEXTURES - links for VISUALIZATION
     #----------------------------------
-    # make a look up dict where key is id of all links  and value is the link
+    # make a look up dict where key is id of all links and value is the link
     links_ids_project = {i: links[0]["data"][i] for i in range(len(links[0]["data"]))}
     # sort links_ids_project by key
     links_ids_project = dict(sorted(links_ids_project.items()))
-    #print("C_DEBUG: num of links_ids_project:", len(links_ids_project))
-    #print("C_DEBUG: links_ids_project: ", links_ids_project)
 
-    for sublist in linksdicts:  
-        for file_index in range(len(sublist)): 
-            linklist = sublist[file_index]
+    # """ 
+    # for sublist in linksdicts:  
+    #     for file_index in range(len(sublist)): 
+    #         linklist = sublist[file_index]
             
-            #print("C_DEBUG: file_index: ", file_index)
-            #print("C_DEBUG: layout has x links: ", len(linklist["data"]))
+    #         #print("C_DEBUG: file_index: ", file_index)
+    #         #print("C_DEBUG: layout has x links: ", len(linklist["data"]))
             
-            # remap link-node ids based on nodelist "id" (in case of link-nodes are specified as nodenames (str)
-            #for link in linklist["data"]:
-                # try:
-                #     link[0] = int(link[0])
-                #     link[1] = int(link[1])
-                # except: 
-                #     link[0] = next(node["id"] for node in nodelist["nodes"] if node["n"] == link[0])
-                #     link[1] = next(node["id"] for node in nodelist["nodes"] if node["n"] == link[1])
+    #         # remap link-node ids based on nodelist "id" (in case of link-nodes are specified as nodenames (str)
+    #         #for link in linklist["data"]:
+    #             # try:
+    #             #     link[0] = int(link[0])
+    #             #     link[1] = int(link[1])
+    #             # except: 
+    #             #     link[0] = next(node["id"] for node in nodelist["nodes"] if node["n"] == link[0])
+    #             #     link[1] = next(node["id"] for node in nodelist["nodes"] if node["n"] == link[1])
 
-            # handle layout name 
-            if names[file_index] is not None and names[file_index] != "":
-                state =  state + makeLinkTexNew_withoutJSON_2(namespace, links_ids_project, linklist, names[file_index]) + '<br>'
-                pfile["links"].append(names[file_index])    
-            else: # if no specified layout name
-                temp_name = "Layoutname"+str(file_index)
-                state =  state + makeLinkTexNew_withoutJSON_2(namespace, links_ids_project, linklist, temp_name) + '<br>'
-                pfile["links"].append(temp_name) # + "_linksXYZ")
-    print("PROGRESS: stored link textures...")
+    #         # handle layout name 
+    #         if names[file_index] is not None and names[file_index] != "":
+    #             state =  state + makeLinkTexNew_withoutJSON_2(namespace, links_ids_project, linklist, names[file_index]) + '<br>'
+    #             pfile["links"].append(names[file_index])    
+    #         else: # if no specified layout name
+    #             temp_name = "Layoutname"+str(file_index)
+    #             state =  state + makeLinkTexNew_withoutJSON_2(namespace, links_ids_project, linklist, temp_name) + '<br>'
+    #             pfile["links"].append(temp_name) # + "_linksXYZ")
+    # print("PROGRESS: stored link textures...")
+    #  """
+    
+    # make one links bitmap containing all links 
+    # visibility and colors are only set in the linkcolors bitmap
+    #print("C_DEBUG: len linksdicts: ", len(linksdicts))
+    #print("C_DEBUG: len links: ", len(links))
+    for file_index in range(len(links)):
+        # handle layout name 
+        if names[file_index] is not None and names[file_index] != "":
+            state =  state + makeLinkTexNew_withoutJSON(namespace, links[0], names[file_index]) + '<br>'
+            pfile["links"].append(names[file_index])    
+        else: # if no specified layout name
+            temp_name = "Layoutname"+str(file_index)
+            state =  state + makeLinkTexNew_withoutJSON(namespace, links[0], temp_name) + '<br>'
+            pfile["links"].append(temp_name) # + "_linksXYZ")
+    print("PROGRESS: made textures for node colors...")
 
-    # NOT USED YET : links per layout json
-    #makeLinksjson_multipleLinklists_2(namespace, links_ids_project, linksdicts)
-    #print("PROGRESS: stored linklists per layout...")
 
     #----------------------------------
     # processing Links for ANALYTICS
@@ -413,7 +428,6 @@ def upload_filesJSON(request, overwrite=True):
     #print("C_DEBUG: links remapped:", links)   
     
     # all links json
-    #print("C_DEBUG: counting all links for json: ", len(links[0]["data"]))
     makeLinksjson(namespace, links)
     print("PROGRESS: stored all links in json...")
 

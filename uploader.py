@@ -419,8 +419,6 @@ def makeLinkTexNew(project, links, name=None):
 
 # processing links for visualization (upload format: "layouts" key > "links" key)
 # used for visualization of network
-
-
 # ISSUE FIX - link display incorrect if layouts vary in links to show (e.g. 10 links in layout 1 , 200 in layout 2,.. ) due to link IDs being messed up in bitmap
 def makeLinkTexNew_withoutJSON_2(project, links_ids_project, links, name=None):
     hight = 64 * (int((len(links_ids_project.keys())) / 32768) + 1)
@@ -434,6 +432,7 @@ def makeLinkTexNew_withoutJSON_2(project, links_ids_project, links, name=None):
 
     linklist = {}
     linklist["links"] = []
+        
     try:
         edge_to_index = {tuple(edge): i for i, edge in links_ids_project.items()}
         for row in links["data"]:
@@ -500,7 +499,10 @@ def makeLinkTexNew_withoutJSON_2(project, links_ids_project, links, name=None):
         
 
 
+
+
 def makeLinkTexNew_withoutJSON(project, links, name=None): 
+    
     hight = 64 * (int((len(links["data"])) / 32768) + 1)
     #print("image hight = " + str(hight))
     #hight = 512 #int(elem / 512)+1
@@ -711,7 +713,10 @@ def makeLinkRGBTex_2(project, links_ids_project, linksRGB, name=None):
                 link_rgba.append((edge,col))
             
     except: # quick fix - if only point cloud upload and no links
-        print("has no colors")
+        try: 
+            print("No Link colors detected for ", linksRGB["name"])
+        except: 
+            print("No Link colors detected.")
 
     texc = [(0,0,0,10)] * 512 * hight #black, alpha = 10 used to filter background in legend panel
  
