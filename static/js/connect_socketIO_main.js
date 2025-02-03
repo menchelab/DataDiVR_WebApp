@@ -3,7 +3,6 @@ var socket;
 var newcon = true;
 var logAll = true;
 var isPreview = false; logjs
-var isLanguageUI = false;
 var isMain = false;
 var isUE4 = false;
 
@@ -143,9 +142,6 @@ $(document).ready(function() {
     if (document.getElementById("main")) {
         isMain = true;
     }
-    if (document.getElementById("languageUI")) {
-        isLanguageUI = true;
-    }
 
     if (document.getElementById("scrollbox1")) {
         document.getElementById("scrollbox1").style.display = "none";
@@ -187,7 +183,7 @@ $(document).ready(function() {
     socket.on('status', function(data) {
         //console.log(data)
         if (data.usr == uid) {
-            if (isMain || isPreview || isLanguageUI) {
+            if (isMain || isPreview) {
                 // START initialization routine
                 socket.emit('ex', { id: "projDD", fn: "dropdown", val: "init", usr: uid });
             }

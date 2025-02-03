@@ -12,7 +12,7 @@ def search(term):
 
         term = term.replace("\n", "")
 
-        term = str(term)
+        #term = str(term)
 
         results = []
         nodes = GD.nodes["nodes"]

@@ -24,4 +24,7 @@ extensions/documentation
 !extensions/load_extensions.py
 !extensions/install_requirements.sh
 !extensions/install_requirements.ps1
+
 extensions/languageUI/LUI_funcs/OpenAI_token_doNOTcommit.txt
+HF_token_doNOTcommit.txt
+temp_files/Teapot.json
