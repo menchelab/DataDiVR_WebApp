@@ -559,8 +559,6 @@ $(document).ready(function() {
                                 nextButton.setAttribute('val', data.sel);
                                 backButton = document.getElementById("backwardstep");
                                 backButton.setAttribute('val', data.sel);
-
-                                //console.log("C_DEBUG updating Buttons in layoutsDD: ", nextButton.getAttribute("val"));
                         }
                     }
 
@@ -581,7 +579,6 @@ $(document).ready(function() {
                                 nextButton.setAttribute('val', data.sel);
                                 backButton = document.getElementById("backwardstep");
                                 backButton.setAttribute('val', data.sel);
-                                //console.log("C_DEBUG updating Buttons in layoutsRGBDD: ", nextButton.getAttribute("val"));
                         }
                     }
 
@@ -611,23 +608,22 @@ $(document).ready(function() {
                                 nextButton.setAttribute('val', data.sel);
                                 backButton = document.getElementById("backwardstep");
                                 backButton.setAttribute('val', data.sel);
-                                //console.log("C_DEBUG updating Buttons in linksRGBDD: ", nextButton.getAttribute("val"));
                         }
                     }
                 
-                    if(data.id == "linksDD") {
+                    if(data.id == "linksDD") { // THIS CASE DOES NOT EXIST -> one link list per project 
                         switch (data.id){
                             case "linksDD": // if change in DD for link colors = change link colors in network and legend
                                 
-                                if (pfile.links.length <= data.sel) {
-                                    links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
-                                    links_DD.setAttribute("sel", parseInt(0));
-                                    links_DD.setAttribute("value", pfile.links[0]);
-                                } else {
-                                    links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
-                                    links_DD.setAttribute("sel", parseInt(data.sel));
-                                    links_DD.setAttribute("value", pfile.links[data.sel]);
-                                }
+                                //if (pfile.links.length <= data.sel) {
+                                links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
+                                links_DD.setAttribute("sel", parseInt(0));
+                                links_DD.setAttribute("value", pfile.links[0]);
+                                // } else {
+                                //     links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
+                                //     links_DD.setAttribute("sel", parseInt(data.sel));
+                                //     links_DD.setAttribute("value", pfile.links[data.sel]);
+                                // }
 
                                 // update arrow buttons with new index
                                 nextButton = document.getElementById("forwardstep");
@@ -680,8 +676,6 @@ $(document).ready(function() {
                 backButton = document.getElementById("backwardstep");
                 backButton.setAttribute('val', data.sel);
 
-                //console.log("C_DEBUG updating Buttons while load project: ", nextButton.getAttribute("val"));
-
                 if (isPreview) {
                     downloadProjectTextures(); // download textures for preview, report when done
                 }
@@ -709,7 +703,6 @@ $(document).ready(function() {
                             id: "cbdefinedlinkslist",
                             val: data["val"]
                         });
-                //console.log("C_DEBUG: data id is cbdefinelinklist - data val = ", data["val"]);
 
 
                 // TO DO 
@@ -751,9 +744,9 @@ $(document).ready(function() {
                     linksRGB_DD.setAttribute("sel", parseInt(0));             
                     linksRGB_DD.setAttribute("value", pfile.linksRGB[0]);
 
-                    links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
-                    links_DD.setAttribute("sel", parseInt(0));
-                    links_DD.setAttribute("value", pfile.links[0]);
+                    //links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
+                    //links_DD.setAttribute("sel", parseInt(0));
+                    //links_DD.setAttribute("value", pfile.links[0]);
 
                     // update arrow buttons with new index
                     nextButton = document.getElementById("forwardstep");    
@@ -764,10 +757,22 @@ $(document).ready(function() {
                     data["val"] = 0;
                     
 
+
+
+
+                    // set id to trigger Ue4
+                    data.id = "layoutsDD";
+
+
+
+
+
+
+
                     if (isPreview) {
                         actLayout = 0;
                         actLayoutRGB = 0;
-                        actLinks = 0;
+                        //actLinks = 0;
                         actLinksRGB = 0;
                         makeNetwork();
                     }
@@ -780,11 +785,9 @@ $(document).ready(function() {
                     // 1. get index of DD layout and set backwardidx
                     var layouts_DD = document.getElementById("layoutsDD").shadowRoot.getElementById("sel");
                     var forwardidx = parseInt(layouts_DD.getAttribute("sel"));
-                    //console.log("C_DEBUG in ue4 forwardidx from layoutsDD = ", forwardidx);
 
                     // 2. then add an index to it
                     forwardidx = NEWIndexforwardstep(pfile.layouts.length);
-                    //console.log("C_DEBUG in ue4 forwardstep = ", forwardidx);
 
                     // // is that necessary??
                     // socket.emit("ex", {
@@ -794,36 +797,24 @@ $(document).ready(function() {
                     // });
 
                     // 3. then update dropdowns accordingly
-
-
-
                     // links
-
                     // links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
                     // links_DD.setAttribute("sel", parseInt(forwardidx));
                     // links_DD.setAttribute("value", pfile.links[forwardidx]);
                     // actLinks = forwardidx;
 
                     //let actLinks;
-                    if (pfile.links.length == 0 || pfile.links.length <= forwardidx) {
-                        links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
-                        links_DD.setAttribute("sel", parseInt(0));
-                        links_DD.setAttribute("value", pfile.links[0]);
-                        actLinks = parseInt(0);
-                        console.log("C_DEBUG in Links < than forwardidx - actLinks = ", actLinks);
-                        console.log("C_DEBUG: pfile.links.length = ", pfile.links.length);
-                        
-
-                    } else {
-                        links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
-                        links_DD.setAttribute("sel", parseInt(forwardidx));
-                        links_DD.setAttribute("value", pfile.links[forwardidx]);
-                        actLinks = forwardidx;
-                        console.log("C_DEBUG in Links forwardidx: ", actLinks);
-                    }
-                    //console.log("C_DEBUG changed Links: ", actLinks);
-
-
+                    //if (pfile.links.length == 0 || pfile.links.length <= forwardidx) {
+                    //links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
+                        // links_DD.setAttribute("sel", parseInt(0));
+                        // links_DD.setAttribute("value", pfile.links[0]);
+                        // actLinks = parseInt(0);
+                    // } else {
+                    //     links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
+                    //     links_DD.setAttribute("sel", parseInt(forwardidx));
+                    //     links_DD.setAttribute("value", pfile.links[forwardidx]);
+                    //     actLinks = forwardidx;
+                    // }
 
                     // link colors  
                     // linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
@@ -832,32 +823,27 @@ $(document).ready(function() {
                     // actLinksRGB = forwardidx;
 
                     //let actLinksRGB;
-                    if (pfile.linksRGB.length == 0 || pfile.linksRGB.length <= forwardidx) {
-                        linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
-                        linksRGB_DD.setAttribute("sel", parseInt(0));
-                        linksRGB_DD.setAttribute("value", pfile.linksRGB[0]);
-                        actLinksRGB = parseInt(0);
-                    } else {
-                        linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
-                        linksRGB_DD.setAttribute("sel", parseInt(forwardidx));
-                        linksRGB_DD.setAttribute("value", pfile.linksRGB[forwardidx]);
-                        actLinksRGB = forwardidx;
-                    }
-
-
+                    //if (pfile.linksRGB.length == 0 || pfile.linksRGB.length <= forwardidx) {
+                    linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
+                    linksRGB_DD.setAttribute("sel", parseInt(forwardidx));
+                    linksRGB_DD.setAttribute("value", pfile.linksRGB[forwardidx]);
+                    //actLinksRGB = parseInt(0);
+                    // } else {
+                    //     linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
+                    //     linksRGB_DD.setAttribute("sel", parseInt(forwardidx));
+                    //     linksRGB_DD.setAttribute("value", pfile.linksRGB[forwardidx]);
+                    //     actLinksRGB = forwardidx;
+                    // }
 
                     // layouts
                     layouts_DD = document.getElementById("layoutsDD").shadowRoot.getElementById("sel");
                     layouts_DD.setAttribute("sel", parseInt(forwardidx));
                     layouts_DD.setAttribute("value", pfile.layouts[forwardidx]);
-                    //console.log("C_DEBUG changed Layouts: ", forwardidx);
 
                     // layoutRGB
                     layoutsRGB_DD = document.getElementById("layoutsRGBDD").shadowRoot.getElementById("sel");
                     layoutsRGB_DD.setAttribute("sel", parseInt(forwardidx));
                     layoutsRGB_DD.setAttribute("value", pfile.layoutsRGB[forwardidx]);
-                    //console.log("C_DEBUG changed Layouts Colors: ", forwardidx);
-
                     
                     
                     Legend_displayNodeInfobyID(pfile.name, forwardidx);
@@ -867,12 +853,11 @@ $(document).ready(function() {
                     Legend_displayGraphLayoutbyID(pfile.name, forwardidx, "layouts", "graphlayout_linkcolors");
 
                     data["val"] = forwardidx;
-                    //console.log("C_DEBUG: data val forwardidx = ", data["val"]);
 
                     if (isPreview) {
                         actLayout = forwardidx;
                         actLayoutRGB = forwardidx;
-
+                        actLinksRGB = forwardidx;
                         makeNetwork();
                     }
 
@@ -885,11 +870,9 @@ $(document).ready(function() {
                     // 1. get index of DD layout and set backwardidx
                     var layouts_DD = document.getElementById("layoutsDD").shadowRoot.getElementById("sel");
                     var backwardidx = parseInt(layouts_DD.getAttribute("sel"));
-                    //console.log("C_DEBUG in ue4 backwardidx from layoutsDD = ", backwardidx);
 
                     // 2. then add an index to it
                     backwardidx = NEWIndexbackwardstep(pfile.layouts.length);
-                    //console.log("C_DEBUG in ue4 backwardidx = ", backwardidx);
 
                     // socket.emit("ex", {
                     //     fn: "legend_scene_display",
@@ -905,22 +888,18 @@ $(document).ready(function() {
                     // links_DD.setAttribute("value", pfile.links[backwardidx]);
                     // actLinks = backwardidx;
 
-
                     //let actLinks;
-                    if (pfile.links.length == 0 || pfile.links.length <= backwardidx) {
-                        links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
-                        links_DD.setAttribute("sel", parseInt(0));
-                        links_DD.setAttribute("value", pfile.links[0]);
-                        actLinks = parseInt(0);
-
-                    } else {
-                        links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
-                        links_DD.setAttribute("sel", parseInt(backwardidx));
-                        links_DD.setAttribute("value", pfile.links[backwardidx]);
-                        actLinks = backwardidx;
-                    }
-                    //console.log("C_DEBUG changed Links: ", actLinks);
-
+                    //if (pfile.links.length == 0 || pfile.links.length <= backwardidx) {
+                        //links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
+                        //links_DD.setAttribute("sel", parseInt(0));
+                        //links_DD.setAttribute("value", pfile.links[0]);
+                        //actLinks = parseInt(0);
+                    // } else {
+                    //     links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
+                    //     links_DD.setAttribute("sel", parseInt(backwardidx));
+                    //     links_DD.setAttribute("value", pfile.links[backwardidx]);
+                    //     actLinks = backwardidx;
+                    // }
 
                     // link colors
                     // linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
@@ -929,32 +908,27 @@ $(document).ready(function() {
                     // actLinksRGB = backwardidx;
 
                     //let actLinksRGB;
-                    if (pfile.linksRGB.length == 0 || pfile.links.length <= backwardidx) {
-                        linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
-                        linksRGB_DD.setAttribute("sel", parseInt(0));
-                        linksRGB_DD.setAttribute("value", pfile.linksRGB[0]);
-                        actLinksRGB = parseInt(0);     
-                    } else {
-                        linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
-                        linksRGB_DD.setAttribute("sel", parseInt(backwardidx));
-                        linksRGB_DD.setAttribute("value", pfile.linksRGB[backwardidx]);
-                        actLinksRGB = backwardidx;
-                    }
-                    //console.log("C_DEBUG changed Link colors: ", backwardidx);
-
-
+                    //if (pfile.linksRGB.length == 0 || pfile.links.length <= backwardidx) {
+                    linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
+                    linksRGB_DD.setAttribute("sel", parseInt(backwardidx));
+                    linksRGB_DD.setAttribute("value", pfile.linksRGB[backwardidx]);
+                    //actLinksRGB = parseInt(0);     
+                    // } else {
+                    //     linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
+                    //     linksRGB_DD.setAttribute("sel", parseInt(backwardidx));
+                    //     linksRGB_DD.setAttribute("value", pfile.linksRGB[backwardidx]);
+                    //     actLinksRGB = backwardidx;
+                    // }
 
                     // layouts
                     layouts_DD = document.getElementById("layoutsDD").shadowRoot.getElementById("sel");
                     layouts_DD.setAttribute("sel", parseInt(backwardidx));
                     layouts_DD.setAttribute("value", pfile.layouts[backwardidx]);
-                    //console.log("C_DEBUG changed Layouts: ", backwardidx);
 
                     // layoutRGB
                     layoutsRGB_DD = document.getElementById("layoutsRGBDD").shadowRoot.getElementById("sel");
                     layoutsRGB_DD.setAttribute("sel", parseInt(backwardidx));
                     layoutsRGB_DD.setAttribute("value", pfile.layoutsRGB[backwardidx]);
-                    //console.log("C_DEBUG changed Layouts Colors: ", backwardidx);
 
                     Legend_displayNodeInfobyID(pfile.name, backwardidx);
                     Legend_displayLinkInfobyID(pfile.name, backwardidx);
@@ -963,20 +937,17 @@ $(document).ready(function() {
                     Legend_displayGraphLayoutbyID(pfile.name, backwardidx, "layouts", "graphlayout_linkcolors");
 
                     data["val"] = backwardidx;
-                    //console.log("C_DEBUG: data val back = ", data["val"]);
 
                     if (isPreview) {
                         actLayout = backwardidx;
                         actLayoutRGB = backwardidx;
-
+                        actLinksRGB = backwardidx;
                         makeNetwork();
                     }
 
                 }
                 
-                //ue4(data["fn"], data);
                 ue4("but", data);
-                //console.log("C_DEBUG: ue4 data = ", data);
 
                 break;
 
