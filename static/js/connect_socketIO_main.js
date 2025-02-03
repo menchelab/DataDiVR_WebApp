@@ -718,12 +718,13 @@ $(document).ready(function() {
 
                 if (data.id == "resetlayout") {
 
+                    data.val = 0;
                     // socket.emit("ex", {
                     //     fn: "legend_scene_display",
                     //     id: "legend_scene_display",
                     //     val: reset_value
                     // });
-
+                    
                     // update legend 
                     Legend_displayNodeInfobyID(pfile.name, 0);
                     Legend_displayLinkInfobyID(pfile.name, 0);
@@ -732,17 +733,17 @@ $(document).ready(function() {
                     Legend_displayGraphLayoutbyID(pfile.name, 0, "layouts", "graphlayout_linkcolors");
 
                     // update DD 
-                    layouts_DD = document.getElementById("layoutsDD").shadowRoot.getElementById("sel");   
-                    layouts_DD.setAttribute("sel", parseInt(0));
-                    layouts_DD.setAttribute("value", pfile.layouts[0]);
+                    // layouts_DD = document.getElementById("layoutsDD").shadowRoot.getElementById("sel");   
+                    // layouts_DD.setAttribute("sel", parseInt(0));
+                    // layouts_DD.setAttribute("value", pfile.layouts[0]);
 
-                    layoutsRGB_DD = document.getElementById("layoutsRGBDD").shadowRoot.getElementById("sel");
-                    layoutsRGB_DD.setAttribute("sel", parseInt(0));
-                    layoutsRGB_DD.setAttribute("value", pfile.layoutsRGB[0]);
+                    // layoutsRGB_DD = document.getElementById("layoutsRGBDD").shadowRoot.getElementById("sel");
+                    // layoutsRGB_DD.setAttribute("sel", parseInt(0));
+                    // layoutsRGB_DD.setAttribute("value", pfile.layoutsRGB[0]);
 
-                    linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
-                    linksRGB_DD.setAttribute("sel", parseInt(0));             
-                    linksRGB_DD.setAttribute("value", pfile.linksRGB[0]);
+                    // linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
+                    // linksRGB_DD.setAttribute("sel", parseInt(0));             
+                    // linksRGB_DD.setAttribute("value", pfile.linksRGB[0]);
 
                     //links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
                     //links_DD.setAttribute("sel", parseInt(0));
@@ -754,10 +755,17 @@ $(document).ready(function() {
                     backButton = document.getElementById("backwardstep");           
                     backButton.setAttribute('val', 0);                
 
-                    // set id to trigger Ue4
-                    data["id"] = "layoutsDD";
-                    data["fn"] = "dropdown";
-                    data["val"] = 0;
+                    // trigger dropdown cases
+                    // this is quick fix since no reset button in VR exe implemented (button id = resetlayout"
+                    
+                    data.fn = "dropdown";
+                    data.id = "layoutsDD";
+                    socket.emit("ex", data);
+                    data.id = "layoutsRGBDD";
+                    socket.emit("ex", data);
+                    data.id = "linksRGBDD";
+                    socket.emit("ex", data);
+                     
 
                     if (isPreview) {
                         actLayout = 0;
@@ -771,19 +779,14 @@ $(document).ready(function() {
 
                 if (data.id == "forwardstep") {
 
-                    // 1. get index of DD layout and set backwardidx
+                    // 1. get index of DD layout and set idx
                     var layouts_DD = document.getElementById("layoutsDD").shadowRoot.getElementById("sel");
                     var forwardidx = parseInt(layouts_DD.getAttribute("sel"));
 
                     // 2. then add an index to it
+                    console.log("C_DEBUG before setting forward idx = ", forwardidx);   
                     forwardidx = NEWIndexforwardstep(pfile.layouts.length);
-
-                    // // is that necessary??
-                    // socket.emit("ex", {
-                    //     fn: "legend_scene_display",
-                    //     id: "legend_scene_display",
-                    //     val: forwardidx
-                    // });
+                    console.log("C_DEBUG after setting forward idx = ", forwardidx);
 
                     // 3. then update dropdowns accordingly
                     // links
@@ -849,8 +852,6 @@ $(document).ready(function() {
                         actLinksRGB = forwardidx;
                         makeNetwork();
                     }
-
-
                 }
 
 
@@ -862,12 +863,6 @@ $(document).ready(function() {
 
                     // 2. then add an index to it
                     backwardidx = NEWIndexbackwardstep(pfile.layouts.length);
-
-                    // socket.emit("ex", {
-                    //     fn: "legend_scene_display",
-                    //     id: "legend_scene_display",
-                    //     val: backwardidx
-                    // });
 
                     // 3. then update dropdowns accordingly
 
@@ -937,6 +932,7 @@ $(document).ready(function() {
                 }
                 
                 ue4("but", data);
+                
 
                 break;
 
