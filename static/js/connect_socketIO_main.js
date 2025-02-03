@@ -754,25 +754,14 @@ $(document).ready(function() {
                     backButton = document.getElementById("backwardstep");           
                     backButton.setAttribute('val', 0);                
 
-                    data["val"] = 0;
-                    
-
-
-
-
                     // set id to trigger Ue4
-                    data.id = "layoutsDD";
-
-
-
-
-
-
+                    data["id"] = "layoutsDD";
+                    data["fn"] = "dropdown";
+                    data["val"] = 0;
 
                     if (isPreview) {
                         actLayout = 0;
                         actLayoutRGB = 0;
-                        //actLinks = 0;
                         actLinksRGB = 0;
                         makeNetwork();
                     }
