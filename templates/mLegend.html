@@ -622,7 +622,6 @@
 
         nextButton.setAttribute('val',currentIndex);
         backButton.setAttribute('val',currentIndex);
-        //console.log("C_DEBUG: NEWIndexforwardstep value = ", currentIndex)
 
         return currentIndex;
     }
@@ -630,7 +629,6 @@
     function getIndexforwardstep(data){
         const nextButton = document.getElementById('forwardstep');
         let currentIndex = parseInt(nextButton.getAttribute('val'));
-        //console.log("C_DEBUG: getIndexforwardstep value = ", currentIndex)
 
         return currentIndex;
     }
@@ -646,7 +644,6 @@
         backButton.setAttribute('val',currentIndex);
         nextButton.setAttribute('val',currentIndex);
 
-        //console.log("C_DEBUG: NEWIndexbackwardstep value = ", currentIndex)
 
         return currentIndex;
     }
@@ -654,7 +651,6 @@
     function getIndexbackwardstep(data) {
         const backButton = document.getElementById('backwardstep');
         let currentIndex = parseInt(backButton.getAttribute('val'));
-        //console.log("C_DEBUG: getIndexbackwardstep value = ", currentIndex)
 
         return currentIndex;
     }

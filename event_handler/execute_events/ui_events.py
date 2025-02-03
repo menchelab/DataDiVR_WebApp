@@ -179,7 +179,6 @@ def checkbox_event(message, room):
 
 
 def reset_layout_event(message, room):
-    #print("C_DEBUG ____ RESET LAYOUT EVENT ____")
     if message["id"] == "resetlayout":
         GD.pdata["layoutsRGBDD"] = 0
         GD.pdata["layoutsDD"] = 0
