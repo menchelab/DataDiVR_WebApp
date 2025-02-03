@@ -156,7 +156,7 @@ def children_event(message, room):
 # work in progress 
 def checkbox_event(message, room):
     if message["id"] == "cbdefinelinklist":
-        print("C_DEBUG: in checkbox_event")
+        #print("C_DEBUG: in checkbox_event")
 
         response = {}
         response["usr"] = message["usr"]
@@ -165,11 +165,11 @@ def checkbox_event(message, room):
         response["val"] = message["val"]
         
         if message["val"] == True:
-            print("C_DEBUG message false, use LAYOUT specific LINKS =", message)  
+            #print("C_DEBUG message false, use LAYOUT specific LINKS =", message)  
             name_linkfile = "linkslayouts"
             
         if message["val"] == False:
-            print("C_DEBUG message false, use ALL LINKS =", message)  
+            #print("C_DEBUG message false, use ALL LINKS =", message)  
             name_linkfile = "links"
 
         response["definedlinklist"] = name_linkfile

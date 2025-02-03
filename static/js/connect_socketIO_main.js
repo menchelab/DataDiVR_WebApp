@@ -720,66 +720,63 @@ $(document).ready(function() {
 
             case "ue4":
 
-                if (data.id == "resetlayout") {
+                // if (data.id == "resetlayout") {
 
-                    data.val = 0;
-                    // socket.emit("ex", {
-                    //     fn: "legend_scene_display",
-                    //     id: "legend_scene_display",
-                    //     val: reset_value
-                    // });
+                //     data.val = 0;
+                //     // socket.emit("ex", {
+                //     //     fn: "legend_scene_display",
+                //     //     id: "legend_scene_display",
+                //     //     val: reset_value
+                //     // });
                     
-                    // update legend 
-                    Legend_displayNodeInfobyID(pfile.name, 0);
-                    Legend_displayLinkInfobyID(pfile.name, 0);
-                    Legend_displayGraphLayoutbyID(pfile.name, 0, "layouts", "graphlayout");
-                    Legend_displayGraphLayoutbyID(pfile.name, 0, "layouts", "graphlayout_nodecolors");
-                    Legend_displayGraphLayoutbyID(pfile.name, 0, "layouts", "graphlayout_linkcolors");
+                //     // update legend 
+                //     Legend_displayNodeInfobyID(pfile.name, 0);
+                //     Legend_displayLinkInfobyID(pfile.name, 0);
+                //     Legend_displayGraphLayoutbyID(pfile.name, 0, "layouts", "graphlayout");
+                //     Legend_displayGraphLayoutbyID(pfile.name, 0, "layouts", "graphlayout_nodecolors");
+                //     Legend_displayGraphLayoutbyID(pfile.name, 0, "layouts", "graphlayout_linkcolors");
 
-                    // update DD 
-                    // layouts_DD = document.getElementById("layoutsDD").shadowRoot.getElementById("sel");   
-                    // layouts_DD.setAttribute("sel", parseInt(0));
-                    // layouts_DD.setAttribute("value", pfile.layouts[0]);
+                //     // update DD 
+                //     // layouts_DD = document.getElementById("layoutsDD").shadowRoot.getElementById("sel");   
+                //     // layouts_DD.setAttribute("sel", parseInt(0));
+                //     // layouts_DD.setAttribute("value", pfile.layouts[0]);
 
-                    // layoutsRGB_DD = document.getElementById("layoutsRGBDD").shadowRoot.getElementById("sel");
-                    // layoutsRGB_DD.setAttribute("sel", parseInt(0));
-                    // layoutsRGB_DD.setAttribute("value", pfile.layoutsRGB[0]);
+                //     // layoutsRGB_DD = document.getElementById("layoutsRGBDD").shadowRoot.getElementById("sel");
+                //     // layoutsRGB_DD.setAttribute("sel", parseInt(0));
+                //     // layoutsRGB_DD.setAttribute("value", pfile.layoutsRGB[0]);
 
-                    // linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
-                    // linksRGB_DD.setAttribute("sel", parseInt(0));             
-                    // linksRGB_DD.setAttribute("value", pfile.linksRGB[0]);
+                //     // linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
+                //     // linksRGB_DD.setAttribute("sel", parseInt(0));             
+                //     // linksRGB_DD.setAttribute("value", pfile.linksRGB[0]);
 
-                    //links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
-                    //links_DD.setAttribute("sel", parseInt(0));
-                    //links_DD.setAttribute("value", pfile.links[0]);
+                //     //links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
+                //     //links_DD.setAttribute("sel", parseInt(0));
+                //     //links_DD.setAttribute("value", pfile.links[0]);
 
-                    // update arrow buttons with new index
-                    nextButton = document.getElementById("forwardstep");    
-                    nextButton.setAttribute('val', 0);        
-                    backButton = document.getElementById("backwardstep");           
-                    backButton.setAttribute('val', 0);                
+                //     // update arrow buttons with new index
+                //     nextButton = document.getElementById("forwardstep");    
+                //     nextButton.setAttribute('val', 0);        
+                //     backButton = document.getElementById("backwardstep");           
+                //     backButton.setAttribute('val', 0);                
 
-                    // trigger dropdown cases
-                    // this is quick fix since no reset button in VR exe implemented (button id = resetlayout"
+                //     // trigger dropdown cases
+                //     // this is quick fix since no reset button in VR exe implemented (button id = resetlayout")
                     
-                    data.fn = "dropdown";
-                    data.id = "layoutsDD";
-                    socket.emit("ex", data);
-                    data.id = "layoutsRGBDD";
-                    socket.emit("ex", data);
-                    data.id = "linksRGBDD";
-                    socket.emit("ex", data);
-                     
+                //     data.fn = "dropdown";
+                //     data.id = "layoutsDD";
+                //     socket.emit("ex", data);
+                //     data.id = "layoutsRGBDD";
+                //     socket.emit("ex", data);
+                //     data.id = "linksRGBDD";
+                //     socket.emit("ex", data);
 
-                    if (isPreview) {
-                        actLayout = 0;
-                        actLayoutRGB = 0;
-                        actLinksRGB = 0;
-                        makeNetwork();
-                    }
-
-                }   
-
+                //     if (isPreview) {
+                //         actLayout = 0;
+                //         actLayoutRGB = 0;
+                //         actLinksRGB = 0;
+                //         makeNetwork();
+                //     }
+                // }   
 
                 if (data.id == "forwardstep") {
 
@@ -788,9 +785,9 @@ $(document).ready(function() {
                     var forwardidx = parseInt(layouts_DD.getAttribute("sel"));
 
                     // 2. then add an index to it
-                    console.log("C_DEBUG before setting forward idx = ", forwardidx);   
+                    //console.log("C_DEBUG before setting forward idx = ", forwardidx);   
                     forwardidx = NEWIndexforwardstep(pfile.layouts.length);
-                    console.log("C_DEBUG after setting forward idx = ", forwardidx);
+                    //console.log("C_DEBUG after setting forward idx = ", forwardidx);
 
                     // 3. then update dropdowns accordingly
                     // links
