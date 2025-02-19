@@ -219,7 +219,8 @@ def upload_filesJSON(request, overwrite=True):
     #----------------------------------
     for labellist in labels:           
 
-        name = ""
+
+        name = "" 
         i = 0
 
         if "data" in labellist:
@@ -299,6 +300,9 @@ def upload_filesJSON(request, overwrite=True):
 
     # match labels to respective layout to get label colors for legend
     clustercounter = 0
+    #print("C_DEBUG: len(pfile[selections]): ", len(pfile["selections"]))
+    
+
     if len(pfile["selections"]) > 0:
         all_layouts = graphlayouts
 
@@ -328,13 +332,12 @@ def upload_filesJSON(request, overwrite=True):
                             #print("C_DEBUG: pfile[selections][clustername and labelcolor] : ", (pfile["selections"][e]["name"], pfile["selections"][e]["labelcolor"]))
                         
                     clustercounter += 1
-                    #print("C_DEBUG: clustercounter: ", clustercounter)
-
+    
         pfile["labelcount"] = clustercounter # ISSUE: this might only work for one label set per project and not per layout! 
 
     else:
-        #print("C_DEBUG: project does not contain labels/clusters.")
         pfile["labelcount"] = 0
+    
     print("PROGRESS: made node position textures...")
 
 
@@ -404,13 +407,16 @@ def upload_filesJSON(request, overwrite=True):
     for file_index in range(len(links)):
         # handle layout name 
         if names[file_index] is not None and names[file_index] != "":
+            
+            #print("C_DEBUG: makeLinkTexNew_withoutJSON - links[0] : ", links[0])  
+
             state =  state + makeLinkTexNew_withoutJSON(namespace, links[0], names[file_index]) + '<br>'
             pfile["links"].append(names[file_index])    
         else: # if no specified layout name
             temp_name = "Layoutname"+str(file_index)
             state =  state + makeLinkTexNew_withoutJSON(namespace, links[0], temp_name) + '<br>'
             pfile["links"].append(temp_name) # + "_linksXYZ")
-    print("PROGRESS: made textures for node colors...")
+    print("PROGRESS: made textures for links...")
 
 
     #----------------------------------
@@ -480,7 +486,7 @@ def upload_filesJSON(request, overwrite=True):
             temp_name = "Layoutname"+str(file_index)
             state =  state + makeLinkRGBTex_2(namespace, links_ids_project, lcolors, temp_name) + '<br>'
             pfile["linksRGB"].append(temp_name) # + "_linksRGB")
-    print("PROGRESS: stored links textures...")
+    print("PROGRESS: made textures for link colors...")
 
 
     pfile["nodecount"] = numnodes
@@ -899,7 +905,7 @@ def parseGraphJSON_labels(files,target):
              
             for node in one_file["nodes"]: 
                 labels = []
-                if "cluster" in node and node["cluster"] is not None:
+                if "cluster" in node and node["cluster"] is not None and node["cluster"] != "":
                     nodeclus.append(node["cluster"])
                     nodeids.append(node["id"])
                     

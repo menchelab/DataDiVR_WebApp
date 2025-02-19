@@ -154,7 +154,7 @@ def loadAnnotations(name):
 
 
 
-def makeXYZTexture(project, pixeldata, name=None): 
+def makeXYZTexture(project, pixeldata, name=None, latlon_flag=False): 
 
     hight = 128 * (int((len(pixeldata["data"])) / 16384) + 1)
 
@@ -165,7 +165,7 @@ def makeXYZTexture(project, pixeldata, name=None):
     texh = [(0,0,0)] * size
     texl = [(0,0,0)] * size
 
-    if "_geo" in pixeldata["name"]:
+    if latlon_flag==True: #"_geo" in pixeldata["name"]:
         #print("is geo")
         unscaled = []
         # convert lat lon to XYZ
@@ -521,6 +521,9 @@ def makeLinkTexNew_withoutJSON(project, links, name=None):
             thislink["id"] = i
             thislink["s"] = row[0]
             thislink["e"] = row[1]
+            
+            #print("C_DEBUG: THISLINK: ", thislink)
+
             linklist["links"].append(thislink)
 
             sx = int(row[0]) % 128 # R
@@ -592,7 +595,7 @@ def makeLinksjson(project,links):
 
             #------------------------------------------------------------------------------
             # TO DO 
-            # here comes info e.g. COLOR "c" and WEIGHT "w" and DIRECTION "d" per link
+            # here comes info e.g. WEIGHT "w" and DIRECTION "d" per link
             #------------------------------------------------------------------------------
 
             i += 1
