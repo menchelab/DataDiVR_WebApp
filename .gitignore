@@ -9,8 +9,9 @@ venv/
 projects/
 temp-json/
 temp-files/
+*.json
 
-openAI_KEY_doNOTcommit.txt
+
 static/TTSaudio/
 extensions/whisperSpeechRecognition/static/WhisperAudio/
 python_tools/data
@@ -21,5 +22,7 @@ extensions/*
 !extensions/load_extensions.py
 !extensions/install_requirements.sh
 !extensions/install_requirements.ps1
+
+
+openAI_KEY_doNOTcommit.txt
 HF_token_doNOTcommit.txt
-temp_files/Teapot.json
