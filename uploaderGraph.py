@@ -363,7 +363,7 @@ def upload_filesJSON(request, overwrite=True):
     #----------------------------------
     for file_index,color in enumerate(nodecolors): #for file_index in range(len(nodecolors)):
         
-        print("C_DEBUG: line 362 - color : ", color)
+        #print("C_DEBUG: line 362 - color : ", color)
 
         #color = nodecolors[file_index]
         if len(color["data"]) == 0:

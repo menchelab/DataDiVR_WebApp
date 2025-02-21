@@ -56,7 +56,7 @@ def clear_event(message, room):
 
 def add_node_event(message, room):
     
-    print("C_DEBUG in clipboard_events line 59 : ", message)
+    #print("C_DEBUG in clipboard_events line 59 : ", message)
     
     if not "cbnode" in GD.pdata.keys():  # check if selection exists in pdata.json
         GD.pdata["cbnode"] = []

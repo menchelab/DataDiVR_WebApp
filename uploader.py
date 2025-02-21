@@ -269,8 +269,8 @@ def makeXYZTexture(project, pixeldata, name=None, latlon_flag=False):
     new_imgh = Image.new('RGB', (128, hight))
     new_imgl = Image.new('RGB', (128, hight))
 
-    print("C_DEBUG in 272 : texh = ", texh)
-    print("C_DEBUG in 273 : texl = ", texl)
+    #print("C_DEBUG in 272 : texh = ", texh)
+    #print("C_DEBUG in 273 : texl = ", texl)
     
     new_imgh.putdata(texh)
     new_imgl.putdata(texl)
@@ -322,7 +322,7 @@ def makeNodeRGBTexture(project, pixeldata, name=None):
     #print ("hight is " + str(hight))
     size = 128 * hight 
     path = 'static/projects/' + project 
-    tex = [(0,0,0,10)] * size #black, alpha = 10 used to filter background in legend panel
+    tex = [(0,0,0,0)] * size #black, alpha = 10 used to filter background in legend panel
 
     for i in range(len(rgba_colors)): #pixeldata["data"])):
         #tex[i] = (int(pixeldata["data"][i][0]), int(pixeldata["data"][i][1]),int(pixeldata["data"][i][2]),int(pixeldata["data"][i][3]))
@@ -729,7 +729,7 @@ def makeLinkRGBTex_2(project, links_ids_project, linksRGB, name=None):
         except: 
             print("No Link colors detected.")
 
-    texc = [(0,0,0,10)] * 512 * hight #black, alpha = 10 used to filter background in legend panel
+    texc = [(0,0,0,0)] * 512 * hight #black, alpha = 10 used to filter background in legend panel
  
     new_imgc = Image.new('RGBA', (512, hight))
     #i = 0
@@ -803,7 +803,7 @@ def makeLinkRGBTex(project, linksRGB, name=None):
         
         print("has no colors")
 
-    texc = [(0,0,0,10)] * 512 * hight #black, alpha = 10 used to filter background in legend panel
+    texc = [(0,0,0,0)] * 512 * hight #black, alpha = 10 used to filter background in legend panel
  
     new_imgc = Image.new('RGBA', (512, hight))
     i = 0

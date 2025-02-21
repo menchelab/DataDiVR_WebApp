@@ -205,6 +205,9 @@ def loadColor():
         global pixel_valuesc
 
         pixel_valuesc = list(imc.getdata())
+        
+        print("C_DEBUG: pixel_valuesc = ", pixel_valuesc[:20])  
+        
         print(
             "static/projects/"
             + data["actPro"]
