@@ -155,7 +155,7 @@ def loadAnnotations(name):
 
 
 def makeXYZTexture(project, pixeldata, name=None, latlon_flag=False): 
-
+    
     hight = 128 * (int((len(pixeldata["data"])) / 16384) + 1)
 
     #print ("hight is " + str(hight))
@@ -201,7 +201,7 @@ def makeXYZTexture(project, pixeldata, name=None, latlon_flag=False):
         y_norm = []
         z_norm = []
         for i in range(len(pixeldata["data"])):
-                
+                        
             x = float(pixeldata["data"][i][0])
             y = float(pixeldata["data"][i][1])
             z = float(pixeldata["data"][i][2])
@@ -215,9 +215,11 @@ def makeXYZTexture(project, pixeldata, name=None, latlon_flag=False):
         
         if min(x_norm)<0 or min(y_norm)<0 or min(z_norm)<0 or max(x_norm)>1 or max(y_norm)>1 or max(z_norm)>1:
             coordinates_norm = normalize_xyz(pixeldata["data"]) 
-            #print("C_DEBUG: coordinates_norm: ", coordinates_norm)
+            
             for i in range(len(coordinates_norm[0])):
-                        
+                
+                #print("C_DEBUG - line 221: i in coordinates_norm: ", i)
+                
                 x = int(float(coordinates_norm[0][i])*65280)
                 y = int(float(coordinates_norm[1][i])*65280)
                 z = int(float(coordinates_norm[2][i])*65280)
@@ -242,6 +244,8 @@ def makeXYZTexture(project, pixeldata, name=None, latlon_flag=False):
             #print("C_DEBUG: pixeldata: ", pixeldata["data"])
             for i in range(len(pixeldata["data"])):
 
+                print("C_DEBUG - line 247: i in coordinates_norm: ", i)
+    
                 x = int(float(pixeldata["data"][i][0])*65280)
                 y = int(float(pixeldata["data"][i][1])*65280)
                 z = int(float(pixeldata["data"][i][2])*65280)
@@ -265,6 +269,9 @@ def makeXYZTexture(project, pixeldata, name=None, latlon_flag=False):
     new_imgh = Image.new('RGB', (128, hight))
     new_imgl = Image.new('RGB', (128, hight))
 
+    print("C_DEBUG in 272 : texh = ", texh)
+    print("C_DEBUG in 273 : texl = ", texl)
+    
     new_imgh.putdata(texh)
     new_imgl.putdata(texl)
     
@@ -301,6 +308,8 @@ def makeXYZTexture(project, pixeldata, name=None, latlon_flag=False):
 def makeNodeRGBTexture(project, pixeldata, name=None): 
     # check if data is rgba or hex string
     for i in (pixeldata["data"]):
+        
+        #print("C_DEBUG - line 309: in makeNodeRGBTexture - i in pixeldata: ", i)
         rgba_colors = []
         if type(i) is str and len(i) == 6 and i.startswith('#'):
             rgba_converted = hex_to_rgb(pixeldata["data"][i]) 
@@ -321,7 +330,6 @@ def makeNodeRGBTexture(project, pixeldata, name=None):
 
     new_img = Image.new('RGBA', (128, hight))
     new_img.putdata(tex)
-    
 
     pathRGB = path + '/layoutsRGB/' +  pixeldata["name"] + '.png' # fits pfile naming , former: 'RGB.bmp'
 
@@ -941,6 +949,7 @@ def upload_filesNew(request):
                 pos[0] = str(accPos[0] / len(row))
                 pos[1] = str(accPos[1] / len(row))
                 pos[2] = str(accPos[2] / len(row))
+                
                 layout["data"].append(pos)
 
             # label nodes to be black

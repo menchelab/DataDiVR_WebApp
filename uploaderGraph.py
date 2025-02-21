@@ -140,7 +140,8 @@ def upload_filesJSON(request, overwrite=True):
         parseGraphJSON_nodecolors(layout, nodecolors)
         
         parseGraphJSON_labels(layout, labels) 
-        
+        #print("C_DEBUG: parsed labels line 143: ", labels)
+
         parseGraphJSON_links_many(layout, linksdicts)
         parseGraphJSON_linkcolors(layout, linkcolors)
         
@@ -154,7 +155,8 @@ def upload_filesJSON(request, overwrite=True):
         parseGraphJSON_nodecolors(jsonfiles, nodecolors)
     
         parseGraphJSON_labels(jsonfiles, labels)
-        
+        #print("C_DEBUG: parsed labels line 158: ", labels)
+
         parseGraphJSON_links_many(jsonfiles, linksdicts)
         parseGraphJSON_linkcolors(jsonfiles, linkcolors)
         
@@ -218,12 +220,12 @@ def upload_filesJSON(request, overwrite=True):
     # CLUSTER LABELS
     #----------------------------------
     for labellist in labels:           
-
-
+        
         name = "" 
         i = 0
 
-        if "data" in labellist:
+        if "data" in labellist and len(labellist["data"]) > 0:            
+
             for row in labellist["data"]:
                 
                 name = row[0]
@@ -236,7 +238,7 @@ def upload_filesJSON(request, overwrite=True):
                 if "name" in nodeinfo[0]:
                     thisnode["n"] = nodeinfo[i]["name"] # str(name)
                 else:   
-                    thisnode["n"] = str(name)
+                    thisnode["n"] = str(name)                
                 nodelist["nodes"].append(thisnode)
 
                 #add to pfile
@@ -248,8 +250,8 @@ def upload_filesJSON(request, overwrite=True):
                 
                 # get average pos for Each layout            
                 for layout in nodepositions:
-                    accPos = [0,0,0]
-                    pos = [0,0,0]
+                    accPos = [0,0,0] #[0,0,0]
+                    pos = [0,0,0] #[0,0,0]
 
                     for x in row:
 
@@ -267,11 +269,22 @@ def upload_filesJSON(request, overwrite=True):
                     pos[0] = str(accPos[0] / len(row))
                     pos[1] = str(accPos[1] / len(row))
                     pos[2] = str(accPos[2] / len(row))
+                    
+                    #print("C_DEBUG: in LINE 271 uploaderGraph.py: pos ", pos)
+                    
                     layout["data"].append(pos)
 
                 # label nodes to be black
-                for color in nodecolors:
-                    color["data"].append((0,0,0,0)) # 60,60,60,60
+                for color in nodecolors:   
+                    
+
+
+                    #print("C_DEBUG: in LINE 278 uploaderGraph.py: color ", color)
+                    # change back to color 0,0,0,0 once black node issue at pos 0,0,0 resolved 
+                    
+
+
+                    color["data"].append((255,0,255,200)) # 0,0,0,0 # 60,60,60,60
 
                 i += 1
         else: 
@@ -288,6 +301,8 @@ def upload_filesJSON(request, overwrite=True):
         if len(layout["data"]) > 0 and len(layout["data"][int(0)]) == 2:
             for i,xy in enumerate(layout["data"]):
                 layout["data"][i] = (xy[0],xy[1],0.0)
+        else:
+            pass
 
         # handle layout name 
         if names[file_index] is not None and names[file_index] != "":
@@ -319,6 +334,8 @@ def upload_filesJSON(request, overwrite=True):
                         if lab not in unique_clusters_firstnode:
                             unique_clusters_firstnode.append(lab[0]) # get id of first node in cluster to match with color 
                     
+                    #print("C_DEBUG 332 : unique_clusters_firstnode : ", unique_clusters_firstnode)
+
                     # get cluster colors based on first node id in cluster 
                     clustercolors = []
                     for nodeid in unique_clusters_firstnode:             
@@ -346,6 +363,8 @@ def upload_filesJSON(request, overwrite=True):
     #----------------------------------
     for file_index,color in enumerate(nodecolors): #for file_index in range(len(nodecolors)):
         
+        print("C_DEBUG: line 362 - color : ", color)
+
         #color = nodecolors[file_index]
         if len(color["data"]) == 0:
             color["data"] = [[255,0,255,100]] * numnodes
@@ -371,6 +390,9 @@ def upload_filesJSON(request, overwrite=True):
     links_ids_project = {i: links[0]["data"][i] for i in range(len(links[0]["data"]))}
     # sort links_ids_project by key
     links_ids_project = dict(sorted(links_ids_project.items()))
+    #print("C_DEBUG : links_ids_project : ", links_ids_project)
+    
+
 
     # """ 
     # for sublist in linksdicts:  
@@ -865,7 +887,7 @@ def parseGraphJSON_nodecolors(files,target):
                 else:
                     nodecolor_rgba.append((255, 0, 255, 100))           
 
-            #print("C_DEBUG in parseGraphJSON - nodecolor_rgba: ", nodecolor_rgba)
+            #print("C_DEBUG - line 887 in parseGraphJSON - nodecolor_rgba: ", nodecolor_rgba)
 
             vecList = {}
             vecList["data"] = nodecolor_rgba
