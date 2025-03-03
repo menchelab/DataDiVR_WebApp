@@ -264,8 +264,7 @@ def makeXYZTexture(project, pixeldata, name=None, latlon_flag=False):
 
                 texh[i] = pixelh
                 texl[i] = pixell
-                
-                print(pixelh)
+                #print(pixelh)
                 #print("C_DEBUG: DID NOT normalize coordinates.")
 
     new_imgh = Image.new('RGB', (128, hight))
