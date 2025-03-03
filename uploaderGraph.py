@@ -237,11 +237,11 @@ def upload_filesJSON(request, overwrite=True):
                 thisnode["group"] = row
                 if "name" in nodeinfo[0]:
                     thisnode["n"] = nodeinfo[i]["name"] # str(name)
-                    print("C_DEBUG: in line 239: this node = ", thisnode)
+                    #print("C_DEBUG: in line 239: this node = ", thisnode)
 
                 else:   
                     thisnode["n"] = str(name)                
-                    print("C_DEBUG: in line 244: this node = ", thisnode)
+                    #print("C_DEBUG: in line 244: this node = ", thisnode)
 
                 nodelist["nodes"].append(thisnode)
 
