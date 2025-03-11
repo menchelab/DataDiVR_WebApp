@@ -451,7 +451,7 @@ def upload_filesJSON(request, overwrite=True):
     #print("C_DEBUG: links remapped:", links)   
     
     # all links json
-    print("C_DEBUG: len links: ", len(links))
+    #print("C_DEBUG: len links: ", len(links))
     makeLinksjson(namespace, links)
     print("PROGRESS: stored all links in json...")
 
