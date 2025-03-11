@@ -244,7 +244,7 @@ def makeXYZTexture(project, pixeldata, name=None, latlon_flag=False):
             #print("C_DEBUG: pixeldata: ", pixeldata["data"])
             for i in range(len(pixeldata["data"])):
 
-                print("C_DEBUG - line 247: i in coordinates_norm: ", i)
+                #print("C_DEBUG - line 247: i in coordinates_norm: ", i)
     
                 x = int(float(pixeldata["data"][i][0])*65280)
                 y = int(float(pixeldata["data"][i][1])*65280)

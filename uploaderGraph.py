@@ -126,7 +126,7 @@ def upload_filesJSON(request, overwrite=True):
     #----------------------------------------------
     # ALL LINKS - for analytics
     #---------------------------------------------- 
-    parseGraphJSON_links(jsonfiles, links)  
+    parseGraphJSON_links_set(jsonfiles, links)  
     pfile["linkcount"] = len(links[0]["data"])
     #print("C_DEBUG: links: ", links[0]["data"])
 
@@ -164,7 +164,7 @@ def upload_filesJSON(request, overwrite=True):
         graphlayouts = [item for sublist in graphlayouts for item in sublist] # unpack list in lists
         names = graphlayouts
         
-    pfile["scenes"] = names # rrdundant - to be removed
+    pfile["scenes"] = names # redundant - to be removed
     print("PROGRESS: stored layouts...")
 
     #----------------------------------------------
@@ -456,6 +456,7 @@ def upload_filesJSON(request, overwrite=True):
     #print("C_DEBUG: links remapped:", links)   
     
     # all links json
+    print("C_DEBUG: len links: ", len(links))
     makeLinksjson(namespace, links)
     print("PROGRESS: stored all links in json...")
 
@@ -671,6 +672,42 @@ def parseGraphJSON_links(files, target):
                 vecList["name"] = name_of_file
 
         target.append(vecList)
+
+
+def parseGraphJSON_links_set(files, target):
+    if len(files) > 0: 
+        for ix,file in enumerate(files):
+            
+            # get layout name
+            if "layoutname" in file:
+                name_of_file = file["layoutname"]
+            else:
+                name_of_file = "Automatic-LayoutID"+str(ix)
+            
+            # catch if there are links
+            if "links" in file.keys():
+                    
+                num_of_links = len(file["links"])
+
+                links = []
+                seen_links = set()
+                for i in range(0, num_of_links):
+                    link = (str(file["links"][i]["source"]), str(file["links"][i]["target"]))
+                    if link not in seen_links:
+                        seen_links.add(link)
+                        links.append(list(link))
+
+                vecList = {}
+                vecList["data"] = links
+                vecList["name"] = name_of_file
+            else: 
+                links = []
+                vecList = {}
+                vecList["data"] = links
+                vecList["name"] = name_of_file
+
+        target.append(vecList)
+
 
 
 def parseGraphJSON_links_many(files, target):
