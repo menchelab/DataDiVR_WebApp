@@ -90,6 +90,11 @@ def execute_before_first_request():
     GD.loadPFile()
     GD.loadPD()
     GD.loadColor()
+
+    # C_DEBUG test
+    GD.loadXYZTex()
+
+
     GD.loadLinks()
     GD.load_annotations()
 

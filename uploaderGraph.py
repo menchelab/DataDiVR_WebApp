@@ -237,8 +237,12 @@ def upload_filesJSON(request, overwrite=True):
                 thisnode["group"] = row
                 if "name" in nodeinfo[0]:
                     thisnode["n"] = nodeinfo[i]["name"] # str(name)
+                    #print("C_DEBUG: in line 239: this node = ", thisnode)
+
                 else:   
                     thisnode["n"] = str(name)                
+                    #print("C_DEBUG: in line 244: this node = ", thisnode)
+
                 nodelist["nodes"].append(thisnode)
 
                 #add to pfile
@@ -270,21 +274,14 @@ def upload_filesJSON(request, overwrite=True):
                     pos[1] = str(accPos[1] / len(row))
                     pos[2] = str(accPos[2] / len(row))
                     
-                    #print("C_DEBUG: in LINE 271 uploaderGraph.py: pos ", pos)
+                    print("C_DEBUG: in LINE 277 = pos ", pos)
                     
                     layout["data"].append(pos)
 
                 # label nodes to be black
                 for color in nodecolors:   
-                    
-
-
-                    #print("C_DEBUG: in LINE 278 uploaderGraph.py: color ", color)
-                    # change back to color 0,0,0,0 once black node issue at pos 0,0,0 resolved 
-                    
-
-
-                    color["data"].append((255,0,255,200)) # 0,0,0,0 # 60,60,60,60
+                    # this is the node color of clusters
+                    color["data"].append((255,0,0,200)) # 0,0,0,0 # 60,60,60,60
 
                 i += 1
         else: 
@@ -363,10 +360,8 @@ def upload_filesJSON(request, overwrite=True):
     #----------------------------------
     for file_index,color in enumerate(nodecolors): #for file_index in range(len(nodecolors)):
         
-        #print("C_DEBUG: line 362 - color : ", color)
-
         #color = nodecolors[file_index]
-        if len(color["data"]) == 0:
+        if len(color["data"]) == 0: # if no color detected 
             color["data"] = [[255,0,255,100]] * numnodes
             
         # handle layout name 
@@ -498,7 +493,7 @@ def upload_filesJSON(request, overwrite=True):
         lcolors = link_ids_colors_matched[file_index] # lcolors, per layout ie fileindex = data : (linkID, link [n1,n2], color), "name" : layoutname
         
         if len(lcolors["data"]) == 0:
-            lcolors["data"] = [[255,0,255,100]] * len(links[0]["data"])
+            lcolors["data"] = [[255,0,255,100]] * len(links[0]["data"]) # if no color detected 
             lcolors["name"] = "nan"
 
         # handle layout name 
