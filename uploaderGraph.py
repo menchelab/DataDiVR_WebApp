@@ -274,7 +274,7 @@ def upload_filesJSON(request, overwrite=True):
                     pos[1] = str(accPos[1] / len(row))
                     pos[2] = str(accPos[2] / len(row))
                     
-                    print("C_DEBUG: in LINE 277 = pos ", pos)
+                    #print("C_DEBUG: in LINE 277 = pos ", pos)
                     
                     layout["data"].append(pos)
 

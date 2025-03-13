@@ -48,16 +48,16 @@ function genOptionColorGradient(n) {
     // function to generate a color gradient based on two random picked colors and interpolating Hue for n colors
 
     const colors = [];
-    const firstHue = random(0, 360);
-    const secondHue = (firstHue + random(30, 150)) % 360;
+    const firstHue = random(0, 360); // 0° red  120° green 240° blue  // random(0, 360);
+    const secondHue =  (firstHue + random(30, 150)) % 360; //    (firstHue + random(30, 150)) % 360;
 
 
     // change these two constants to adjust color generation
-    const randS = random(0.5, 1)  // Saturation - pale (0) to vivid (1)
-    const randV = random(0.6, 1)  // Intensity Value - dark (0) to light (1)
-
+    const randS = random(0.35, 0.65) // random(0.5, 1)  // Saturation - pale (0) to vivid (1)
+    const randV = random(0.15,0.45) // random(0.6, 1)  // Intensity Value - dark (0) to light (1)
 
     const firstColor = hsvToRgb(firstHue, randS, randV);
+
     const secondColor = hsvToRgb(secondHue, randS, randV);
 
     if (n === 1) {
