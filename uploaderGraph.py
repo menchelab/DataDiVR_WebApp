@@ -383,6 +383,21 @@ def upload_filesJSON(request, overwrite=True):
     #----------------------------------
     # make a look up dict where key is id of all links and value is the link
     links_ids_project = {i: links[0]["data"][i] for i in range(len(links[0]["data"]))}
+
+
+
+
+
+
+
+
+
+
+    # DEBUG LINKS STORING AND SORTING and BITMAP CREATION 
+
+    # print first few elements of links_ids_project dictionary
+    print("C_DEBUG : links_ids_project : ", {k: links_ids_project[k] for k in list(links_ids_project)[:5]})
+    
     # sort links_ids_project by key
     links_ids_project = dict(sorted(links_ids_project.items()))
     #print("C_DEBUG : links_ids_project : ", links_ids_project)
@@ -505,6 +520,14 @@ def upload_filesJSON(request, overwrite=True):
             state =  state + makeLinkRGBTex_2(namespace, links_ids_project, lcolors, temp_name) + '<br>'
             pfile["linksRGB"].append(temp_name) # + "_linksRGB")
     print("PROGRESS: made textures for link colors...")
+
+
+
+
+
+
+
+
 
 
     pfile["nodecount"] = numnodes

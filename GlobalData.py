@@ -206,7 +206,7 @@ def loadColor():
 
         pixel_valuesc = list(imc.getdata())
         
-        print("C_DEBUG: pixel_valuesc = ", pixel_valuesc[:20])  
+        #print("C_DEBUG: pixel_valuesc = ", pixel_valuesc[:20])  
         
         print(
             "static/projects/"
@@ -239,7 +239,7 @@ def loadXYZTex():
 
         pixel_valuesc_test = list(imc.getdata())
         
-        print("C_DEBUG: pixel_valuesc_test = ", pixel_valuesc_test[:20])  
+        #print("C_DEBUG: pixel_valuesc_test = ", pixel_valuesc_test[:20])  
         
         print(
             "static/projects/"
