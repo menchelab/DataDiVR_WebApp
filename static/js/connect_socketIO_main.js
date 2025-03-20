@@ -700,23 +700,8 @@ $(document).ready(function() {
                     ue4("linkblend", data);
                 }
 
-                // checkbox for analytics LINKS
-                if(data["id"]=="cbdefinelinklist"){
-                    socket.emit("ex", {
-                            fn: "checkbox",
-                            id: "cbdefinedlinkslist",
-                            val: data["val"]
-                        });
-
-
-                // TO DO 
-                // define which links json file to use for analytics 
-                // and access variable in operations where needed
-
-
-
                 break;
-                }
+                
 
             case "ue4":
 

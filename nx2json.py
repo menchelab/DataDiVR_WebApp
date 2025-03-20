@@ -71,6 +71,15 @@ def make_json(graphs): # former: merge_graphs(graphs):
         graphs = [graphs]
     
     # order graphs alphabetically 
+    # catch if not layoutname in keys
+    for graph in graphs:
+        try:
+            graph.graph["layoutname"]
+            #print("Layoutname found: ", graph.graph["layoutname"])
+        except KeyError:
+            graph.graph["layoutname"] = "layoutname_" + str(graphs.index(graph))
+            #print("NO Layoutname found: ", graph.graph["layoutname"])
+        
     graphs = sorted(graphs, key=lambda x: x.graph["layoutname"])
     
     for graph in graphs:
