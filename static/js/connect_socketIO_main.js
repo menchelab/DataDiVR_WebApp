@@ -198,12 +198,11 @@ $(document).ready(function() {
 
             // VRrooms
             socket.emit('ex', { usr:uid, id: "VRrooms", fn: "dropdown", val:"init"});
-
-
         }
         //CONNECTION Established - initialize the project (Ui elements initialize when project changes)
 
     });
+
 
 
     socket.on('ex', function(data) {
@@ -635,7 +634,7 @@ $(document).ready(function() {
                     }
                 
                 ue4(data["fn"], data);
-                console.log("C_DEBUG: sending data to UE4 : ", data);
+                //console.log("C_DEBUG: sending data to UE4 : ", data);
                 }
                 break;
                 
@@ -645,7 +644,7 @@ $(document).ready(function() {
                 //clearProject();
                 //if (data["usr"]==uid){
                 pfile = data["val"];
-                console.log("C_DEBUG: in CASE PROJECT _ project data = ", pfile);
+                //console.log("C_DEBUG: in CASE PROJECT _ project data = ", pfile);
 
                 // init analytics container
                 document.getElementById('analyticsContainer').innerHTML = '';
@@ -671,9 +670,6 @@ $(document).ready(function() {
                 Legend_displayGraphLayoutbyID(pfile.name, data.sel, "layouts", "graphlayout_nodecolors");
                 Legend_displayGraphLayoutbyID(pfile.name, data.sel, "layouts", "graphlayout_linkcolors");
                 
-                // display legendfiles
-                console.log("C_DEBUG: display legend display.");
-
                 // set arrow buttons with index of DD
                 nextButton = document.getElementById("forwardstep");
                 nextButton.setAttribute('val', data.sel);

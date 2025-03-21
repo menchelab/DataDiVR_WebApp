@@ -21,6 +21,11 @@ def search(term):
             # search for term in node name
             if "n" in node:
                 nodename = node["n"] 
+
+                # catch if n is not a string
+                if not isinstance(nodename, str):
+                    nodename = str(nodename)
+                    
                 if term.lower() in nodename.lower():
                     res = {"id": node["id"], "name": node["n"], "color": GD.pixel_valuesc[node["id"]] }
                     results.append(res)

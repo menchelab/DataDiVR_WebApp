@@ -90,14 +90,9 @@ def execute_before_first_request():
     GD.loadPFile()
     GD.loadPD()
     GD.loadColor()
-
-    # C_DEBUG test
-    GD.loadXYZTex()
-
-
+    GD.loadXYZTex() # C_DEBUG text
     GD.loadLinks()
     GD.load_annotations()
-
 
 def index():
     return flask.redirect("/home")
@@ -369,6 +364,10 @@ def join(message):
         func(message)
     room = flask.session.get("room")
     join_room(room)
+    if not room:
+        print("No room found in session — using fallback room juyter-room")
+        room = 'juyter-room'
+
     print("JOINING ROOM:", message["usr"])
 
     print(
@@ -380,21 +379,55 @@ def join(message):
     emit("status", {"usr": message["usr"], "msg": " has entered the room."}, room=room)
 
 
+    # for jupyter receiving testing 
+    print("📥 Jupyter joined:", message)
+    emit('test-event', {'msg': 'Hello from server!'}, namespace='/main')
+
+
+
+#------------------------------------------
+# modified for jupyter notebook client 
 @socketio.on("ex", namespace="/main")
 @spam_protector
 def ex(message):
+    
+    # --- temp added : 
+    print("📩 Message received:", message)
+
+    room = flask.session.get("room") or 1 # jupyter-room
+    username = flask.session.get("username") or 'jupyter-user'
+    print(f"📦 Using room: {room}, user: {username}")
+
     for func in GD.functions["ex"]:
+        print("🔧 Executing function:", func)
         func(message)
-
-    room = flask.session.get("room")
+    
     project = GD.data["actPro"]
-    # print(webfunc.bcolors.WARNING+ flask.session.get("username")+ "ex: "+ json.dumps(message)+ webfunc.bcolors.ENDC)
-    # message["usr"] = flask.session.get("username")
+    #print(webfunc.bcolors.WARNING+ flask.session.get("username")+ "ex: "+ json.dumps(message)+ webfunc.bcolors.ENDC)
 
-    print("incoming " + str(message))
+    print("incoming :" + str(message))
 
     event_handler.handle_socket_execute(message, room, project)
 
+
+# added for jupyter client (or any client not sending http requests)
+@socketio.on('init-project', namespace='/main')
+def init_project():
+    print("🛠 Manually initializing GD project state...")
+    uploader.check_ProjectFolder()
+    util.create_dynamic_links(app)
+    GD.checkProjectGDexists()
+    GD.loadGD()
+    GD.loadPFile()
+    GD.loadPD()
+    GD.loadColor()
+    GD.loadXYZTex() # C_DEBUG text
+    GD.loadLinks()
+    GD.load_annotations()
+    print("✅ GD initialization complete")
+    
+#------------------------------------------
+    
 
 @socketio.on("left", namespace="/main")
 def left(message):
@@ -411,6 +444,11 @@ def left(message):
         + " has left the room."
         + webfunc.bcolors.ENDC
     )
+
+
+
+
+
 
 
 
