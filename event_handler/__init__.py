@@ -53,6 +53,8 @@ def handle_socket_execute(message, room, project):
     elif message["fn"] == "clipboard":
         if message["id"] == "cbClear":
             clipboard_events.clear_event(message, room)
+        if message["val"] == "clear":
+            clipboard_events.clear_event(message, room)
 
     elif message["fn"] == "analytics":
         analytics_events.main(message, room, project)
@@ -105,5 +107,11 @@ def handle_socket_execute(message, room, project):
 
     elif message["fn"] == "children":
         ui_events.children_event
+        
+    elif message["fn"] == "add_community_to_clipboard":
+        analytics_events.add_community_to_clipborad(message, room, project)        
+        
+
     else:
         emit("ex", message, room=room)
+        

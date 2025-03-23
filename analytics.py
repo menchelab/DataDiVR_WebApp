@@ -25,7 +25,13 @@ ANALYTICS_TABS = [
     "Clustering Coefficient"
 ]
 
-
+LAZY_CACHE_KEY = "lazy_cache"
+LAZY_CACHE_MAX_LINKS = 70_000
+LAZY_CACHE_ENTRY_COMMUNITY = "analytics.mod_community_detection"
+LAZY_CACHE_ENTRY_CLOSENESS = "analytics.closeness"
+LAZY_CACHE_ENTRY_EIGENVECTOR = "analytics.eigenvector"
+LAZY_CACHE_ENTRY_DEGREE_DIST = "analytics.degree"
+LAZY_CACHE_CLUSTERING_COEFF = "analytics.clustering_coefficient"
 
 
 def __compute_histogram_bins(values, min_bins=2, max_bins=15):
@@ -42,19 +48,24 @@ def __compute_histogram_bins(values, min_bins=2, max_bins=15):
 
 
 def analytics_degree_distribution(graph):
+    if len(GD.links) > LAZY_CACHE_MAX_LINKS:
+        if not GD.pdata[LAZY_CACHE_KEY]:
+            GD.pdata[LAZY_CACHE_KEY] = {}
+        if GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_ENTRY_DEGREE_DIST]:
+            return GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_ENTRY_DEGREE_DIST]
+    
+    
     # nx graph to degree distribution
     degree_sequence = [d for n, d in graph.degree()] # index is node id, value is degree
-    
-    print(GD.nodes["nodes"])
-    print(len(GD.nodes["nodes"]))
-    print({GD.nodes["nodes"][i]["n"]: degree_sequence[i] for i in range(len(GD.nodes["nodes"]))})
-    
-    
+
+    if len(GD.links) > LAZY_CACHE_MAX_LINKS:
+        GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_ENTRY_DEGREE_DIST] = degree_sequence
+        GD.savePD()
     return degree_sequence
 
 
 def plotly_degree_distribution(degrees, highlighted_bar=None):
-    maximum_amount_of_bars = 10
+    maximum_amount_of_bars = 20
 
     highlighted_degrees = []
 
@@ -227,12 +238,22 @@ def analytics_closeness(graph):
         closeness_seq = np.where(np.isnan(closeness_seq), 0, closeness_seq)  # Replace NaN values with 0
         return closeness_seq
 
+    if len(GD.links) > LAZY_CACHE_MAX_LINKS:
+        if not GD.pdata[LAZY_CACHE_KEY]:
+            GD.pdata[LAZY_CACHE_KEY] = {}
+        if GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_ENTRY_CLOSENESS]:
+            return GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_ENTRY_CLOSENESS]
+
     if len(graph.nodes()) <= 10000 or len(graph.edges()) <= 80000:
         closeness_seq = [nx.closeness_centrality(graph, node) for node in graph.nodes()]
     else:
         adjacency_matrix = nx.to_numpy_array(graph)
         closeness_seq = _compute_closeness_igraph(adjacency_matrix)
         closeness_seq = list(closeness_seq)  # Convert numpy array to list
+        
+    if len(GD.links) > LAZY_CACHE_MAX_LINKS:
+        GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_ENTRY_CLOSENESS] = closeness_seq
+        GD.savePD()
     return closeness_seq
 
 
@@ -454,14 +475,21 @@ def analytics_eigenvector(graph):
         scaled_seq = [(x - min_value) / (max_value - min_value) for x in centrality_seq]
         return scaled_seq
 
+    if len(GD.links) > LAZY_CACHE_MAX_LINKS:
+        if not GD.pdata[LAZY_CACHE_KEY]:
+            GD.pdata[LAZY_CACHE_KEY] = {}
+        if GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_ENTRY_EIGENVECTOR]:
+            return GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_ENTRY_EIGENVECTOR]
+
     if len(graph.nodes()) <= 10000 or len(graph.edges()) <= 80000:
         centrality_seq = _compute_eigenvector_centrality_nx(graph)
     else:
         adjacency_matrix = nx.to_numpy_array(graph)
         centrality_seq = _compute_eigenvector_centrality_igraph(adjacency_matrix)
 
-    #visual_centrality_seq = _scale(centrality_seq)
-    
+    if len(GD.links) > LAZY_CACHE_MAX_LINKS:
+        GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_ENTRY_EIGENVECTOR] = centrality_seq
+        GD.savePD()
     return centrality_seq  #(centrality_seq, visual_centrality_seq)
 
 
@@ -536,10 +564,16 @@ def plotly_closeness(assignment_list, highlighted_bar=None):
 
 
 def modularity_community_detection(ordered_graph):
+    if len(GD.links) > LAZY_CACHE_MAX_LINKS:
+        if not GD.pdata[LAZY_CACHE_KEY]:
+            GD.pdata[LAZY_CACHE_KEY] = {}
+        if GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_ENTRY_COMMUNITY]:
+            return GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_ENTRY_COMMUNITY]
+    
     if not isinstance(ordered_graph, util.OrderedGraph):
         raise TypeError("The graph should be an instance of OrderedGraph.")
 
-    communities = nx.algorithms.community.modularity_max.greedy_modularity_communities(ordered_graph)
+    communities = nx.algorithms.community.modularity_max.greedy_modularity_communities(ordered_graph, best_n=30)
 
     community_assignment = [0] * len(ordered_graph.node_order)
 
@@ -548,6 +582,10 @@ def modularity_community_detection(ordered_graph):
             node_index = ordered_graph.node_order.index(node)
             community_assignment[node_index] = i + 1
 
+    if len(GD.links) > LAZY_CACHE_MAX_LINKS:
+        GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_ENTRY_COMMUNITY] = community_assignment
+        GD.savePD()
+        
     return community_assignment
 
 
@@ -653,10 +691,19 @@ def generate_temp_layout(positions):
     
 
 def analytics_clustering_coefficient(ordered_graph):
+    if len(GD.links) > LAZY_CACHE_MAX_LINKS:
+        if not GD.pdata[LAZY_CACHE_KEY]:
+            GD.pdata[LAZY_CACHE_KEY] = {}
+        if GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_CLUSTERING_COEFF]:
+            return GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_CLUSTERING_COEFF]
+    
     if not isinstance(ordered_graph, util.OrderedGraph):
         raise TypeError("The graph should be an instance of OrderedGraph.")
     
     clustering_coefficients = [nx.clustering(ordered_graph, node) for node in ordered_graph.node_order]
+    if len(GD.links) > LAZY_CACHE_MAX_LINKS:
+        GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_CLUSTERING_COEFF] = clustering_coefficients
+        GD.savePD()
     return clustering_coefficients
 
 
@@ -693,3 +740,30 @@ def plotly_clustering_coefficient(assignment_list, highlighted_bar=None):
     plotly_json = json.dumps(fig, cls=pu.PlotlyJSONEncoder)
 
     return (plotly_json, highlighted_assignments)
+
+
+def flattened_colors(communities, colors):
+    temp_map = {}
+    for idx, community in enumerate(communities):
+        if community in temp_map:   
+            continue
+        temp_map[community] = colors[idx]
+        
+    out = []
+    for val in range(temp_map.__len__()):
+        if val not in temp_map:
+            out.append([val, [55, 55, 55]])
+            continue
+        out.append([val, temp_map.get(val)])
+    return out
+        
+def get_nodes_from_community(community_id, community_list):
+    community_id = int(community_id)
+    
+    nodes_Ids = []
+    for node_id in range(len(community_list)):
+        if community_list[node_id] != community_id:
+            continue
+        nodes_Ids.append(node_id)
+
+    return nodes_Ids

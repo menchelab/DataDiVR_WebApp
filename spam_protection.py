@@ -6,14 +6,9 @@ import threading
 
 
 ### consts
-SPAM_MAX_TASKS = 3
+SPAM_MAX_TASKS = 20
 # number of expensive tasks until the system shuts them down
-
-SPAM_EXPENSIVE_IDS = {
-    'analyticsDegreeRun', 'analyticsClosenessRun', 'analyticsPathRun', 'analyticsEigenvectorRun', 'analyticsModcommunityRun', 'analyticsModcommunityLayout', 'analyticsClusteringCoeffRun', 
-    'annotationRun',
-    'layoutRandomApply', 'layoutEigenApply', 'layoutCartoLocalApply', 'layoutCartoGlobalApply', 'layoutCartoImportanceApply', 'layoutSpectralApply'
-}
+SPAM_EXPENSIVE_IDS = {}
 # IDs of socket connection which reponse to expensive task requests
 
 

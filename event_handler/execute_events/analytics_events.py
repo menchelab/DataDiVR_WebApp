@@ -3,6 +3,7 @@ from flask_socketio import emit
 import analytics
 import GlobalData as GD
 import util
+import clipboad
 
 
 def degree_run_event(message, room, project):
@@ -442,6 +443,8 @@ def mod_community_run_event(message, room, project):
 
     node_colors = analytics.color_mod_community_det(arr)
 
+    flattened_colors = analytics.flattened_colors(arr, node_colors)
+    
     generated_textures = analytics.update_network_colors(
         node_colors=node_colors
     )  # link_colors stays None for grey
@@ -459,6 +462,11 @@ def mod_community_run_event(message, room, project):
         {"channel": "linkRGB", "path": generated_textures["path_links"]}
     )
     emit("ex", response, room=room)
+    response2 = {}
+    response2["usr"] = message["usr"]
+    response2["fn"] = "community_detection"
+    response2["data"] = flattened_colors
+    emit("ex", response2, room=room)
 
 
 def mod_community_layout_event(message, room, project):
@@ -501,6 +509,31 @@ def mod_community_layout_event(message, room, project):
     emit("ex", response, room=room)
 
 
+def add_community_to_clipborad(message, room, project):
+    community = message["val"]
+    
+    # get graph
+    if "graph" not in GD.session_data.keys():
+        GD.session_data["graph"] = util.project_to_graph(project)
+    graph = GD.session_data["graph"]
+    
+    # get community data
+    if "analyticsModcommunityRun" not in GD.session_data.keys():
+        result = analytics.modularity_community_detection(graph)
+        GD.session_data["analyticsModcommunityRun"] = result
+    communities_list = GD.session_data["analyticsModcommunityRun"]
+    
+    # update clipboard
+    clipboad.addNodesToClipboard(analytics.get_nodes_from_community(community, communities_list))
+    
+    response = {
+        "usr": message["usr"],
+        "id": message["id"],
+        "fn": "cbaddNode",
+        "val": GD.pdata["cbnode"],
+    }
+    emit("ex", response, room=room)
+
 def main(message, room, project):
 
     if message["id"] == "analyticsDegreeRun":
@@ -539,3 +572,16 @@ def main(message, room, project):
 
     if message["id"] == "analyticsModcommunityLayout":
         mod_community_layout_event(message, room, project)
+    
+    # copy selections in clipboard 
+    if message["id"] == "analyticsDegreeClipboard":
+        print(">>> COPY IN CLIPBOARD :: ", message)
+        
+    if message["id"] == "analyticsClosenessClipboard":
+        print(">>> COPY IN CLIPBOARD :: ", message)
+        
+    if message["id"] == "analyticsEigenvectorClipboard":
+        print(">>> COPY IN CLIPBOARD :: ", message)
+        
+    if message["id"] == "analyticsClusteringCoeffClipboard":
+        print(">>> COPY IN CLIPBOARD :: ", message)

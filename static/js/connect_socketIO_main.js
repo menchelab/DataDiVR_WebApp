@@ -503,6 +503,9 @@ $(document).ready(function() {
                             case "Spectral":
                                 $("#layoutSelectSpectral").css('display', 'inline-block');
                                 break;
+                            case "Spring":
+                                $("#layoutSelectSpring").css('display', 'inline-block');
+                                break;
                             // add bindings for options display here4
                         }
                     }
@@ -592,6 +595,7 @@ $(document).ready(function() {
 
                 // init analytics container
                 document.getElementById('analyticsContainer').innerHTML = '';
+                $("#analyticsModCommunityGroups").empty();
                 document.getElementById('nodecounter').innerHTML = pfile['nodecount'] + ' NODES';
                 document.getElementById('linkcounter').innerHTML = pfile['linkcount'] + ' LINKS';
 
@@ -1003,8 +1007,6 @@ $(document).ready(function() {
 
                 break;
 
-
-
             case "annotation":
 
                 const annotationDD1 = document.getElementById("annotation-dd-1");
@@ -1112,7 +1114,7 @@ $(document).ready(function() {
                 }
                 break;
 
-            case "enrichment":
+            case "enrichment":{
                 if (data.id == "init") {
                     $("#enrichment-colors").css('display', 'none');
                     $("#enrichment-note-result").css('display', 'none');
@@ -1120,7 +1122,7 @@ $(document).ready(function() {
                     if (data.valHideNote == false) { $("#enrichment-note-features").css('display', 'block'); }
 
                     let button_container = document.getElementById("enrichment-query").shadowRoot.getElementById("box");
-                    removeAllChildNodes(button_container);
+                    $(button_container).empty()
                     for (let i = 0; i < data.valQuery.length; i++) {
                         $(button_container).append("<mc-button id = 'button" + i + " 'val= '" + data.valQuery[i].id + "' name = '" + data.valQuery[i].name + "' w = '118' fn = 'node' color = '" + rgbToHex(data.valQuery[i].color[0] * 0.5, data.valQuery[i].color[1] * 0.5, data.valQuery[i].color[2] * 0.5) + "' ></mc-button>");
                     }
@@ -1179,8 +1181,23 @@ $(document).ready(function() {
                     $("#enrichment-note-result").css('display', 'block');
                     $("#enrichment-note-result").html(data.val)
                 }
+                break;
+            }
+            case "community_detection": {
+                // clear current buttons
+                var container = $("#analyticsModCommunityGroups");
+                container.empty();
 
-            case "legend_scene_display":
+                // create buttons with colors
+                if (!data.data){return;}
+
+                data.data.forEach((entry, idx)=>{
+                    if (idx === 0){return;}
+                    container.append(`<mc-button id = "button ${entry[0]}" val="${entry[0]}" name="C: ${entry[0]}" w="114" fn="add_community_to_clipboard" color="${rgbToHex(entry[1][0], entry[1][1], entry[1][2])}"></mc-button>`);
+                });
+                break;
+            }
+            case "legend_scene_display":{
                 if (data.has_scenes === true) {
                     $("#legend-scene-description-container").css('display', 'block');
                     $("#legend-scene-description-element").html("SCENE : : " + data.text)
@@ -1189,6 +1206,8 @@ $(document).ready(function() {
                     $("#legend-scene-description-container").css('display', 'none');
                     $("#legend-scene-description-element").html("")
                 }
+                
+            }
         }
     });
 
@@ -1196,3 +1215,72 @@ $(document).ready(function() {
 
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+function rgbToHex(red, green, blue) {
+    const rgb = (red << 16) | (green << 8) | (blue << 0);
+    return '#' + (0x1000000 + rgb).toString(16).slice(1);
+}
+
+function removeAllChildNodes(parent) {
+    if (parent) {
+        while (parent.firstChild) {
+            parent.removeChild(parent.firstChild);
+        }
+    }
+
+}
+
+function clearContainer(container){
+    
+}
+
+function settextscroll(id, val) {
+    console.log(id)
+    var box = document.getElementById(id).shadowRoot.getElementById("box");
+    $(box).scrollTop(val[0]);
+    $(box).scrollLeft(val[1]);
+}
+
+function makeButton(parent, id, text) {
+    var r = $('<input/>').attr({ type: "button", id: id, value: text });
+    $(parent).append(r);
+}
+
+
+function removeOptions(selectElement) {
+    var i, L = selectElement.options.length - 1;
+    for (i = L; i >= 0; i--) {
+        selectElement.remove(i);
+    }
+}
+
+function log2HTML(logObj) {
+    let obj = document.createElement('div');
+    obj.style.margin = "3px";
+
+    if (logObj.type == "log") {
+        obj.innerHTML = `Log : : <span style="font-size:16px; font-weight:bold; color:rgb(200,200,200);">${logObj.msg}</span>`;
+    }
+    if (logObj.type == "warning") {
+        obj.style.color = "rgb(250,0,0)";
+        obj.innerHTML = `Warning : : <span style="font-size:16px; font-weight:bold; color:rgb(200,200,200);">${logObj.msg}</span>`;
+    }
+    return obj;
+}
+
+function handleLayoutExistsDisplay(exists) {
+    // function to handle rerun and save button display in front end
+    // exists: bool, if True: btns are displayed, false: btns are hidden
+    // called on layout tab switch, layout run, init
+    let layoutExistsBtns = document.getElementsByClassName("layoutExists");
+    if (exists === true) {
+        Array.prototype.forEach.call(layoutExistsBtns, function(element) {
+            element.style.display = "inline-block";
+        });
+    } else {
+        Array.prototype.forEach.call(layoutExistsBtns, function(element) {
+            element.style.display = "none";
+        });
+    }
+}
