@@ -362,11 +362,14 @@ def loadProjectAnnotations(name):
 def join(message):
     for func in GD.functions["join"]:
         func(message)
-    room = flask.session.get("room")
+
+    # quick fix to make sure all clients in same room 
+    room = 'shared-room' #flask.session.get("room")
     join_room(room)
-    if not room:
-        print("No room found in session — using fallback room juyter-room")
-        room = 'juyter-room'
+
+    #if not room:
+    #    print("No room found in session — using fallback room 1")
+    #    room = 1
 
     print("JOINING ROOM:", message["usr"])
 
@@ -377,63 +380,17 @@ def join(message):
         + webfunc.bcolors.ENDC
     )   
     emit("status", {"usr": message["usr"], "msg": " has entered the room."}, room=room)
-
-
-    # for jupyter receiving testing 
-    print("📥 Jupyter joined:", message)
-    emit('test-event', {'msg': 'Hello from server!'}, namespace='/main')
-
-
-
-#------------------------------------------
-# modified for jupyter notebook client 
-@socketio.on("ex", namespace="/main")
-@spam_protector
-def ex(message):
     
-    # --- temp added : 
-    print("📩 Message received:", message)
-
-    room = flask.session.get("room") or 1 # jupyter-room
-    username = flask.session.get("username") or 'jupyter-user'
-    print(f"📦 Using room: {room}, user: {username}")
-
-    for func in GD.functions["ex"]:
-        print("🔧 Executing function:", func)
-        func(message)
-    
-    project = GD.data["actPro"]
-    #print(webfunc.bcolors.WARNING+ flask.session.get("username")+ "ex: "+ json.dumps(message)+ webfunc.bcolors.ENDC)
-
-    print("incoming :" + str(message))
-
-    event_handler.handle_socket_execute(message, room, project)
 
 
-# added for jupyter client (or any client not sending http requests)
-@socketio.on('init-project', namespace='/main')
-def init_project():
-    print("🛠 Manually initializing GD project state...")
-    uploader.check_ProjectFolder()
-    util.create_dynamic_links(app)
-    GD.checkProjectGDexists()
-    GD.loadGD()
-    GD.loadPFile()
-    GD.loadPD()
-    GD.loadColor()
-    GD.loadXYZTex() # C_DEBUG text
-    GD.loadLinks()
-    GD.load_annotations()
-    print("✅ GD initialization complete")
-    
-#------------------------------------------
-    
 
 @socketio.on("left", namespace="/main")
 def left(message):
     for func in GD.functions["left"]:
         func(message)
-    room = flask.session.get("room")
+    
+    room = 'shared-room' #flask.session.get("room")
+    
     username = flask.session.get("username")
     leave_room(room)
     flask.session.clear()
@@ -446,8 +403,54 @@ def left(message):
     )
 
 
+#------------------------------------------
+# modified for jupyter notebook client 
+@socketio.on("ex", namespace="/main")
+@spam_protector
+def ex(message):
+    
+    print("📩 Message received:", message)
+    
+    room = 'shared-room' #flask.session.get("room") or 1 # jupyter-room
+    username = flask.session.get("username") or 'jupyter-user'
+    print(f"📦 Using room: {room}, user: {username}")
+
+    for func in GD.functions["ex"]:
+        #print("🔧 Executing function:", func)
+        func(message)
+    
+    project = GD.data["actPro"]
+    print("incoming :" + str(message))
+
+    event_handler.handle_socket_execute(message, room, project)
+    
+    # added for jupyter client (or any client not sending http requests)
+    emit('module-update', {
+        'id': 'test-node',
+        'val': 42
+    }, room='shared-room', namespace='/main')  
 
 
+# added for jupyter client (or any client not sending http requests)
+@socketio.on('init-project', namespace='/main')
+def init_project():
+    #print("🛠 Manually initializing GD project state...")
+    uploader.check_ProjectFolder()
+    util.create_dynamic_links(app)
+    GD.checkProjectGDexists()
+    GD.loadGD()
+    GD.loadPFile()
+    GD.loadPD()
+    GD.loadColor()
+    GD.loadXYZTex() # C_DEBUG text
+    GD.loadLinks()
+    GD.load_annotations()
+    print("✅ GD initialization complete")
+    
+
+
+#------------------------------------------
+    
 
 
 
