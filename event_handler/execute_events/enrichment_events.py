@@ -41,19 +41,20 @@ def run_event(message, room):
     result_plot, highlight_payload, highlight_texture_obj, display_note = (
         enrichment_module.main(highlight=message.get("val", None))
     )
-    if result_plot is not None:
-        message["fn"] = "enrichment"
-        message["valPlot"] = result_plot
-        message["valPayload"] = highlight_payload
-        emit("ex", message, room=room)
 
-    if display_note is not None:
-        response_note = {}
-        response_note["usr"] = message["usr"]
-        response_note["fn"] = "enrichment"
-        response_note["id"] = "enrichment-note-result"
-        response_note["val"] = display_note
-        emit("ex", response_note, room=room)
+    message["fn"] = "enrichment"
+    message["valPlot"] = result_plot
+    message["valPayload"] = highlight_payload
+    emit("ex", message, room=room)
+
+
+    response_note = {}
+    response_note["usr"] = message["usr"]
+    response_note["fn"] = "enrichment"
+    response_note["id"] = "enrichment-note-result"
+    response_note["val"] = display_note
+    emit("ex", response_note, room=room)
+
 
     if highlight_texture_obj is None:
         return

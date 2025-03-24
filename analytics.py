@@ -85,7 +85,7 @@ def __compute_histogram_bins(values, min_bins=2, max_bins=15):
 
 
 def analytics_degree_distribution(graph):
-    if len(GD.links) > LAZY_CACHE_MAX_LINKS:
+    if len(GD.links["links"]) > LAZY_CACHE_MAX_LINKS:
         if LAZY_CACHE_KEY not in GD.pdata.keys():
             GD.pdata[LAZY_CACHE_KEY] = {}
         if LAZY_CACHE_ENTRY_DEGREE_DIST in GD.pdata[LAZY_CACHE_KEY].keys():
@@ -95,7 +95,7 @@ def analytics_degree_distribution(graph):
     # nx graph to degree distribution
     degree_sequence = [d for n, d in graph.degree()] # index is node id, value is degree
 
-    if len(GD.links) > LAZY_CACHE_MAX_LINKS:
+    if len(GD.links["links"]) > LAZY_CACHE_MAX_LINKS:
         GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_ENTRY_DEGREE_DIST] = degree_sequence
         GD.savePD()
     return degree_sequence
@@ -275,7 +275,7 @@ def analytics_closeness(graph):
         closeness_seq = np.where(np.isnan(closeness_seq), 0, closeness_seq)  # Replace NaN values with 0
         return closeness_seq
 
-    if len(GD.links) > LAZY_CACHE_MAX_LINKS:
+    if len(GD.links["links"]) > LAZY_CACHE_MAX_LINKS:
         if LAZY_CACHE_KEY not in GD.pdata.keys():
             GD.pdata[LAZY_CACHE_KEY] = {}
         if LAZY_CACHE_ENTRY_CLOSENESS in GD.pdata[LAZY_CACHE_KEY].keys():
@@ -288,7 +288,7 @@ def analytics_closeness(graph):
         closeness_seq = _compute_closeness_igraph(adjacency_matrix)
         closeness_seq = list(closeness_seq)  # Convert numpy array to list
         
-    if len(GD.links) > LAZY_CACHE_MAX_LINKS:
+    if len(GD.links["links"]) > LAZY_CACHE_MAX_LINKS:
         GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_ENTRY_CLOSENESS] = closeness_seq
         GD.savePD()
     return closeness_seq
@@ -512,7 +512,7 @@ def analytics_eigenvector(graph):
         scaled_seq = [(x - min_value) / (max_value - min_value) for x in centrality_seq]
         return scaled_seq
 
-    if len(GD.links) > LAZY_CACHE_MAX_LINKS:
+    if len(GD.links["links"]) > LAZY_CACHE_MAX_LINKS:
         if LAZY_CACHE_KEY not in GD.pdata.keys():
             GD.pdata[LAZY_CACHE_KEY] = {}
         if LAZY_CACHE_ENTRY_EIGENVECTOR in GD.pdata[LAZY_CACHE_KEY].keys():
@@ -524,7 +524,7 @@ def analytics_eigenvector(graph):
         adjacency_matrix = nx.to_numpy_array(graph)
         centrality_seq = _compute_eigenvector_centrality_igraph(adjacency_matrix)
 
-    if len(GD.links) > LAZY_CACHE_MAX_LINKS:
+    if len(GD.links["links"]) > LAZY_CACHE_MAX_LINKS:
         GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_ENTRY_EIGENVECTOR] = centrality_seq
         GD.savePD()
     return centrality_seq  #(centrality_seq, visual_centrality_seq)
@@ -600,7 +600,7 @@ def plotly_closeness(assignment_list, highlighted_bar=None):
 
 
 def modularity_community_detection(ordered_graph):
-    if len(GD.links) > LAZY_CACHE_MAX_LINKS:
+    if len(GD.links["links"]) > LAZY_CACHE_MAX_LINKS:
         if LAZY_CACHE_KEY not in GD.pdata.keys():
             GD.pdata[LAZY_CACHE_KEY] = {}
         if LAZY_CACHE_ENTRY_COMMUNITY in GD.pdata[LAZY_CACHE_KEY].keys():
@@ -618,7 +618,7 @@ def modularity_community_detection(ordered_graph):
             node_index = ordered_graph.node_order.index(node)
             community_assignment[node_index] = i + 1
 
-    if len(GD.links) > LAZY_CACHE_MAX_LINKS:
+    if len(GD.links["links"]) > LAZY_CACHE_MAX_LINKS:
         GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_ENTRY_COMMUNITY] = community_assignment
         GD.savePD()
         
@@ -727,7 +727,7 @@ def generate_temp_layout(positions):
     
 
 def analytics_clustering_coefficient(ordered_graph):
-    if len(GD.links) > LAZY_CACHE_MAX_LINKS:
+    if len(GD.links["links"]) > LAZY_CACHE_MAX_LINKS:
         if LAZY_CACHE_KEY not in GD.pdata.keys():
             GD.pdata[LAZY_CACHE_KEY] = {}
         if LAZY_CACHE_CLUSTERING_COEFF in GD.pdata[LAZY_CACHE_KEY].keys():
@@ -737,7 +737,7 @@ def analytics_clustering_coefficient(ordered_graph):
         raise TypeError("The graph should be an instance of OrderedGraph.")
     
     clustering_coefficients = [nx.clustering(ordered_graph, node) for node in ordered_graph.node_order]
-    if len(GD.links) > LAZY_CACHE_MAX_LINKS:
+    if len(GD.links["links"]) > LAZY_CACHE_MAX_LINKS:
         GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_CLUSTERING_COEFF] = clustering_coefficients
         GD.savePD()
     return clustering_coefficients

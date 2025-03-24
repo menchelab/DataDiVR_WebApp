@@ -70,7 +70,7 @@ def _plot(data, highlight_bar=None):
     # preprocess
     sorted_data = dict(sorted(data.items(), key=lambda item: item[1]))
     data_size = len(sorted_data.items())
-    display_note = None
+    display_note = ""
     if len(sorted_data.items()) > MAX_AMOUNT_RESULTS:
         display_note = f"Warning: {MAX_AMOUNT_RESULTS} of {data_size} hits shown."
         data_size = MAX_AMOUNT_RESULTS
