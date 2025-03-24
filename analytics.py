@@ -17,7 +17,7 @@ import clipboad
 
 
 
-
+#### FIXED
 ANALYTICS_TABS = [
     "Degree Distribution",
     "Closeness",
@@ -35,8 +35,15 @@ LAZY_CACHE_ENTRY_EIGENVECTOR = "analytics.eigenvector"
 LAZY_CACHE_ENTRY_DEGREE_DIST = "analytics.degree"
 LAZY_CACHE_CLUSTERING_COEFF = "analytics.clustering_coeff"
 
+LAZY_CACHE_CHECK_COMMUNITY = "analytics.check.mod_community_detection"
+
 HIGHLIGHT_CACHE_KEY = "analytics.highlight"
 
+
+
+### CONST TO INFLUENCE TOOLS
+COMMUNITY_RESOLUTION = 0.75  # default 1
+MAX_COMMUNITIES = 100
 
 
 
@@ -603,13 +610,15 @@ def modularity_community_detection(ordered_graph):
     if len(GD.links["links"]) > LAZY_CACHE_MAX_LINKS:
         if LAZY_CACHE_KEY not in GD.pdata.keys():
             GD.pdata[LAZY_CACHE_KEY] = {}
-        if LAZY_CACHE_ENTRY_COMMUNITY in GD.pdata[LAZY_CACHE_KEY].keys():
+        if LAZY_CACHE_CHECK_COMMUNITY not in GD.pdata[LAZY_CACHE_KEY].keys():
+            GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_CHECK_COMMUNITY] = []
+        if LAZY_CACHE_ENTRY_COMMUNITY in GD.pdata[LAZY_CACHE_KEY].keys() and GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_CHECK_COMMUNITY] == [MAX_COMMUNITIES, COMMUNITY_RESOLUTION]:
             return GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_ENTRY_COMMUNITY]
     
     if not isinstance(ordered_graph, util.OrderedGraph):
         raise TypeError("The graph should be an instance of OrderedGraph.")
 
-    communities = nx.algorithms.community.modularity_max.greedy_modularity_communities(ordered_graph, best_n=30)
+    communities = nx.algorithms.community.modularity_max.greedy_modularity_communities(ordered_graph, best_n=MAX_COMMUNITIES, resolution=COMMUNITY_RESOLUTION)
 
     community_assignment = [0] * len(ordered_graph.node_order)
 
@@ -620,6 +629,7 @@ def modularity_community_detection(ordered_graph):
 
     if len(GD.links["links"]) > LAZY_CACHE_MAX_LINKS:
         GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_ENTRY_COMMUNITY] = community_assignment
+        GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_CHECK_COMMUNITY] = [MAX_COMMUNITIES, COMMUNITY_RESOLUTION]
         GD.savePD()
         
     return community_assignment
