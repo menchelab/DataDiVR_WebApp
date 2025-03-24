@@ -3,8 +3,7 @@ from flask_socketio import emit
 import analytics
 import GlobalData as GD
 import util
-import json 
-
+import clipboad
 
 
 def degree_run_event(message, room, project):
@@ -22,6 +21,7 @@ def degree_run_event(message, room, project):
     highlight = None
     if "highlight" in message.keys():
         highlight = int(message["highlight"])
+        
 
     plot_data, highlighted_degrees = analytics.plotly_degree_distribution(
         arr, highlight
@@ -39,6 +39,8 @@ def degree_run_event(message, room, project):
     # setup new texture
     if highlight is None:
         return
+    
+    analytics.update_analytics_highlight(message["event"], analytics.get_node_ids_from_highlight_sequence(arr, highlighted_degrees))
 
     degree_distribution_textures = analytics.analytics_color_degree_distribution(
         arr, highlighted_degrees
@@ -92,7 +94,7 @@ def closeness_run_event(message, room, project):
     if highlight is None:
         return
 
-    print(">", highlighted_closeness, min(arr), max(arr), sum(arr) / len(arr))
+    analytics.update_analytics_highlight(message["event"], analytics.get_node_ids_from_highlight_bounds(arr, highlighted_closeness))
 
     closeness_textures = analytics.analytics_color_continuous(
         arr, highlighted_closeness
@@ -349,7 +351,7 @@ def eigenvector_run_event(message, room, project):
     if "highlight" in message.keys():
         highlight = float(message["highlight"])
 
-    plot_data, highlighted_closeness = analytics.plotly_eigenvector(arr, highlight)
+    plot_data, highlighted_ev = analytics.plotly_eigenvector(arr, highlight)
 
     response = {}
     response["fn"] = message["fn"]
@@ -363,8 +365,12 @@ def eigenvector_run_event(message, room, project):
     if highlight is None:
         return
 
+
+    analytics.update_analytics_highlight(message["event"], analytics.get_node_ids_from_highlight_bounds(arr, highlighted_ev))
+
+
     closeness_textures = analytics.analytics_color_continuous(
-        arr, highlighted_closeness
+        arr, highlighted_ev
     )
     if closeness_textures["textures_created"] is False:
         print("Failed to create textures for Analytics/Eigenvector.")
@@ -414,6 +420,9 @@ def clustering_coefficient_run_event(message, room, project):
     if highlight is None:
         return
 
+
+    analytics.update_analytics_highlight(message["event"], analytics.get_node_ids_from_highlight_bounds(arr, highlighted_closeness))
+
     closeness_textures = analytics.analytics_color_continuous(
         arr, highlighted_closeness
     )
@@ -447,6 +456,8 @@ def mod_community_run_event(message, room, project):
 
     node_colors = analytics.color_mod_community_det(arr)
 
+    flattened_colors = analytics.flattened_colors(arr, node_colors)
+    
     generated_textures = analytics.update_network_colors(
         node_colors=node_colors
     )  # link_colors stays None for grey
@@ -464,6 +475,11 @@ def mod_community_run_event(message, room, project):
         {"channel": "linkRGB", "path": generated_textures["path_links"]}
     )
     emit("ex", response, room=room)
+    response2 = {}
+    response2["usr"] = message["usr"]
+    response2["fn"] = "community_detection"
+    response2["data"] = flattened_colors
+    emit("ex", response2, room=room)
 
 
 def mod_community_layout_event(message, room, project):
@@ -506,6 +522,46 @@ def mod_community_layout_event(message, room, project):
     emit("ex", response, room=room)
 
 
+def add_community_to_clipborad(message, room, project):
+    community = message["val"]
+    
+    # get graph
+    if "graph" not in GD.session_data.keys():
+        GD.session_data["graph"] = util.project_to_graph(project)
+    graph = GD.session_data["graph"]
+    
+    # get community data
+    if "analyticsModcommunityRun" not in GD.session_data.keys():
+        result = analytics.modularity_community_detection(graph)
+        GD.session_data["analyticsModcommunityRun"] = result
+    communities_list = GD.session_data["analyticsModcommunityRun"]
+    
+    # update clipboard
+    clipboad.addNodesToClipboard(analytics.get_nodes_from_community(community, communities_list))
+    
+    response = {
+        "usr": message["usr"],
+        "id": message["id"],
+        "fn": "cbaddNode",
+        "val": GD.pdata["cbnode"],
+    }
+    emit("ex", response, room=room)
+
+
+def update_clipboard_from_highlight_event(message: dict, room):
+    if not "val" in message.keys():
+        return
+
+    analytics.update_clipboard_from_highlight(message["val"])
+
+    response = {
+        "usr": message["usr"],
+        "id": message["id"],
+        "fn": "cbaddNode",
+        "val": GD.pdata["cbnode"],
+    }
+    emit("ex", response, room=room)
+
 def main(message, room, project):
 
     if message["id"] == "analyticsDegreeRun":
@@ -544,3 +600,16 @@ def main(message, room, project):
 
     if message["id"] == "analyticsModcommunityLayout":
         mod_community_layout_event(message, room, project)
+    
+    # copy selections in clipboard 
+    if message["id"] == "analyticsDegreeClipboard":
+        update_clipboard_from_highlight_event(message, room)
+        
+    if message["id"] == "analyticsClosenessClipboard":
+        update_clipboard_from_highlight_event(message, room)
+        
+    if message["id"] == "analyticsEigenvectorClipboard":
+        update_clipboard_from_highlight_event(message, room)
+        
+    if message["id"] == "analyticsClusteringCoeffClipboard":
+        update_clipboard_from_highlight_event(message, room)

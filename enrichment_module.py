@@ -98,7 +98,7 @@ def _plot(data, highlight_bar=None):
     for k, category in enumerate(categories):
         subplots.add_trace(
             go.Bar(
-                x=[-math.log(category["value"])],
+                x=[-math.log(category["value"]) if category["value"] > 0 else 0],
                 y=[1],
                 orientation='h',
                 hoverinfo='text',

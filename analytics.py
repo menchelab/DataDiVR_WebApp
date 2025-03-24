@@ -13,6 +13,8 @@ from joblib import Parallel, delayed
 import igraph as ig
 import numpy as np
 import util
+import clipboad
+
 
 
 
@@ -25,17 +27,62 @@ ANALYTICS_TABS = [
     "Clustering Coefficient"
 ]
 
+LAZY_CACHE_KEY = "lazy_cache"
+LAZY_CACHE_MAX_LINKS = 70_000
+LAZY_CACHE_ENTRY_COMMUNITY = "analytics.mod_community_detection"
+LAZY_CACHE_ENTRY_CLOSENESS = "analytics.closeness"
+LAZY_CACHE_ENTRY_EIGENVECTOR = "analytics.eigenvector"
+LAZY_CACHE_ENTRY_DEGREE_DIST = "analytics.degree"
+LAZY_CACHE_CLUSTERING_COEFF = "analytics.clustering_coeff"
 
-def get_linklist(message, room):
-    message["fn"] = "checkbox"
-    if "definedlinklist" in GD.pdata.keys():
-        if GD.pdata["definedlinklist"] == "links":
-            links = None # GD[]
-            print("Links all." ) #links = GD[]
-        elif GD.pdata["definedlinklist"] == "linkslayouts":
-            print("Links layout specific.")
-            links = None # GD[]
-    return links 
+HIGHLIGHT_CACHE_KEY = "analytics.highlight"
+
+
+
+
+def update_analytics_highlight(event_id, data):
+    if HIGHLIGHT_CACHE_KEY not in GD.session_data.keys():
+        GD.session_data[HIGHLIGHT_CACHE_KEY] = {}
+    GD.session_data[HIGHLIGHT_CACHE_KEY][event_id] = data
+
+
+def get_analytics_highlight(event_id):
+    if HIGHLIGHT_CACHE_KEY not in GD.session_data.keys():
+        return None
+    if event_id not in GD.session_data[HIGHLIGHT_CACHE_KEY].keys():
+        return None
+    return GD.session_data[HIGHLIGHT_CACHE_KEY][event_id]
+
+
+def get_node_ids_from_highlight_sequence(arr_event, highlights_event):
+    highlighted_values = set(highlights_event)
+    highlight_nodes = [i for i in range(len(arr_event)) if arr_event[i] in highlighted_values]
+    return highlight_nodes
+
+
+def get_node_ids_from_highlight_bounds(arr_event, highlight):
+    highlight_min, highlight_max = highlight[0], highlight[1]
+    highlight_nodes = [i for i in range(len(arr_event)) if ((arr_event[i] >= highlight_min) and (arr_event[i] < highlight_max)) ]
+    return highlight_nodes
+
+def update_clipboard_from_highlight(event_id):
+    nodes = get_analytics_highlight(event_id=event_id)
+    if nodes == None:
+        return
+    clipboad.addNodesToClipboard(nodes)
+    
+
+
+# def get_linklist(message, room):
+#     message["fn"] = "checkbox"
+#     if "definedlinklist" in GD.pdata.keys():
+#         if GD.pdata["definedlinklist"] == "links":
+#             links = None # GD[]
+#             print("Links all." ) #links = GD[]
+#         elif GD.pdata["definedlinklist"] == "linkslayouts":
+#             print("Links layout specific.")
+#             links = None # GD[]
+#     return links 
 
 
 
@@ -53,19 +100,24 @@ def __compute_histogram_bins(values, min_bins=2, max_bins=15):
 
 
 def analytics_degree_distribution(graph):
+    if len(GD.links) > LAZY_CACHE_MAX_LINKS:
+        if LAZY_CACHE_KEY not in GD.pdata.keys():
+            GD.pdata[LAZY_CACHE_KEY] = {}
+        if LAZY_CACHE_ENTRY_DEGREE_DIST in GD.pdata[LAZY_CACHE_KEY].keys():
+            return GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_ENTRY_DEGREE_DIST]
+    
+    
     # nx graph to degree distribution
     degree_sequence = [d for n, d in graph.degree()] # index is node id, value is degree
-    
-    print(GD.nodes["nodes"])
-    print(len(GD.nodes["nodes"]))
-    print({GD.nodes["nodes"][i]["n"]: degree_sequence[i] for i in range(len(GD.nodes["nodes"]))})
-    
-    
+
+    if len(GD.links) > LAZY_CACHE_MAX_LINKS:
+        GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_ENTRY_DEGREE_DIST] = degree_sequence
+        GD.savePD()
     return degree_sequence
 
 
 def plotly_degree_distribution(degrees, highlighted_bar=None):
-    maximum_amount_of_bars = 10
+    maximum_amount_of_bars = 20
 
     highlighted_degrees = []
 
@@ -238,12 +290,22 @@ def analytics_closeness(graph):
         closeness_seq = np.where(np.isnan(closeness_seq), 0, closeness_seq)  # Replace NaN values with 0
         return closeness_seq
 
+    if len(GD.links) > LAZY_CACHE_MAX_LINKS:
+        if LAZY_CACHE_KEY not in GD.pdata.keys():
+            GD.pdata[LAZY_CACHE_KEY] = {}
+        if LAZY_CACHE_ENTRY_CLOSENESS in GD.pdata[LAZY_CACHE_KEY].keys():
+            return GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_ENTRY_CLOSENESS]
+
     if len(graph.nodes()) <= 10000 or len(graph.edges()) <= 80000:
         closeness_seq = [nx.closeness_centrality(graph, node) for node in graph.nodes()]
     else:
         adjacency_matrix = nx.to_numpy_array(graph)
         closeness_seq = _compute_closeness_igraph(adjacency_matrix)
         closeness_seq = list(closeness_seq)  # Convert numpy array to list
+        
+    if len(GD.links) > LAZY_CACHE_MAX_LINKS:
+        GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_ENTRY_CLOSENESS] = closeness_seq
+        GD.savePD()
     return closeness_seq
 
 
@@ -465,14 +527,21 @@ def analytics_eigenvector(graph):
         scaled_seq = [(x - min_value) / (max_value - min_value) for x in centrality_seq]
         return scaled_seq
 
+    if len(GD.links) > LAZY_CACHE_MAX_LINKS:
+        if LAZY_CACHE_KEY not in GD.pdata.keys():
+            GD.pdata[LAZY_CACHE_KEY] = {}
+        if LAZY_CACHE_ENTRY_EIGENVECTOR in GD.pdata[LAZY_CACHE_KEY].keys():
+            return GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_ENTRY_EIGENVECTOR]
+
     if len(graph.nodes()) <= 10000 or len(graph.edges()) <= 80000:
         centrality_seq = _compute_eigenvector_centrality_nx(graph)
     else:
         adjacency_matrix = nx.to_numpy_array(graph)
         centrality_seq = _compute_eigenvector_centrality_igraph(adjacency_matrix)
 
-    #visual_centrality_seq = _scale(centrality_seq)
-    
+    if len(GD.links) > LAZY_CACHE_MAX_LINKS:
+        GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_ENTRY_EIGENVECTOR] = centrality_seq
+        GD.savePD()
     return centrality_seq  #(centrality_seq, visual_centrality_seq)
 
 
@@ -513,7 +582,6 @@ def plotly_eigenvector(assignment_list, highlighted_bar=None):
 
 def plotly_closeness(assignment_list, highlighted_bar=None):
     num_bins, bin_width, min_value = __compute_histogram_bins(assignment_list)
-    print(">>",num_bins, bin_width, min_value)
     highlighted_assignments = [highlighted_bar]
 
     # convert highlighted_bar to bin boundaries
@@ -547,10 +615,16 @@ def plotly_closeness(assignment_list, highlighted_bar=None):
 
 
 def modularity_community_detection(ordered_graph):
+    if len(GD.links) > LAZY_CACHE_MAX_LINKS:
+        if LAZY_CACHE_KEY not in GD.pdata.keys():
+            GD.pdata[LAZY_CACHE_KEY] = {}
+        if LAZY_CACHE_ENTRY_COMMUNITY in GD.pdata[LAZY_CACHE_KEY].keys():
+            return GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_ENTRY_COMMUNITY]
+    
     if not isinstance(ordered_graph, util.OrderedGraph):
         raise TypeError("The graph should be an instance of OrderedGraph.")
 
-    communities = nx.algorithms.community.modularity_max.greedy_modularity_communities(ordered_graph)
+    communities = nx.algorithms.community.modularity_max.greedy_modularity_communities(ordered_graph, best_n=30)
 
     community_assignment = [0] * len(ordered_graph.node_order)
 
@@ -559,6 +633,10 @@ def modularity_community_detection(ordered_graph):
             node_index = ordered_graph.node_order.index(node)
             community_assignment[node_index] = i + 1
 
+    if len(GD.links) > LAZY_CACHE_MAX_LINKS:
+        GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_ENTRY_COMMUNITY] = community_assignment
+        GD.savePD()
+        
     return community_assignment
 
 
@@ -664,10 +742,19 @@ def generate_temp_layout(positions):
     
 
 def analytics_clustering_coefficient(ordered_graph):
+    if len(GD.links) > LAZY_CACHE_MAX_LINKS:
+        if LAZY_CACHE_KEY not in GD.pdata.keys():
+            GD.pdata[LAZY_CACHE_KEY] = {}
+        if LAZY_CACHE_CLUSTERING_COEFF in GD.pdata[LAZY_CACHE_KEY].keys():
+            return GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_CLUSTERING_COEFF]
+    
     if not isinstance(ordered_graph, util.OrderedGraph):
         raise TypeError("The graph should be an instance of OrderedGraph.")
     
     clustering_coefficients = [nx.clustering(ordered_graph, node) for node in ordered_graph.node_order]
+    if len(GD.links) > LAZY_CACHE_MAX_LINKS:
+        GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_CLUSTERING_COEFF] = clustering_coefficients
+        GD.savePD()
     return clustering_coefficients
 
 
@@ -706,3 +793,30 @@ def plotly_clustering_coefficient(assignment_list, highlighted_bar=None):
     return (plotly_json, highlighted_assignments)
 
 
+
+
+def flattened_colors(communities, colors):
+    temp_map = {}
+    for idx, community in enumerate(communities):
+        if community in temp_map:   
+            continue
+        temp_map[community] = colors[idx]
+        
+    out = []
+    for val in range(temp_map.__len__()):
+        if val not in temp_map:
+            out.append([val, [55, 55, 55]])
+            continue
+        out.append([val, temp_map.get(val)])
+    return out
+        
+def get_nodes_from_community(community_id, community_list):
+    community_id = int(community_id)
+    
+    nodes_Ids = []
+    for node_id in range(len(community_list)):
+        if community_list[node_id] != community_id:
+            continue
+        nodes_Ids.append(node_id)
+
+    return nodes_Ids
