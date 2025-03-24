@@ -32,8 +32,7 @@ def addNodesToClipboard(nodeIds):
         node_to_add["color"] = GD.pixel_valuesc[nodeId]
         node_to_add["name"] = GD.nodes["nodes"][nodeId]["n"]
         GD.pdata["cbnode"].append(node_to_add)
-        
-        GD.pdata["cbnode"].append(node_to_add)
+
     GD.savePD()
     return
 

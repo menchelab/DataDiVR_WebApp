@@ -13,6 +13,8 @@ from joblib import Parallel, delayed
 import igraph as ig
 import numpy as np
 import util
+import clipboad
+
 
 
 
@@ -31,8 +33,43 @@ LAZY_CACHE_ENTRY_COMMUNITY = "analytics.mod_community_detection"
 LAZY_CACHE_ENTRY_CLOSENESS = "analytics.closeness"
 LAZY_CACHE_ENTRY_EIGENVECTOR = "analytics.eigenvector"
 LAZY_CACHE_ENTRY_DEGREE_DIST = "analytics.degree"
-LAZY_CACHE_CLUSTERING_COEFF = "analytics.clustering_coefficient"
+LAZY_CACHE_CLUSTERING_COEFF = "analytics.clustering_coeff"
 
+HIGHLIGHT_CACHE_KEY = "analytics.highlight"
+
+
+
+
+def update_analytics_highlight(event_id, data):
+    if HIGHLIGHT_CACHE_KEY not in GD.session_data.keys():
+        GD.session_data[HIGHLIGHT_CACHE_KEY] = {}
+    GD.session_data[HIGHLIGHT_CACHE_KEY][event_id] = data
+
+
+def get_analytics_highlight(event_id):
+    if HIGHLIGHT_CACHE_KEY not in GD.session_data.keys():
+        return None
+    if event_id not in GD.session_data[HIGHLIGHT_CACHE_KEY].keys():
+        return None
+    return GD.session_data[HIGHLIGHT_CACHE_KEY][event_id]
+
+
+def get_node_ids_from_highlight_sequence(arr_event, highlights_event):
+    highlighted_values = set(highlights_event)
+    highlight_nodes = [i for i in range(len(arr_event)) if arr_event[i] in highlighted_values]
+    return highlight_nodes
+
+
+def get_node_ids_from_highlight_bounds(arr_event, highlight):
+    highlight_min, highlight_max = highlight[0], highlight[1]
+    highlight_nodes = [i for i in range(len(arr_event)) if ((arr_event[i] >= highlight_min) and (arr_event[i] < highlight_max)) ]
+    return highlight_nodes
+
+def update_clipboard_from_highlight(event_id):
+    nodes = get_analytics_highlight(event_id=event_id)
+    if nodes == None:
+        return
+    clipboad.addNodesToClipboard(nodes)
 
 def __compute_histogram_bins(values, min_bins=2, max_bins=15):
     min_value = np.min(values)
@@ -49,9 +86,9 @@ def __compute_histogram_bins(values, min_bins=2, max_bins=15):
 
 def analytics_degree_distribution(graph):
     if len(GD.links) > LAZY_CACHE_MAX_LINKS:
-        if not GD.pdata[LAZY_CACHE_KEY]:
+        if LAZY_CACHE_KEY not in GD.pdata.keys():
             GD.pdata[LAZY_CACHE_KEY] = {}
-        if GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_ENTRY_DEGREE_DIST]:
+        if LAZY_CACHE_ENTRY_DEGREE_DIST in GD.pdata[LAZY_CACHE_KEY].keys():
             return GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_ENTRY_DEGREE_DIST]
     
     
@@ -239,9 +276,9 @@ def analytics_closeness(graph):
         return closeness_seq
 
     if len(GD.links) > LAZY_CACHE_MAX_LINKS:
-        if not GD.pdata[LAZY_CACHE_KEY]:
+        if LAZY_CACHE_KEY not in GD.pdata.keys():
             GD.pdata[LAZY_CACHE_KEY] = {}
-        if GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_ENTRY_CLOSENESS]:
+        if LAZY_CACHE_ENTRY_CLOSENESS in GD.pdata[LAZY_CACHE_KEY].keys():
             return GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_ENTRY_CLOSENESS]
 
     if len(graph.nodes()) <= 10000 or len(graph.edges()) <= 80000:
@@ -476,9 +513,9 @@ def analytics_eigenvector(graph):
         return scaled_seq
 
     if len(GD.links) > LAZY_CACHE_MAX_LINKS:
-        if not GD.pdata[LAZY_CACHE_KEY]:
+        if LAZY_CACHE_KEY not in GD.pdata.keys():
             GD.pdata[LAZY_CACHE_KEY] = {}
-        if GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_ENTRY_EIGENVECTOR]:
+        if LAZY_CACHE_ENTRY_EIGENVECTOR in GD.pdata[LAZY_CACHE_KEY].keys():
             return GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_ENTRY_EIGENVECTOR]
 
     if len(graph.nodes()) <= 10000 or len(graph.edges()) <= 80000:
@@ -530,7 +567,6 @@ def plotly_eigenvector(assignment_list, highlighted_bar=None):
 
 def plotly_closeness(assignment_list, highlighted_bar=None):
     num_bins, bin_width, min_value = __compute_histogram_bins(assignment_list)
-    print(">>",num_bins, bin_width, min_value)
     highlighted_assignments = [highlighted_bar]
 
     # convert highlighted_bar to bin boundaries
@@ -565,9 +601,9 @@ def plotly_closeness(assignment_list, highlighted_bar=None):
 
 def modularity_community_detection(ordered_graph):
     if len(GD.links) > LAZY_CACHE_MAX_LINKS:
-        if not GD.pdata[LAZY_CACHE_KEY]:
+        if LAZY_CACHE_KEY not in GD.pdata.keys():
             GD.pdata[LAZY_CACHE_KEY] = {}
-        if GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_ENTRY_COMMUNITY]:
+        if LAZY_CACHE_ENTRY_COMMUNITY in GD.pdata[LAZY_CACHE_KEY].keys():
             return GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_ENTRY_COMMUNITY]
     
     if not isinstance(ordered_graph, util.OrderedGraph):
@@ -692,9 +728,9 @@ def generate_temp_layout(positions):
 
 def analytics_clustering_coefficient(ordered_graph):
     if len(GD.links) > LAZY_CACHE_MAX_LINKS:
-        if not GD.pdata[LAZY_CACHE_KEY]:
+        if LAZY_CACHE_KEY not in GD.pdata.keys():
             GD.pdata[LAZY_CACHE_KEY] = {}
-        if GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_CLUSTERING_COEFF]:
+        if LAZY_CACHE_CLUSTERING_COEFF in GD.pdata[LAZY_CACHE_KEY].keys():
             return GD.pdata[LAZY_CACHE_KEY][LAZY_CACHE_CLUSTERING_COEFF]
     
     if not isinstance(ordered_graph, util.OrderedGraph):

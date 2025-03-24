@@ -789,6 +789,7 @@ $(document).ready(function() {
                         let request = {
                             fn: "analytics",
                             id: "analyticsDegreeRun",
+                            event: "analytics.degree",
                             highlight: clickedBarX,
                             target: targetDiv,
                             usr: user
@@ -823,6 +824,7 @@ $(document).ready(function() {
                         let request = {
                             fn: "analytics",
                             id: "analyticsClosenessRun",
+                            event: "analytics.closeness",
                             highlight: clickedBarX,
                             target: targetDiv,
                             usr: user
@@ -857,6 +859,7 @@ $(document).ready(function() {
                         let request = {
                             fn: "analytics",
                             id: "analyticsEigenvectorRun",
+                            event: "analytics.eigenvector",
                             highlight: clickedBarX,
                             target: targetDiv,
                             usr: user
@@ -891,6 +894,7 @@ $(document).ready(function() {
                         let request = {
                             fn: "analytics",
                             id: "analyticsClusteringCoeffRun",
+                            event: "analytics.clustering_coeff",
                             highlight: clickedBarX,
                             target: targetDiv,
                             usr: user
