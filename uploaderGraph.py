@@ -375,32 +375,13 @@ def upload_filesJSON(request, overwrite=True):
     print("PROGRESS: made textures for node colors...")
 
 
-    # modify this to have one bitmap with all links and ids as in links.json 
-    # linkid-pixel spot should match linkid in links.json 
-    # and then also 
     #----------------------------------
     # MAKE TEXTURES - links for VISUALIZATION
     #----------------------------------
     # make a look up dict where key is id of all links and value is the link
     links_ids_project = {i: links[0]["data"][i] for i in range(len(links[0]["data"]))}
-
-
-
-
-
-
-
-
-
-
-    # DEBUG LINKS STORING AND SORTING and BITMAP CREATION 
-
-    # print first few elements of links_ids_project dictionary
-    print("C_DEBUG : links_ids_project : ", {k: links_ids_project[k] for k in list(links_ids_project)[:5]})
-    
     # sort links_ids_project by key
     links_ids_project = dict(sorted(links_ids_project.items()))
-    
     
     # make one links bitmap containing all links 
     # visibility and colors are only set in the linkcolors bitmap
@@ -410,8 +391,6 @@ def upload_filesJSON(request, overwrite=True):
         # handle layout name 
         if names[file_index] is not None and names[file_index] != "":
             
-            #print("C_DEBUG: makeLinkTexNew_withoutJSON - links[0] : ", links[0])  
-
             state =  state + makeLinkTexNew_withoutJSON(namespace, links[0], names[file_index]) + '<br>'
             pfile["links"].append(names[file_index])    
         else: # if no specified layout name
@@ -419,26 +398,6 @@ def upload_filesJSON(request, overwrite=True):
             state =  state + makeLinkTexNew_withoutJSON(namespace, links[0], temp_name) + '<br>'
             pfile["links"].append(temp_name) # + "_linksXYZ")
     print("PROGRESS: made textures for links...")
-
-
-    #----------------------------------
-    # processing Links for ANALYTICS
-    #----------------------------------
-    # remap links to node ids matching them with node "n" names, in case link-nodes are specified as nodenames (str)
-    #print("C_DEBUG: links before remapping:", links) 
-    # for link in links[0]["data"]:
-    #     try:
-    #         link[0] = int(link[0])
-    #         link[1] = int(link[1])
-    #     except: 
-    #         link[0] = next(node["id"] for node in nodelist["nodes"] if node["n"] == link[0])
-    #         link[1] = next(node["id"] for node in nodelist["nodes"] if node["n"] == link[1])
-    #print("C_DEBUG: links remapped:", links)   
-    
-    # all links json
-    #print("C_DEBUG: len links: ", len(links))
-    makeLinksjson(namespace, links)
-    print("PROGRESS: stored all links in json...")
 
     #----------------------------------
     # processing link colors 
@@ -491,15 +450,6 @@ def upload_filesJSON(request, overwrite=True):
             pfile["linksRGB"].append(temp_name) # + "_linksRGB")
     print("PROGRESS: made textures for link colors...")
 
-
-
-
-
-
-
-
-
-
     pfile["nodecount"] = numnodes
     #pfile["labelcount"] = len(labels[0]["data"])
 
@@ -534,15 +484,25 @@ def upload_filesJSON(request, overwrite=True):
     with open(folder + '/nodes.json', 'w') as outfile:
         json.dump(nodelist, outfile, indent=4)
         
-    #GD.plist = GD.listProjects()
+    makeLinksjson(namespace, links)
     
     print("Project created successfully.")
 
     return state  
 
 
-    #except Exception as e:
-    #    return f"An error occurred: {str(e)}"
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
