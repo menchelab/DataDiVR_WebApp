@@ -352,7 +352,7 @@ def layout_carto_local(ordered_graph)->dict:
     
     # boundary checks
     if len(ordered_graph.nodes()) >= 15000 or len(ordered_graph.edges()) >= 80000:
-        return {"success": False, "error": "Network too large for real-time computation of cartoGRAPHs Importance layout. (No error!)", "log": {"type": "warning", "msg": "Network too large for real-time computation of cartoGRAPHs Importance layout."}}
+        return {"success": False, "error": "Network too large for real-time computation of cartoGRAPHs layout. (No error!)", "log": {"type": "warning", "msg": "Network too large for real-time computation of cartoGRAPHs layout."}}
     
     # actual layout to get node positions
     try:
@@ -378,7 +378,7 @@ def layout_carto_global(ordered_graph)->dict:
     
     # boundary checks
     if len(ordered_graph.nodes()) >= 15000 or len(ordered_graph.edges()) >= 80000:
-        return {"success": False, "error": "Network too large for real-time computation of cartoGRAPHs Importance layout. (No error!)", "log": {"type": "warning", "msg": "Network too large for real-time computation of cartoGRAPHs Importance layout."}}
+        return {"success": False, "error": "Network too large for real-time computation of cartoGRAPHs layout. (No error!)", "log": {"type": "warning", "msg": "Network too large for real-time computation of cartoGRAPHs layout."}}
 
     # actual layout to get node positions
     try:
@@ -405,7 +405,7 @@ def layout_carto_importance(ordered_graph)->dict:
     
     # boundary checks
     if len(ordered_graph.nodes()) >= 15000 or len(ordered_graph.edges()) >= 80000:
-        return {"success": False, "error": "Network too large for real-time computation of cartoGRAPHs Importance layout. (No error!)", "log": {"type": "warning", "msg": "Network too large for real-time computation of cartoGRAPHs Importance layout."}}
+        return {"success": False, "error": "Network too large for real-time computation of cartoGRAPHs layout. (No error!)", "log": {"type": "warning", "msg": "Network too large for real-time computation of cartoGRAPHs layout."}}
     
     # actual layout to get node positions
     try:

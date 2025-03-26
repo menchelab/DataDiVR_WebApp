@@ -323,7 +323,7 @@ def makeNodeRGBTexture(project, pixeldata, name=None):
     #print ("hight is " + str(hight))
     size = 128 * hight 
     path = 'static/projects/' + project 
-    tex = [(0,0,0,0)] * size #black, alpha = 10 used to filter background in legend panel
+    tex = [(0,0,0,10)] * size #black, alpha = 10 used to filter background in legend panel
 
     for i in range(len(rgba_colors)): #pixeldata["data"])):
         #tex[i] = (int(pixeldata["data"][i][0]), int(pixeldata["data"][i][1]),int(pixeldata["data"][i][2]),int(pixeldata["data"][i][3]))
@@ -713,9 +713,10 @@ def makeLinkRGBTex_2(project, links_ids_project, linksRGB, name=None):
     
     rgba_colors = []
     link_rgba = []
+
     # COLOR FORMAT: check if data is rgba or hex string
     try:
-        for ix, edge, col in linksRGB["data"]:
+        for edge, col in linksRGB["data"]:
             if type(col) is str and len(col) == 6 and col.startswith('#'):
                 rgba_converted = hex_to_rgb(linksRGB["data"][col]) 
                 rgba_colors.append(rgba_converted)
@@ -723,12 +724,11 @@ def makeLinkRGBTex_2(project, links_ids_project, linksRGB, name=None):
             else: 
                 rgba_colors = col #linksRGB["data"]
                 link_rgba.append((edge,col))
-            
-    except: # quick fix - if only point cloud upload and no links
-        try: 
-            print("No Link colors detected for ", linksRGB["name"])
-        except: 
-            print("No Link colors detected.")
+        print("PROGRESS: made textures for linkcolors...")
+    
+    except:
+        print("PROGRESS: no linkcolors detected for ", linksRGB["name"])
+
 
     texc = [(0,0,0,0)] * 512 * hight #black, alpha = 10 used to filter background in legend panel
  

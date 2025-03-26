@@ -382,15 +382,14 @@ def upload_filesJSON(request, overwrite=True):
     links_ids_project = {i: links[0]["data"][i] for i in range(len(links[0]["data"]))}
     # sort links_ids_project by key
     links_ids_project = dict(sorted(links_ids_project.items()))
+    #print("C_DEBUg: links_ids_project: ", links_ids_project)
     
+
+
     # make one links bitmap containing all links 
-    # visibility and colors are only set in the linkcolors bitmap
-    #print("C_DEBUG: len linksdicts: ", len(linksdicts))
-    #print("C_DEBUG: len links: ", len(links))
     for file_index in range(len(links)):
         # handle layout name 
         if names[file_index] is not None and names[file_index] != "":
-            
             state =  state + makeLinkTexNew_withoutJSON(namespace, links[0], names[file_index]) + '<br>'
             pfile["links"].append(names[file_index])    
         else: # if no specified layout name
@@ -402,9 +401,7 @@ def upload_filesJSON(request, overwrite=True):
     #----------------------------------
     # processing link colors 
     #----------------------------------
-    # What happens here: matching of ID of links given all links in the graph and their respective color
-    # to set pixel index according to link ID and color in bitmap
-    # Match linkdicts with linkcolors to get link colors for visualization
+   
     link_colors_matched = [
         {
             tuple(each): each2
@@ -434,11 +431,12 @@ def upload_filesJSON(request, overwrite=True):
 
 
     for file_index in range(len(link_ids_colors_matched)):  # for lcolors in linkcolors:
+
         lcolors = link_ids_colors_matched[file_index] # lcolors, per layout ie fileindex = data : (linkID, link [n1,n2], color), "name" : layoutname
-        
-        if len(lcolors["data"]) == 0:
-            lcolors["data"] = [[255,0,255,100]] * len(links[0]["data"]) # if no color detected 
-            lcolors["name"] = "nan"
+    
+        if len(lcolors["data"]) == 0: # if no color detected
+            lcolors["data"] = [[255,0,255,100]] * len(links[0]["data"])  
+            #lcolors["name"] = "layoutNR-"+str(file_index) #"Auto-Coloring"
 
         # handle layout name 
         if names[file_index] is not None and names[file_index] != "":
@@ -448,7 +446,7 @@ def upload_filesJSON(request, overwrite=True):
             temp_name = "Layoutname"+str(file_index)
             state =  state + makeLinkRGBTex_2(namespace, links_ids_project, lcolors, temp_name) + '<br>'
             pfile["linksRGB"].append(temp_name) # + "_linksRGB")
-    print("PROGRESS: made textures for link colors...")
+
 
     pfile["nodecount"] = numnodes
     #pfile["labelcount"] = len(labels[0]["data"])
