@@ -1324,11 +1324,18 @@ $(document).ready(function() {
                 if (data.id == "enrichment-run") {
                     const config = { displayModeBar: false };
                     const layout = {};
-                    let plot_data = JSON.parse(data["valPlot"]);
-                    let payload = data.valPayload
+
                     let targetName = "enrichment-container";
                     let targetContainer = document.getElementById(targetName);
                     let user = data.usr;
+
+                    if (!data["valPlot"]){
+                        targetContainer.innerHTML = "";
+                        return;
+                    }
+                    let plot_data = JSON.parse(data["valPlot"]);
+                    let payload = data.valPayload
+
 
                     Plotly.newPlot(targetName, plot_data, layout, config);
                     targetContainer.on('plotly_click', function(data) {
