@@ -56,7 +56,7 @@ def ensure_json_serializable(obj):
 
 
 # the actual merging function to create a json file in the required structure for the newest uploading procedure (state july 2024)
-def make_json(graphs): # former: merge_graphs(graphs):
+def make_json(graphs, save_json=False): # former: merge_graphs(graphs):
     
     all_nodes = []
     all_links = []
@@ -203,17 +203,18 @@ def make_json(graphs): # former: merge_graphs(graphs):
     # store merged json 
     current_wd = os.getcwd()
     
-    try:
-        # Ensure a proper path separator between directory and file name
-        file_path = os.path.join(current_wd, merged_structure["projectname"] + '.json')
-        with open(file_path, 'w') as f:
-            json.dump(merged_structure, f, indent=4)
+    if save_json == True: 
+        try:
+            # Ensure a proper path separator between directory and file name
+            file_path = os.path.join(current_wd, merged_structure["projectname"] + '.json')
+            with open(file_path, 'w') as f:
+                json.dump(merged_structure, f, indent=4)
+            
+            print("Merged JSON file saved as: ", file_path)
         
-        print("Merged JSON file saved as: ", file_path)
-    
-    except Exception as e:
-        print("Error: Could not save merged JSON file.")
-        print("Exception:", e)
+        except Exception as e:
+            print("Error: Could not save merged JSON file.")
+            print("Exception:", e)
     
     return merged_structure
 

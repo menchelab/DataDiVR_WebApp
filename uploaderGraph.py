@@ -281,7 +281,7 @@ def upload_filesJSON(request, overwrite=True):
                 # label nodes to be black
                 for color in nodecolors:   
                     # this is the node color of clusters
-                    color["data"].append((255,0,0,200)) # 0,0,0,0 # 60,60,60,60
+                    color["data"].append((0,0,0,200)) # 0,0,0,0 # 60,60,60,60
 
                 i += 1
         else: 
