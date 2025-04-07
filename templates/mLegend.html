@@ -617,13 +617,13 @@
         const nextButton = document.getElementById('forwardstep');
         const backButton = document.getElementById('backwardstep');
 
-        let currentIndex = parseInt(nextButton.getAttribute('val'));
-        currentIndex = (currentIndex + 1) % data;
+        let NewcurrentIndex = parseInt(nextButton.getAttribute('val'));
+        NewcurrentIndex = (NewcurrentIndex + 1) % data;
 
-        nextButton.setAttribute('val',currentIndex);
-        backButton.setAttribute('val',currentIndex);
+        nextButton.setAttribute('val',NewcurrentIndex);
+        backButton.setAttribute('val',NewcurrentIndex);
 
-        return currentIndex;
+        return NewcurrentIndex;
     }
 
     function getIndexforwardstep(data){
@@ -851,7 +851,7 @@
                         }
                         
                     } else {
-                        console.log("C_DEBUG: in else / hide all");
+                        //console.log("C_DEBUG: in else / hide all");
 
                         legendButtons.style.display = 'none';
                         imageElement.style.display = 'none';

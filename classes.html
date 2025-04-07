@@ -1,0 +1,81 @@
+<html>
+  <body>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+      <div class="mermaid">
+    
+        classDiagram
+          class AnalysisToolkit {
+            file_mgr
+            session
+            syncer
+            tex_gen
+            extract_and_highlight_subnetwork(node_id, color)
+            highlight_node_withlinks(node_id, temp_name)
+            layout_subnetwork_with_periphery(sub_nodes, inner_range, outer_range, temp, layout_name)
+          }
+          class JupyterClient {
+            latest_data : NoneType
+            message_log : list
+            namespace : str
+            server_url : str
+            sio : Client
+            uid : str
+            change_project(sel_id, sel_name)
+            connect()
+            disconnect()
+            emit()
+            send(fn, val, msg, id, textures, channel, extra, success)
+            send_texture(channel, path, texture_id)
+          }
+          class ProjectFileManager {
+            session
+            sync_layout_files(texture_name, generated_types, overwrite)
+            update_pfile(texture_name)
+          }
+          class SessionManager {
+            active_layout : NoneType
+            active_layoutsRGB : NoneType
+            active_linksRGB : NoneType
+            client
+            edge_to_index : dict
+            graph : NoneType
+            project_path : str
+            sel_id
+            sel_name
+            selections : dict
+            get_active_layouts(data)
+            get_edge_index(edge)
+            get_selected_nodes()
+            handle_texture_change(data)
+            load_graph(graph)
+            load_graph_from_project()
+            reload_project()
+            retrieve_active_layout_info(layout_type, index_override)
+            update_active_texture(layout_type, texture_name)
+            update_selection(client, node_ids)
+          }
+          class TextureGenerator {
+            generated_types : set
+            session
+            generate_link_texture(edges, color, texture_name)
+            generate_node_color_texture(node_color_map, texture_name)
+            generate_node_position_texture(node_position_map, texture_name)
+            get_generated_types()
+          }
+          class VisualizerSyncer {
+            session
+            emit_layout_update(texture_name)
+            emit_texture_update(texture_name, channel)
+          }
+          JupyterClient --o SessionManager : client
+          ProjectFileManager --o AnalysisToolkit : file_mgr
+          SessionManager --o AnalysisToolkit : session
+          SessionManager --o ProjectFileManager : session
+          SessionManager --o TextureGenerator : session
+          SessionManager --o VisualizerSyncer : session
+          TextureGenerator --o AnalysisToolkit : tex_gen
+          VisualizerSyncer --o AnalysisToolkit : syncer
+  
+       </div>
+  </body>
+</html>

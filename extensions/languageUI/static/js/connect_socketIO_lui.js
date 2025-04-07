@@ -108,6 +108,10 @@ function updateMcElements() {
     socket.emit('ex', {usr:uid,  val: "init", id: "init", fn: "enrichment"});
     // socket.emit("ex", {usr:uid,  fn: "legend_scene_display", id: "legend_scene_display", val: "init"});
 
+    // buttons morphing
+    socket.emit('ex', { usr: uid, id: "forwardstep", fn: "ue4", val: "init" });
+    socket.emit('ex', { usr: uid, id: "backwardstep", fn: "ue4", val: "init" });
+
     // VRrooms
     socket.emit('ex', {usr:uid,  val: "init", id: "VRrooms", fn: "dropdown"});
 
@@ -202,7 +206,6 @@ $(document).ready(function() {
 
             // VRrooms
             socket.emit('ex', { usr:uid, id: "VRrooms", fn: "dropdown", val:"init"});
-
 
         }
         //CONNECTION Established - initialize the project (Ui elements initialize when project changes)
@@ -818,8 +821,8 @@ $(document).ready(function() {
                         links_DD.setAttribute("sel", parseInt(0));
                         links_DD.setAttribute("value", pfile.links[0]);
                         actLinks = parseInt(0);
-                        console.log("C_DEBUG in Links < than forwardidx - actLinks = ", actLinks);
-                        console.log("C_DEBUG: pfile.links.length = ", pfile.links.length);
+                        //console.log("C_DEBUG in Links < than forwardidx - actLinks = ", actLinks);
+                        //console.log("C_DEBUG: pfile.links.length = ", pfile.links.length);
                         
 
                     } else {
@@ -827,7 +830,7 @@ $(document).ready(function() {
                         links_DD.setAttribute("sel", parseInt(forwardidx));
                         links_DD.setAttribute("value", pfile.links[forwardidx]);
                         actLinks = forwardidx;
-                        console.log("C_DEBUG in Links forwardidx: ", actLinks);
+                        //console.log("C_DEBUG in Links forwardidx: ", actLinks);
                     }
                     //console.log("C_DEBUG changed Links: ", actLinks);
 

@@ -428,14 +428,18 @@ def upload_filesJSON(request, overwrite=True):
         d_link_ids_colors_matched["data"] = idcolmatch
         link_ids_colors_matched.append(d_link_ids_colors_matched)
     #print("C_DEBUG: link_ids_colors_matched: ", link_ids_colors_matched)
-
+    # [{'name': 'layoutname_0', 'data': [(0, ['0', '1'], (255, 0, 0, 100)), (1, ['0', '3'], (255, 0, 0, 100)), (2,...
 
     for file_index in range(len(link_ids_colors_matched)):  # for lcolors in linkcolors:
 
         lcolors = link_ids_colors_matched[file_index] # lcolors, per layout ie fileindex = data : (linkID, link [n1,n2], color), "name" : layoutname
-    
+        lcolors = {"data": [(i[1],i[2]) for i in lcolors["data"]],"name": link_ids_colors_matched[file_index]["name"]} # get only colors
+        #print("C_DEBUG: lcolors: ", lcolors)
+        #lcolors:  {'data': [(['0', '1'], (255, 0, 0, 100)), (['0', '3'], (255, 0, 0, 100)),...], 'name': 'layoutname_0'}   
+  
         if len(lcolors["data"]) == 0: # if no color detected
-            lcolors["data"] = [[255,0,255,100]] * len(links[0]["data"])  
+            #print("C_DEBUG - in uploaderGraph.py: no color detected for layout : ", lcolors["name"])
+            lcolors["data"] = [range(len(links[0]["data"])),[[255,0,255,100]] * len(links[0]["data"])]  # DEFAULT PINK 
             #lcolors["name"] = "layoutNR-"+str(file_index) #"Auto-Coloring"
 
         # handle layout name 
@@ -564,15 +568,15 @@ def parseGraphJSON_nodepositions(files, target):
                 # catch if positions are empty
                 if len(pos) == 0:
                     # create random uniform positions   
-                    x, y, z = random.uniform(0, 0.1), random.uniform(0, 0.1), random.uniform(0, 0.1)
+                    x, y, z = random.uniform(0.4, 0.6), random.uniform(0.4, 0.6), random.uniform(0.4, 0.6)
                     nodepositions.append([x, y, z])                 
                     #print("C_DEBUG: Position values are empty. Set positions to random.")
                 
                 # catch if positions are string 
                 elif isinstance(pos, str) or isinstance(pos[0], str) or isinstance(pos[1], str) or isinstance(pos[2], str):
-                    nodepositions.append([0, 0, 0])
+                    nodepositions.append([0.5,0.5,0.5])
                     #print("Position values are strings. Set positions to 0,0,0. Please upload a valid JSON file.")
-                
+
                 # catch if positions contain "nan" values
                 elif math.isnan(pos[0]) or math.isnan(pos[1]) or math.isnan(pos[2]):
                     nodepositions.append([0, 0, 0])
@@ -580,6 +584,7 @@ def parseGraphJSON_nodepositions(files, target):
                 
                 else:
                     nodepositions.append(file["nodes"][i]["pos"])
+                    #print("C_DEBUG: in else: nodepositions: ", nodepositions)
 
             vecList = {}
             vecList["data"] = nodepositions

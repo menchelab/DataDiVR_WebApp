@@ -709,7 +709,7 @@ def makeLinksjson_multipleLinklists_2(project,links_ids_project, links):
 
 def makeLinkRGBTex_2(project, links_ids_project, linksRGB, name=None):
     hight = 64 * (int((len(links_ids_project.keys())) / 32768) + 1)
-    path = 'static/projects/' + project 
+    path = 'static/projects/' + project
     
     rgba_colors = []
     link_rgba = []

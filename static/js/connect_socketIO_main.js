@@ -110,8 +110,11 @@ function updateMcElements() {
     // VRrooms
     socket.emit('ex', {usr:uid,  val: "init", id: "VRrooms", fn: "dropdown"});
 
-
-
+    // buttons morphing
+    // console.log("Forwardstep value before emit:", forwardstep);
+    // socket.emit('ex', { usr: uid, id: "forwardstep", fn: "ue4", val: "init" });
+    // console.log("Backwardstep value before emit:", backwardstep);
+    // socket.emit('ex', { usr: uid, id: "backwardstep", fn: "ue4", val: "init" });
 }
 
 function speakNow(text) {
@@ -765,53 +768,22 @@ $(document).ready(function() {
 
                 if (data.id == "forwardstep") {
 
+                    var forwardidx = parseInt(data.val);
+
                     // 1. get index of DD layout and set idx
                     var layouts_DD = document.getElementById("layoutsDD").shadowRoot.getElementById("sel");
-                    var forwardidx = parseInt(layouts_DD.getAttribute("sel"));
+                    forwardidx = parseInt(layouts_DD.getAttribute("sel"));
+                    console.log("C_DEBUG: forwardidx = ", forwardidx);
 
                     // 2. then add an index to it
-                    //console.log("C_DEBUG before setting forward idx = ", forwardidx);   
                     forwardidx = NEWIndexforwardstep(pfile.layouts.length);
-                    //console.log("C_DEBUG after setting forward idx = ", forwardidx);
-
-                    // 3. then update dropdowns accordingly
-                    // links
-                    // links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
-                    // links_DD.setAttribute("sel", parseInt(forwardidx));
-                    // links_DD.setAttribute("value", pfile.links[forwardidx]);
-                    // actLinks = forwardidx;
-
-                    //let actLinks;
-                    //if (pfile.links.length == 0 || pfile.links.length <= forwardidx) {
-                    //links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
-                        // links_DD.setAttribute("sel", parseInt(0));
-                        // links_DD.setAttribute("value", pfile.links[0]);
-                        // actLinks = parseInt(0);
-                    // } else {
-                    //     links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
-                    //     links_DD.setAttribute("sel", parseInt(forwardidx));
-                    //     links_DD.setAttribute("value", pfile.links[forwardidx]);
-                    //     actLinks = forwardidx;
-                    // }
-
-                    // link colors  
-                    // linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
-                    // linksRGB_DD.setAttribute("sel", parseInt(forwardidx));
-                    // linksRGB_DD.setAttribute("value", pfile.linksRGB[forwardidx]);
-                    // actLinksRGB = forwardidx;
+                    console.log("C_DEBUG: NEW forwardidx = ", forwardidx);
 
                     //let actLinksRGB;
                     //if (pfile.linksRGB.length == 0 || pfile.linksRGB.length <= forwardidx) {
                     linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
                     linksRGB_DD.setAttribute("sel", parseInt(forwardidx));
                     linksRGB_DD.setAttribute("value", pfile.linksRGB[forwardidx]);
-                    //actLinksRGB = parseInt(0);
-                    // } else {
-                    //     linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
-                    //     linksRGB_DD.setAttribute("sel", parseInt(forwardidx));
-                    //     linksRGB_DD.setAttribute("value", pfile.linksRGB[forwardidx]);
-                    //     actLinksRGB = forwardidx;
-                    // }
 
                     // layouts
                     layouts_DD = document.getElementById("layoutsDD").shadowRoot.getElementById("sel");
@@ -823,59 +795,34 @@ $(document).ready(function() {
                     layoutsRGB_DD.setAttribute("sel", parseInt(forwardidx));
                     layoutsRGB_DD.setAttribute("value", pfile.layoutsRGB[forwardidx]);
                     
-                    
                     Legend_displayNodeInfobyID(pfile.name, forwardidx);
                     Legend_displayLinkInfobyID(pfile.name, forwardidx);
                     Legend_displayGraphLayoutbyID(pfile.name, forwardidx, "layouts", "graphlayout");
                     Legend_displayGraphLayoutbyID(pfile.name, forwardidx, "layouts", "graphlayout_nodecolors");
                     Legend_displayGraphLayoutbyID(pfile.name, forwardidx, "layouts", "graphlayout_linkcolors");
-
-                    data["val"] = forwardidx;
-
+                    
                     if (isPreview) {
                         actLayout = forwardidx;
                         actLayoutRGB = forwardidx;
                         actLinksRGB = forwardidx;
                         makeNetwork();
                     }
+
+                    data["val"] = forwardidx;
+                    console.log("C_DEBUG: forward - data[val] = ", data["val"]);
                 }
 
 
                 if (data.id == "backwardstep") {
+                    
+                    var backwardidx = parseInt(data.val);
 
                     // 1. get index of DD layout and set backwardidx
                     var layouts_DD = document.getElementById("layoutsDD").shadowRoot.getElementById("sel");
-                    var backwardidx = parseInt(layouts_DD.getAttribute("sel"));
+                    backwardidx = parseInt(layouts_DD.getAttribute("sel"));
 
                     // 2. then add an index to it
                     backwardidx = NEWIndexbackwardstep(pfile.layouts.length);
-
-                    // 3. then update dropdowns accordingly
-
-                    // // links
-                    // links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
-                    // links_DD.setAttribute("sel", parseInt(backwardidx));
-                    // links_DD.setAttribute("value", pfile.links[backwardidx]);
-                    // actLinks = backwardidx;
-
-                    //let actLinks;
-                    //if (pfile.links.length == 0 || pfile.links.length <= backwardidx) {
-                        //links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
-                        //links_DD.setAttribute("sel", parseInt(0));
-                        //links_DD.setAttribute("value", pfile.links[0]);
-                        //actLinks = parseInt(0);
-                    // } else {
-                    //     links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
-                    //     links_DD.setAttribute("sel", parseInt(backwardidx));
-                    //     links_DD.setAttribute("value", pfile.links[backwardidx]);
-                    //     actLinks = backwardidx;
-                    // }
-
-                    // link colors
-                    // linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
-                    // linksRGB_DD.setAttribute("sel", parseInt(backwardidx));
-                    // linksRGB_DD.setAttribute("value", pfile.linksRGB[backwardidx]);
-                    // actLinksRGB = backwardidx;
 
                     //let actLinksRGB;
                     //if (pfile.linksRGB.length == 0 || pfile.links.length <= backwardidx) {
@@ -906,8 +853,6 @@ $(document).ready(function() {
                     Legend_displayGraphLayoutbyID(pfile.name, backwardidx, "layouts", "graphlayout_nodecolors");
                     Legend_displayGraphLayoutbyID(pfile.name, backwardidx, "layouts", "graphlayout_linkcolors");
 
-                    data["val"] = backwardidx;
-
                     if (isPreview) {
                         actLayout = backwardidx;
                         actLayoutRGB = backwardidx;
@@ -915,11 +860,11 @@ $(document).ready(function() {
                         makeNetwork();
                     }
 
-                }
-                
-                ue4("but", data);
-                
+                    data["val"] = backwardidx;
+                    console.log("C_DEBUG: backward - data[val] = ", data["val"]);
 
+                }
+                ue4("but", data);
                 break;
 
 

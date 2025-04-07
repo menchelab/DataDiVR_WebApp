@@ -389,15 +389,17 @@ def left(message):
     for func in GD.functions["left"]:
         func(message)
     
+    #print("C_DEBUG in socketio left - message:", message)
     room = 'shared-room' #flask.session.get("room")
-    
-    username = flask.session.get("username")
+    username = message['usr']  #flask.session.get("username")
+    #print("C_DEBUG: username", username)
+
     leave_room(room)
     flask.session.clear()
     emit("status", {"msg": username + " has left the room."}, room=room)
     print(
         webfunc.bcolors.WARNING
-        + flask.session.get("username")
+        + username # flask.session.get("username")
         + " has left the room."
         + webfunc.bcolors.ENDC
     )
@@ -409,14 +411,14 @@ def left(message):
 @spam_protector
 def ex(message):
     
-    print("📩 Message received:", message)
+    print("Message received:", message)
     
     room = 'shared-room' #flask.session.get("room") or 1 # jupyter-room
     username = flask.session.get("username") or 'jupyter-user'
-    print(f"📦 Using room: {room}, user: {username}")
+    print(f"Using room: {room}, user: {username}")
 
     for func in GD.functions["ex"]:
-        #print("🔧 Executing function:", func)
+        #print("Executing function:", func)
         func(message)
     
     project = GD.data["actPro"]
@@ -445,7 +447,7 @@ def init_project():
     GD.loadXYZTex() # C_DEBUG text
     GD.loadLinks()
     GD.load_annotations()
-    print("✅ GD initialization complete")
+    print("GD initialization complete")
     
 
 
