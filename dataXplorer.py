@@ -33,12 +33,6 @@ class JupyterClient: # include mac address at some point
         self.sio.on('connect', self._on_connect, namespace=self.namespace)
         
         self.connect() 
-
-    # def __del__(self):
-    #     try:
-    #         self.leave_session()
-    #     except Exception:
-    #         pass
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
     def _on_ex(self, data):
         self.latest_data = data
@@ -67,7 +61,6 @@ class JupyterClient: # include mac address at some point
         self.sio.emit('left', {'usr': self.uid}, namespace=self.namespace)
         self.sio.disconnect()
 
-    # Generic smart sender
     def send(self, fn=None, val=None, msg=None, id=None, textures=None, channel=None, extra=None, success=None):
         """
         Emits a structured message to the server via 'ex'.
@@ -87,7 +80,7 @@ class JupyterClient: # include mac address at some point
 
     def change_project(self, sel_id, sel_name):
         self.send(fn='dropdown', val=sel_id, msg=sel_name, id='projDD')
-        #self.send(fn='projectLoaded', success=True) 
+        self.send(fn='projectLoaded', success=True) 
 
 
 # -----------------------------------------------
@@ -189,17 +182,21 @@ class SessionManager:
         return layout_list
 
     def retrieve_active_layout_info(self, layout_type, index_override=None):
-        pdata_path = os.path.join(self.project_path, 'pdata.json')
-        layout_list = self.get_layouts_in_pfile()
+        try:
+            pdata_path = os.path.join(self.project_path, 'pdata.json')
+            layout_list = self.get_layouts_in_pfile()
 
-        dropdown_key = layout_type + "DD"
-        if index_override is not None:
-            selected_index = index_override
-        else:
-            with open(pdata_path, 'r') as f:
-                pdata_data = json.load(f)
-            selected_index = int(pdata_data.get(dropdown_key, 0))
-        print("Layout:", layout_list[selected_index], "Selected index:", selected_index)
+            dropdown_key = layout_type + "DD"
+            if index_override is not None:
+                selected_index = index_override
+            else:
+                with open(pdata_path, 'r') as f:
+                    pdata_data = json.load(f)
+                selected_index = int(pdata_data.get(dropdown_key, 0))
+            print("Layout:", layout_list[selected_index], "Selected index:", selected_index)
+        except:
+            selected_index = 0
+            layout_list = self.get_layouts_in_pfile()
 
         self.update_active_texture(layout_type, layout_list[selected_index])
 
@@ -277,6 +274,7 @@ class TextureGenerator:
                 tex_data[idx] = tuple(color)
 
         img.putdata(tex_data)
+
         save_path = os.path.join(self.session.project_path, 'linksRGB', texture_name + '.png')
         os.makedirs(os.path.dirname(save_path), exist_ok=True)
         img.save(save_path)
@@ -312,14 +310,18 @@ class TextureGenerator:
         return save_path
 
 
-    def normalize_xyz(coords):
+    def normalize_xyz(self,coords):
         x = [i[0] for i in coords] 
         y = [i[1] for i in coords] 
         z = [i[2] for i in coords]
         x_norm = preprocessing.minmax_scale(list(x), feature_range=(0,1), axis=0, copy=True)
         y_norm = preprocessing.minmax_scale(list(y), feature_range=(0,1), axis=0, copy=True)
         z_norm = preprocessing.minmax_scale(list(z), feature_range=(0,1), axis=0, copy=True)
-        return x_norm,y_norm,z_norm
+        
+        coords_new = []
+        for i in range(len(x)):
+            coords_new.append((x_norm[i], y_norm[i], z_norm[i]))
+        return coords_new # x_norm,y_norm,z_norm
 
 
     def generate_node_position_texture(self, node_position_map, texture_name):
@@ -341,19 +343,12 @@ class TextureGenerator:
         texh = [(0, 0, 0)] * size
         texl = [(0, 0, 0)] * size
 
-        # Get 3D positions; default missing dimensions to 0.0
-        positions = []
-        for node in graph.nodes():
-            pos = node_position_map.get(node, (0.0, 0.0, 0.0))
-            if len(pos) == 2:
-                pos = (*pos, 0.0)
-            positions.append((pos[0], pos[2], pos[1]))  # Reorder as (x, z, y)
-
+        positions = list(node_position_map.values())  # Get positions from the map
         # Normalize if needed
         l_x = []
         l_y = []
         l_z = []
-        for i, (x, y, z) in enumerate(positions):             
+        for i, (x, y, z) in enumerate(positions):           
             x = float(positions[i][0])
             y = float(positions[i][1])
             z = float(positions[i][2])
@@ -363,11 +358,10 @@ class TextureGenerator:
 
         if min(l_x)<0 or min(l_y)<0 or min(l_z)<0 or max(l_x)>1 or max(l_y)>1 or max(l_z)>1:
             positions_n = self.normalize_xyz(positions) 
-            print("C_DEBUG: Normalizing node positions")
+            #print("C_DEBUG: Normalizing node positions")
         else:
             positions_n = positions
-            print("C_DEBUG: No need to normalize node positions")
-
+            #print("C_DEBUG: No need to normalize node positions")
 
         for i, (x, y, z) in enumerate(positions_n):
             x_int = int(x * 65280)
@@ -388,9 +382,9 @@ class TextureGenerator:
         img_h.putdata(texh)
         img_l.putdata(texl)
 
-        path = self.session.project_path
-        path_high = os.path.join(path, 'layouts', texture_name + '.bmp')
-        path_low = os.path.join(path, 'layoutsl', texture_name + 'l.bmp')
+        #path = self.session.project_path
+        path_high = f"static/projects/{self.session.sel_name}/layouts/{texture_name}.bmp" # os.path.join(path, 'layouts', texture_name + '.bmp')
+        path_low = f"static/projects/{self.session.sel_name}/layoutsl/{texture_name}l.bmp" # os.path.join(path, 'layoutsl', texture_name + 'l.bmp')
 
         os.makedirs(os.path.dirname(path_high), exist_ok=True)
         os.makedirs(os.path.dirname(path_low), exist_ok=True)
@@ -399,8 +393,8 @@ class TextureGenerator:
         img_l.save(path_low)
 
         # Register these as generated
-        self.generated_types.add("layouts")
-        self.generated_types.add("layoutsl")
+        #self.generated_types.add("layouts")
+        #self.generated_types.add("layoutsl")
 
         return path_high, path_low
     
@@ -497,7 +491,7 @@ class AnalysisToolkit:
         self.syncer = syncer
         self.file_mgr = file_mgr
 
-    def highlight_node_withlinks(self, node_ids, temp_name="temp_node_highlight"):
+    def highlight_node_withlinks(self, node_id, temp_name="temp_node_highlight"):
         """ 
         Creates temporary textures to highlight a selected node and its connected links
         using the currently active layoutsRGB and graph.
@@ -508,9 +502,12 @@ class AnalysisToolkit:
         #if node_id not in graph:
         #    raise ValueError("Selected node does not exist in the graph.")
 
-        # --- Highlight node in layoutsRGB ---
+        #----------------------------------
+        # PUT INTO TEXTURE CLASS
+
+        # NODES
         layoutsRGB_name = self.session.active_layoutsRGB
-        layoutsRGB_path = os.path.join(self.session.project_path, 'layoutsRGB', f'{layoutsRGB_name}.png')
+        layoutsRGB_path = f"static/projects/{self.session.sel_name}/layoutsRGB/{layoutsRGB_name}.png"
 
         if not os.path.exists(layoutsRGB_path):
             raise FileNotFoundError(f"Cannot find active layoutsRGB texture: {layoutsRGB_path}")
@@ -518,32 +515,29 @@ class AnalysisToolkit:
         img = Image.open(layoutsRGB_path).convert("RGBA")
         pixels = list(img.getdata())
 
-        # Compute the index in the texture based on node ID
         total_nodes = len(graph.nodes())
         h = 128 * ((total_nodes // 16384) + 1)
         width = 128
 
-        for i in node_ids:
-            tex_index = i  # Assuming node ID == index
-            if tex_index < len(pixels):
-                pixels[tex_index] = highlight_color  # Override only the selected node
+        tex_index = node_id  # Assuming node ID == index
+        if tex_index < len(pixels):
+            pixels[tex_index] = highlight_color  # Override only the selected node
 
-        # Save the modified image as temporary highlight texture
         temp_img = Image.new("RGBA", (width, h))
         temp_img.putdata(pixels)
 
         nodeRGB_path = os.path.join(self.session.project_path, 'layoutsRGB', f'{temp_name}.png')
         temp_img.save(nodeRGB_path)
 
-        # --- Highlight links for the selected node ---
-        connected_edges = list(graph.edges(node_ids))
+        # LINKS 
+        connected_edges = list(graph.edges(node_id))
         total_edges = len(graph.edges())
         h_links = 64 * (int(total_edges / 32768) + 1)
         tex_link_data = [(0, 0, 0, 10)] * (512 * h_links)
 
         edge_to_index = self.session.edge_to_index
         for edge in connected_edges:
-            i = edge_to_index.get(tuple(edge))
+            i = edge_to_index.get(tuple(sorted(edge))) # to pick up both directions s,e and e,s
             if i is not None:
                 tex_link_data[i] = highlight_color
 
@@ -552,10 +546,14 @@ class AnalysisToolkit:
 
         linksRGB_path = os.path.join(self.session.project_path, 'linksRGB', f'{temp_name}.png')
         link_img.save(linksRGB_path)
-                
+        #----------------------------------
+
+        subgraph = nx.from_edgelist(connected_edges)
+
+        #----------------------------------
+        # PUT INTO FUNCTION / VIS SYNCER CLASS
 
         # Emit to server
-
         nodeRGB_path_rel = f"static/projects/{self.session.sel_name}/layoutsRGB/{temp_name}.png"
         linksRGB_path_rel = f"static/projects/{self.session.sel_name}/linksRGB/{temp_name}.png"
 
@@ -570,95 +568,155 @@ class AnalysisToolkit:
         }, namespace=self.session.client.namespace)
 
 
+        # show node info + label in 3D 
+        self.session.client.emit("ex", {
+            "usr": self.session.client.uid,
+            "id":None,
+            "fn": "node",
+            "msg": node_id,
+            "val": node_id
+        }, namespace=self.session.client.namespace)
+        #----------------------------------
 
-    # # TO WORK ON NEXT 
-    # def extract_and_highlight_subnetwork(self, node_id, color=(255, 255, 0, 255)):
-    #     """
-    #     Extracts the node and its 1-hop neighbors into a subgraph,
-    #     highlights all nodes and links in that subgraph.
-    #     """
-    #     graph = self.session.graph
-    #     if node_id not in graph:
-    #         return
-
-    #     neighbors = list(graph.neighbors(node_id))
-    #     sub_nodes = [node_id] + neighbors
-    #     subgraph = graph.subgraph(sub_nodes)
-
-    #     temp_tex_name = "temp_subnet_highlight"
-
-    #     # Highlight links
-    #     self.tex_gen.generate_link_texture(subgraph.edges(), color, temp_tex_name)
+        return (print("Found Links : ", len(connected_edges)), print("Subgraph: ", nx.draw(subgraph, node_size=10, with_labels=True)))
     
-    #     # Emit texture updates - #self.syncer.emit_texture_update(temp_tex_name, 'linksRGB', channel="linkRGB")
-    #     path_nodergb = f"static/projects/{self.session.sel_name}/'layoutsRGB'/{temp_tex_name}.png"
-    #     path_linkrgb = f"static/projects/{self.session.sel_name}/'linksRGB'/{temp_tex_name}.png"
-       
-    #     response = {}
-    #     response["fn"] = "updateTempTex"
-    #     response["textures"] = []
-    #     response["textures"].append(
-    #         {"channel": "nodeRGB", "path": path_nodergb}
-    #     )
-    #     response["textures"].append(
-    #         {"channel": "linkRGB", "path": path_linkrgb}
-    #     )
-    #     self.emit("ex", response)
+
+    def extract_and_highlight_subnetwork(self, node_id, color=(255, 255, 0, 255), relayout=False):
+        """
+        Extracts the node and its 1-hop neighbors into a subgraph,
+        highlights all nodes and links in that subgraph.
+        """
+        graph = self.session.graph
+        if node_id not in graph:
+            return
+
+        neighbors = list(graph.neighbors(node_id))
+        sub_nodes = [node_id] + neighbors
+        subgraph = graph.subgraph(sub_nodes)
+
+        temp_tex_name = "temp_subnet_highlight"
+        
+        #layoutsRGB_name = self.session.active_layoutsRGB
+        layoutsRGB_name = self.session.get_layouts_in_pfile()[0]
+        layoutsRGB_path = f"static/projects/{self.session.sel_name}/layoutsRGB/{layoutsRGB_name}.png"
+
+        #----------------------------------
+        # PUT INTO TEXTURE CLASS - NODE COLORS 
+            
+        if not os.path.exists(layoutsRGB_path):
+            raise FileNotFoundError(f"Cannot find active layoutsRGB texture: {layoutsRGB_path}")
+
+        img = Image.open(layoutsRGB_path).convert("RGBA")
+        pixels = list(img.getdata())
+
+        total_nodes = len(graph.nodes())
+        h = 128 * ((total_nodes // 16384) + 1)
+        width = 128
+
+        for n in sub_nodes:
+            tex_index = n  # Assuming node ID == index
+            if tex_index < len(pixels):
+                pixels[tex_index] = color  # Override only the selected node
+
+        temp_img = Image.new("RGBA", (width, h))
+        temp_img.putdata(pixels)
+
+        nodeRGB_path = f"static/projects/{self.session.sel_name}/layoutsRGB/{temp_tex_name}.png"
+        temp_img.save(nodeRGB_path)
+
+        nodeRGB_path_rel = f"static/projects/{self.session.sel_name}/layoutsRGB/{temp_tex_name}.png"
+        
+        # -----------------------------------------------------
 
 
+        # POSITIONS
+        if relayout == True:
+            node_pos = self.layout_subnetwork_with_periphery(sub_nodes, temp=True, layout_name="temp_tex_name")
+            nodeXYZ_path_rel_high, nodeXYZ_path_rel_low = self.tex_gen.generate_node_position_texture(node_pos, temp_tex_name)
+        
+        if relayout == False:
+            #layoutsXYZ_name = self.session.active_layout
+            nodeXYZ_path_rel_high = f"static/projects/{self.session.sel_name}/layouts/{layoutsRGB_name}.bmp"
+            nodeXYZ_path_rel_low = f"static/projects/{self.session.sel_name}/layoutsl/{layoutsRGB_name}l.bmp"
 
-    def layout_subnetwork_with_periphery(self, sub_nodes, inner_range=(0.45, 0.65), outer_range=(0.8, 1.0), temp=True, layout_name="temp_layout"):
+
+        # ---- Highlight links for the selected node ---
+        connected_edges = list(subgraph.edges())
+
+        total_edges = len(graph.edges())
+        h_links = 64 * (int(total_edges / 32768) + 1)
+        tex_link_data = [(0, 0, 0, 10)] * (512 * h_links)
+
+        edge_to_index = self.session.edge_to_index
+        for edge in connected_edges:
+            i = edge_to_index.get(tuple(sorted(edge))) # to pick up both directions s,e and e,s 
+            if i is not None:
+                tex_link_data[i] = color
+
+        link_img = Image.new("RGBA", (512, h_links))
+        link_img.putdata(tex_link_data)
+
+        linksRGB_path = os.path.join(self.session.project_path, 'linksRGB', f'{temp_tex_name}.png')
+        link_img.save(linksRGB_path)
+        linksRGB_path_rel = f"static/projects/{self.session.sel_name}/linksRGB/{temp_tex_name}.png"
+
+
+        # PUT INTO FUNCTION / same as in highlight_node_withlinks
+        # Emit to server
+        self.session.client.emit("ex", {
+            "usr": self.session.client.uid,
+            "id":None,
+            "fn": "updateTempTex",
+            "textures": [
+                {"channel": "layoutNodesLow", "path": nodeXYZ_path_rel_low}, 
+                {"channel": "layoutNodesHi", "path": nodeXYZ_path_rel_high},
+                {"channel": "nodeRGB", "path": nodeRGB_path_rel},
+                {"channel": "linkRGB", "path": linksRGB_path_rel}
+            ]
+        }, namespace=self.session.client.namespace)
+
+        # show node info + label in 3D 
+        self.session.client.emit("ex", {
+            "usr": self.session.client.uid,
+            "id":None,
+            "fn": "node",
+            "msg": node_id,
+            "val": node_id
+        }, namespace=self.session.client.namespace)
+        #----------------------------------
+    
+        return (print(nx.draw(subgraph, node_size=10, with_labels=True)))
+    
+
+
+    def layout_subnetwork_with_periphery(self, sub_nodes, scale_center = 0.1, outer_range=(0.8, 1.0), temp=True, layout_name="temp_layout"):
         """
         Generates a new layout with the subnetwork centered and outer nodes arranged on a sphere.
         Saves and registers the layout if temp=False.
         """
         graph = self.session.graph
-        all_nodes = set(graph.nodes())
-        outer_nodes = all_nodes - set(sub_nodes)
+        all_nodes = list(graph.nodes())
 
-        layout_sub = nx.spring_layout(graph.subgraph(sub_nodes), dim=3)
-
-        # Normalize sub layout into inner range
-        def scale_to_range(pos, min_r, max_r):
-            arr = np.array(list(pos.values()))
-            min_vals = arr.min(axis=0)
-            max_vals = arr.max(axis=0)
-            scaled = {
-                k: tuple(
-                    min_r + (v[i] - min_vals[i]) / (max_vals[i] - min_vals[i] + 1e-5) * (max_r - min_r)
-                    for i in range(3)
-                )
-                for k, v in pos.items()
-            }
-            return scaled
-
-        layout_sub_scaled = scale_to_range(layout_sub, *inner_range)
-
+        subgraph = graph.subgraph(sub_nodes)
+        layout_sub = nx.spring_layout(list(subgraph.nodes()), dim=3, center = (0,0,0), scale = scale_center)
+        layout_sub_sorted = {node: layout_sub[node] for node in subgraph.nodes()}
+        layout_sub = dict(zip(subgraph.nodes(), list(layout_sub_sorted.values())))  # Ensure order matches sub_nodes
+        
         # Place outer nodes on a sphere in outer_range
-        layout_outer = {}
+        full_layout_positions = {}
         radius = random.uniform(*outer_range)
-        for node in outer_nodes:
-            theta = random.uniform(0, 2 * np.pi)
-            phi = random.uniform(0, np.pi)
-            x = radius * np.sin(phi) * np.cos(theta)
-            y = radius * np.sin(phi) * np.sin(theta)
-            z = radius * np.cos(phi)
-            layout_outer[node] = (x, y, z)
+        for node in all_nodes:
+            if node not in sub_nodes:
+                theta = random.uniform(0, 2 * np.pi)
+                phi = random.uniform(0, np.pi)
+                x = radius * np.sin(phi) * np.cos(theta)
+                y = radius * np.sin(phi) * np.sin(theta)
+                z = radius * np.cos(phi)
+                full_layout_positions[node] = (x, y, z)
+            elif node in subgraph.nodes():
+                full_layout_positions[node] = layout_sub[node]
 
-        full_layout = {**layout_sub_scaled, **layout_outer}
+        #full_layout_positions = {**layout_sub_scaled, **layout_outer}
 
-        # Choose name or go for temp layout (not saved - will be overwritten)
-        name = layout_name if not temp else "temp_layout"
-
-        self.tex_gen.generate_node_position_texture(full_layout, name)
-        self.syncer.emit_layout_update(name)
-
-        # Always register layout in pfile.json (frontend expects it)
-        self.file_mgr.update_pfile(name)
-        self.file_mgr.sync_layout_files(name, generated_types=self.tex_gen.get_generated_types())
-
-        if not temp:
-            self.session.reload_project()
-
-        return name
+        return full_layout_positions
 
