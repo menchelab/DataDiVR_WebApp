@@ -256,6 +256,8 @@ def loadXYZTex():
             + pfile["layouts"][0]
             + ".bmp failed to load"
         )
+        
+    return pixel_valuesc_test
 
 
 
