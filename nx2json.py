@@ -8,6 +8,7 @@ except:
     print("Error: Could not import the uploaderGraph module. \n Only importing the necessary functions for the function 'make_json' to run. \n Please ensure the uploader module is in the same directory as this script.")
 
 
+# TO DO: a catch & error message if types are converted , e.g. positions from float to str
 def ensure_json_serializable(obj):
     if isinstance(obj, dict):
         return {k: ensure_json_serializable(v) for k, v in obj.items()}
@@ -166,6 +167,22 @@ def make_json(graphs, save_json=False): # former: merge_graphs(graphs):
             'cluster': attrs.get('cluster', '') if attrs.get('cluster', '') != "" else None,
             'id': str(node) if not is_json_serializable(node) else node
         } for node, attrs in graph_remapped.nodes(data=True)]
+
+        # # add check for pos types (float, int, str)
+        # for i in range(len(layout_nodes)):
+        #     if isinstance(layout_nodes[i]['pos'], (list)): # and len(layout_nodes[i]['pos']) >= 2 and len(layout_nodes[i]['pos']) <= 3:
+        #         individual_node = layout_nodes[i]['pos']
+        #         for j in range(len(individual_node)):
+        #             if isinstance(individual_node[j], (float)):
+        #                 individual_node[j] = float(individual_node[j])
+        #             else:
+        #                 raise ValueError("Positions must be class type float.")
+
+        #if len(individual_node) < 2 or len(individual_node) > 3:
+        #    raise ValueError("Position must have 2 or 3 dimensions.")
+
+        #print("Layout nodes: ", layout_nodes)
+        #print("Layout pos types: ", [type(node['pos'][0]) for node in layout_nodes])
 
         layout_links = [{
             'linkcolor': attrs.get('linkcolor', ''),

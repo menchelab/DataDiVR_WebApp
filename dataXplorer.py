@@ -12,7 +12,8 @@ import time
 import random 
 from sklearn import preprocessing
 import atexit
-
+from math import sqrt
+from sklearn.preprocessing import MinMaxScaler
 
 # -----------------------------------------------
 # JUPYTER CLIENT CONNECTION 
@@ -124,7 +125,6 @@ class SessionManager:
                 if key not in ["id", "n"]:  # Exclude id and name as they are already handled
                     node_attrs[key] = value  
             #-----------------------------------
-
             G.add_node(node_id,**node_attrs)
 
         # --- Load links ---
@@ -264,22 +264,24 @@ class TextureGenerator:
         self.generated_types = set()
 
 
+    def normalize_xyz(self, coords):
+        """
+        Normalize a list of 3D coordinates to the range [0, 1] using sklearn's preprocessing.
 
-    def normalize_xyz(self,coords):
-        x = [i[0] for i in coords] 
-        y = [i[1] for i in coords] 
-        z = [i[2] for i in coords]
-        x_norm = preprocessing.minmax_scale(list(x), feature_range=(0,1), axis=0, copy=True)
-        y_norm = preprocessing.minmax_scale(list(y), feature_range=(0,1), axis=0, copy=True)
-        z_norm = preprocessing.minmax_scale(list(z), feature_range=(0,1), axis=0, copy=True)
-        
-        coords_new = []
-        for i in range(len(x)):
-            coords_new.append((x_norm[i], y_norm[i], z_norm[i]))
-        return coords_new # x_norm,y_norm,z_norm
+        Args:
+            coords (list of tuples): List of (x, y, z) coordinates.
+
+        Returns:
+            list of tuples: Normalized coordinates in the range [0, 1].
+        """
+
+        scaler = preprocessing.MinMaxScaler(feature_range=(0, 1))
+        normalized_coords = scaler.fit_transform(coords)
+        return [tuple(coord) for coord in normalized_coords]
+
     
 
-# Note: added "save" option for textures; TO DO  add check / raise if pfile keys contain different number of files!! 
+    # Note: added "save" option for textures; TO DO  add check / raise if pfile keys contain different number of files!! 
 
 
     def generate_link_color_texture(self, edge_color_map, texture_name, save=False):
@@ -374,7 +376,8 @@ class TextureGenerator:
         return save_path
 
 
-    def generate_node_position_texture(self, node_position_map, texture_name, save=False):
+
+    def generate_node_position_texture(self, node_position_map, texture_name, save=False, normalize_flag=True):
         """
         Generates two RGB textures:
         - One for high bits of x, y, z
@@ -394,24 +397,26 @@ class TextureGenerator:
         texl = [(0, 0, 0)] * size
 
         positions = list(node_position_map.values())  # Get positions from the map
+        
         # Normalize if needed
-        l_x = []
-        l_y = []
-        l_z = []
-        for i, (x, y, z) in enumerate(positions):           
-            x = float(positions[i][0])
-            y = float(positions[i][1])
-            z = float(positions[i][2])
-            l_x.append(x)
-            l_y.append(y)
-            l_z.append(z)
 
-        if min(l_x)<0 or min(l_y)<0 or min(l_z)<0 or max(l_x)>1 or max(l_y)>1 or max(l_z)>1:
-            positions_n = self.normalize_xyz(positions) 
+        if normalize_flag == True:
+            positions_n = self.normalize_xyz(positions)
             #print("C_DEBUG: Normalizing node positions")
         else:
             positions_n = positions
-            #print("C_DEBUG: No need to normalize node positions")
+            #print("C_DEBUG: Do not normalize node positions")
+
+        l_x = []
+        l_y = []
+        l_z = []
+        for i, (x, y, z) in enumerate(positions_n):           
+            x = float(positions_n[i][0])
+            y = float(positions_n[i][1])
+            z = float(positions_n[i][2])
+            l_x.append(x)
+            l_y.append(y)
+            l_z.append(z)
 
         for i, (x, y, z) in enumerate(positions_n):
             x_int = int(x * 65280)
