@@ -396,7 +396,7 @@ def upload_filesJSON(request, overwrite=True):
     # DEBUG LINKS STORING AND SORTING and BITMAP CREATION 
 
     # print first few elements of links_ids_project dictionary
-    print("C_DEBUG : links_ids_project : ", {k: links_ids_project[k] for k in list(links_ids_project)[:5]})
+    #print("C_DEBUG : links_ids_project : ", {k: links_ids_project[k] for k in list(links_ids_project)[:5]})
     
     # sort links_ids_project by key
     links_ids_project = dict(sorted(links_ids_project.items()))
