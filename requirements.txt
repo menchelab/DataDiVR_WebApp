@@ -22,9 +22,9 @@ shapely
 cartoGRAPHs
 urllib3==1.26.6
 #--find-links https://download.pytorch.org/whl/torch_stable.html
-#torch==1.13.1+cu116
-#whisper
-#openai-whisper
+torch==1.13.1 #+cu116
+whisper
+openai-whisper
 playsound
 PyDub 
 pyttsx3
