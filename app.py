@@ -128,8 +128,39 @@ myusers = [{'uid': 4, 'links': [2, 2, 2, 2, 2, 133, 666, 666, 666, 666, 125, 125
 
 
 
+# =====================================================================
+# Set up logging
+logging.basicConfig(filename='server.log', level=logging.INFO)
 
-import plotlyExamples
+@app.route('/log', methods=['GET', 'POST'])
+def get_log():
+    try:
+        with open('server.log') as f:
+            log_content = f.read()
+        return jsonify({"log": log_content})
+    except FileNotFoundError:
+        return jsonify({"error": "Log file not found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# Set up logging
+logging.basicConfig(
+    filename='server.log',  # Log file name
+    level=logging.INFO,     # Log level
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'  # Log format
+)
+
+# Create a logger object
+logger = logging.getLogger(__name__)
+# =====================================================================
+
+
+
+
+
+
+
+import plotlyExamples    
 
 @app.route('/evilAI')
 def evilAI():
@@ -383,6 +414,26 @@ def join(message):
     
 
 
+<<<<<<< Updated upstream
+=======
+@socketio.on("ex", namespace="/main")
+@spam_protector
+def ex(message):
+    for func in GD.functions["ex"]:
+        func(message)
+
+    room = flask.session.get("room")
+    project = GD.data["actPro"]
+    # print(webfunc.bcolors.WARNING+ flask.session.get("username")+ "ex: "+ json.dumps(message)+ webfunc.bcolors.ENDC)
+    # message["usr"] = flask.session.get("username")
+
+    print("incoming " + str(message))
+    
+    logger.info(message)
+    
+    event_handler.handle_socket_execute(message, room, project)
+
+>>>>>>> Stashed changes
 
 @socketio.on("left", namespace="/main")
 def left(message):

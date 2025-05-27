@@ -1,0 +1,22 @@
+
+<mc-module id="module-LogData" name="Log Data">
+                 
+        <div id="NB-container"> </div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                fetch('/log')
+                    .then(response => response.json())
+                    .then(data => {
+                        const nbContainer = document.getElementById('NB-container');
+                        nbContainer.innerHTML = JSON.stringify(data, null, 2);
+                    })
+                    .catch(error => console.error('Error fetching data:', error));
+            });
+        </script>
+
+
+
+
+        <br>
+
+</mc-module>
