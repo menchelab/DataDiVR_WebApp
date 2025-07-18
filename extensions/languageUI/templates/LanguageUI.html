@@ -13,7 +13,7 @@
 <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
 <script src="{{ url_for('static', filename='js/variableListener.js') }}"></script>
 <script src="{{ url_for('static', filename='js/connect_WebUI.js') }}"></script>
-<script src="{{ url_for('static', filename='js/connect_socketIO_main.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('LUI.static', filename='js/connect_socketIO_lui.js') }}"></script>
 
 {% include 'templates.html' %}
 
@@ -68,7 +68,7 @@
         var text = document.getElementById("LUItextinput").shadowRoot.getElementById("text").value;
         var chatwin = document.getElementById("scrollboxLUI").shadowRoot.getElementById("box");
 
-        fetch("/languageUI_process", {
+        fetch("/LUI/languageUI_process", {
                 method: "POST",
                 body: JSON.stringify({
                     usr: username,
@@ -79,14 +79,16 @@
                 }
                 })
                 .then((response) => response.json())
+
                 .then((json) => {
-                    chatwin.innerHTML += '<br><b>HUMAN ' + " | " + username + " : " + text + "<br>"; 
-                    chatwin.innerHTML += "<br><b>ENGINE | result : " + JSON.stringify(json) + '<br>';
+                    chatwin.innerHTML += `<br><b>HUMAN | ${username}</b>: ${text}<br><br>`;
+                    chatwin.innerHTML += `<b>ENGINE | Response:</b> ${json.response}<br><hr>`;
 
-                    chatwin.scrollTop = chatwin.scrollHeight;  
-
+                    chatwin.scrollTop = chatwin.scrollHeight;
                     document.getElementById("LUItextinput").shadowRoot.getElementById("text").value = '';
                 });
+
+                    
 
     }
 

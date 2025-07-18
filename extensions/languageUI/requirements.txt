@@ -4,3 +4,5 @@ pyspellchecker
 langchain
 huggingface_hub
 langchain_huggingface
+langchain
+langchain-community==0.3.12

@@ -75,6 +75,10 @@ app.config["SESSION_TYPE"] = "filesystem"
 socketio = SocketIO(app, manage_session=False)
 app, extensions = load_extensions.load(app)
 
+
+
+
+
 ### HTML ROUTES ###
 
 
@@ -414,27 +418,6 @@ def join(message):
     
 
 
-<<<<<<< Updated upstream
-=======
-@socketio.on("ex", namespace="/main")
-@spam_protector
-def ex(message):
-    for func in GD.functions["ex"]:
-        func(message)
-
-    room = flask.session.get("room")
-    project = GD.data["actPro"]
-    # print(webfunc.bcolors.WARNING+ flask.session.get("username")+ "ex: "+ json.dumps(message)+ webfunc.bcolors.ENDC)
-    # message["usr"] = flask.session.get("username")
-
-    print("incoming " + str(message))
-    
-    logger.info(message)
-    
-    event_handler.handle_socket_execute(message, room, project)
-
->>>>>>> Stashed changes
-
 @socketio.on("left", namespace="/main")
 def left(message):
     for func in GD.functions["left"]:
@@ -483,6 +466,28 @@ def ex(message):
         'val': 42
     }, room='shared-room', namespace='/main')  
 
+# @socketio.on("ex", namespace="/main")
+# @spam_protector
+# def ex(message):
+#     for func in GD.functions["ex"]:
+#         func(message)
+
+#     room = flask.session.get("room")
+#     project = GD.data["actPro"]
+#     # print(webfunc.bcolors.WARNING+ flask.session.get("username")+ "ex: "+ json.dumps(message)+ webfunc.bcolors.ENDC)
+#     # message["usr"] = flask.session.get("username")
+
+#     print("incoming " + str(message))
+    
+#     logger.info(message)
+    
+#     event_handler.handle_socket_execute(message, room, project)
+
+
+
+
+
+
 
 # added for jupyter client (or any client not sending http requests)
 @socketio.on('init-project', namespace='/main')
@@ -504,9 +509,6 @@ def init_project():
 
 #------------------------------------------
     
-
-
-
 
 if __name__ == "__main__":
     socketio.run(app, debug=True)

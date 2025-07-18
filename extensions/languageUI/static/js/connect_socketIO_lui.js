@@ -28,8 +28,22 @@ function logjs(data, id) {
     }
 }
 
+
+var socket;
+function makeid(length) {
+    let result = '';
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const charactersLength = characters.length;
+    let counter = 0;
+    while (counter < length) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+      counter += 1;
+    }
+    return result;
+}
+
 var uid = makeid(10);
-console.log("Logged in as " + uid);
+console.log("C_DEBUG in connect_sockeIO_lui : Logged in as " + uid);
 
 ue.interface.projectLoaded = function(data) {
     console.log(data);
@@ -212,21 +226,20 @@ $(document).ready(function() {
 
     });
 
-
+    
     socket.on('ex', function(data) {
         logjs(data, 'scrollbox_debug_0');
 
-        //if (logAll && data.usr == uid)
-        //{
-        console.log("server returned: " + JSON.stringify(data));
-
-        //}
+        if (logAll && data.usr == uid)
+        {
+            console.log("server returned: " + JSON.stringify(data));
+        }
 
         switch (data.fn) {
             case 'projectLoaded':
 
                 updateMcElements();
-
+                
                 if (data.usr == uid) {
 
                     if (isPreview) {
@@ -303,13 +316,13 @@ $(document).ready(function() {
                 }
                 break;
 
-            case "cbaddNode":
-                var content = document.getElementById('cbscrollbox').shadowRoot.getElementById("box");
-                removeAllChildNodes(content);
-                for (let i = 0; i < data.val.length; i++) {
-                    $(content).append("<mc-button id = 'button" + i + " 'val= '" + data.val[i].id + "' name = '" + data.val[i].name + "' w = '118' fn = 'node' color = '" + rgbToHex(data.val[i].color[0] * 0.5, data.val[i].color[1] * 0.5, data.val[i].color[2] * 0.5) + "' ></mc-button>");
-                }
-                break;
+            // case "cbaddNode":
+            //     var content = document.getElementById('cbscrollbox').shadowRoot.getElementById("box");
+            //     removeAllChildNodes(content);
+            //     for (let i = 0; i < data.val.length; i++) {
+            //         $(content).append("<mc-button id = 'button" + i + " 'val= '" + data.val[i].id + "' name = '" + data.val[i].name + "' w = '118' fn = 'node' color = '" + rgbToHex(data.val[i].color[0] * 0.5, data.val[i].color[1] * 0.5, data.val[i].color[2] * 0.5) + "' ></mc-button>");
+            //     }
+            //     break;
             case "colorbox":
                 document.getElementById(data.id).shadowRoot.getElementById("color").style.backgroundColor = 'rgba(' + data.r + ',' + data.g + ',' + data.b + ',' + data.a * 255 + ')';
                 break;
@@ -659,9 +672,9 @@ $(document).ready(function() {
                 console.log("C_DEBUG: in CASE PROJECT _ project data = ", pfile);
 
                 // init analytics container
-                document.getElementById('analyticsContainer').innerHTML = '';
-                document.getElementById('nodecounter').innerHTML = pfile['nodecount'] + ' NODES';
-                document.getElementById('linkcounter').innerHTML = pfile['linkcount'] + ' LINKS';
+                //document.getElementById('analyticsContainer').innerHTML = '';
+                //document.getElementById('nodecounter').innerHTML = pfile['nodecount'] + ' NODES';
+                //document.getElementById('linkcounter').innerHTML = pfile['linkcount'] + ' LINKS';
 
                 var content = document.getElementById('cbscrollbox').shadowRoot.getElementById("box");
                 removeAllChildNodes(content);
@@ -1427,15 +1440,15 @@ $(document).ready(function() {
                     $("#enrichment-note-result").html(data.val)
                 }
 
-            // case "legend_scene_display":
-            //     if (data.has_scenes === true) {
-            //         $("#legend-scene-description-container").css('display', 'block');
-            //         $("#legend-scene-description-element").html("SCENE : : " + data.text)
-            //     }
-            //     else {
-            //         $("#legend-scene-description-container").css('display', 'none');
-            //         $("#legend-scene-description-element").html("")
-            //     }
+            case "legend_scene_display":
+                if (data.has_scenes === true) {
+                    $("#legend-scene-description-container").css('display', 'block');
+                    $("#legend-scene-description-element").html("SCENE : : " + data.text)
+                }
+                else {
+                    $("#legend-scene-description-container").css('display', 'none');
+                    $("#legend-scene-description-element").html("")
+                }
         }
     });
 

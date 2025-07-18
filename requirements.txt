@@ -35,6 +35,7 @@ umap-learn
 nltk
 rapidfuzz
 pyspellchecker
-langchain
-huggingface_hub
-langchain_huggingface
+#langchain
+#huggingface_hub
+#langchain_huggingface
+#langchain-community

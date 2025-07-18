@@ -22,5 +22,5 @@ extensions/documentation
 !extensions/install_requirements.sh
 !extensions/install_requirements.ps1
 
-openAI_KEY_doNOTcommit.txt
-HF_token_doNOTcommit.txt
+*.txt
+.env

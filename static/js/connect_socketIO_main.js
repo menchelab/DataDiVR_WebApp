@@ -31,7 +31,7 @@ function logjs(data, id) {
 }
 
 var uid = makeid(10);
-console.log("Logged in as " + uid);
+console.log("C_DEBUG in connect_sockeIO_main : Logged in as " + uid);
 
 ue.interface.projectLoaded = function(data) {
     console.log(data);

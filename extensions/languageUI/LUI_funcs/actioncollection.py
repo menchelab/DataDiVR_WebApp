@@ -6,9 +6,7 @@ import flask
 from flask_socketio import emit
 
 
-
-
-
+from event_handler.execute_events.drop_down_events import main
 
 def action_list_all_projects():
     """
@@ -25,34 +23,35 @@ def action_list_all_projects():
 
 
 
-import event_handler.execute_events.drop_down_events as drop_down_events
 def action_open_project(projectname):
-    """
-    Opens a project by its name.
-    This function searches for a project with the given name in the list of projects.
-    If a matching project is found, it triggers an event to change to that project.
-    If no matching project is found, it prints an error message.
-    Args:
-        project_name (str): The name of the project to open.
-    Returns:
-        None
-    """
+
     projectname_lower = projectname.lower()
     matching_projects = [proj for proj in GD.listProjects() if proj.lower() == projectname_lower]
 
     if not matching_projects:
-        print(f"ERROR: Project '{projectname}' not found in the project list.")
+        print(f"ERROR: Project '{projectname}' not found.")
         return action_list_all_projects()
 
-    # Use the project name as it is stored in GD list
     projectname = matching_projects[0]
-    
-    drop_down_events.trigger_change_project_to(projectname) 
-    return f"Project '{projectname}' is now open."
+
+    sel_id = GD.listProjects().index(projectname)
+    sel_name = GD.listProjects()[sel_id]
+
+    main({
+        'usr': flask.session.get("username") or "backend",
+        'id': 'projDD',
+        'fn': 'dropdown',
+        'msg': sel_name,
+        'val': sel_id
+    })
+
+    return f"Project '{projectname}' loaded successfully."
+
+
+
 
 
 from search import search
-
 def action_show_node_info(nodeid):
     """
     Displays information about a specific node.

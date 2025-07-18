@@ -41,7 +41,6 @@ import chatGPTTest
 import event_handler
 import GlobalData as GD
 import layout_module
-#import load_extensions
 import plotlyExamples as PE
 
 import search
@@ -53,21 +52,23 @@ import uploader
 import uploaderGraph
 import util
 import websocket_functions as webfunc
-from extensions import load_extensions
 
 
 import pandas as pd
-import plotly
 import plotly.express as px
 
 from io_blueprint import IOBlueprint
 
-from extensions.languageUI.LUI_funcs.functionmappingllm import *
-from langchain.schema import SystemMessage, HumanMessage
+#from extensions.languageUI.LUI_funcs.functionmappingllm import *
+from extensions.languageUI.src.language_interface import route_command, handle_routed_command
+
+#from langchain.schema import SystemMessage, HumanMessage
 
 
 
-url_prefix = ""
+
+# access via : http://127.0.0.1:5000/LUI/languageUI
+url_prefix = "/LUI"
 blueprint = IOBlueprint(
     "LUI",
     __name__,
@@ -75,10 +76,6 @@ blueprint = IOBlueprint(
     template_folder=os.path.abspath("./extensions/languageUI/templates"),
     static_folder=os.path.abspath("./extensions/languageUI/static"),
 )
-
-
-
-
 
 
 @blueprint.route("/languageUI", methods=["GET"])
@@ -89,438 +86,55 @@ def language_ui():
 
 
 
-
 @blueprint.route("/languageUI_process", methods=["POST"])
 def language_ui_process():
-    
     user_input = request.json.get("text", "")
+    username = request.json.get("usr", "")
 
-    #llm_chain = get_response_from_huggingface(user_input)
-    #response = llm_chain 
-    #print("Response:", response)
-          
+    command = route_command(user_input)
+    result = handle_routed_command(command)
 
-    messages = [
-        {
-            "role": "user",
-            "content": user_input
-        }
-    ]
-
-    response = get_completion_huggingface(messages)
-    #print("C_DEBUG: Complete Response:", response)
-
-    # Extract the action and output answer
-    response_text = response.get('text', '')
-    print("C_DEBUG: response_text : ", response_text)
-    
-    #make dict from response
-    dict_response = json.loads(response_text)
-        
-    function_name = dict_response['Function choice']
-    print("C_DEBUG: function_name : ", function_name)
-    
-    final_output = dict_response['Output']
-    print("C_DEBUG: final_output : ", final_output)
-    
-    final_parameters = dict_response['Parameters']
-    print("C_DEBUG: final_parameters : ", final_parameters)
-    
-    # Parse parameters based on the function name
-    if function_name == "action_open_project":
-        
-        project_name = final_parameters['project_name']
-        result = action_open_project(project_name)
-
-    elif function_name == "action_show_node_info":
-        
-        node_id = final_parameters['node_id']
-        result = action_show_node_info(node_id)
-
-    elif function_name == "action_make_subnetwork":
-        
-        node_id = final_parameters['node_id']
-        result = action_make_subnetwork(node_id)
-
-    else:
-        result = f"Function '{function_name}' not found or no action could be matched."
-
-    # Return the chosen function name and the response/output answer
-    return jsonify({"function_name": function_name, "response": result})
+    return jsonify({
+        "function_name": command.get("function", "general_query"),
+        "response": result,
+        "user": username
+    })
 
 
 
 
-
-
-
+# THIS DOES NOT WORK / SEEMS NOT TO BE USED ANYWHERE
 @blueprint.on("ex", namespace="/LUI")
 def ex(message):
 
-    room = flask.session.get("room")
+    # room = flask.session.get("room")
     # print(webfunc.bcolors.WARNING+ flask.session.get("username")+ "ex: "+ json.dumps(message)+ webfunc.bcolors.ENDC)
-    # message["usr"] = flask.session.get("username")
-    print("incoming LUI " + str(message))
-
-    emit("ex", message, room=room)
-
-
-
-
-# #### Settings
-
-# spam_protector = spam.SpamProtector()
-
-# log = logging.getLogger("werkzeug")
-# log.setLevel(logging.ERROR)
-
-# Payload.max_decode_packets = 50
-
-# app = Flask(__name__)
-# app.debug = False
-# app.config["SECRET_KEY"] = "secret"
-# app.config["SESSION_TYPE"] = "filesystem"
-
-# socketio = SocketIO(app, manage_session=False)
-# app, extensions = load_extensions.load(app)
-
-
-
-
-# ### HTML ROUTES ###
-
-
-# ### Execute code before first request ###
-# @app.before_first_request
-# def execute_before_first_request():
-#     uploader.check_ProjectFolder() # checks if GD.json exists
+    #message["usr"] = flask.session.get("username")
     
-#     util.create_dynamic_links(app)
+    # print("C_DEBUG : incoming LUI " + str(message))
+
+    # emit("ex", message, room=room)
+
     
-#     GD.checkProjectGDexists() #check if project in GD.json exist / if not exists, using demo project
-#     GD.loadGD()
-#     GD.loadPFile()
-#     GD.loadPD()
-#     GD.loadColor()
-#     GD.loadLinks()
-#     GD.load_annotations()
-
-
-# def index():
-#     return flask.redirect("/home")
-
-
-# @app.route("/preview")
-# def preview():
-#     return render_template("preview.html", extensions=extensions)
-
-
-# @app.route("/main", methods=["GET"])
-# def main():
-#     username = util.generate_username()
-#     project = GD.data["actPro"]  # flask.request.args.get("project")
-#     if project is None:
-#         project = GD.data["actPro"]
-#         return "no project selected in GD.json"
-
-#     if flask.request.method == "GET":
-#         room = 1
-#         # Store the data in session
-#         flask.session["username"] = username
-#         flask.session["room"] = room
-#         # prolist = uploader.listProjects()
-
-#         return render_template("main.html", user=username, extensions=extensions)
-#     else:
-#         return "error"
-
-
-
-# myusers = [{'uid': 4, 'links': [2, 2, 2, 2, 2, 133, 666, 666, 666, 666, 125, 125]}, {'uid': 666, 'links': [133]}, {'uid': 133, 'links': [666]}, {'uid': 555, 'links': [666, 133, 4, 123, 124, 125, 125, 125]}, {'uid': 125, 'links': [555, 128]}, {'uid': 128, 'links': [555]}, {'uid': 130, 'links': [555]}]
-
-
-
-# import plotlyExamples
-
-# @app.route('/evilAI')
-# def evilAI():
-
-#     nodes=[]
-#     links=[]
-#     annot=[]
+    print("Message received:", message)
     
-#     # Create graphJSON
-#     #graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+    room = 'shared-room' #flask.session.get("room") or 1 # jupyter-room
+    username = flask.session.get("username") or 'jupyter-user'
+    print(f"Using room: {room}, user: {username}")
 
-
-#     if  request.cookies.get('userID'): # has cookie, add to links
-#         if request.args.get('uid'):
-#             uid = request.args.get('uid')
-#             name = request.cookies.get('userID')
-#             for i in myusers:
-#                 if i['uid'] == int(name):
-#                     i['links'].append(int(uid))
-#                     break
-#             for i in myusers:
-#                 if i['uid'] == uid:
-#                     i['links'].append(int(name))
-#                     break
-
-#             for i in myusers:
-#                 nodes.append(int(i['uid']))
-#                 annot.append("agent"+ str(i['uid']))
-
-#             for i in myusers:
-#                 start = -1
-#                 try:
-#                     start = nodes.index(i['uid']) 
-#                 except ValueError:
-#                     start = -1
-                 
-#                 for l in i['links']:
-#                     try:
-#                         end = nodes.index(l)
-#                         links.append((start,end))
-#                     except ValueError:
-#                         end = -1
-                        
-            
-#             print(links)
-#             print(nodes)
-#             print(annot)
-#             print(myusers)
-#         graphJSON = plotlyExamples.networkGraphRT(nodes, annot , links)
-#         #return '<h1>welcome ' + name + '</h1><br>You just met Agent ' + uid
-#         return render_template("evilAi.html", user=name, data=myusers, graphJSON=graphJSON)
+    for func in GD.functions["ex"]:
+        #print("Executing function:", func)
+        func(message)
     
-#     #login set cookie
-#     else:
-#         if request.args.get('uid'):
-#             uid = request.args.get('uid')
+    project = GD.data["actPro"]
+    print("incoming :" + str(message))
 
-#             exists = False
-
-#             for i in myusers:
-#                 if i['uid'] == uid:
-#                     exists = True
-
-#             if not exists:
-#                 thisUser = {}
-#                 thisUser["uid"] = int(uid)
-#                 thisUser["links"] = []
-#                 myusers.append(thisUser)
-#                 resp = make_response(render_template('evilAi.html',user=uid, data=myusers) + uid)
-#                 resp.set_cookie('userID', uid)
-#                 return resp
-#             else:
-#                 return '<h1>QR code already claimed</h1>'
- 
-        
-#         #return render_template('login.html')
-
-
-
-# @app.route('/setcookie', methods = ['POST', 'GET'])
-# def setcookie():
-#    #if request.method == 'POST':
-#         user = request.form['nm']
-        
-#         resp = make_response(render_template('readcookie.html'))
-#         #resp = make_response(render_template('readcookie.html'))
-#         resp.set_cookie('userID', user)
-        
-#         return resp
-
-
-# @app.route('/getcookie')
-# def getcookie():
-#     if  request.cookies.get('userID'):
-#         name = request.cookies.get('userID')
-#         return '<h1>welcome ' + name + '</h1>'
-#     else:
-#         return '<h1>no cookie</h1>'
-
-
-
-# @app.route("/GPT", methods=["POST"])
-# def GPT():
-#     result = {}
-#     if request.method == "POST":
-#         data = flask.request.get_json()
-#         answer = chatGPTTest.NewGPTrequest(data.get("text"))
-#         fname = TextToSpeech.makeogg(answer, 0)
-#         print(answer)
-#         return {"text": answer, "audiofile": fname + ".ogg"}
-
-
-# @app.route("/TTS", methods=["POST", "GET"])
-# def TTS():
-#     result = {}
-#     if request.method == "GET":
-#         text = flask.request.args.get("text")
-#         voice = int(flask.request.args.get("voice"))
-#         result["text"] = TextToSpeech.makeogg(text, voice)
-#     return result
-
-
-# @app.route("/nodepanel", methods=["GET"])
-# def nodepanel():
-#     data = []
-#     return render_template("nodepanel.html", data)
-
-
-# @app.route("/uploadOLD", methods=["GET"])
-# def upload():
-#     prolist = GD.listProjects()
-#     return render_template(
-#         "upload.html",
-#         namespaces=prolist,
-#         extensions=extensions,
-#         sessionData=json.dumps(GD.data),
-#     )
-
-
-# @app.route("/upload", methods=["GET"])
-# def uploadNew():
-#     prolist = GD.listProjects()
-#     return render_template(
-#         "uploadNew.html",
-#         namespaces=prolist,
-#         extensions=extensions,
-#         sessionData=json.dumps(GD.data),
-#     )
-
-
-# @app.route("/uploadJSON", methods=["GET"])
-# def uploadJSON():
-#     prolist = GD.listProjects()
-#     return render_template(
-#         "uploadGRAPH.html",
-#         namespaces=prolist,
-#         extensions=extensions,
-#         sessionData=json.dumps(GD.data),
-#     )
-
-
-# @app.route("/uploadfiles", methods=["GET", "POST"])
-# def upload_files():
-#     return uploader.upload_files(flask.request)
-
-
-# @app.route("/uploadfilesNew", methods=["GET", "POST"])
-# def upload_filesNew():
-#     return uploader.upload_filesNew(flask.request)
-
-
-# @app.route("/uploadfilesJSON", methods=["GET", "POST"])
-# def upload_filesJSON():
-#     return uploaderGraph.upload_filesJSON(flask.request)
-
-
-# @app.route("/delpro", methods=["GET", "POST"])
-# def delete_project():
-#     return util.delete_project(flask.request)
-
-
-# # gets information about a specific node (project must be provided as argument)
-# @app.route("/node", methods=["GET", "POST"])
-# def nodeinfo():
-#     id = flask.request.args.get("id")
-#     key = flask.request.args.get("key")
-#     name = "static/projects/" + str(flask.request.args.get("project")) + "/nodes"
-#     nodestxt = open(name + ".json", "r")
-#     nodes = json.load(nodestxt)
-#     nlength = len(nodes["nodes"]) - len(nodes["labels"])
-#     print(nlength)
-#     if key:
-#         return str(nodes["nodes"][int(id)].get(key))
-#     else:
-#         if int(id) > nlength:
-#             # is label
-#             print(nodes["labels"][int(id) - nlength])
-#         return nodes["nodes"][int(id)]
-
-
-# @app.route("/home")
-# def home():
-#     if not flask.session.get("username"):
-#         flask.session["username"] = util.generate_username()
-#         flask.session["room"] = 1
-#     return render_template("home.html", sessionData=json.dumps(GD.data))
-
-
-# ### DATA ROUTES###
-
-
-# @app.route("/load_all_projects", methods=["GET", "POST"])
-# def loadAllProjectsR():
-#     return jsonify(projects=GD.listProjects())
-
-
-# @app.route("/load_project/<name>", methods=["GET", "POST"])
-# def loadProjectInfoR(name):
-#     return uploader.loadProjectInfo(name)
-
-
-# @app.route("/projectAnnotations/<name>", methods=["GET"])
-# def loadProjectAnnotations(name):
-#     return uploader.loadAnnotations(name)
-
-
-# ###SocketIO ROUTES###
-
-
-# @socketio.on("join", namespace="/main")
-# def join(message):
-#     for func in GD.functions["join"]:
-#         func(message)
-#     room = flask.session.get("room")
-#     join_room(room)
-#     print(message["usr"])
-
-#     print(
-#         webfunc.bcolors.WARNING
-#         + message["usr"]
-#         + " has entered the room."
-#         + webfunc.bcolors.ENDC
-#     )   
-#     emit("status", {"usr": message["usr"], "msg": " has entered the room."}, room=room)
-
-
-# @socketio.on("ex", namespace="/main")
-# @spam_protector
-# def ex(message):
-#     for func in GD.functions["ex"]:
-#         func(message)
-
-#     room = flask.session.get("room")
-#     project = GD.data["actPro"]
-#     # print(webfunc.bcolors.WARNING+ flask.session.get("username")+ "ex: "+ json.dumps(message)+ webfunc.bcolors.ENDC)
-#     # message["usr"] = flask.session.get("username")
-
-#     print("incoming " + str(message))
-
-#     event_handler.handle_socket_execute(message, room, project)
-
-
-# @socketio.on("left", namespace="/main")
-# def left(message):
-#     for func in GD.functions["left"]:
-#         func(message)
-#     room = flask.session.get("room")
-#     username = flask.session.get("username")
-#     leave_room(room)
-#     flask.session.clear()
-#     emit("status", {"msg": username + " has left the room."}, room=room)
-#     print(
-#         webfunc.bcolors.WARNING
-#         + flask.session.get("username")
-#         + " has left the room."
-#         + webfunc.bcolors.ENDC
-#     )
+    event_handler.handle_socket_execute(message, room, project)
     
+    # added for jupyter client (or any client not sending http requests)
+    emit('module-update', {
+        'id': 'test-node',
+        'val': 42
+    }, room='shared-room', namespace='/LUI')  
 
 
-
-# if __name__ == "__main__":
-#     socketio.run(app, debug=True)

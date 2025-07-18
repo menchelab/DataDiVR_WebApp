@@ -8,27 +8,6 @@ import layout_module
 
 import VRrooms
 
-def trigger_change_project_to(project_name) -> bool:
-    """Changes the current project to the respective project.
-
-    Args:
-        project_name (str): Name of the project to which the sever should change the current project
-
-    Returns:
-        bool: True if the project exists and the sever set it to the current project. False if the project does not exists.
-    """
-    GD.plist = GD.listProjects()
-    if project_name not in GD.plist:
-        return False
-    message = {
-        "usr": "backend",
-        "id": "projDD",
-        "fn": "dropdown",
-        "msg": project_name,
-        "val": str(GD.plist.index(project_name)),
-    }
-    main(message)
-    return True
 
 
 
@@ -191,6 +170,7 @@ def user_input(message, response, room=None, namespace="/main"):
         response2["usr"] = message["usr"]
         response2["val"] = GD.pfile
         response2["fn"] = "project"
+        
         emit("ex", response2, room=room, namespace=namespace)
 
         # display rerun and save buttons for layout module
@@ -246,6 +226,7 @@ def user_input(message, response, room=None, namespace="/main"):
 
 
 def main(message, room=None, namespace="/main"):
+
     if room is None:
         room = flask.session.get("room")
     response = {}
@@ -260,4 +241,5 @@ def main(message, room=None, namespace="/main"):
         else:  # user input message
             user_input(message, response, room, namespace)
     emit("ex", response, room=room, namespace=namespace)
+   
     print(response)
