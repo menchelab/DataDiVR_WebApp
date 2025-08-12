@@ -44,6 +44,10 @@ function makeid(length) {
 
 var uid = makeid(10);
 console.log("C_DEBUG in connect_sockeIO_lui : Logged in as " + uid);
+if (document.getElementById("userid")) {
+    document.getElementById("userid").textContent = uid;
+}
+
 
 ue.interface.projectLoaded = function(data) {
     console.log(data);
@@ -179,12 +183,16 @@ $(document).ready(function() {
 
 
     ///set up and connect to socket
-    console.log('http://' + document.domain + ':' + location.port + '/main');
-    socket = io.connect('http://' + document.domain + ':' + location.port + '/main');
+    socket = io.connect('http://' + document.domain + ':' + location.port + '/LUI'); // '/main');
+    //socket = io.connect('http://' + document.domain + ':' + location.port + '/main');
+
     socket.io.opts.transports = ['websocket'];
 
     socket.on('connect', function() {
         var msg = { usr: uid }
+        
+        console.log('Connected namespace:', socket.nsp);
+          
         socket.emit('join', msg);
     });
 
@@ -204,7 +212,9 @@ $(document).ready(function() {
 
     socket.on('status', function(data) {
         //console.log(data)
+        
         if (data.usr == uid) {
+            
             if (isMain || isPreview || isLanguageUI) {
                 // START initialization routine
                 socket.emit('ex', { id: "projDD", fn: "dropdown", val: "init", usr: uid });
@@ -228,6 +238,11 @@ $(document).ready(function() {
 
     
     socket.on('ex', function(data) {
+        
+        
+        console.log("C_DEBUG: received data from socket: ", data);
+
+
         logjs(data, 'scrollbox_debug_0');
 
         if (logAll && data.usr == uid)

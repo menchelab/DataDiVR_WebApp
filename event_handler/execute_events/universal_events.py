@@ -48,13 +48,16 @@ def node_list_event(message, room):
 
 
 def plot_to_js_event(message, room):
+
+    print("C_DEBUG: in plot_to_js_event", message)
+
     response = {}
     response["fn"] = "plotly2js"
     response["parent"] = message["parent"]  # target <div>
 
     if message["msg"] == "Graph":
         response["val"] = PE.networkGraph()
-        emit("ex", response, room=room)
+        emit("ex", response, room=room, namespace="/main")
     elif message["msg"] == "Barchart":
         response["val"] = PE.connectionBarGraph()
         emit("ex", response, room=room)

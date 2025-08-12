@@ -67,6 +67,9 @@ from extensions.languageUI.src.language_interface import route_command, handle_r
 
 
 
+
+
+
 # access via : http://127.0.0.1:5000/LUI/languageUI
 url_prefix = "/LUI"
 blueprint = IOBlueprint(
@@ -81,6 +84,7 @@ blueprint = IOBlueprint(
 @blueprint.route("/languageUI", methods=["GET"])
 def language_ui():
     username = flask.session.get("username")
+
     room = session.get("room")
     return render_template("LanguageUI.html", room=room, user=username)
 
@@ -102,39 +106,20 @@ def language_ui_process():
 
 
 
+def register_socketio_events(socketio):
+    @socketio.on("ex", namespace="/LUI/lanuageUI")
+    def ex(message):
+        print("C_DEBUG: Message received in /LUI:", message)
 
-# THIS DOES NOT WORK / SEEMS NOT TO BE USED ANYWHERE
-@blueprint.on("ex", namespace="/LUI")
-def ex(message):
+        room = 'shared-room'  # Replace with your room logic
+        username = flask.session.get("username") or 'jupyter-user'
 
-    # room = flask.session.get("room")
-    # print(webfunc.bcolors.WARNING+ flask.session.get("username")+ "ex: "+ json.dumps(message)+ webfunc.bcolors.ENDC)
-    #message["usr"] = flask.session.get("username")
-    
-    # print("C_DEBUG : incoming LUI " + str(message))
+        # Example processing logic
+        print(f"Using room: {room}, user: {username}")
 
-    # emit("ex", message, room=room)
+        # Call your event handler
+        project = GD.data["actPro"]
+        event_handler.handle_socket_execute(message, room, project)
 
-    
-    print("Message received:", message)
-    
-    room = 'shared-room' #flask.session.get("room") or 1 # jupyter-room
-    username = flask.session.get("username") or 'jupyter-user'
-    print(f"Using room: {room}, user: {username}")
-
-    for func in GD.functions["ex"]:
-        #print("Executing function:", func)
-        func(message)
-    
-    project = GD.data["actPro"]
-    print("incoming :" + str(message))
-
-    event_handler.handle_socket_execute(message, room, project)
-    
-    # added for jupyter client (or any client not sending http requests)
-    emit('module-update', {
-        'id': 'test-node',
-        'val': 42
-    }, room='shared-room', namespace='/LUI')  
-
-
+        # Emit a response back to the client
+        emit("response", {"status": "success", "message": "Message processed"}, room=room, namespace="/LUI/lanuageUI")

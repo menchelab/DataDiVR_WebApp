@@ -170,7 +170,7 @@ def user_input(message, response, room=None, namespace="/main"):
         response2["usr"] = message["usr"]
         response2["val"] = GD.pfile
         response2["fn"] = "project"
-        
+
         emit("ex", response2, room=room, namespace=namespace)
 
         # display rerun and save buttons for layout module

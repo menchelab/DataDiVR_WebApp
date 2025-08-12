@@ -40,7 +40,6 @@ import chatGPTTest
 import event_handler
 import GlobalData as GD
 import layout_module
-#import load_extensions
 import plotlyExamples as PE
 
 import search
@@ -53,7 +52,7 @@ import uploaderGraph
 import util
 import websocket_functions as webfunc
 from extensions import load_extensions
-
+from extensions.languageUI.src.app import blueprint, register_socketio_events
 
 import pandas as pd
 import plotly
@@ -75,8 +74,11 @@ app.config["SESSION_TYPE"] = "filesystem"
 socketio = SocketIO(app, manage_session=False)
 app, extensions = load_extensions.load(app)
 
+# Register the Blueprint
+app.register_blueprint(blueprint, url_prefix="/LUI/languageUI")
 
-
+# Register WebSocket events for /LUI
+register_socketio_events(socketio)
 
 
 ### HTML ROUTES ###
@@ -445,7 +447,7 @@ def left(message):
 @spam_protector
 def ex(message):
     
-    print("Message received:", message)
+    print("in main app: Message received:", message)
     
     room = 'shared-room' #flask.session.get("room") or 1 # jupyter-room
     username = flask.session.get("username") or 'jupyter-user'

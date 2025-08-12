@@ -411,7 +411,11 @@ $(document).ready(function() {
                 break;
 
             case 'plotly2js':
-                //console.log(data["parent"]);
+                
+            
+                console.log("C_DEBUG:in plotly2js case :", data["parent"]);
+
+
                 if (document.getElementById(data["parent"])) {
                     const config = { displayModeBar: false }; // this is the line that should hide the navbar.
                     const layout = {};

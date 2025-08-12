@@ -8,6 +8,8 @@ import flask
 IGNORE_DIRS = ["__pycache__", ".ds_store"]
 
 
+
+
 def import_blueprint(app: flask.Flask, ext: str, extensions_path: str) -> bool:
     try:
         if not os.path.isfile(os.path.join(extensions_path, ext, "src", "app.py")):

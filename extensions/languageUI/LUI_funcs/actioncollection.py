@@ -1,12 +1,12 @@
 
 import re
 import GlobalData as GD
-
 import flask
-from flask_socketio import emit
-
 
 from event_handler.execute_events.drop_down_events import main
+from event_handler.execute_events.universal_events import * 
+#from flask_socketio import emit
+
 
 def action_list_all_projects():
     """
@@ -18,12 +18,31 @@ def action_list_all_projects():
         str: A string containing the names of all projects available in the system.
     """
     all_projects_text = ' , '.join(GD.listProjects())
+
+    # return all projects, each in a new line
+    if all_projects_text:
+        return f"Available projects: {all_projects_text}"
     
-    return f"Project not found. Please choose from list of projects: {all_projects_text}"
+    # if no projects are available, return an error message
+    if not all_projects_text:
+        all_projects_text = "No projects available. Please create a project first."
+        return f"Project not found. Please choose from list of projects: {all_projects_text}"
 
 
 
 def action_open_project(projectname):
+    """
+    Opens a project by its name and loads it into the application.
+    This function searches for a project with the specified name (case-insensitive)
+    in the list of available projects. If the project is found, it loads the project
+    and updates the application state accordingly. If the project is not found, it
+    prints an error message and lists all available projects.
+    Args:
+        projectname (str): The name of the project to open.
+    Returns:
+        str: A success message indicating the project was loaded, or a list of all
+             available projects if the specified project was not found.
+    """
 
     projectname_lower = projectname.lower()
     matching_projects = [proj for proj in GD.listProjects() if proj.lower() == projectname_lower]
@@ -42,49 +61,84 @@ def action_open_project(projectname):
         'id': 'projDD',
         'fn': 'dropdown',
         'msg': sel_name,
-        'val': sel_id
-    })
+        'val': sel_id,
+        }, namespace='/LUI')
+
 
     return f"Project '{projectname}' loaded successfully."
 
 
 
-
-
 from search import search
+from search import search_by_termtype
 def action_show_node_info(nodeid):
     """
     Displays information about a specific node.
     This function takes a node ID or node name, searches for the corresponding node information,
     and prints the progress along with the retrieved information.
     Args:
-        node_id (int or str): The ID of the node to be searched.
+        nodeid (int or str): The ID of the node to be searched.
     Returns:
         None
     """
 
-    # test for nodeid
     if not nodeid:
         # If nodeid is empty, return an error message
         return "ERROR: Please provide a node ID to retrieve information."
     
-    # search function in search.py
-    response = search(str(nodeid))
+    termtype = type(nodeid)
+    print("C_DEBUG: Node:", nodeid)
+    if termtype == int:
+        print("C_DEBUG: Node ID is an integer.")
+    elif termtype == str:
+        print("C_DEBUG: Node ID is a string.")
+    else:
+        print("C_DEBUG: Node ID is of an unknown type.", type(nodeid))
+
+
+
+    response = search_by_termtype(termtype, nodeid) #response = search(str(nodeid))
+
     print("PROGRESS: Showing node information... : ", response)
-    return f"Node {nodeid} information: {response}"  # Return the response for further use
+    return f"Node {nodeid} information: {response}"  
 
 
 
 def action_make_subnetwork(nodeid):
     """
     Visualize a subnetwork of nodes with the selected node as the center.
-
     Args:
-        node_id (int): The ID of the node to be used as the center of the subnetwork.
-
+        nodeid (int): The ID of the node to be used as the center of the subnetwork.
     Returns:
         None
     """
-    # Code to visualize a subnetwork of nodes with the selected node as the center
+
+    print("C_DEBUG:in action_make_subnetwork:", nodeid)
+
+
+    # Construct the message dictionary
+    message = {
+        'usr': flask.session.get("username") or "backend",
+        'id': 'plotly2jsB',
+        'fn': 'Plotly2js',
+        'msg': 'Graph',
+        'parent': 'plotly2js',
+        'val': nodeid,
+    }
+
+    # Define the room (adjust as needed for your application)
+    room = flask.session["room"]
+
+
+    print("C_DEBUG: room:", room)
+    print("C_DEBUG: message:", message)
+
+
+    # Trigger the plot_to_js_event function
+    plot_to_js_event(message, room)
+
+    
+
     print("PROGRESS: Making subnetwork...")
     return f"Subnetwork created with node {nodeid} at the center."
+
