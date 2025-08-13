@@ -180,22 +180,28 @@ $(document).ready(function() {
         document.getElementById("userid").innerHTML = uid;
     }
 
+    // ///set up and connect to socket
+    // socket = io.connect('http://' + document.domain + ':' + location.port + '/LUI'); // '/main');
+    // //socket = io.connect('http://' + document.domain + ':' + location.port + '/main');
 
+    // socket.io.opts.transports = ['websocket'];
 
-    ///set up and connect to socket
-    socket = io.connect('http://' + document.domain + ':' + location.port + '/LUI'); // '/main');
-    //socket = io.connect('http://' + document.domain + ':' + location.port + '/main');
+    // socket.on('connect', function() {
+    //     var msg = { usr: uid }
+        
+    //     console.log('Connected namespace:', socket.nsp);
+          
+    //     socket.emit('join', msg);
+    // });
 
+    socket = io.connect('http://' + document.domain + ':' + location.port + '/LUI/languageUI');
     socket.io.opts.transports = ['websocket'];
 
     socket.on('connect', function() {
-        var msg = { usr: uid }
-        
+        var msg = { usr: uid };
         console.log('Connected namespace:', socket.nsp);
-          
         socket.emit('join', msg);
     });
-
 
     socket.on('disconnect', function() {
         console.log("disconnected - trying to connect")
@@ -211,10 +217,9 @@ $(document).ready(function() {
     });
 
     socket.on('status', function(data) {
-        //console.log(data)
         
         if (data.usr == uid) {
-            
+
             if (isMain || isPreview || isLanguageUI) {
                 // START initialization routine
                 socket.emit('ex', { id: "projDD", fn: "dropdown", val: "init", usr: uid });
@@ -239,9 +244,7 @@ $(document).ready(function() {
     
     socket.on('ex', function(data) {
         
-        
-        console.log("C_DEBUG: received data from socket: ", data);
-
+        console.log("C_DEBUG: received data from LUI socket: ", data);
 
         logjs(data, 'scrollbox_debug_0');
 

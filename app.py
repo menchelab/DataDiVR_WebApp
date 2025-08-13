@@ -52,7 +52,7 @@ import uploaderGraph
 import util
 import websocket_functions as webfunc
 from extensions import load_extensions
-from extensions.languageUI.src.app import blueprint, register_socketio_events
+#from extensions.languageUI.src.app import blueprint, register_socketio_events
 
 import pandas as pd
 import plotly
@@ -71,14 +71,12 @@ app.debug = False
 app.config["SECRET_KEY"] = "secret"
 app.config["SESSION_TYPE"] = "filesystem"
 
-socketio = SocketIO(app, manage_session=False)
-app, extensions = load_extensions.load(app)
+socketio = SocketIO(app, manage_session=False,
+                    cors_allowed_origins="*")
+# load extensions and register their socketio events
+app, extensions = load_extensions.load(app, socketio)
 
-# Register the Blueprint
-app.register_blueprint(blueprint, url_prefix="/LUI/languageUI")
 
-# Register WebSocket events for /LUI
-register_socketio_events(socketio)
 
 
 ### HTML ROUTES ###
@@ -450,7 +448,7 @@ def ex(message):
     print("in main app: Message received:", message)
     
     room = 'shared-room' #flask.session.get("room") or 1 # jupyter-room
-    username = flask.session.get("username") or 'jupyter-user'
+    username = message["usr"] #flask.session.get("username") or 'jupyter-user'
     print(f"Using room: {room}, user: {username}")
 
     for func in GD.functions["ex"]:
@@ -458,7 +456,7 @@ def ex(message):
         func(message)
     
     project = GD.data["actPro"]
-    print("incoming :" + str(message))
+    print("main app - incoming :" + str(message))
 
     event_handler.handle_socket_execute(message, room, project)
     
@@ -467,6 +465,7 @@ def ex(message):
         'id': 'test-node',
         'val': 42
     }, room='shared-room', namespace='/main')  
+
 
 # @socketio.on("ex", namespace="/main")
 # @spam_protector
@@ -487,10 +486,6 @@ def ex(message):
 
 
 
-
-
-
-
 # added for jupyter client (or any client not sending http requests)
 @socketio.on('init-project', namespace='/main')
 def init_project():
@@ -507,6 +502,34 @@ def init_project():
     GD.load_annotations()
     print("GD initialization complete")
     
+
+
+
+# deprecated ?
+# #TO DO: add case for not existing LUI extension / namespace 
+# import extensions.languageUI.src.language_interface as lui
+
+# @socketio.on("ex", namespace="/LUI/languageUI")
+# def handle_lui_message(message):
+    
+#     #if message['id'] != "LUItextinput": 
+#     print("C_DEBUG: Received message in /MAINapp :", message)
+
+#     # Forward the message to the /main namespace
+#     #room = "shared-room" #flask.session.get("room") or "default_room"
+
+#     # Map the raw message to the corresponding action
+#     #command = lui.route_command(message)
+#     #mapped_message = lui.handle_routed_command(command) 
+
+#     #project = GD.data["actPro"]
+#     #event_handler.handle_socket_execute(message, room, project)
+#     #emit("ex", mapped_message, namespace="/main", room=room)
+    
+#     #print("C_DEBUG: Forwarded mapped message to /main APP :", mapped_message)
+
+
+
 
 
 #------------------------------------------

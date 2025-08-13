@@ -16,6 +16,9 @@ from .execute_events import (
 
 
 def handle_socket_execute(message, room, project):
+
+    print("C_DEBUG: handle_socket_execute", message, room, project)
+
     if message["fn"] == "sel":
         ui_events.selection_event(message)
 

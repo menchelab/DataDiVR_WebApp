@@ -92,34 +92,50 @@ def language_ui():
 
 @blueprint.route("/languageUI_process", methods=["POST"])
 def language_ui_process():
-    user_input = request.json.get("text", "")
-    username = request.json.get("usr", "")
 
-    command = route_command(user_input)
-    result = handle_routed_command(command)
+    # print("C_DEBUG: Processing language UI_process - request")
+    user_input = request.json.get("text", "")
+    print("C_DEBUG: Processing language UI_process - user_input:", user_input)
+
+    username = request.json.get("usr", "")
+    room = request.json.get("room", "shared-room")
+
+    message = user_input
+    command = route_command(message)
+    print("C_DEBUG: Routed command:", command)
+
+
+    mapped_message = handle_routed_command(command) 
+    print("C_DEBUG: Mapped message:", mapped_message)
+
+    project = GD.data["actPro"]
+    event_handler.handle_socket_execute(mapped_message, room, project)
 
     return jsonify({
-        "function_name": command.get("function", "general_query"),
-        "response": result,
-        "user": username
-    })
+         "function_name": command.get("function", "general_query"),
+         "response": mapped_message,
+         "user": username
+     })
 
 
 
-def register_socketio_events(socketio):
-    @socketio.on("ex", namespace="/LUI/lanuageUI")
-    def ex(message):
-        print("C_DEBUG: Message received in /LUI:", message)
 
-        room = 'shared-room'  # Replace with your room logic
-        username = flask.session.get("username") or 'jupyter-user'
+# deprecated ? 
+# def register_socketio_events(socketio):
+#     @socketio.on("ex", namespace="/LUI/lanuageUI")
+#     def ex(message):
 
-        # Example processing logic
-        print(f"Using room: {room}, user: {username}")
+#         print("C_DEBUG: Message received in /LUIapp :", message)
 
-        # Call your event handler
-        project = GD.data["actPro"]
-        event_handler.handle_socket_execute(message, room, project)
+#         room = 'shared-room'  # Replace with your room logic
+#         username = flask.session.get("username") or 'jupyter-user'
 
-        # Emit a response back to the client
-        emit("response", {"status": "success", "message": "Message processed"}, room=room, namespace="/LUI/lanuageUI")
+#         # Example processing logic
+#         print(f"Using room: {room}, user: {username}")
+
+#         # Call your event handler
+#         project = GD.data["actPro"]
+#         event_handler.handle_socket_execute(message, room, project)
+
+#         # Emit a response back to the client
+#         emit("response", {"status": "success", "message": "Message processed"}, room=room, namespace="/main")

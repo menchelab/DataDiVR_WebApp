@@ -49,8 +49,6 @@ def node_list_event(message, room):
 
 def plot_to_js_event(message, room):
 
-    print("C_DEBUG: in plot_to_js_event", message)
-
     response = {}
     response["fn"] = "plotly2js"
     response["parent"] = message["parent"]  # target <div>

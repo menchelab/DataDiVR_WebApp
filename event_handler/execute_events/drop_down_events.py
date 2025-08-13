@@ -153,6 +153,9 @@ def user_input(message, response, room=None, namespace="/main"):
             emit("ex", response_clear, room=room, namespace=namespace)
 
     if message["id"] == "projDD":  # PROJECT CHANGE
+
+        print("C_DEBUG - project change in dropdown_events.py")
+
         GD.data["actPro"] = GD.plist[int(message["val"])]
         GD.saveGD()
         GD.loadGD()
@@ -171,7 +174,8 @@ def user_input(message, response, room=None, namespace="/main"):
         response2["val"] = GD.pfile
         response2["fn"] = "project"
 
-        emit("ex", response2, room=room, namespace=namespace)
+        #emit("ex", response2, room=room, namespace=namespace)
+        emit("ex", response2, room=room, namespace="/main")
 
         # display rerun and save buttons for layout module
         emit(

@@ -56,16 +56,26 @@ def action_open_project(projectname):
     sel_id = GD.listProjects().index(projectname)
     sel_name = GD.listProjects()[sel_id]
 
-    main({
+    # construct the message dictionary
+    message = {
         'usr': flask.session.get("username") or "backend",
         'id': 'projDD',
         'fn': 'dropdown',
-        'msg': sel_name,
+        'parent': 'projDD',
         'val': sel_id,
-        }, namespace='/LUI')
+        'msg': sel_name
+    }
+    #print("C_DEBUG: message in actioncollection.py :", message)
+    # # send the message to the main namespace
+    # main({
+    #     'usr': username,
+    #     'id': 'projDD',
+    #     'fn': 'dropdown',
+    #     'msg': sel_name,
+    #     'val': sel_id,
+    #     }, namespace='/main')
 
-
-    return f"Project '{projectname}' loaded successfully."
+    return message #f"Project '{projectname}' loaded successfully."
 
 
 
@@ -82,6 +92,9 @@ def action_show_node_info(nodeid):
         None
     """
 
+    print("C_DEBUG: in action_show_node_info:", nodeid)
+
+    
     if not nodeid:
         # If nodeid is empty, return an error message
         return "ERROR: Please provide a node ID to retrieve information."
