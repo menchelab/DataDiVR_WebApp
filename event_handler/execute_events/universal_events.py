@@ -19,12 +19,16 @@ def protein_load_event(message, room):
 
 
 def search_event(message, room):
+
+    print("C_DEBUG: in search_event", message)
+
     if len(message["val"]) > 1:
         x = '{"id": "search", "val":[], "fn": "makeNodeButton", "parent":"scrollbox2"}'
         results = json.loads(x)
         results["val"] = search.search(message["val"])
-        emit("ex", results, room=room)
-
+       
+        emit("ex", results, room=room, namespace="/main") # quick fix - adding namespace = "/main" to emit
+        
 
 
 

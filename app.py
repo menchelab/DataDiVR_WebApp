@@ -445,19 +445,18 @@ def left(message):
 @spam_protector
 def ex(message):
     
-    print("in main app: Message received:", message)
+    #print("in main app: Message received:", message)
     
-    room = 'shared-room' #flask.session.get("room") or 1 # jupyter-room
+    room = 'shared-room' #flask.session.get("room") # jupyter-room
     username = message["usr"] #flask.session.get("username") or 'jupyter-user'
-    print(f"Using room: {room}, user: {username}")
+    #print(f"Using room: {room}, user: {username}")
 
     for func in GD.functions["ex"]:
-        #print("Executing function:", func)
         func(message)
     
     project = GD.data["actPro"]
-    print("main app - incoming :" + str(message))
 
+    print("in main app - Executing function - MESSAGE:", message)
     event_handler.handle_socket_execute(message, room, project)
     
     # added for jupyter client (or any client not sending http requests)

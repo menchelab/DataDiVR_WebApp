@@ -93,23 +93,28 @@ def language_ui():
 @blueprint.route("/languageUI_process", methods=["POST"])
 def language_ui_process():
 
-    # print("C_DEBUG: Processing language UI_process - request")
     user_input = request.json.get("text", "")
-    print("C_DEBUG: Processing language UI_process - user_input:", user_input)
+    #print("C_DEBUG: Processing language UI_process - user_input:", user_input)
 
     username = request.json.get("usr", "")
-    room = request.json.get("room", "shared-room")
+    room = 'shared-room' # TO FIX! shared room everywhere for now -  #flask.session.get("room") # request.json.get("room", "shared-room")
 
     message = user_input
-    command = route_command(message)
-    print("C_DEBUG: Routed command:", command)
+    project = GD.data["actPro"]
 
+    command = route_command(message)
+    command["args"]["room"] = room
+    command["args"]["project"] = project
+
+    print("C_DEBUG: in LUI app - Routed command:", command)
 
     mapped_message = handle_routed_command(command) 
-    print("C_DEBUG: Mapped message:", mapped_message)
+    mapped_message["usr"] = username
+    mapped_message["room"] = room 
+    mapped_message["project"] = project
 
-    project = GD.data["actPro"]
-    event_handler.handle_socket_execute(mapped_message, room, project)
+
+    event_handler.handle_socket_execute(mapped_message, room, project) # this is same as how main-app handles execute events
 
     return jsonify({
          "function_name": command.get("function", "general_query"),
@@ -117,25 +122,3 @@ def language_ui_process():
          "user": username
      })
 
-
-
-
-# deprecated ? 
-# def register_socketio_events(socketio):
-#     @socketio.on("ex", namespace="/LUI/lanuageUI")
-#     def ex(message):
-
-#         print("C_DEBUG: Message received in /LUIapp :", message)
-
-#         room = 'shared-room'  # Replace with your room logic
-#         username = flask.session.get("username") or 'jupyter-user'
-
-#         # Example processing logic
-#         print(f"Using room: {room}, user: {username}")
-
-#         # Call your event handler
-#         project = GD.data["actPro"]
-#         event_handler.handle_socket_execute(message, room, project)
-
-#         # Emit a response back to the client
-#         emit("response", {"status": "success", "message": "Message processed"}, room=room, namespace="/main")

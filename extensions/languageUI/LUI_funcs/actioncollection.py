@@ -65,15 +65,6 @@ def action_open_project(projectname):
         'val': sel_id,
         'msg': sel_name
     }
-    #print("C_DEBUG: message in actioncollection.py :", message)
-    # # send the message to the main namespace
-    # main({
-    #     'usr': username,
-    #     'id': 'projDD',
-    #     'fn': 'dropdown',
-    #     'msg': sel_name,
-    #     'val': sel_id,
-    #     }, namespace='/main')
 
     return message #f"Project '{projectname}' loaded successfully."
 
@@ -81,39 +72,43 @@ def action_open_project(projectname):
 
 from search import search
 from search import search_by_termtype
-def action_show_node_info(nodeid):
+def action_show_node_info(node_id):
     """
     Displays information about a specific node.
     This function takes a node ID or node name, searches for the corresponding node information,
     and prints the progress along with the retrieved information.
     Args:
-        nodeid (int or str): The ID of the node to be searched.
+        node_id (int or str): The ID of the node to be searched.
     Returns:
         None
     """
 
-    print("C_DEBUG: in action_show_node_info:", nodeid)
+    print("C_DEBUG: in action_show_node_info:", node_id)
 
-    
-    if not nodeid:
+    if not node_id:
         # If nodeid is empty, return an error message
         return "ERROR: Please provide a node ID to retrieve information."
     
-    termtype = type(nodeid)
-    print("C_DEBUG: Node:", nodeid)
+    termtype = type(node_id)
+    print("C_DEBUG: Node:", node_id)
     if termtype == int:
         print("C_DEBUG: Node ID is an integer.")
     elif termtype == str:
         print("C_DEBUG: Node ID is a string.")
     else:
-        print("C_DEBUG: Node ID is of an unknown type.", type(nodeid))
+        print("C_DEBUG: Node ID is of an unknown type.", type(node_id))
 
+    response = search_by_termtype(termtype, node_id) #response = search(str(nodeid))
 
+    # message = {
+    #     'usr': flask.session.get("username") or "backend",
+    #     'id': 'search', 
+    #     'parent': 'scrollbox2', 
+    #     'fn': 'search', 
+    #     'val': node_id
+    # }
 
-    response = search_by_termtype(termtype, nodeid) #response = search(str(nodeid))
-
-    print("PROGRESS: Showing node information... : ", response)
-    return f"Node {nodeid} information: {response}"  
+    return response
 
 
 

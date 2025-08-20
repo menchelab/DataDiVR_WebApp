@@ -17,7 +17,9 @@ from .execute_events import (
 
 def handle_socket_execute(message, room, project):
 
-    print("C_DEBUG: handle_socket_execute", message, room, project)
+    print("C_DEBUG: handle_socket_execute", message)
+
+    # add catch for missing keys ??? 
 
     if message["fn"] == "sel":
         ui_events.selection_event(message)
@@ -25,7 +27,7 @@ def handle_socket_execute(message, room, project):
     if message["id"] == "protLoad":
         universal_events.protein_load_event(message, room)
 
-    if message["id"] == "search":
+    if message["id"] == "search": # this is not the NODE SEARCH event !? 
         universal_events.search_event(message, room)
 
     # Chat text message
@@ -120,5 +122,7 @@ def handle_socket_execute(message, room, project):
                 
 
     else:
+        print("C_DEBUG: Unknown function in handle_socket_execute:", message["fn"])
+
         emit("ex", message, room=room)
         
