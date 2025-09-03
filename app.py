@@ -448,7 +448,7 @@ def ex(message):
     #print("in main app: Message received:", message)
     
     room = 'shared-room' #flask.session.get("room") # jupyter-room
-    username = message["usr"] #flask.session.get("username") or 'jupyter-user'
+    username = message.get("usr", flask.session.get("username", "jupyter-user"))
     #print(f"Using room: {room}, user: {username}")
 
     for func in GD.functions["ex"]:

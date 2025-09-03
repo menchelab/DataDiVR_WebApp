@@ -78,15 +78,14 @@
                 .then((response) => response.json())
 
                 .then((json) => {
-                    chatwin.innerHTML += `<br><b>HUMAN | ${username}</b>: ${text}<br><br>`;
-                    chatwin.innerHTML += `<b>ENGINE | Response:</b> ${json.response}<br><hr>`;
+                    //console.log("C_DEBUG: LUI Response from server:", json);
 
+                    chatwin.innerHTML += `<br><b>HUMAN | ${username}</b>: ${text}<br><br>`;
+                    chatwin.innerHTML += `<b>DATA | Response:</b> ${json.response.feedback}<br><hr>`;
                     chatwin.scrollTop = chatwin.scrollHeight;
                     document.getElementById("LUItextinput").shadowRoot.getElementById("text").value = '';
                 });
-
-                    
-
+                
     }
 
     // Add event listener for Enter key
@@ -107,20 +106,20 @@
 
 
     
-    // Show or hide the scrollbox and clear button based on input
-    document.getElementById("LUItextinput").shadowRoot.getElementById("text").addEventListener("input", function(event) {
-        var text = event.target.value.trim();
-        var scrollbox = document.getElementById("scrollboxLUI");
-        var clearButton = document.getElementById("clearbutton");
+    // // Show or hide the scrollbox and clear button based on input
+    // document.getElementById("LUItextinput").shadowRoot.getElementById("text").addEventListener("input", function(event) {
+    //     var text = event.target.value.trim();
+    //     var scrollbox = document.getElementById("scrollboxLUI");
+    //     var clearButton = document.getElementById("clearbutton");
 
-        if (text.length > 0) {
-            //scrollbox.style.display = "block";
-            clearButton.style.display = "block";
-        } else {
-            //scrollbox.style.display = "none";
-            clearButton.style.display = "none";
-        }
-    });
+    //     if (text.length > 0) {
+    //         scrollbox.style.display = "block";
+    //         clearButton.style.display = "block";
+    //     } else {
+    //         scrollbox.style.display = "none";
+    //         clearButton.style.display = "none";
+    //     }
+    // });
 
 
 </script>

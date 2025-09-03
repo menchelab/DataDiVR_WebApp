@@ -3,10 +3,26 @@ import os
 from openai import OpenAI
 from dotenv import load_dotenv
 import json 
-import inspect
 import importlib
 
 
+
+FUNCTION_FN_MAPPING = {
+
+    # register DataDiVR modules here
+    # pattern: "python module name" : "fn value in message"
+    # the "fn" value is handled in "handle_execute_socket" in event_handler/__init__.py
+
+    "analytics_events": "analytics",
+    "search_events": "makeNodeButton",
+    "nodeinfo_events": "node"
+    # add others ... 
+}
+
+
+# ----------------------------------------
+# MODELS + APIs
+# ----------------------------------------
 
 # API / Model keys - Load .env and init OpenAI
 load_dotenv()
@@ -25,54 +41,11 @@ client = OpenAI(
 )
 
 
+
+
 # ----------------------------------------
-# Register all action_* functions
+# CREATE FUNCTION REGISTRY
 # ----------------------------------------
-
-
-# automaticall discover python files in a directory and register their action_* functions
-def get_action_registry_from_directory(directory, package_prefix):
-    """
-    Dynamically load all action_* functions from Python files in a directory.
-    """
-    registry = {}
-    for filename in os.listdir(directory):
-        if filename.endswith(".py") and not filename.startswith("__"):
-            module_name = f"{package_prefix}.{filename[:-3]}"  # Remove .py extension
-            module = importlib.import_module(module_name)
-            
-            # Inspect the module for functions starting with "action_"
-            for name, func in inspect.getmembers(module, inspect.isfunction):
-                if name.startswith("action_"):
-                    doc = func.__doc__ or "No description."
-                    registry[name] = {
-                        "function": func,
-                        "doc": doc.strip()
-                    }
-    return registry
-
-
-def get_action_registry_from_files(module_names):
-    """
-    Dynamically load all action_* functions from a list of module names.
-    """
-    registry = {}
-    for module_name in module_names:
-        # Dynamically import the module
-        module = importlib.import_module(module_name)
-        
-        # Inspect the module for functions starting with "action_"
-        for name, func in inspect.getmembers(module, inspect.isfunction):
-            if name.startswith("action_"):
-                doc = func.__doc__ or "No description."
-                registry[name] = {
-                    "function": func,
-                    "doc": doc.strip()
-                }
-    return registry
-
-
-
 
 def get_action_registry_from_DataDiVR():
     """
@@ -136,18 +109,8 @@ def get_action_registry_from_DataDiVR():
 
 
 
-
-# ==================================================================================================================
-
-# TO DO - LINK EXISTING FUNCTIONS FROM PLATFORM 
-# check output of functions and match current "action_..." functions 
-# doc strings to all platform functions 
-
-#registry1 = get_action_registry_from_directory("extensions/languageUI/LUI_funcs", "extensions.languageUI.LUI_funcs")
 registry_VR = get_action_registry_from_DataDiVR()
-ACTION_REGISTRY = {**registry_VR} #, **registry2}
-
-# ==================================================================================================================
+ACTION_REGISTRY = {**registry_VR} 
 
 
 
@@ -162,19 +125,32 @@ ACTION_REGISTRY = {**registry_VR} #, **registry2}
 # This prompt will be used to instruct the LLM to map user input to a specific function
 # and its arguments.
 def build_system_prompt(registry):
+    """
+    Builds a system prompt for the LLM based on the action registry.
 
+    This prompt instructs the LLM to map user input to one of the available Python functions
+    and their arguments. It dynamically includes all registered functions and their docstrings.
 
-    print("C_DEBUG - LANGUAGE_INTERFACE.PY - build_system_prompt..")#, registry)
+    Args:
+        registry (dict): The action registry containing function metadata.
 
+    Returns:
+        str: A system prompt for the LLM.
+    """
+    print("C_DEBUG - LANGUAGE_INTERFACE.PY - build_system_prompt...")
 
     lines = []
     for fname, meta in registry.items():
-        lines.append(f"- `{fname}(...)`: {meta['doc']}")
+        # Extract the module name from the file path
+        module_name = os.path.splitext(os.path.basename(meta["file_path"]))[0]
+        fn_value = FUNCTION_FN_MAPPING.get(module_name, "general")  # Map module to `fn` value
+        lines.append(f"- `{fname}(...)` (fn: `{fn_value}`): {meta['doc']}")
+
     return (
         "You're a smart router. Based on a user request, map it to one of the following Python functions:\n"
-        + "\n".join(lines) +
+        + "\n".join(lines) + 
         "\nReturn ONLY a JSON object like:\n"
-        '{"function": "action_show_node_info", "args": {"node_id": 5}}'
+        '{"function": "", "args": {"": ""}}\n'
     )
 
 
@@ -263,7 +239,7 @@ def handle_routed_command(command: dict):
 
 
 import re
-def extract_id_value(file_path: str, func_name: str) -> str:
+def extract_id_value_analytics(func_name: str) -> str:
     """
     Extracts the unique `id` value for the given function from the Python file.
     
@@ -274,13 +250,13 @@ def extract_id_value(file_path: str, func_name: str) -> str:
     Returns:
         str: The unique `id` value, or None if not found.
     """
-
     # pattern for ANALYTICS MODULE messages
     # Example: "id": "analyticsDegreeRun"
     # use first term in function name before "_" 
     # to generate the id, e.g., "degree" for "degree_distribution_run"
     # and the id follows the pattern "analytics{FuncName}Run"
     func_name_generated = func_name.split("_")[0]  # Extract the first term before "_"
+
     print("C_DEBUG - LANGUAGE_INTERFACE.PY - Extracted func_name_generated:", func_name_generated)
 
     id_pattern = rf'"analytics{func_name_generated.capitalize()}Run"'
@@ -290,101 +266,196 @@ def extract_id_value(file_path: str, func_name: str) -> str:
 
 
 
+
 def create_message(func_name: str, args: dict, file_path: str) -> dict:
     """
     Creates a structured message dynamically based on the matched function and its arguments.
-    Dynamically extracts the `id` for analytics module messages and sets `msg` and `fn` accordingly.
-    
+    Dynamically sets the `fn` value based on the module (e.g., analytics_events, layout_events).
+
     Args:
         func_name (str): The name of the matched function.
         args (dict): The arguments for the matched function.
         file_path (str): The path to the Python file containing the function.
-    
+
     Returns:
         dict: A dynamically generated message.
     """
-
+    # Extract the module name from the file path
+    module_name = os.path.splitext(os.path.basename(file_path))[0]  # e.g., "analytics_events"
 
     # Default message structure
     message = {
-        "usr": args.get("usr", "default_user"),  # Replace with actual user ID if available
-        "msg": "RUN",  # Always "RUN" for analytics module
-        "id": None,  # To be populated dynamically
-        "parent": args.get("parent", None),  # Default parent value
-        "val": args.get("val", None),  # Default value
-        "fn": "analytics",  # Always "analytics" for analytics module
+        "usr": args.get("usr", "default_user"),
+        "msg": None,
+        "id": None,
+        "parent": args.get("parent", None),
+        "val": args.get("val", None),
+        "fn": None,  # To be determined dynamically
+        "feedback": f"'{func_name}' has been triggered successfully."
     }
 
-    # Dynamically extract the `id` value from the file
-    id_value = extract_id_value(file_path, func_name)
-    # check if "" are in id_value
-    if id_value and isinstance(id_value, str) and id_value.startswith('"') and id_value.endswith('"'):
-        id_value = id_value.strip('"')  # Remove quotes if present
-    print("C_DEBUG - LANGUAGE_INTERFACE.PY - Extracted id_value:", id_value)
+    # Set the `fn` value based on the module name
+    message["fn"] = FUNCTION_FN_MAPPING.get(module_name, "general")  # Default to "general" if not found
+
+    print("C_DEBUG - LANGUAGE_INTERFACE.PY - message fn :", message["fn"])
+    print("C_DEBUG - LANGUAGE_INTERFACE.PY - complete message :", message)
 
 
-    if id_value:
-        message["id"] = id_value  # Set the extracted `id` value
-    else:
-        message["id"] = f"unknown_{func_name}"  # Fallback for unknown IDs
+    #-------------------------------------------------------------------
+    # MODULE CATCH CASES HERE: 
+    # Dynamically extract the `id` and 'msg' value from the file
+
+    # catch if analytics module
+    if module_name == "analytics_events":
+        print("C_DEBUG: in analytics events module...")
+        id_value = extract_id_value_analytics(func_name)
+        if id_value and isinstance(id_value, str) and id_value.startswith('"') and id_value.endswith('"'):
+            id_value = id_value.strip('"')  # Remove quotes if present
+            msg_msg = "RUN"
+            message["msg"] = msg_msg
+            
+    # catch if search module
+    if module_name == "search_events":
+        print("C_DEBUG: in search events module...")
+        id_value = "search"
+        msg_value = args.get("message", {}).get("val", "")
+        node_id = args.get("message", {}).get("id", "")
+        message["val"] = msg_value
+
+    # catch if nodeinfo module
+    if module_name == "nodeinfo_events":
+        print("C_DEBUG: in nodeinfo events module...")
+        id_value = None
+        node_name = args.get("message", {}).get("val", "")
+        node_id = args.get("message", {}).get("id", "")
+        message["val"] = node_id
+        message["msg"] = node_name
+        message["fn"] = "node"
+
+    #-------------------------------------------------------------------
+
+
+    message["id"] = id_value
+
+    print("C_DEBUG - LANGUAGE_INTERFACE.PY - Created message:", message)
 
     return message
 
 
 
 
-import re
-def extract_msg_value(file_path: str) -> str:
-    """
-    Extracts the value assigned to `message["msg"]` in the given Python file.
-    
-    Args:
-        file_path (str): The path to the Python file to inspect.
-    
-    Returns:
-        str: The value assigned to `message["msg"]`, or None if not found.
-    """
-    msg_pattern = r'message\["msg"\]\s*=\s*["\'](.*?)["\']'  # Regex to match message["msg"] = "value"
-    
-    try:
-        with open(file_path, "r") as f:
-            content = f.read()
-            match = re.search(msg_pattern, content)
-            if match:
-                return match.group(1)  # Return the captured value
-    except Exception as e:
-        print(f"Error reading file {file_path}: {e}")
-    
-    return None  # Return None if no match is found
-
-
-
-
 
 # ----------------------------------------
-# Fallback LLM general chat - one can use a different model here
+# Fallback LLM general chat - choose model here
 # ----------------------------------------
 # This function handles general prompts that do not match any specific action.
 # It sends the prompt to the LLM and returns the response.
 def handle_general_prompt(prompt: str) -> str:
+    """
+    Handles general prompts by dynamically parsing the user input to extract the module, function, and arguments.
+    If the prompt describes a Python function, it dynamically imports and executes the function.
 
+    Args:
+        prompt (str): The user input.
 
+    Returns:
+        str: The result of the dynamically generated function or a fallback response.
+    """
     print("C_DEBUG - LANGUAGE_INTERFACE.PY - handle_general_prompt:", prompt)
 
-
     try:
+        # Use the LLM to interpret the prompt and extract the module, function, and arguments
         response = client.chat.completions.create(
             model="z-ai/glm-4.5-air:free",
             messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "system", "content": "You are a helpful assistant. Interpret the following prompt and return a JSON object "
+                                              "with 'module', 'function', and 'args' keys if it describes a Python function. "
+                                              "Otherwise, respond with 'general_query'."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.7,
             max_tokens=500
         )
-        return response.choices[0].message.content.strip()
+
+        # Parse the LLM response
+        llm_response = response.choices[0].message.content.strip()
+        print("C_DEBUG - LANGUAGE_INTERFACE.PY - LLM Response:", llm_response)
+
+        # Attempt to parse the response as JSON
+        try:
+            parsed_response = json.loads(llm_response)
+        except json.JSONDecodeError:
+            return f"LLM response could not be parsed as JSON: {llm_response}"
+
+        # Check if the response contains module, function, and args
+        if "module" in parsed_response and "function" in parsed_response:
+            module_name = parsed_response["module"]
+            function_name = parsed_response["function"]
+            args = parsed_response.get("args", [])
+            kwargs = parsed_response.get("kwargs", {})
+
+            # Dynamically import and execute the function
+            try:
+                result = execute_function(module_name, function_name, *args, **kwargs)
+                return f"Function '{function_name}' from module '{module_name}' executed successfully. Result: {result}"
+            except Exception as e:
+                print(f"C_DEBUG - LANGUAGE_INTERFACE.PY - Error executing function '{function_name}' from module '{module_name}': {e}")
+                return f"Error executing function '{function_name}' from module '{module_name}': {e}"
+        
+        else:
+            # If no module/function is found, treat it as a general query
+            return f"General query response: {llm_response}"
+
     except Exception as e:
         return f"LLM error: {str(e)}"
+    
 
 
 
+
+
+
+
+
+# ----------------------------------------
+# Handle any python module and trigger function extracted from prompt 
+# ----------------------------------------
+def dynamic_import(module_name: str, function_name: str):
+    """
+    Dynamically imports a module and retrieves a function from it.
+
+    Args:
+        module_name (str): The name of the Python module to import.
+        function_name (str): The name of the function to retrieve.
+
+    Returns:
+        function: The dynamically imported function.
+
+    Raises:
+        ImportError: If the module or function cannot be imported.
+    """
+    try:
+        module = importlib.import_module(module_name)
+        func = getattr(module, function_name)
+        return func
+    except ImportError as e:
+        raise ImportError(f"Module '{module_name}' could not be imported: {e}")
+    except AttributeError as e:
+        raise ImportError(f"Function '{function_name}' not found in module '{module_name}': {e}")
+    
+
+def execute_function(module_name: str, function_name: str, *args, **kwargs):
+    """
+    Dynamically imports and executes a function with the given arguments.
+
+    Args:
+        module_name (str): The name of the Python module.
+        function_name (str): The name of the function to execute.
+        *args: Positional arguments for the function.
+        **kwargs: Keyword arguments for the function.
+
+    Returns:
+        Any: The result of the function execution.
+    """
+    func = dynamic_import(module_name, function_name)
+    return func(*args, **kwargs)

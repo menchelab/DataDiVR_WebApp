@@ -103,6 +103,10 @@ def language_ui_process():
     project = GD.data["actPro"]
 
     command = route_command(message)
+    
+    print("C_DEBUG: in LUI app - Routed command:", command)
+
+
     command["args"]["room"] = room
     command["args"]["project"] = project
 
@@ -113,12 +117,14 @@ def language_ui_process():
     mapped_message["room"] = room 
     mapped_message["project"] = project
 
-
+    feedback = mapped_message.get("feedback", "No feedback provided.")
+    mapped_message["feedback"] = feedback
+    
     event_handler.handle_socket_execute(mapped_message, room, project) # this is same as how main-app handles execute events
 
     return jsonify({
          "function_name": command.get("function", "general_query"),
          "response": mapped_message,
-         "user": username
-     })
+         "user": username, 
+         })
 

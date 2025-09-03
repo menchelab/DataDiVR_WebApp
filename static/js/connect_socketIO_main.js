@@ -1034,7 +1034,7 @@ $(document).ready(function() {
 
                         let request = {
                             fn: "analytics",
-                            id: "analyticsClusteringCoeffRun",
+                            id: "analyticsClusteringcoefficientRun",
                             event: "analytics.clustering_coeff",
                             highlight: clickedBarX,
                             target: targetDiv,

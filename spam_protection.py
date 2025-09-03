@@ -10,7 +10,7 @@ SPAM_MAX_TASKS = 20
 # number of expensive tasks until the system shuts them down
 
 #SPAM_EXPENSIVE_IDS = {
-#    'analyticsDegreeRun', 'analyticsClosenessRun', 'analyticsPathRun', 'analyticsEigenvectorRun', 'analyticsModcommunityRun', 'analyticsModcommunityLayout', 'analyticsClusteringCoeffRun', 
+#    'analyticsDegreeRun', 'analyticsClosenessRun', 'analyticsPathRun', 'analyticsEigenvectorRun', 'analyticsModcommunityRun', 'analyticsModcommunityLayout', 'analyticsClusteringcoefficientRun', 
 #    'annotationRun',
 #    'layoutRandomApply', 'layoutFDApply', 'layoutEigenApply', 'layoutCartoLocalApply', 'layoutCartoGlobalApply', 'layoutCartoImportanceApply', 'layoutSpectralApply'
 #}

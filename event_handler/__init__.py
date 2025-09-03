@@ -12,6 +12,9 @@ from .execute_events import (
     layout_events,
     ui_events,
     universal_events,
+
+    search_events,
+    nodeinfo_events,
 )
 
 
@@ -27,11 +30,25 @@ def handle_socket_execute(message, room, project):
     if message["id"] == "protLoad":
         universal_events.protein_load_event(message, room)
 
-    if message["id"] == "search": # this is not the NODE SEARCH event !? 
-        universal_events.search_event(message, room)
+
+
+
+
+    # SEARCH NODE EVENTS
+    elif message["id"] == "search": 
+        search_events.search_event(message, room) #universal_events.search_event(message, room)
+        #nodeinfo_events.node_event(message, room) #ui_events.node_event(message, room)
+
+    elif message["fn"] == "node":
+        nodeinfo_events.node_event(message, room) #ui_events.node_event(message, room)
+
+
+
+
+
 
     # Chat text message
-    if message["fn"] == "chatmessage":
+    elif message["fn"] == "chatmessage":
         universal_events.chat_message_event(message, room)
 
     elif message["id"] == "nl":
@@ -107,8 +124,6 @@ def handle_socket_execute(message, room, project):
     elif message["fn"] == "sli":
         ui_events.slider_event(message, room)
 
-    elif message["fn"] == "node":
-        ui_events.node_event(message, room)
 
     elif message["fn"] == "children":
         ui_events.children_event
@@ -122,7 +137,7 @@ def handle_socket_execute(message, room, project):
                 
 
     else:
-        print("C_DEBUG: Unknown function in handle_socket_execute:", message["fn"])
+        print("C_DEBUG: Unknown function in handle_socket_execute:", message)
 
-        emit("ex", message, room=room)
+        emit("ex", message, room=room, namespace = "/main") # quick fix - adding namespace = "/main" to emit
         

@@ -751,7 +751,7 @@ def generate_temp_layout(positions):
         return {"layout_created": False} 
     
 
-def analytics_clustering_coefficient(ordered_graph):
+def analytics_clusteringcoefficient(ordered_graph):
     if len(GD.links["links"]) > LAZY_CACHE_MAX_LINKS:
         if LAZY_CACHE_KEY not in GD.pdata.keys():
             GD.pdata[LAZY_CACHE_KEY] = {}

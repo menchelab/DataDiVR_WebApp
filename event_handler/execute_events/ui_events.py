@@ -56,21 +56,6 @@ def colorbox_event(message, room):
     emit("ex", message, room=room)
 
 
-# THIS SEEMS REDUDANT (layout title is already in the legend)
-# def legend_scene_display_event(message, room):
-#     # only here for managing forward and backward click
-#     try: 
-#         if "scenes" in GD.pfile.keys():
-#             new_scene = GD.pfile["scenes"][int(message["val"])]
-#             emit(
-#                 "ex",
-#                 {"fn": "legend_scene_display", "has_scenes": True, "text": new_scene},
-#                 room=room,
-#             )
-       
-#     except:
-#         emit("ex", {"fn": "legend_scene_display", "has_scenes": False}, room=room)
-
 def slider_event(message, room):
     if message["id"] not in GD.pdata:
         GD.pdata[message["id"]] = ""
@@ -102,35 +87,37 @@ def submit_event(message, room):
     emit("ex", response, room=room)
 
 
-def node_event(message, room):
-    response = {}
 
-    response["val"] = {}
-    response["fn"] = "node"
-    response["id"] = message["val"]
-    response["nch"] = len(GD.nchildren[int(message["val"])])
-    response["val"] = GD.nodes["nodes"][int(message["val"])]
-    GD.pdata["activeNode"] = message["val"]
 
-    if "protein_info" in GD.nodes["nodes"][int(message["val"])]:
-        if (
-            not "protstyle" in GD.pdata.keys()
-        ):  # check if selection exists in pdata.json
-            GD.pdata["protstyle"] = ""
-        GD.pdata["protstyle"] = list(
-            GD.nodes["nodes"][int(message["val"])]["protein_info"][0].keys()
-        )[1]
+# moved to nodeinfo_events.py
+# def node_event(message, room):
+#     response = {}
 
-        if (
-            not "protnamedown" in GD.pdata.keys()
-        ):  # check if selection exists in pdata.json
-            GD.pdata["protstyle"] = ""
-        GD.pdata["protnamedown"] = GD.nodes["nodes"][int(message["val"])]["uniprot"][0]
+#     response["val"] = {}
+#     response["fn"] = "node"
+#     response["id"] = message["val"]
+#     response["nch"] = len(GD.nchildren[int(message["val"])])
+#     response["val"] = GD.nodes["nodes"][int(message["val"])]
+#     GD.pdata["activeNode"] = message["val"]
 
-        GD.savePD()
+#     if "protein_info" in GD.nodes["nodes"][int(message["val"])]:
+#         if (
+#             not "protstyle" in GD.pdata.keys()
+#         ):  # check if selection exists in pdata.json
+#             GD.pdata["protstyle"] = ""
+#         GD.pdata["protstyle"] = list(
+#             GD.nodes["nodes"][int(message["val"])]["protein_info"][0].keys()
+#         )[1]
 
-    # print(response)
-    emit("ex", response, room=room)
+#         if (
+#             not "protnamedown" in GD.pdata.keys()
+#         ):  # check if selection exists in pdata.json
+#             GD.pdata["protstyle"] = ""
+#         GD.pdata["protnamedown"] = GD.nodes["nodes"][int(message["val"])]["uniprot"][0]
+
+#         GD.savePD()
+
+#     emit("ex", response, room=room, namespace = "/main") # quick fix - adding namespace = "/main" to emit
 
 
 def children_event(message, room):
@@ -151,30 +138,6 @@ def children_event(message, room):
         response2["val"].append(node)
     print(response2)
     emit("ex", response2, room=room)
-
-
-# work in progress 
-def checkbox_event(message, room):
-    if message["id"] == "cbdefinelinklist":
-        #print("C_DEBUG: in checkbox_event")
-
-        response = {}
-        response["usr"] = message["usr"]
-        response["fn"] = "checkbox"
-        response["id"] = message["id"]
-        response["val"] = message["val"]
-        
-        if message["val"] == True:
-            #print("C_DEBUG message false, use LAYOUT specific LINKS =", message)  
-            name_linkfile = "linkslayouts"
-            
-        if message["val"] == False:
-            #print("C_DEBUG message false, use ALL LINKS =", message)  
-            name_linkfile = "links"
-
-        response["definedlinklist"] = name_linkfile
-
-    emit("ex", response, room=room)
     
 
 

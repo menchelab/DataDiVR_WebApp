@@ -75,6 +75,8 @@ def degree_run_event(message, room, project):
     emit("ex", response, room=room, namespace = "/main") # added namespace explicitly
 
 
+
+
 def closeness_run_event(message, room, project):
     """
     Processes the closeness centrality analytics event.
@@ -112,6 +114,7 @@ def closeness_run_event(message, room, project):
     }
     emit("ex", response, room=room, namespace= "/main")  # added namespace explicitly
 
+
     # setup new texture
     if highlight is None:
         return
@@ -130,7 +133,9 @@ def closeness_run_event(message, room, project):
         {"channel": "linkRGB", "path": closeness_textures["path_links"]},
     ]
     response = {"usr": message["usr"], "fn": "updateTempTex", "textures": textures}
-    emit("ex", response, room=room, namespace= "/main")  # added namespace explicitly
+    emit("ex", response, room=room, namespace = "/main")  # added namespace explicitly
+
+
 
 
 def path_node1_event(message, room):
@@ -170,7 +175,8 @@ def path_node1_event(message, room):
     if "analyticsData" in GD.pdata.keys():
         if "shortestPathNode1" in GD.pdata["analyticsData"].keys():
             response["val"] = GD.pdata["analyticsData"]["shortestPathNode1"]
-    emit("ex", response, room=room)
+    emit("ex", response, room=room, namespace = "/main") # added namespace explicitly
+
 
 
 def path_node2_event(message, room):
@@ -208,7 +214,8 @@ def path_node2_event(message, room):
     if "analyticsData" in GD.pdata.keys():
         if "shortestPathNode2" in GD.pdata["analyticsData"].keys():
             response["val"] = GD.pdata["analyticsData"]["shortestPathNode2"]
-    emit("ex", response, room=room)
+    emit("ex", response, room=room, namespace = "/main") # added namespace explicitly
+
 
 
 # def path_run_old_event(message, room, project):
@@ -283,7 +290,8 @@ def path_run_event(message, room, project):
     response_textures["textures"].append(
         {"channel": "linkRGB", "path": shortest_path_display_obj["path_links"]}
     )
-    emit("ex", response_textures, room=room)
+    emit("ex", response_textures, room=room, namespace = "/main") # added namespace explicitly
+
 
     response_info = {}
     response_info["usr"] = message["usr"]
@@ -349,7 +357,8 @@ def path_backwards_event(message, project, room):
         "numPathCurrent": shortest_path_display_obj["numPathCurrent"],
         "pathLength": shortest_path_display_obj["pathLength"],
     }
-    emit("ex", response_info, room=room)
+    emit("ex", response_info, room=room, namespace = "/main") # added namespace explicitly
+
 
 
 def path_forwards_event(message, room, project):
@@ -403,7 +412,8 @@ def path_forwards_event(message, room, project):
         "numPathCurrent": shortest_path_display_obj["numPathCurrent"],
         "pathLength": shortest_path_display_obj["pathLength"],
     }
-    emit("ex", response_info, room=room)
+    emit("ex", response_info, room=room, namespace = "/main") # added namespace explicitly
+
 
 
 def eigenvector_run_event(message, room, project):
@@ -440,7 +450,8 @@ def eigenvector_run_event(message, room, project):
     response["id"] = "analyticsEigenvectorPlot"
     response["target"] = "analyticsContainer"  # container to render plot in
     response["val"] = plot_data
-    emit("ex", response, room=room)
+    emit("ex", response, room=room, namespace = "/main") # added namespace explicitly
+
 
     # setup new texture
     if highlight is None:
@@ -467,10 +478,11 @@ def eigenvector_run_event(message, room, project):
     response["textures"].append(
         {"channel": "linkRGB", "path": closeness_textures["path_links"]}
     )
-    emit("ex", response, room=room)
+    emit("ex", response, room=room, namespace = "/main") # added namespace explicitly
 
 
-def clustering_coefficient_run_event(message, room, project):
+
+def clusteringcoefficient_run_event(message, room, project):
     """
     Processes the clustering coefficient analytics event.
     Retrieves and processes clustering coefficient data from the project graph,
@@ -482,15 +494,15 @@ def clustering_coefficient_run_event(message, room, project):
         project (str): Project name to retrieve the graph from.
     """
 
-    if "analyticsClusteringCoeffRun" not in GD.session_data.keys():
+    if "analyticsClusteringcoefficientRun" not in GD.session_data.keys():
         ### "expensive" stuff
         if "graph" not in GD.session_data.keys():
             GD.session_data["graph"] = util.project_to_graph(project)
         graph = GD.session_data["graph"]
-        result = analytics.analytics_clustering_coefficient(graph)
+        result = analytics.analytics_clusteringcoefficient(graph)
         ###
-        GD.session_data["analyticsClusteringCoeffRun"] = result
-    arr = GD.session_data["analyticsClusteringCoeffRun"]
+        GD.session_data["analyticsClusteringcoefficientRun"] = result
+    arr = GD.session_data["analyticsClusteringcoefficientRun"]
 
     highlight = None
     if "highlight" in message.keys():
@@ -506,7 +518,8 @@ def clustering_coefficient_run_event(message, room, project):
     response["id"] = "analyticsClusteringCoeffPlot"
     response["target"] = "analyticsContainer"  # container to render plot in
     response["val"] = plot_data
-    emit("ex", response, room=room)
+    emit("ex", response, room=room, namespace = "/main") # added namespace explicitly
+
 
     # setup new texture
     if highlight is None:
@@ -532,7 +545,8 @@ def clustering_coefficient_run_event(message, room, project):
     response["textures"].append(
         {"channel": "linkRGB", "path": closeness_textures["path_links"]}
     )
-    emit("ex", response, room=room)
+    emit("ex", response, room=room, namespace = "/main") # added namespace explicitly
+
 
 
 def mod_community_run_event(message, room, project):
@@ -576,12 +590,13 @@ def mod_community_run_event(message, room, project):
     response["textures"].append(
         {"channel": "linkRGB", "path": generated_textures["path_links"]}
     )
-    emit("ex", response, room=room)
+    emit("ex", response, room=room, namespace = "/main") # added namespace explicitly
+
     response2 = {}
     response2["usr"] = message["usr"]
     response2["fn"] = "community_detection"
     response2["data"] = flattened_colors
-    emit("ex", response2, room=room)
+    emit("ex", response2, room=room, namespace = "/main") # added namespace explicitly
 
 
 def mod_community_layout_event(message, room, project):
@@ -631,7 +646,8 @@ def mod_community_layout_event(message, room, project):
     response["textures"].append(
         {"channel": "layoutNodesLow", "path": generated_layout["layout_low"]}
     )
-    emit("ex", response, room=room)
+    emit("ex", response, room=room, namespace = "/main") # added namespace explicitly
+
 
 
 def add_community_to_clipborad(message, room, project):
@@ -667,7 +683,8 @@ def add_community_to_clipborad(message, room, project):
         "fn": "cbaddNode",
         "val": GD.pdata["cbnode"],
     }
-    emit("ex", response, room=room)
+    emit("ex", response, room=room, namespace = "/main") # added namespace explicitly
+
 
 
 def update_clipboard_from_highlight_event(message: dict, room):
@@ -691,7 +708,8 @@ def update_clipboard_from_highlight_event(message: dict, room):
         "fn": "cbaddNode",
         "val": GD.pdata["cbnode"],
     }
-    emit("ex", response, room=room)
+    emit("ex", response, room=room, namespace = "/main") # added namespace explicitly
+
 
 def main(message, room, project):
     """
@@ -733,8 +751,8 @@ def main(message, room, project):
     if message["id"] == "analyticsEigenvectorRun":
         eigenvector_run_event(message, room, project)
 
-    if message["id"] == "analyticsClusteringCoeffRun":
-        clustering_coefficient_run_event(message, room, project)
+    if message["id"] == "analyticsClusteringcoefficientRun":
+        clusteringcoefficient_run_event(message, room, project)
 
     if message["id"] == "analyticsModcommunityRun":
         mod_community_run_event(message, room, project)
