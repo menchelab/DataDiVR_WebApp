@@ -94,37 +94,60 @@ def language_ui():
 def language_ui_process():
 
     user_input = request.json.get("text", "")
-    #print("C_DEBUG: Processing language UI_process - user_input:", user_input)
-
     username = request.json.get("usr", "")
     room = 'shared-room' # TO FIX! shared room everywhere for now -  #flask.session.get("room") # request.json.get("room", "shared-room")
-
     message = user_input
     project = GD.data["actPro"]
 
+    # Initialize conversation history in session if not present
+    if "conversation_history" not in session:
+        session["conversation_history"] = []
+
+    # Add the user's input to the conversation history
+    session["conversation_history"].append({"role": "user", "content": user_input})
+
     command = route_command(message)
-    
+
+    try:
+        command["args"]["room"] = room
+        command["args"]["project"] = project
+    except: 
+        command["args"] = {"room": room, "project": project}
+
     print("C_DEBUG: in LUI app - Routed command:", command)
 
+    mapped_message = handle_routed_command(command)
+    print("C_DEBUG: in LUI app - Mapped message:", mapped_message)
 
-    command["args"]["room"] = room
-    command["args"]["project"] = project
 
-    print("C_DEBUG: in LUI app - Routed command:", command)
+    if command["type"] == "general_query":
+        # Add the assistant's response to the conversation history
+        session["conversation_history"].append({"role": "assistant", "content":  mapped_message["feedback"]}) # mapped_message["response"]["feedback"]})
 
-    mapped_message = handle_routed_command(command) 
-    mapped_message["usr"] = username
-    mapped_message["room"] = room 
-    mapped_message["project"] = project
+        # Return the general query response
+        return jsonify({
+            "function_name": "general_query",
+            "response": mapped_message,
+            "user": username,
+        })
 
-    feedback = mapped_message.get("feedback", "No feedback provided.")
-    mapped_message["feedback"] = feedback
-    
-    event_handler.handle_socket_execute(mapped_message, room, project) # this is same as how main-app handles execute events
+    if command["type"] == "action":
+        # Pass to event handler
+        mapped_message["usr"] = username
+        mapped_message["room"] = room
+        mapped_message["project"] = project
 
-    return jsonify({
-         "function_name": command.get("function", "general_query"),
-         "response": mapped_message,
-         "user": username, 
-         })
+        feedback = mapped_message.get("feedback", "No feedback provided.")
+        mapped_message["feedback"] = feedback
+
+        # Add the action feedback to the conversation history
+        session["conversation_history"].append({"role": "assistant", "content": feedback})
+
+        event_handler.handle_socket_execute(mapped_message, room, project)  # Same as how main-app handles execute events
+
+        return jsonify({
+            "function_name": command.get("function", "general_query"),
+            "response": mapped_message,
+            "user": username,
+        })
 

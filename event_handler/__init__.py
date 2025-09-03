@@ -22,7 +22,9 @@ def handle_socket_execute(message, room, project):
 
     print("C_DEBUG: handle_socket_execute", message)
 
-    # add catch for missing keys ??? 
+    # catch if no message fn
+    if "fn" not in message:
+        return None
 
     if message["fn"] == "sel":
         ui_events.selection_event(message)
@@ -31,20 +33,14 @@ def handle_socket_execute(message, room, project):
         universal_events.protein_load_event(message, room)
 
 
-
-
-
-    # SEARCH NODE EVENTS
+    # --- SEARCH NODE EVENTS --- 
     elif message["id"] == "search": 
         search_events.search_event(message, room) #universal_events.search_event(message, room)
         #nodeinfo_events.node_event(message, room) #ui_events.node_event(message, room)
 
     elif message["fn"] == "node":
         nodeinfo_events.node_event(message, room) #ui_events.node_event(message, room)
-
-
-
-
+    # --- --- 
 
 
     # Chat text message
@@ -68,9 +64,6 @@ def handle_socket_execute(message, room, project):
     elif message["fn"] == "selections":
         if message["id"] == "selectionsCb":
             clipboard_events.node_selections_event(message, room)
-
-    #elif message["fn"] == "legend_scene_display":
-    #    ui_events.legend_scene_display_event(message, room)
 
     elif message["fn"] == "clipboard":
         if message["id"] == "cbClear":

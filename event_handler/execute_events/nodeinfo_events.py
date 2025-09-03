@@ -53,7 +53,7 @@ def node_event(message, room):
     """
     
     #  {'usr': 'DEFt2ZFbgw', 'msg': 'CDK4', 'id': None, 'val': '4240', 'fn': 'node'}
-    
+
     response = {}
 
     response["val"] = {}
@@ -85,9 +85,5 @@ def node_event(message, room):
         GD.pdata["protnamedown"] = GD.nodes["nodes"][int(message["val"])]["uniprot"][0]
 
         GD.savePD()
-
-
-    print("C_DEBUG : In nodeinfo_events.py ", response)
-
 
     emit("ex", response, room=room, namespace = "/main") # quick fix - adding namespace = "/main" to emit

@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import json 
 import importlib
 
+from flask import session 
 
 
 FUNCTION_FN_MAPPING = {
@@ -146,65 +147,214 @@ def build_system_prompt(registry):
         fn_value = FUNCTION_FN_MAPPING.get(module_name, "general")  # Map module to `fn` value
         lines.append(f"- `{fname}(...)` (fn: `{fn_value}`): {meta['doc']}")
 
-    return (
-        "You're a smart router. Based on a user request, map it to one of the following Python functions:\n"
-        + "\n".join(lines) + 
-        "\nReturn ONLY a JSON object like:\n"
-        '{"function": "", "args": {"": ""}}\n'
-    )
+    # return (
+    #     "You're a smart router. Based on a user request, map it to one of the following Python functions:\n"
+    #     + "\n".join(lines) + 
+    #     "\nReturn ONLY a JSON object like:\n"
+    #     '{"function": "", "args": {"": ""}}\n'
+    # )
 
+    return (
+        "You are a smart router for user requests. Based on the user input, you must decide whether to:\n"
+        "1. Map the input to one of the following Python functions (type: 'action').\n"
+        "2. If no function matches, treat the input as a general query (type: 'general_query').\n\n"
+        "Available functions:\n"
+        + "\n".join(lines) +
+        "\n\n"
+        "Return ONLY a JSON object in one of the following formats:\n"
+        "For an action:\n"
+        '{"type": "action", "function": "function_name", "args": {"arg1": "value1", "arg2": "value2"}}\n'
+        "For a general query:\n"
+        '{"type": "general_query", "query": "original user input"}\n'
+        "Do not include any additional text or explanations."
+    )
 
 
 
 # Route the user input to the appropriate function using the LLM
 # This function sends the user input to the LLM, which will return a JSON object
 # containing the function name and its arguments.
+# def route_command(user_input: str) -> dict:
+#     """
+#     Routes the user input to the appropriate function using the LLM.
+#     If the LLM response does not match a known function, treat it as a general query.
+
+#     Args:
+#         user_input (str): The user input.
+
+#     Returns:
+#         dict: A dictionary containing the routed command or general query response.
+#     """
+#     print("C_DEBUG - LANGUAGE_INTERFACE.PY - route_command:", user_input)
+
+#     # Build the system prompt
+#     system_prompt = build_system_prompt(ACTION_REGISTRY)
+#     messages = [
+#         {"role": "system", "content": system_prompt},
+#         {"role": "user", "content": user_input}
+#     ]
+
+#     # Send the prompt to the LLM
+#     response = client.chat.completions.create(
+#         model="openai/gpt-oss-20b",  # or gpt-3.5-turbo
+#         messages=messages,
+#         temperature=0.3,  # Lower temperature for more deterministic responses
+#         max_tokens=500
+#     )
+
+#     # Parse the LLM response
+#     llm_response = response.choices[0].message.content.strip()
+#     print("C_DEBUG - LANGUAGE_INTERFACE.PY - LLM Response:", llm_response)
+
+#     # Attempt to parse the response as JSON
+#     parsed = json.loads(llm_response)
+
+#     validated_response = validate_llm_response(parsed, user_input)
+#     return validated_response
+
+# TEST VERSION - with conversation history
 def route_command(user_input: str) -> dict:
+    """
+    Routes the user input to the appropriate function using the LLM.
+    If the LLM response does not match a known function, treat it as a general query.
 
+    Args:
+        user_input (str): The user input.
 
+    Returns:
+        dict: A dictionary containing the routed command or general query response.
+    """
     print("C_DEBUG - LANGUAGE_INTERFACE.PY - route_command:", user_input)
 
+    # Initialize conversation history if not already present
+    if "conversation_history" not in session:
+        session["conversation_history"] = []
 
+    # Add the user's input to the conversation history
+    session["conversation_history"].append({"role": "user", "content": user_input})
+
+    # Build the system prompt
     system_prompt = build_system_prompt(ACTION_REGISTRY)
-    messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": user_input}
-    ]
+    messages = [{"role": "system", "content": system_prompt}] + session["conversation_history"]
 
+    # Send the prompt to the LLM
+    response = client.chat.completions.create(
+        model="gpt-3.5-turbo",  # "openai/gpt-oss-20b",  # or z-ai/glm-4.5-air:free
+        messages=messages,
+        temperature=0.3,  # Lower temperature for more deterministic responses
+        max_tokens=500
+    )
+
+    # Parse the LLM response
+    llm_response = response.choices[0].message.content.strip()
+    print("C_DEBUG - LANGUAGE_INTERFACE.PY - LLM Response:", llm_response)
+
+    # Add the assistant's response to the conversation history
+    session["conversation_history"].append({"role": "assistant", "content": llm_response})
+
+    # Attempt to parse the response as JSON
     try:
-        response = client.chat.completions.create(
-            model="openai/gpt-oss-20b",  # or gpt-3.5-turbo
-            messages=messages,
-            temperature=0.5,
-            max_tokens=500
-        )
-        parsed = json.loads(response.choices[0].message.content.strip())
-        parsed["type"] = "action"
-        print("C_DEBUG - LANGUAGE_INTERFACE.PY - Parsed command TYPE ACTION:", parsed)
-        return parsed
-    
-    except Exception as e:
-        print("C_DEBUG - LANGUAGE_INTERFACE.PY - Error in route_command GENERAL QUERY :", str(e))
+        parsed = json.loads(llm_response)
+        return validate_llm_response(parsed, user_input)
+    except json.JSONDecodeError:
+        # If the response is not JSON, treat it as a general query
+        return {"type": "general_query", "response": {"feedback": llm_response}}
+
+
+
+def validate_llm_response(parsed_response, user_input):
+    """
+    Validates the LLM response to ensure it matches the expected structure.
+
+    Args:
+        parsed_response (dict): The parsed response from the LLM.
+        user_input (str): The original user input.
+
+    Returns:
+        dict: A validated response.
+    """
+    if "type" not in parsed_response:
         return {
             "type": "general_query",
             "query": user_input,
-            "error": str(e)
+            "error": "Missing 'type' in LLM response."
         }
 
+    if parsed_response["type"] == "action":
+        if "function" not in parsed_response or "args" not in parsed_response:
+            return {
+                "type": "general_query",
+                "query": user_input,
+                "error": "Invalid 'action' response format."
+            }
+        return parsed_response
+
+    if parsed_response["type"] == "general_query":
+        if "query" not in parsed_response:
+            return {
+                "type": "general_query",
+                "query": user_input,
+                "error": "Invalid 'general_query' response format."
+            }
+        return parsed_response
+
+    return {
+        "type": "general_query",
+        "query": user_input,
+        "error": "Unknown response type."
+    }
 
 
 # ----------------------------------------
 # Dispatcher
 # ----------------------------------------
 # This function takes the routed command and executes the corresponding action.
+# def handle_routed_command(command: dict):
+#     """
+#     Handles the routed command by creating a structured message instead of directly calling the function.
+#     The message structure is based on the matched function and its arguments.
+    
+#     Args:
+#         command (dict): The routed command containing the function name and arguments.
+    
+#     Returns:
+#         dict: A structured message based on the matched function.
+#     """
+#     print("C_DEBUG - LANGUAGE_INTERFACE.PY - handle_routed_command:", command)
+
+#     if command["type"] == "action":
+#         # Found a matching action / function
+#         func_name = command.get("function")
+#         args = command.get("args", {})
+
+#         if func_name in ACTION_REGISTRY:
+#             try:
+#                 # Get the file path of the function
+#                 file_path = ACTION_REGISTRY[func_name]["file_path"]
+
+#                 # Create a structured message dynamically
+#                 message = create_message(func_name, args, file_path)
+#                 return message
+#             except Exception as e:
+#                 return {"error": f"Function error: {e}"}
+#         else:
+#             return {"error": f"Unknown action: {func_name}"}
+
+#     elif command["type"] == "general_query":
+#         # Fall-back to general query handling
+#         return handle_general_prompt(command["query"])
+
+#     return {"error": "Unknown command format."}
+
+# TEST Version - with conversation history and feedback
 def handle_routed_command(command: dict):
     """
     Handles the routed command by creating a structured message instead of directly calling the function.
     The message structure is based on the matched function and its arguments.
-    
+
     Args:
         command (dict): The routed command containing the function name and arguments.
-    
+
     Returns:
         dict: A structured message based on the matched function.
     """
@@ -222,6 +372,11 @@ def handle_routed_command(command: dict):
 
                 # Create a structured message dynamically
                 message = create_message(func_name, args, file_path)
+
+                # Add the action feedback to the conversation history
+                feedback = message.get("feedback", "No feedback provided.")
+                session["conversation_history"].append({"role": "assistant", "content": feedback})
+
                 return message
             except Exception as e:
                 return {"error": f"Function error: {e}"}
@@ -350,65 +505,86 @@ def create_message(func_name: str, args: dict, file_path: str) -> dict:
 # ----------------------------------------
 # This function handles general prompts that do not match any specific action.
 # It sends the prompt to the LLM and returns the response.
-def handle_general_prompt(prompt: str) -> str:
+# def handle_general_prompt(prompt: str) -> str:
+#     """
+#     Handles general prompts by sending the user input to the LLM and retrieving a structured response.
+#     The response will always include a "response" key with a nested "feedback" key containing the answer.
+
+#     Args:
+#         prompt (str): The user input.
+
+#     Returns:
+#         dict: A structured response with the answer under "response" -> "feedback".
+#     """
+#     print("C_DEBUG - LANGUAGE_INTERFACE.PY - handle_general_prompt:", prompt)
+
+#     try:
+#         # Send the general query to the LLM
+#         response = client.chat.completions.create(
+#             model="z-ai/glm-4.5-air:free",
+#             messages=[
+#                 {"role": "system", "content": "You are a helpful assistant. Respond to the following prompt as accurately as possible, be concise and answer short."},
+#                 {"role": "user", "content": prompt}
+#             ],
+#             temperature=0.3,
+#             max_tokens=500
+#         )
+
+#         # Extract the LLM response content
+#         llm_response = response.choices[0].message.content.strip()
+#         print("C_DEBUG - LANGUAGE_INTERFACE.PY - LLM Response:", llm_response)
+
+#         # Attempt to parse the response as JSON (if applicable)
+#         try:
+#             parsed_response = json.loads(llm_response)
+#             if isinstance(parsed_response, dict):
+#                 # If the response is valid JSON, wrap it in the required structure
+#                 return {"response": {"feedback": parsed_response}}
+#         except json.JSONDecodeError:
+#             # If the response is not JSON, treat it as plain text
+#             print("C_DEBUG - LANGUAGE_INTERFACE.PY - Response is not JSON, returning raw text.")
+
+#         # Return the raw response in the required structure
+#         return {"response": {"feedback": llm_response}}
+
+#     except Exception as e:
+#         print(f"C_DEBUG - LANGUAGE_INTERFACE.PY - Error in handle_general_prompt: {e}")
+#         return {"response": {"feedback": f"Error: Unable to process the general query. Details: {str(e)}"}}
+    
+# TEST VERSION - with conversation history
+def handle_general_prompt(prompt: str) -> dict:
     """
-    Handles general prompts by dynamically parsing the user input to extract the module, function, and arguments.
-    If the prompt describes a Python function, it dynamically imports and executes the function.
+    Handles general prompts by sending the user input to the LLM and retrieving a structured response.
+    The response includes a "feedback" key containing the answer.
 
     Args:
         prompt (str): The user input.
 
     Returns:
-        str: The result of the dynamically generated function or a fallback response.
+        dict: A structured response with the answer under "feedback".
     """
     print("C_DEBUG - LANGUAGE_INTERFACE.PY - handle_general_prompt:", prompt)
 
-    try:
-        # Use the LLM to interpret the prompt and extract the module, function, and arguments
-        response = client.chat.completions.create(
-            model="z-ai/glm-4.5-air:free",
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant. Interpret the following prompt and return a JSON object "
-                                              "with 'module', 'function', and 'args' keys if it describes a Python function. "
-                                              "Otherwise, respond with 'general_query'."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7,
-            max_tokens=500
-        )
+    # Add the user's input to the conversation history
+    session["conversation_history"].append({"role": "user", "content": prompt})
 
-        # Parse the LLM response
-        llm_response = response.choices[0].message.content.strip()
-        print("C_DEBUG - LANGUAGE_INTERFACE.PY - LLM Response:", llm_response)
+    # Send the conversation history to the LLM
+    response = client.chat.completions.create(
+        model="gpt-3.5-turbo", #"z-ai/glm-4.5-air:free",
+        messages=session["conversation_history"],
+        temperature=0.3,
+        max_tokens=500
+    )
 
-        # Attempt to parse the response as JSON
-        try:
-            parsed_response = json.loads(llm_response)
-        except json.JSONDecodeError:
-            return f"LLM response could not be parsed as JSON: {llm_response}"
+    # Extract the LLM response content
+    llm_response = response.choices[0].message.content.strip()
+    print("C_DEBUG - LANGUAGE_INTERFACE.PY - LLM Response:", llm_response)
 
-        # Check if the response contains module, function, and args
-        if "module" in parsed_response and "function" in parsed_response:
-            module_name = parsed_response["module"]
-            function_name = parsed_response["function"]
-            args = parsed_response.get("args", [])
-            kwargs = parsed_response.get("kwargs", {})
+    # Add the assistant's response to the conversation history
+    session["conversation_history"].append({"role": "assistant", "content": llm_response})
 
-            # Dynamically import and execute the function
-            try:
-                result = execute_function(module_name, function_name, *args, **kwargs)
-                return f"Function '{function_name}' from module '{module_name}' executed successfully. Result: {result}"
-            except Exception as e:
-                print(f"C_DEBUG - LANGUAGE_INTERFACE.PY - Error executing function '{function_name}' from module '{module_name}': {e}")
-                return f"Error executing function '{function_name}' from module '{module_name}': {e}"
-        
-        else:
-            # If no module/function is found, treat it as a general query
-            return f"General query response: {llm_response}"
-
-    except Exception as e:
-        return f"LLM error: {str(e)}"
-    
+    # Return the response in the required structure
+    return {"feedback": llm_response}
 
 
 

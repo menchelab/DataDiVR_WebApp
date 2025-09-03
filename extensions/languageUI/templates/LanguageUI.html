@@ -78,10 +78,15 @@
                 .then((response) => response.json())
 
                 .then((json) => {
-                    //console.log("C_DEBUG: LUI Response from server:", json);
+                    console.log("C_DEBUG: LUI Response from server:", json);
 
-                    chatwin.innerHTML += `<br><b>HUMAN | ${username}</b>: ${text}<br><br>`;
-                    chatwin.innerHTML += `<b>DATA | Response:</b> ${json.response.feedback}<br><hr>`;
+                    //chatwin.innerHTML += `<br><b>HUMAN | ${username}</b>: ${text}<br><br>`;
+                    //chatwin.innerHTML += `<b>DATA | Response:</b> ${json.response.feedback}<br><hr>`;
+
+                    chatwin.innerHTML += `<br><b> HUMAN | ${text}<br><br>`;
+                    chatwin.innerHTML += `<b> D A T A | ${json.response.feedback}<br><hr>`;  
+
+                    
                     chatwin.scrollTop = chatwin.scrollHeight;
                     document.getElementById("LUItextinput").shadowRoot.getElementById("text").value = '';
                 });
