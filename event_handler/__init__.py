@@ -38,8 +38,26 @@ def handle_socket_execute(message, room, project):
         search_events.search_event(message, room) #universal_events.search_event(message, room)
         #nodeinfo_events.node_event(message, room) #ui_events.node_event(message, room)
 
+        # + automatically trigger the graph plotly update after node event
+        message_mod = message.copy()
+        message_mod["parent"] = "plotly2js"
+        message_mod["msg"] = "Graph"
+        message_mod["fn"] = "Plotly2js"
+        message_mod["id"] = "plotly2jsB"
+        universal_events.plot_to_js_event(message_mod, room)
+
+
     elif message["fn"] == "node":
         nodeinfo_events.node_event(message, room) #ui_events.node_event(message, room)
+        
+        # + automatically trigger the graph plotly update after node event
+        message_mod = message.copy()
+        message_mod["parent"] = "plotly2js"
+        message_mod["msg"] = "Graph"
+        message_mod["fn"] = "Plotly2js"
+        message_mod["id"] = "plotly2jsB"
+        universal_events.plot_to_js_event(message_mod, room)
+
     # --- --- 
 
 

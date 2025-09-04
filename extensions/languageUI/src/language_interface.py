@@ -121,7 +121,6 @@ ACTION_REGISTRY = {**registry_VR}
 # ----------------------------------------
 # Use LLM to match input to a function
 # ----------------------------------------
-
 # Build a system prompt for the LLM based on the action registry
 # This prompt will be used to instruct the LLM to map user input to a specific function
 # and its arguments.
@@ -147,13 +146,6 @@ def build_system_prompt(registry):
         fn_value = FUNCTION_FN_MAPPING.get(module_name, "general")  # Map module to `fn` value
         lines.append(f"- `{fname}(...)` (fn: `{fn_value}`): {meta['doc']}")
 
-    # return (
-    #     "You're a smart router. Based on a user request, map it to one of the following Python functions:\n"
-    #     + "\n".join(lines) + 
-    #     "\nReturn ONLY a JSON object like:\n"
-    #     '{"function": "", "args": {"": ""}}\n'
-    # )
-
     return (
         "You are a smart router for user requests. Based on the user input, you must decide whether to:\n"
         "1. Map the input to one of the following Python functions (type: 'action').\n"
@@ -174,45 +166,6 @@ def build_system_prompt(registry):
 # Route the user input to the appropriate function using the LLM
 # This function sends the user input to the LLM, which will return a JSON object
 # containing the function name and its arguments.
-# def route_command(user_input: str) -> dict:
-#     """
-#     Routes the user input to the appropriate function using the LLM.
-#     If the LLM response does not match a known function, treat it as a general query.
-
-#     Args:
-#         user_input (str): The user input.
-
-#     Returns:
-#         dict: A dictionary containing the routed command or general query response.
-#     """
-#     print("C_DEBUG - LANGUAGE_INTERFACE.PY - route_command:", user_input)
-
-#     # Build the system prompt
-#     system_prompt = build_system_prompt(ACTION_REGISTRY)
-#     messages = [
-#         {"role": "system", "content": system_prompt},
-#         {"role": "user", "content": user_input}
-#     ]
-
-#     # Send the prompt to the LLM
-#     response = client.chat.completions.create(
-#         model="openai/gpt-oss-20b",  # or gpt-3.5-turbo
-#         messages=messages,
-#         temperature=0.3,  # Lower temperature for more deterministic responses
-#         max_tokens=500
-#     )
-
-#     # Parse the LLM response
-#     llm_response = response.choices[0].message.content.strip()
-#     print("C_DEBUG - LANGUAGE_INTERFACE.PY - LLM Response:", llm_response)
-
-#     # Attempt to parse the response as JSON
-#     parsed = json.loads(llm_response)
-
-#     validated_response = validate_llm_response(parsed, user_input)
-#     return validated_response
-
-# TEST VERSION - with conversation history
 def route_command(user_input: str) -> dict:
     """
     Routes the user input to the appropriate function using the LLM.
@@ -309,44 +262,6 @@ def validate_llm_response(parsed_response, user_input):
 # Dispatcher
 # ----------------------------------------
 # This function takes the routed command and executes the corresponding action.
-# def handle_routed_command(command: dict):
-#     """
-#     Handles the routed command by creating a structured message instead of directly calling the function.
-#     The message structure is based on the matched function and its arguments.
-    
-#     Args:
-#         command (dict): The routed command containing the function name and arguments.
-    
-#     Returns:
-#         dict: A structured message based on the matched function.
-#     """
-#     print("C_DEBUG - LANGUAGE_INTERFACE.PY - handle_routed_command:", command)
-
-#     if command["type"] == "action":
-#         # Found a matching action / function
-#         func_name = command.get("function")
-#         args = command.get("args", {})
-
-#         if func_name in ACTION_REGISTRY:
-#             try:
-#                 # Get the file path of the function
-#                 file_path = ACTION_REGISTRY[func_name]["file_path"]
-
-#                 # Create a structured message dynamically
-#                 message = create_message(func_name, args, file_path)
-#                 return message
-#             except Exception as e:
-#                 return {"error": f"Function error: {e}"}
-#         else:
-#             return {"error": f"Unknown action: {func_name}"}
-
-#     elif command["type"] == "general_query":
-#         # Fall-back to general query handling
-#         return handle_general_prompt(command["query"])
-
-#     return {"error": "Unknown command format."}
-
-# TEST Version - with conversation history and feedback
 def handle_routed_command(command: dict):
     """
     Handles the routed command by creating a structured message instead of directly calling the function.
@@ -505,53 +420,6 @@ def create_message(func_name: str, args: dict, file_path: str) -> dict:
 # ----------------------------------------
 # This function handles general prompts that do not match any specific action.
 # It sends the prompt to the LLM and returns the response.
-# def handle_general_prompt(prompt: str) -> str:
-#     """
-#     Handles general prompts by sending the user input to the LLM and retrieving a structured response.
-#     The response will always include a "response" key with a nested "feedback" key containing the answer.
-
-#     Args:
-#         prompt (str): The user input.
-
-#     Returns:
-#         dict: A structured response with the answer under "response" -> "feedback".
-#     """
-#     print("C_DEBUG - LANGUAGE_INTERFACE.PY - handle_general_prompt:", prompt)
-
-#     try:
-#         # Send the general query to the LLM
-#         response = client.chat.completions.create(
-#             model="z-ai/glm-4.5-air:free",
-#             messages=[
-#                 {"role": "system", "content": "You are a helpful assistant. Respond to the following prompt as accurately as possible, be concise and answer short."},
-#                 {"role": "user", "content": prompt}
-#             ],
-#             temperature=0.3,
-#             max_tokens=500
-#         )
-
-#         # Extract the LLM response content
-#         llm_response = response.choices[0].message.content.strip()
-#         print("C_DEBUG - LANGUAGE_INTERFACE.PY - LLM Response:", llm_response)
-
-#         # Attempt to parse the response as JSON (if applicable)
-#         try:
-#             parsed_response = json.loads(llm_response)
-#             if isinstance(parsed_response, dict):
-#                 # If the response is valid JSON, wrap it in the required structure
-#                 return {"response": {"feedback": parsed_response}}
-#         except json.JSONDecodeError:
-#             # If the response is not JSON, treat it as plain text
-#             print("C_DEBUG - LANGUAGE_INTERFACE.PY - Response is not JSON, returning raw text.")
-
-#         # Return the raw response in the required structure
-#         return {"response": {"feedback": llm_response}}
-
-#     except Exception as e:
-#         print(f"C_DEBUG - LANGUAGE_INTERFACE.PY - Error in handle_general_prompt: {e}")
-#         return {"response": {"feedback": f"Error: Unable to process the general query. Details: {str(e)}"}}
-    
-# TEST VERSION - with conversation history
 def handle_general_prompt(prompt: str) -> dict:
     """
     Handles general prompts by sending the user input to the LLM and retrieving a structured response.
@@ -593,45 +461,46 @@ def handle_general_prompt(prompt: str) -> dict:
 
 
 
-# ----------------------------------------
-# Handle any python module and trigger function extracted from prompt 
-# ----------------------------------------
-def dynamic_import(module_name: str, function_name: str):
-    """
-    Dynamically imports a module and retrieves a function from it.
+# # WORK IN PROGRESS 
+# # ----------------------------------------
+# # Handle any python module and trigger function extracted from prompt 
+# # ----------------------------------------
+# def dynamic_import(module_name: str, function_name: str):
+#     """
+#     Dynamically imports a module and retrieves a function from it.
 
-    Args:
-        module_name (str): The name of the Python module to import.
-        function_name (str): The name of the function to retrieve.
+#     Args:
+#         module_name (str): The name of the Python module to import.
+#         function_name (str): The name of the function to retrieve.
 
-    Returns:
-        function: The dynamically imported function.
+#     Returns:
+#         function: The dynamically imported function.
 
-    Raises:
-        ImportError: If the module or function cannot be imported.
-    """
-    try:
-        module = importlib.import_module(module_name)
-        func = getattr(module, function_name)
-        return func
-    except ImportError as e:
-        raise ImportError(f"Module '{module_name}' could not be imported: {e}")
-    except AttributeError as e:
-        raise ImportError(f"Function '{function_name}' not found in module '{module_name}': {e}")
+#     Raises:
+#         ImportError: If the module or function cannot be imported.
+#     """
+#     try:
+#         module = importlib.import_module(module_name)
+#         func = getattr(module, function_name)
+#         return func
+#     except ImportError as e:
+#         raise ImportError(f"Module '{module_name}' could not be imported: {e}")
+#     except AttributeError as e:
+#         raise ImportError(f"Function '{function_name}' not found in module '{module_name}': {e}")
     
 
-def execute_function(module_name: str, function_name: str, *args, **kwargs):
-    """
-    Dynamically imports and executes a function with the given arguments.
+# def execute_function(module_name: str, function_name: str, *args, **kwargs):
+#     """
+#     Dynamically imports and executes a function with the given arguments.
 
-    Args:
-        module_name (str): The name of the Python module.
-        function_name (str): The name of the function to execute.
-        *args: Positional arguments for the function.
-        **kwargs: Keyword arguments for the function.
+#     Args:
+#         module_name (str): The name of the Python module.
+#         function_name (str): The name of the function to execute.
+#         *args: Positional arguments for the function.
+#         **kwargs: Keyword arguments for the function.
 
-    Returns:
-        Any: The result of the function execution.
-    """
-    func = dynamic_import(module_name, function_name)
-    return func(*args, **kwargs)
+#     Returns:
+#         Any: The result of the function execution.
+#     """
+#     func = dynamic_import(module_name, function_name)
+#     return func(*args, **kwargs)
