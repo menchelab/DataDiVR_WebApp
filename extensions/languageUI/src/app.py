@@ -119,7 +119,6 @@ def language_ui_process():
     mapped_message = handle_routed_command(command)
     print("C_DEBUG: in LUI app - Mapped message:", mapped_message)
 
-
     if command["type"] == "general_query":
         # Add the assistant's response to the conversation history
         session["conversation_history"].append({"role": "assistant", "content":  mapped_message["feedback"]}) # mapped_message["response"]["feedback"]})

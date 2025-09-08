@@ -7,6 +7,9 @@ import importlib
 
 from flask import session 
 
+from extensions.languageUI.src.lui_helpers import load_project_info
+import GlobalData as GD
+
 
 FUNCTION_FN_MAPPING = {
 
@@ -16,7 +19,8 @@ FUNCTION_FN_MAPPING = {
 
     "analytics_events": "analytics",
     "search_events": "makeNodeButton",
-    "nodeinfo_events": "node"
+    "nodeinfo_events": "node",
+    "project_events": "dropdown"
     # add others ... 
 }
 
@@ -24,6 +28,9 @@ FUNCTION_FN_MAPPING = {
 # ----------------------------------------
 # MODELS + APIs
 # ----------------------------------------
+
+# define model
+llm_from_openrouterai = "openai/gpt-oss-20b:free" # "gpt-3.5-turbo" # "meta-llama/llama-3.3-70b-instruct:free"   #"z-ai/glm-4.5-air:free", "openai/gpt-oss-20b:free" #"meta-llama/llama-3.3-70b-instruct:free" 
 
 # API / Model keys - Load .env and init OpenAI
 load_dotenv()
@@ -126,10 +133,13 @@ ACTION_REGISTRY = {**registry_VR}
 # and its arguments.
 def build_system_prompt(registry):
     """
-    Builds a system prompt for the LLM based on the action registry.
+    Builds a system prompt for the LLM based on the action registry and project-specific information.
 
     This prompt instructs the LLM to map user input to one of the available Python functions
-    and their arguments. It dynamically includes all registered functions and their docstrings.
+    and their arguments. It dynamically includes all registered functions and their docstrings,
+    as well as project-specific information retrieved from the current project's metadata.
+
+    The project information is dynamically retrieved from GD.data["actPro"].
 
     Args:
         registry (dict): The action registry containing function metadata.
@@ -137,7 +147,9 @@ def build_system_prompt(registry):
     Returns:
         str: A system prompt for the LLM.
     """
+
     print("C_DEBUG - LANGUAGE_INTERFACE.PY - build_system_prompt...")
+
 
     lines = []
     for fname, meta in registry.items():
@@ -146,10 +158,28 @@ def build_system_prompt(registry):
         fn_value = FUNCTION_FN_MAPPING.get(module_name, "general")  # Map module to `fn` value
         lines.append(f"- `{fname}(...)` (fn: `{fn_value}`): {meta['doc']}")
 
+    # get project information 
+    project_data = load_project_info()
+    project_name = project_data.get("name", "Unknown Project")
+    project_info = project_data.get("info", "No description available.")
+    #print("C_DEBUG - LANGUAGE_INTERFACE.PY - Project Name:", project_name)
+    #print("C_DEBUG - LANGUAGE_INTERFACE.PY - Project Info:", project_info)
+    #print("C_DEBUG - LANGUAGE_INTERFACE.PY - Building system prompt with project info...")
+
+
+    # Build the project-specific section of the prompt
+    project_section = (
+        f"Project Name: {project_name}\n"
+        f"Project Description: {project_info}\n\n"
+        f"You have access to this project information. Use it to answer user queries.\n"
+        f"If the user asks about the project or information about the project, provide details based on the above information.\n"
+    )
+
     return (
         "You are a smart router for user requests. Based on the user input, you must decide whether to:\n"
         "1. Map the input to one of the following Python functions (type: 'action').\n"
         "2. If no function matches, treat the input as a general query (type: 'general_query').\n\n"
+        + project_section +
         "Available functions:\n"
         + "\n".join(lines) +
         "\n\n"
@@ -157,8 +187,8 @@ def build_system_prompt(registry):
         "For an action:\n"
         '{"type": "action", "function": "function_name", "args": {"arg1": "value1", "arg2": "value2"}}\n'
         "For a general query:\n"
-        '{"type": "general_query", "query": "original user input"}\n'
-        "Do not include any additional text or explanations."
+        '{"type": "general_query", "response": {"feedback": "Your natural language response here."}}\n'
+        "Do not include any additional text or explanations outside the JSON object."
     )
 
 
@@ -170,6 +200,7 @@ def route_command(user_input: str) -> dict:
     """
     Routes the user input to the appropriate function using the LLM.
     If the LLM response does not match a known function, treat it as a general query.
+    Includes project-specific information in the system prompt.
 
     Args:
         user_input (str): The user input.
@@ -177,8 +208,6 @@ def route_command(user_input: str) -> dict:
     Returns:
         dict: A dictionary containing the routed command or general query response.
     """
-    print("C_DEBUG - LANGUAGE_INTERFACE.PY - route_command:", user_input)
-
     # Initialize conversation history if not already present
     if "conversation_history" not in session:
         session["conversation_history"] = []
@@ -192,7 +221,7 @@ def route_command(user_input: str) -> dict:
 
     # Send the prompt to the LLM
     response = client.chat.completions.create(
-        model="gpt-3.5-turbo",  # "openai/gpt-oss-20b",  # or z-ai/glm-4.5-air:free
+        model=llm_from_openrouterai,
         messages=messages,
         temperature=0.3,  # Lower temperature for more deterministic responses
         max_tokens=500
@@ -200,19 +229,15 @@ def route_command(user_input: str) -> dict:
 
     # Parse the LLM response
     llm_response = response.choices[0].message.content.strip()
-    print("C_DEBUG - LANGUAGE_INTERFACE.PY - LLM Response:", llm_response)
 
     # Add the assistant's response to the conversation history
     session["conversation_history"].append({"role": "assistant", "content": llm_response})
 
-    # Attempt to parse the response as JSON
-    try:
-        parsed = json.loads(llm_response)
-        return validate_llm_response(parsed, user_input)
-    except json.JSONDecodeError:
-        # If the response is not JSON, treat it as a general query
-        return {"type": "general_query", "response": {"feedback": llm_response}}
+    print("\n LLM response:" + llm_response + "\n")
 
+    parsed = json.loads(llm_response)
+    return validate_llm_response(parsed, user_input)
+ 
 
 
 def validate_llm_response(parsed_response, user_input):
@@ -308,33 +333,6 @@ def handle_routed_command(command: dict):
 
 
 
-import re
-def extract_id_value_analytics(func_name: str) -> str:
-    """
-    Extracts the unique `id` value for the given function from the Python file.
-    
-    Args:
-        file_path (str): The path to the Python file to inspect.
-        func_name (str): The name of the function to find the `id` for.
-    
-    Returns:
-        str: The unique `id` value, or None if not found.
-    """
-    # pattern for ANALYTICS MODULE messages
-    # Example: "id": "analyticsDegreeRun"
-    # use first term in function name before "_" 
-    # to generate the id, e.g., "degree" for "degree_distribution_run"
-    # and the id follows the pattern "analytics{FuncName}Run"
-    func_name_generated = func_name.split("_")[0]  # Extract the first term before "_"
-
-    print("C_DEBUG - LANGUAGE_INTERFACE.PY - Extracted func_name_generated:", func_name_generated)
-
-    id_pattern = rf'"analytics{func_name_generated.capitalize()}Run"'
-    print("C_DEBUG - LANGUAGE_INTERFACE.PY - id_pattern:", id_pattern)
-
-    return id_pattern
-
-
 
 
 def create_message(func_name: str, args: dict, file_path: str) -> dict:
@@ -367,7 +365,6 @@ def create_message(func_name: str, args: dict, file_path: str) -> dict:
     # Set the `fn` value based on the module name
     message["fn"] = FUNCTION_FN_MAPPING.get(module_name, "general")  # Default to "general" if not found
 
-    print("C_DEBUG - LANGUAGE_INTERFACE.PY - message fn :", message["fn"])
     print("C_DEBUG - LANGUAGE_INTERFACE.PY - complete message :", message)
 
 
@@ -378,7 +375,8 @@ def create_message(func_name: str, args: dict, file_path: str) -> dict:
     # catch if analytics module
     if module_name == "analytics_events":
         print("C_DEBUG: in analytics events module...")
-        id_value = extract_id_value_analytics(func_name)
+        func_name_generated = func_name.split("_")[0]  # Extract the first term before "_"
+        id_value = rf'"analytics{func_name_generated.capitalize()}Run"'
         if id_value and isinstance(id_value, str) and id_value.startswith('"') and id_value.endswith('"'):
             id_value = id_value.strip('"')  # Remove quotes if present
             msg_msg = "RUN"
@@ -401,6 +399,31 @@ def create_message(func_name: str, args: dict, file_path: str) -> dict:
         message["val"] = node_id
         message["msg"] = node_name
         message["fn"] = "node"
+
+    # catch if project module
+    if module_name == "project_events":
+        print("C_DEBUG: in project events module...")
+        id_value = "projDD"
+        message["fn"] = "dropdown"
+        message["parent"] = "projDD"
+
+        # get project name and index
+        new_projectname = args.get("message", {}).get("msg", "")
+        all_projects = GD.plist
+        all_projects_capitalized = [proj.capitalize() for proj in all_projects]
+        new_projectname_capitalized = new_projectname.capitalize()
+
+        if new_projectname_capitalized not in all_projects_capitalized:
+            message["feedback"] = "Project '{new_projectname}' not found in project list."
+        
+        projectname = all_projects[all_projects_capitalized.index(new_projectname_capitalized)]
+        project_index = all_projects_capitalized.index(new_projectname_capitalized)
+
+        print("C_DEBUG: matched project name:", projectname)
+        print("C_DEBUG: matched project index:", project_index)
+
+        message["msg"] = projectname
+        message["val"] = project_index
 
     #-------------------------------------------------------------------
 
@@ -438,7 +461,7 @@ def handle_general_prompt(prompt: str) -> dict:
 
     # Send the conversation history to the LLM
     response = client.chat.completions.create(
-        model="gpt-3.5-turbo", #"z-ai/glm-4.5-air:free",
+        model=llm_from_openrouterai,
         messages=session["conversation_history"],
         temperature=0.3,
         max_tokens=500
@@ -446,10 +469,11 @@ def handle_general_prompt(prompt: str) -> dict:
 
     # Extract the LLM response content
     llm_response = response.choices[0].message.content.strip()
-    print("C_DEBUG - LANGUAGE_INTERFACE.PY - LLM Response:", llm_response)
+    print("C_DEBUG - LANGUAGE_INTERFACE.PY - in handle_general_prompt - LLM response:", llm_response)
 
     # Add the assistant's response to the conversation history
     session["conversation_history"].append({"role": "assistant", "content": llm_response})
+    #print(f"C_DEBUG: Conversation history before LLM call:\n{json.dumps(session['conversation_history'], indent=4)}")
 
     # Return the response in the required structure
     return {"feedback": llm_response}
@@ -457,50 +481,3 @@ def handle_general_prompt(prompt: str) -> dict:
 
 
 
-
-
-
-
-# # WORK IN PROGRESS 
-# # ----------------------------------------
-# # Handle any python module and trigger function extracted from prompt 
-# # ----------------------------------------
-# def dynamic_import(module_name: str, function_name: str):
-#     """
-#     Dynamically imports a module and retrieves a function from it.
-
-#     Args:
-#         module_name (str): The name of the Python module to import.
-#         function_name (str): The name of the function to retrieve.
-
-#     Returns:
-#         function: The dynamically imported function.
-
-#     Raises:
-#         ImportError: If the module or function cannot be imported.
-#     """
-#     try:
-#         module = importlib.import_module(module_name)
-#         func = getattr(module, function_name)
-#         return func
-#     except ImportError as e:
-#         raise ImportError(f"Module '{module_name}' could not be imported: {e}")
-#     except AttributeError as e:
-#         raise ImportError(f"Function '{function_name}' not found in module '{module_name}': {e}")
-    
-
-# def execute_function(module_name: str, function_name: str, *args, **kwargs):
-#     """
-#     Dynamically imports and executes a function with the given arguments.
-
-#     Args:
-#         module_name (str): The name of the Python module.
-#         function_name (str): The name of the function to execute.
-#         *args: Positional arguments for the function.
-#         **kwargs: Keyword arguments for the function.
-
-#     Returns:
-#         Any: The result of the function execution.
-#     """
-#     func = dynamic_import(module_name, function_name)
-#     return func(*args, **kwargs)

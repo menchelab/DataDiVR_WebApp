@@ -255,13 +255,27 @@ def path_node2_event(message, room):
 
 def path_run_event(message, room, project):
     """
-    Executes the shortest path analytics event.
-    Generates shortest paths in the graph, applies coloring, and sends the results to the client.
-    
+    Calculates the shortest path between two specified nodes in the graph.
+
+    This function generates the shortest path between a start node and an end node,
+    applies coloring to the path, and sends the results to the client for visualization.
+
     Args:
-        message (dict): Event data containing user and function details.
-        room (str): Socket connection room identifier.
-        project (str): Project name to retrieve the graph from.
+        message (dict): Event data containing user details and the node parameters.
+                        Expected keys:
+                        - "usr": The user initiating the request.
+                        - "start_node": The name or ID of the start node (e.g., "cdk2").
+                        - "end_node": The name or ID of the end node (e.g., "cdk4").
+        room (str): Socket connection room identifier for sending responses.
+        project (str): Project name used to retrieve the graph data.
+
+    Example:
+        To calculate the shortest path between nodes "cdk2" and "cdk4", the message should include:
+        {
+            "usr": "user123",
+            "start_node": "cdk2",
+            "end_node": "cdk4"
+        }
     """
 
     # generate paths
@@ -292,7 +306,6 @@ def path_run_event(message, room, project):
     )
     emit("ex", response_textures, room=room, namespace = "/main") # added namespace explicitly
 
-
     response_info = {}
     response_info["usr"] = message["usr"]
     response_info["fn"] = "analytics"
@@ -302,7 +315,7 @@ def path_run_event(message, room, project):
         "numPathCurrent": shortest_path_display_obj["numPathCurrent"],
         "pathLength": shortest_path_display_obj["pathLength"],
     }
-    emit("ex", response_info, room=room)
+    emit("ex", response_info, room=room, namespace = "/main") # added namespace explicitly
 
 
 

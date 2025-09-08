@@ -154,7 +154,7 @@ def user_input(message, response, room=None, namespace="/main"):
 
     if message["id"] == "projDD":  # PROJECT CHANGE
 
-        print("C_DEBUG - project change in dropdown_events.py")
+        print("C_DEBUG - project change in dropdown_events.py: message : ", message)
 
         GD.data["actPro"] = GD.plist[int(message["val"])]
         GD.saveGD()
@@ -165,8 +165,11 @@ def user_input(message, response, room=None, namespace="/main"):
         GD.loadLinks()
         GD.load_annotations()
 
-        response["sel"] = message["val"]
-        response["name"] = message["msg"]
+        projectname = message["msg"]
+        projectid = int(message["val"])
+
+        response["sel"] = projectid #message["val"]
+        response["name"] = projectname
         print("changed Project to " + str(GD.plist[int(message["val"])]))
 
         response2 = {}

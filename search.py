@@ -186,6 +186,7 @@ def search_by_termtype(term):
     except:
         term = str(term)
 
+
     if isinstance(term, int):
         print("C_DEBUG : In search.py - search_by_termtype(term): term is int", term)
         return search_id(term)

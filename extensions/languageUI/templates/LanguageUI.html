@@ -43,10 +43,11 @@
         <h1>Welcome <span id="userid"></span> !</h1>
 
         <mc-scrollbox id='scrollboxLUI' style="--scrollbox-width: auto; --scrollbox-height: auto"> </mc-scrollbox>
-        <button id="clearbutton" class="swagButton" onclick="clearChat()" style="float:right; margin-top:10em">CLEAR</button>
         
         <mc-TextInput id="LUItextinput" type="textinput" fn="textinput" ></mc-TextInput>
+
         <button id="searchbuttonLUI" class="swagButton" onclick="processQuery()">GO</button>
+        <button id="clearbutton" class="swagButton" onclick="clearChat()" style="float:right;">CLEAR CHAT HISTORY</button>
 
         <!-- </mc-module> --> 
     </div>
@@ -80,15 +81,15 @@
                 .then((json) => {
                     console.log("C_DEBUG: LUI Response from server:", json);
 
-                    //chatwin.innerHTML += `<br><b>HUMAN | ${username}</b>: ${text}<br><br>`;
-                    //chatwin.innerHTML += `<b>DATA | Response:</b> ${json.response.feedback}<br><hr>`;
 
-                    chatwin.innerHTML += `<br><b> HUMAN | ${text}<br><br>`;
-                    chatwin.innerHTML += `<b> D A T A | ${json.response.feedback}<br><hr>`;  
+                    chatwin.innerHTML += `<br><b> HUMAN | ${text}<br><br>`; //${username}
+                    chatwin.innerHTML += `<b> D A T A | ${json.response.feedback}<br><hr>`;
 
                     
                     chatwin.scrollTop = chatwin.scrollHeight;
                     document.getElementById("LUItextinput").shadowRoot.getElementById("text").value = '';
+                    
+                
                 });
                 
     }
@@ -97,6 +98,8 @@
     document.getElementById("LUItextinput").shadowRoot.getElementById("text").addEventListener("keydown", function(event) {
         if (event.key === "Enter") {
             processQuery();
+            // do not add a new line
+            event.preventDefault();
         }
     });
 
@@ -108,23 +111,6 @@
                 
                 textArea.placeholder = "Type something. e.g. 'Open project teapot.' ...";
     });
-
-
-    
-    // // Show or hide the scrollbox and clear button based on input
-    // document.getElementById("LUItextinput").shadowRoot.getElementById("text").addEventListener("input", function(event) {
-    //     var text = event.target.value.trim();
-    //     var scrollbox = document.getElementById("scrollboxLUI");
-    //     var clearButton = document.getElementById("clearbutton");
-
-    //     if (text.length > 0) {
-    //         scrollbox.style.display = "block";
-    //         clearButton.style.display = "block";
-    //     } else {
-    //         scrollbox.style.display = "none";
-    //         clearButton.style.display = "none";
-    //     }
-    // });
 
 
 </script>

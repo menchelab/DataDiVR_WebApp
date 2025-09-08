@@ -27,7 +27,6 @@ def node_event(message, room):
     Example:
         Input:
             message = {"val": "5", "usr": "user123"}
-            room = "room1"
         Output (Emitted):
             {
                 "fn": "node",

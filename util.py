@@ -233,3 +233,5 @@ def generate_colors(n, s=None, v=None, alpha=None):
         colors.append(rgba_tuple)
 
     return colors
+
+

@@ -15,6 +15,7 @@ from .execute_events import (
 
     search_events,
     nodeinfo_events,
+    project_events
 )
 
 
@@ -26,8 +27,10 @@ def handle_socket_execute(message, room, project):
     if "fn" not in message:
         return None
 
+
     if message["fn"] == "sel":
         ui_events.selection_event(message)
+
 
     if message["id"] == "protLoad":
         universal_events.protein_load_event(message, room)
@@ -46,7 +49,6 @@ def handle_socket_execute(message, room, project):
         message_mod["id"] = "plotly2jsB"
         universal_events.plot_to_js_event(message_mod, room)
 
-
     elif message["fn"] == "node":
         nodeinfo_events.node_event(message, room) #ui_events.node_event(message, room)
         
@@ -58,15 +60,14 @@ def handle_socket_execute(message, room, project):
         message_mod["id"] = "plotly2jsB"
         universal_events.plot_to_js_event(message_mod, room)
 
-    # --- --- 
-
-
     # Chat text message
     elif message["fn"] == "chatmessage":
         universal_events.chat_message_event(message, room)
 
+
     elif message["id"] == "nl":
         universal_events.node_list_event(message, room)
+
 
     # CLIPBOARD
     # TODO: dont save the colors to file but retrieve them from selected color texture
@@ -89,9 +90,13 @@ def handle_socket_execute(message, room, project):
         if message["val"] == "clear":
             clipboard_events.clear_event(message, room)
 
+
+    # --- ANALYTICS EVENTS --- 
     elif message["fn"] == "analytics":
         analytics_events.main(message, room, project)
 
+
+    # --- Annotations EVENTS --- 
     elif message["fn"] == "annotation":
         if message["id"] == "annotationOperation":
             annotation_events.annotation_operation_event(message, room)
