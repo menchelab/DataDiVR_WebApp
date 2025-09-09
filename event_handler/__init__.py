@@ -40,6 +40,13 @@ def handle_socket_execute(message, room, project):
     elif message["fn"] == "colorbox":
         if message["id"] == "cbColorInput":
             ui_events.colorbox_event(message, room)
+        elif message["id"] == "nodePaintColorInput":
+            ui_events.colorbox_nodePaint_event(message, room)
+        emit("ex", message, room=room)
+
+    elif message["fn"] == "paintnodes":
+        if message["id"] == "paintnodes":
+            ui_events.paintNodes_event(message, room)
 
         emit("ex", message, room=room)
 
