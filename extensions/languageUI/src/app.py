@@ -93,7 +93,6 @@ def language_ui():
 from extensions.languageUI.src.language_interface import memory
 
 @blueprint.route("/languageUI_process", methods=["POST"])
-@blueprint.route("/languageUI_process", methods=["POST"])
 def language_ui_process():
     """
     Processes user input, routes the command using the LLM, and handles the response.
@@ -162,7 +161,6 @@ def language_ui_process():
             #general_response = lang_interface.handle_general_prompt(command["general_query"])
             general_response = command.get("response", "")
             general_response_feedback = general_response.get("feedback", "No response generated.")
-
 
             # Add the assistant's response to the memory buffer
             lang_interface.memory.chat_memory.add_ai_message(general_response_feedback)

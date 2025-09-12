@@ -84,7 +84,7 @@
             console.log("C_DEBUG: LUI Response from server:", json);
 
             // Add user input to the chat window
-            chatwin.innerHTML += `<b> Human | </b>${text}<br>`;
+            chatwin.innerHTML += `<b> Human | </b>${text}<br><br>`;
 
             // Parse the server's response using marked.js
             const formattedResponse = json.response.feedback; // marked.parse(json.response.feedback);

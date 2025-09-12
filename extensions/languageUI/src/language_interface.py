@@ -22,7 +22,7 @@ FUNCTION_FN_MAPPING = {
     # the "fn" value is handled in "handle_execute_socket" in event_handler/__init__.py
 
     "analytics_events": "analytics",
-    "search_events": "makeNodeButton",
+    "search_events": "node",
     "nodeinfo_events": "node",
     "project_events": "dropdown",
 
@@ -236,8 +236,6 @@ def route_command(user_input: str) -> dict:
         print("\nLLM response:", llm_response)
 
         parsed = json.loads(llm_response)
-        print("\nLLM response: parsed: ", parsed)
-
 
         return validate_llm_response(parsed, user_input)
 
@@ -261,6 +259,8 @@ def validate_llm_response(parsed_response, user_input):
     Returns:
         dict: A validated response.
     """
+
+    print("C_DEBUG: Validating LLM response: ", parsed_response)
     if "type" not in parsed_response:
         return {
             "type": "general_query",
@@ -371,8 +371,6 @@ def create_message(func_name: str, args: dict, file_path: str) -> dict:
     # Set the `fn` value based on the module name
     message["fn"] = FUNCTION_FN_MAPPING.get(module_name, "general")  # Default to "general" if not found
 
-    print("C_DEBUG - LANGUAGE_INTERFACE.PY - complete message :", message)
-
 
     #-------------------------------------------------------------------
     # MODULE CATCH CASES HERE: 
@@ -414,22 +412,25 @@ def create_message(func_name: str, args: dict, file_path: str) -> dict:
         message["parent"] = "projDD"
 
         # get project name and index
-        new_projectname = args.get("message", {}).get("msg", "")
+        projectname_raw = args.get("message", {}).get("msg", "")
         all_projects = GD.plist
         all_projects_capitalized = [proj.capitalize() for proj in all_projects]
-        new_projectname_capitalized = new_projectname.capitalize()
+        projectname = projectname_raw.capitalize()
 
-        if new_projectname_capitalized not in all_projects_capitalized:
-            message["feedback"] = "Project '{new_projectname}' not found in project list."
+        if projectname not in all_projects_capitalized:
+            message["feedback"] = f"No project name provided. Selecting default project. Choose from available projects: {', '.join(all_projects)}"
+            project_index = 0
+            projectname = all_projects[project_index]
+
+        else:
+            project_index = all_projects_capitalized.index(projectname) # get index of matched project name     
+            message["feedback"] = f"Project '{projectname}' selected successfully."
         
-        projectname = all_projects[all_projects_capitalized.index(new_projectname_capitalized)]
-        project_index = all_projects_capitalized.index(new_projectname_capitalized)
-
+        message["msg"] = projectname
+        message["val"] = project_index
         print("C_DEBUG: matched project name:", projectname)
         print("C_DEBUG: matched project index:", project_index)
 
-        message["msg"] = projectname
-        message["val"] = project_index
 
     #-------------------------------------------------------------------
 

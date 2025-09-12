@@ -37,3 +37,24 @@ def load_project_info():
         print(f"C_DEBUG: Error loading project info: {e}")
         return {"name": "Unknown Project", "info": "Error retrieving project information."}
     
+
+
+
+def show_all_projects():
+    """
+    Retrieves a list of all available projects from the static/projects directory.
+
+    Returns:
+        list: A list of project names.
+    """
+    try:
+        all_projects = GD.plist
+        print(f"C_DEBUG: Available projects: {all_projects}")
+        return {
+            "type": "general_query",
+            "query": "show all projects",
+            "feedback": "Available projects : " + ", ".join(all_projects),
+        }
+    except Exception as e:
+        print(f"C_DEBUG: Error retrieving projects: {e}")
+        return []   
