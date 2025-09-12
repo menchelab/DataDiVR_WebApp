@@ -504,32 +504,6 @@ def init_project():
 
 
 
-# deprecated ?
-# #TO DO: add case for not existing LUI extension / namespace 
-# import extensions.languageUI.src.language_interface as lui
-
-# @socketio.on("ex", namespace="/LUI/languageUI")
-# def handle_lui_message(message):
-    
-#     #if message['id'] != "LUItextinput": 
-#     print("C_DEBUG: Received message in /MAINapp :", message)
-
-#     # Forward the message to the /main namespace
-#     #room = "shared-room" #flask.session.get("room") or "default_room"
-
-#     # Map the raw message to the corresponding action
-#     #command = lui.route_command(message)
-#     #mapped_message = lui.handle_routed_command(command) 
-
-#     #project = GD.data["actPro"]
-#     #event_handler.handle_socket_execute(message, room, project)
-#     #emit("ex", mapped_message, namespace="/main", room=room)
-    
-#     #print("C_DEBUG: Forwarded mapped message to /main APP :", mapped_message)
-
-
-
-
 
 #------------------------------------------
     

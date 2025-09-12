@@ -60,7 +60,7 @@ import plotly.express as px
 from io_blueprint import IOBlueprint
 
 #from extensions.languageUI.LUI_funcs.functionmappingllm import *
-from extensions.languageUI.src.language_interface import route_command, handle_routed_command
+import extensions.languageUI.src.language_interface as lang_interface
 
 #from langchain.schema import SystemMessage, HumanMessage
 
@@ -90,63 +90,100 @@ def language_ui():
 
 
 
+from extensions.languageUI.src.language_interface import memory
+
+@blueprint.route("/languageUI_process", methods=["POST"])
 @blueprint.route("/languageUI_process", methods=["POST"])
 def language_ui_process():
-
-    user_input = request.json.get("text", "")
+    """
+    Processes user input, routes the command using the LLM, and handles the response.
+    Integrates LangChain's memory buffer for conversation history management.
+    """
+    user_input = request.json.get("text", "").strip()
     username = request.json.get("usr", "")
-    room = 'shared-room' # TO FIX! shared room everywhere for now -  #flask.session.get("room") # request.json.get("room", "shared-room")
-    message = user_input
-    project = GD.data["actPro"]
+    room = "shared-room"  # Shared room for now
+    project = GD.data.get("actPro", None)
 
-    # Initialize conversation history in session if not present
-    if "conversation_history" not in session:
-        session["conversation_history"] = []
+    # Validate user input and project context
+    if not user_input:
+        return jsonify({
+            "status": "error",
+            "response": "User input is empty. Please provide a valid command.",
+            "user": username
+        }), 400
 
-    # Add the user's input to the conversation history
-    session["conversation_history"].append({"role": "user", "content": user_input})
+    if not project:
+        return jsonify({
+            "status": "error",
+            "response": "No active project found. Please select a project first.",
+            "user": username
+        }), 400
 
-    command = route_command(message)
+    print(f"C_DEBUG: User input: {user_input}, User: {username}, Room: {room}, Project: {project}")
 
     try:
+        # Route the command using the LLM
+        command = lang_interface.route_command(user_input)
+        print("C_DEBUG: Routed command:", command)
+
+        # Add room and project context to the command arguments
+        command.setdefault("args", {})
         command["args"]["room"] = room
         command["args"]["project"] = project
-    except: 
-        command["args"] = {"room": room, "project": project}
 
-    print("C_DEBUG: in LUI app - Routed command:", command)
+        # Process the routed command
+        if command["type"] == "action":
+            # Handle actions
+            func_name = command.get("function")
+            args = command.get("args", {})
+            print(f"C_DEBUG: Handling action '{func_name}' with args: {args}")
 
-    mapped_message = handle_routed_command(command)
-    print("C_DEBUG: in LUI app - Mapped message:", mapped_message)
+            # Create a structured message for the action
+            action_message = lang_interface.create_message(func_name, args, lang_interface.ACTION_REGISTRY[func_name]["file_path"])
+            print("C_DEBUG: Action message:", action_message)
 
-    if command["type"] == "general_query":
-        # Add the assistant's response to the conversation history
-        session["conversation_history"].append({"role": "assistant", "content":  mapped_message["feedback"]}) # mapped_message["response"]["feedback"]})
+            # Add feedback to the memory buffer
+            feedback = action_message.get("feedback", "No feedback provided.")
+            lang_interface.memory.chat_memory.add_ai_message(feedback)
 
-        # Return the general query response
+            # Pass the message to the event handler
+            event_handler.handle_socket_execute(action_message, room, project)
+
+            # Return the action response
+            return jsonify({
+                "function_name": func_name,
+                "response": action_message,
+                "user": username,
+            })
+
+        elif command["type"] == "general_query":
+            # Handle general queries
+            print("C_DEBUG: Handling general query")
+            general_response = lang_interface.handle_general_prompt(command["query"])
+
+            # Add the assistant's response to the memory buffer
+            lang_interface.memory.chat_memory.add_ai_message(general_response["feedback"])
+
+            # Return the general query response
+            return jsonify({
+                "function_name": "general_query",
+                "response": general_response,
+                "user": username,
+            })
+
+        else:
+            # Unknown command type
+            print("C_DEBUG: Unknown command type")
+            return jsonify({
+                "status": "error",
+                "response": "Unknown command type.",
+                "user": username
+            }), 400
+
+    except Exception as e:
+        print(f"C_DEBUG: Error in language_ui_process: {str(e)}")
         return jsonify({
-            "function_name": "general_query",
-            "response": mapped_message,
-            "user": username,
-        })
-
-    if command["type"] == "action":
-        # Pass to event handler
-        mapped_message["usr"] = username
-        mapped_message["room"] = room
-        mapped_message["project"] = project
-
-        feedback = mapped_message.get("feedback", "No feedback provided.")
-        mapped_message["feedback"] = feedback
-
-        # Add the action feedback to the conversation history
-        session["conversation_history"].append({"role": "assistant", "content": feedback})
-
-        event_handler.handle_socket_execute(mapped_message, room, project)  # Same as how main-app handles execute events
-
-        return jsonify({
-            "function_name": command.get("function", "general_query"),
-            "response": mapped_message,
-            "user": username,
-        })
-
+            "status": "error",
+            "response": f"An error occurred while processing the command: {str(e)}",
+            "user": username
+        }), 500

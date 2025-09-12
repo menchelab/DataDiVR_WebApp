@@ -10,6 +10,10 @@ from flask import session
 from extensions.languageUI.src.lui_helpers import load_project_info
 import GlobalData as GD
 
+from langchain.memory import ConversationBufferMemory
+
+
+
 
 FUNCTION_FN_MAPPING = {
 
@@ -20,9 +24,12 @@ FUNCTION_FN_MAPPING = {
     "analytics_events": "analytics",
     "search_events": "makeNodeButton",
     "nodeinfo_events": "node",
-    "project_events": "dropdown"
+    "project_events": "dropdown",
+
     # add others ... 
 }
+
+
 
 
 # ----------------------------------------
@@ -120,9 +127,9 @@ def get_action_registry_from_DataDiVR():
 registry_VR = get_action_registry_from_DataDiVR()
 ACTION_REGISTRY = {**registry_VR} 
 
-
-
-
+memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+print("C_DEBUG: Initialized conversation memory.", memory)
+print("C_DEBUG: Initial memory state:", memory.load_memory_variables({})["chat_history"])
 
 
 # ----------------------------------------
@@ -162,10 +169,6 @@ def build_system_prompt(registry):
     project_data = load_project_info()
     project_name = project_data.get("name", "Unknown Project")
     project_info = project_data.get("info", "No description available.")
-    #print("C_DEBUG - LANGUAGE_INTERFACE.PY - Project Name:", project_name)
-    #print("C_DEBUG - LANGUAGE_INTERFACE.PY - Project Info:", project_info)
-    #print("C_DEBUG - LANGUAGE_INTERFACE.PY - Building system prompt with project info...")
-
 
     # Build the project-specific section of the prompt
     project_section = (
@@ -193,9 +196,8 @@ def build_system_prompt(registry):
 
 
 
-# Route the user input to the appropriate function using the LLM
-# This function sends the user input to the LLM, which will return a JSON object
-# containing the function name and its arguments.
+
+
 def route_command(user_input: str) -> dict:
     """
     Routes the user input to the appropriate function using the LLM.
@@ -208,35 +210,43 @@ def route_command(user_input: str) -> dict:
     Returns:
         dict: A dictionary containing the routed command or general query response.
     """
-    # Initialize conversation history if not already present
-    if "conversation_history" not in session:
-        session["conversation_history"] = []
-
-    # Add the user's input to the conversation history
-    session["conversation_history"].append({"role": "user", "content": user_input})
+    # Add the user's input to the memory buffer
+    memory.chat_memory.add_user_message(user_input)
+    print("C_DEBUG: Current memory buffer:", memory.load_memory_variables({})["chat_history"])
 
     # Build the system prompt
     system_prompt = build_system_prompt(ACTION_REGISTRY)
-    messages = [{"role": "system", "content": system_prompt}] + session["conversation_history"]
+    messages = [{"role": "system", "content": system_prompt}] + memory.load_memory_variables({})["chat_history"]
 
     # Send the prompt to the LLM
-    response = client.chat.completions.create(
-        model=llm_from_openrouterai,
-        messages=messages,
-        temperature=0.3,  # Lower temperature for more deterministic responses
-        max_tokens=500
-    )
+    try:
+        response = client.chat.completions.create(
+            model=llm_from_openrouterai,
+            messages=messages,
+            temperature=0.3,  # Lower temperature for more deterministic responses
+            max_tokens=500
+        )
 
-    # Parse the LLM response
-    llm_response = response.choices[0].message.content.strip()
+        # Parse the LLM response
+        llm_response = response.choices[0].message.content.strip()
 
-    # Add the assistant's response to the conversation history
-    session["conversation_history"].append({"role": "assistant", "content": llm_response})
+        # Add the assistant's response to the memory buffer
+        memory.chat_memory.add_ai_message(llm_response)
 
-    print("\n LLM response:" + llm_response + "\n")
+        print("\nLLM response:", llm_response)
 
-    parsed = json.loads(llm_response)
-    return validate_llm_response(parsed, user_input)
+        parsed = json.loads(llm_response)
+        print("\nLLM response: parsed: ", parsed)
+
+
+        return validate_llm_response(parsed, user_input)
+
+    except Exception as e:
+        print("C_DEBUG: Error in route_command:", str(e))
+        return {
+            "type": "error",
+            "feedback": f"An error occurred while processing the command: {str(e)}"
+        }
  
 
 
@@ -255,7 +265,7 @@ def validate_llm_response(parsed_response, user_input):
         return {
             "type": "general_query",
             "query": user_input,
-            "error": "Missing 'type' in LLM response."
+            "feedback": "Missing 'type' in LLM response."
         }
 
     if parsed_response["type"] == "action":
@@ -263,71 +273,67 @@ def validate_llm_response(parsed_response, user_input):
             return {
                 "type": "general_query",
                 "query": user_input,
-                "error": "Invalid 'action' response format."
+                "feedback": "Invalid 'action' response format."
             }
         return parsed_response
 
     if parsed_response["type"] == "general_query":
-        if "query" not in parsed_response:
-            return {
-                "type": "general_query",
-                "query": user_input,
-                "error": "Invalid 'general_query' response format."
-            }
-        return parsed_response
+        if "response" in parsed_response:
+            if "feedback" not in parsed_response.get("response", {}):
+                return {
+                    "type": "general_query",
+                    "query": user_input,
+                    "feedback": "No feedback provided."
+                }
+            return parsed_response 
 
     return {
         "type": "general_query",
         "query": user_input,
-        "error": "Unknown response type."
+        "feedback": "Unknown response type."
     }
 
 
-# ----------------------------------------
-# Dispatcher
-# ----------------------------------------
-# This function takes the routed command and executes the corresponding action.
-def handle_routed_command(command: dict):
+
+def handle_general_prompt(prompt: str) -> dict:
     """
-    Handles the routed command by creating a structured message instead of directly calling the function.
-    The message structure is based on the matched function and its arguments.
+    Handles general prompts by sending the user input to the LLM and retrieving a structured response.
+    The response includes a "feedback" key containing the answer.
 
     Args:
-        command (dict): The routed command containing the function name and arguments.
+        prompt (str): The user input.
 
     Returns:
-        dict: A structured message based on the matched function.
+        dict: A structured response with the answer under "feedback".
     """
-    print("C_DEBUG - LANGUAGE_INTERFACE.PY - handle_routed_command:", command)
+    print("C_DEBUG - LANGUAGE_INTERFACE.PY - handle_general_prompt:", prompt)
 
-    if command["type"] == "action":
-        # Found a matching action / function
-        func_name = command.get("function")
-        args = command.get("args", {})
+    # Add the user's input to the memory buffer
+    memory.chat_memory.add_user_message(prompt)
 
-        if func_name in ACTION_REGISTRY:
-            try:
-                # Get the file path of the function
-                file_path = ACTION_REGISTRY[func_name]["file_path"]
+    # Send the conversation history to the LLM
+    try:
+        messages = memory.load_memory_variables({})["chat_history"]
+        response = client.chat.completions.create(
+            model=llm_from_openrouterai,
+            messages=messages,
+            temperature=0.3,
+            max_tokens=500
+        )
 
-                # Create a structured message dynamically
-                message = create_message(func_name, args, file_path)
+        # Extract the LLM response content
+        llm_response = response.choices[0].message.content.strip()
+        print("C_DEBUG - LANGUAGE_INTERFACE.PY - in handle_general_prompt - LLM response:", llm_response)
 
-                # Add the action feedback to the conversation history
-                feedback = message.get("feedback", "No feedback provided.")
-                session["conversation_history"].append({"role": "assistant", "content": feedback})
+        # Add the assistant's response to the memory buffer
+        memory.chat_memory.add_ai_message(llm_response)
 
-                return message
-            except Exception as e:
-                return {"error": f"Function error: {e}"}
-        else:
-            return {"error": f"Unknown action: {func_name}"}
+        # Return the response in the required structure
+        return {"feedback": llm_response}
 
-    elif command["type"] == "general_query":
-        # Fall-back to general query handling
-        return handle_general_prompt(command["query"])
-
-    return {"error": "Unknown command format."}
+    except Exception as e:
+        print("C_DEBUG: Error in handle_general_prompt:", str(e))
+        return {"feedback": f"An error occurred: {str(e)}"}
 
 
 
@@ -480,4 +486,12 @@ def handle_general_prompt(prompt: str) -> dict:
 
 
 
+
+
+def clear_memory():
+    """
+    Clears the conversation memory buffer.
+    """
+    memory.chat_memory.clear()
+    print("C_DEBUG: Memory buffer cleared.")
 

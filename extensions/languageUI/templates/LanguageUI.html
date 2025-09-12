@@ -19,6 +19,9 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
 </head>
 <style>
     .row {
@@ -61,37 +64,44 @@
         document.getElementById("scrollboxLUI").shadowRoot.getElementById("box").innerHTML = '';
     }
 
-    function processQuery(){
+    function processQuery() {
         var text = document.getElementById("LUItextinput").shadowRoot.getElementById("text").value;
         var chatwin = document.getElementById("scrollboxLUI").shadowRoot.getElementById("box");
         var username = document.getElementById("userid").innerText;
 
         fetch("/LUI/languageUI_process", {
-                method: "POST",
-                body: JSON.stringify({
-                    usr: username,
-                    text: text,
-                    }),
-                headers: {
-                    "Content-type": "application/json; charset=UTF-8"
-                }
-                })
-                .then((response) => response.json())
+            method: "POST",
+            body: JSON.stringify({
+                usr: username,
+                text: text,
+            }),
+            headers: {
+                "Content-type": "application/json; charset=UTF-8"
+            }
+        })
+        .then((response) => response.json())
+        .then((json) => {
+            console.log("C_DEBUG: LUI Response from server:", json);
 
-                .then((json) => {
-                    console.log("C_DEBUG: LUI Response from server:", json);
+            // Add user input to the chat window
+            chatwin.innerHTML += `<b> Human | </b>${text}<br>`;
 
+            // Parse the server's response using marked.js
+            const formattedResponse = marked.parse(json.response.feedback);
 
-                    chatwin.innerHTML += `<br><b> HUMAN | ${text}<br><br>`; //${username}
-                    chatwin.innerHTML += `<b> D A T A | ${json.response.feedback}<br><hr>`;
+            // Add the formatted response to the chat window
+            chatwin.innerHTML += `<b> DATA | </b>${formattedResponse}<br>`;
 
-                    
-                    chatwin.scrollTop = chatwin.scrollHeight;
-                    document.getElementById("LUItextinput").shadowRoot.getElementById("text").value = '';
-                    
-                
-                });
-                
+            // Scroll to the bottom of the chat window
+            chatwin.scrollTop = chatwin.scrollHeight;
+                        
+            // Add a timestamp to the chat window
+            const timestamp = new Date().toLocaleTimeString();
+            chatwin.innerHTML += `<span style="font-size: 0.8em; color: gray; float: right;">${timestamp}</span><br>`;
+
+            // Clear the input field
+            document.getElementById("LUItextinput").shadowRoot.getElementById("text").value = '';
+        });
     }
 
     // Add event listener for Enter key
