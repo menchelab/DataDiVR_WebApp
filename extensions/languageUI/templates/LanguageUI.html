@@ -87,7 +87,7 @@
             chatwin.innerHTML += `<b> Human | </b>${text}<br>`;
 
             // Parse the server's response using marked.js
-            const formattedResponse = marked.parse(json.response.feedback);
+            const formattedResponse = json.response.feedback; // marked.parse(json.response.feedback);
 
             // Add the formatted response to the chat window
             chatwin.innerHTML += `<b> DATA | </b>${formattedResponse}<br>`;

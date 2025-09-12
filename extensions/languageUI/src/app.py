@@ -157,12 +157,15 @@ def language_ui_process():
             })
 
         elif command["type"] == "general_query":
-            # Handle general queries
             print("C_DEBUG: Handling general query")
-            general_response = lang_interface.handle_general_prompt(command["query"])
+
+            #general_response = lang_interface.handle_general_prompt(command["general_query"])
+            general_response = command.get("response", "")
+            general_response_feedback = general_response.get("feedback", "No response generated.")
+
 
             # Add the assistant's response to the memory buffer
-            lang_interface.memory.chat_memory.add_ai_message(general_response["feedback"])
+            lang_interface.memory.chat_memory.add_ai_message(general_response_feedback)
 
             # Return the general query response
             return jsonify({
