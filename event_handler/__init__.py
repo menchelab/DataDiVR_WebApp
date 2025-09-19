@@ -12,25 +12,62 @@ from .execute_events import (
     layout_events,
     ui_events,
     universal_events,
+
+    search_events,
+    nodeinfo_events,
+    project_events
 )
 
 
 def handle_socket_execute(message, room, project):
+
+    print("C_DEBUG: handle_socket_execute", message)
+
+    # catch if no message fn
+    if "fn" not in message:
+        return None
+
+
     if message["fn"] == "sel":
         ui_events.selection_event(message)
+
 
     if message["id"] == "protLoad":
         universal_events.protein_load_event(message, room)
 
-    if message["id"] == "search":
-        universal_events.search_event(message, room)
+
+    # --- SEARCH NODE EVENTS --- 
+    elif message["id"] == "search": 
+        search_events.search_event(message, room) #universal_events.search_event(message, room)
+        #nodeinfo_events.node_event(message, room) #ui_events.node_event(message, room)
+
+        # + automatically trigger the graph plotly update after node event
+        message_mod = message.copy()
+        message_mod["parent"] = "plotly2js"
+        message_mod["msg"] = "Graph"
+        message_mod["fn"] = "Plotly2js"
+        message_mod["id"] = "plotly2jsB"
+        universal_events.plot_to_js_event(message_mod, room)
+
+    elif message["fn"] == "node":
+        nodeinfo_events.node_event(message, room) #ui_events.node_event(message, room)
+        
+        # + automatically trigger the graph plotly update after node event
+        message_mod = message.copy()
+        message_mod["parent"] = "plotly2js"
+        message_mod["msg"] = "Graph"
+        message_mod["fn"] = "Plotly2js"
+        message_mod["id"] = "plotly2jsB"
+        universal_events.plot_to_js_event(message_mod, room)
 
     # Chat text message
-    if message["fn"] == "chatmessage":
+    elif message["fn"] == "chatmessage":
         universal_events.chat_message_event(message, room)
+
 
     elif message["id"] == "nl":
         universal_events.node_list_event(message, room)
+
 
     # CLIPBOARD
     # TODO: dont save the colors to file but retrieve them from selected color texture
@@ -54,16 +91,19 @@ def handle_socket_execute(message, room, project):
         if message["id"] == "selectionsCb":
             clipboard_events.node_selections_event(message, room)
 
-    #elif message["fn"] == "legend_scene_display":
-    #    ui_events.legend_scene_display_event(message, room)
-
     elif message["fn"] == "clipboard":
         if message["id"] == "cbClear":
             clipboard_events.clear_event(message, room)
+        if message["val"] == "clear":
+            clipboard_events.clear_event(message, room)
 
+
+    # --- ANALYTICS EVENTS --- 
     elif message["fn"] == "analytics":
         analytics_events.main(message, room, project)
 
+
+    # --- Annotations EVENTS --- 
     elif message["fn"] == "annotation":
         if message["id"] == "annotationOperation":
             annotation_events.annotation_operation_event(message, room)
@@ -107,20 +147,20 @@ def handle_socket_execute(message, room, project):
     elif message["fn"] == "sli":
         ui_events.slider_event(message, room)
 
-    elif message["fn"] == "node":
-        ui_events.node_event(message, room)
 
     elif message["fn"] == "children":
         ui_events.children_event
         
-    elif message["fn"] == "but":
-        if message["id"] == "resetlayout":
-            ui_events.reset_layout_event(message, room)
+    # elif message["fn"] == "but":
+    #     if message["id"] == "resetlayout":
+    #         ui_events.reset_layout_event(message, room)
 
-    elif message["fn"] == "checkbox":
-        if message["id"] == "cbdefinelinklist":
-            ui_events.checkbox_event(message, room)
-
+    elif message["fn"] == "add_community_to_clipboard":
+        analytics_events.add_community_to_clipborad(message, room, project)        
+                
 
     else:
-        emit("ex", message, room=room)
+        print("C_DEBUG: Unknown function in handle_socket_execute:", message)
+
+        emit("ex", message, room=room, namespace = "/main") # quick fix - adding namespace = "/main" to emit
+        

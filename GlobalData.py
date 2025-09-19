@@ -206,6 +206,9 @@ def loadColor():
         global pixel_valuesc
 
         pixel_valuesc = list(imc.getdata())
+        
+        #print("C_DEBUG: pixel_valuesc = ", pixel_valuesc[:20])  
+        
         print(
             "static/projects/"
             + data["actPro"]
@@ -223,11 +226,48 @@ def loadColor():
         )
 
 
+
+def loadXYZTex():
+    try:
+        imc = Image.open(
+            "static/projects/"
+            + data["actPro"]
+            + "/layouts/"
+            + pfile["layouts"][0]
+            + ".bmp",
+            "r",
+        )
+
+        pixel_valuesc_test = list(imc.getdata())
+        
+        #print("C_DEBUG: pixel_valuesc_test = ", pixel_valuesc_test[:20])  
+        
+        print(
+            "static/projects/"
+            + data["actPro"]
+            + "/layouts/"
+            + pfile["layouts"][0]
+            + ".bmp loaded"
+        )
+    except:
+        print(
+            "static/projects/"
+            + data["actPro"]
+            + "/layouts/"
+            + pfile["layouts"][0]
+            + ".bmp failed to load"
+        )
+        
+    return pixel_valuesc_test
+
+
+
 def loadLinks():
     # make a lookup table for each nodes children
     global nchildren
     global nodes
     nchildren = [[] for i in range(len(nodes["nodes"]))]
+
     if path.exists("static/projects/" + data["actPro"] + "/links.json"):
         with open(
             "static/projects/" + data["actPro"] + "/links.json", "r"
@@ -336,3 +376,7 @@ def load_annotations():
         load_annotations_simple()
     else:
         load_annotations_complex()
+
+
+
+

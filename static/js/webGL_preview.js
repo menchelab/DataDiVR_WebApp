@@ -358,10 +358,17 @@ function makeNetwork() {
                 cube.name = i;//;
                 cube.layers.set(0);
                 nodemeshes.push(cube);
-                //console.log(data['nodes'][i]["n"]);
+                
                 scene.add(cube);
                 var nodepos = getPosition(i);
                 cube.position.set((nodepos[1] * -1) * scale, nodepos[2] * scale, nodepos[0] * scale,); //0x00ff00
+
+
+                // check if preview is also containing node bug (not as pos 0,0,0 and in black) 
+                //console.log("C_DEBUG: cube name - ", cube.name);
+                //console.log("C_DEBUG: cube material color - ", cube.material.color);
+                //console.log("C_DEBUG: cube position - ", cube.position);
+
 
                 // MAKE LABELS
                 if (i >= pfile["nodecount"]) {

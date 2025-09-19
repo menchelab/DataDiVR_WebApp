@@ -6,19 +6,21 @@ venv/
 **/**.vscode/
 **/**.code-workspace
 
+*.json
 projects/
 temp-json/
+temp-files/
 
-openAI_KEY_doNOTcommit.txt
 static/TTSaudio/
 extensions/whisperSpeechRecognition/static/WhisperAudio/
 python_tools/data
-extensions/*
+extensions/documentation
 **/**.log**
 !extensions/documentation/
 !extensions/whisperSpeechRecognition/
 !extensions/load_extensions.py
 !extensions/install_requirements.sh
 !extensions/install_requirements.ps1
-temp_files/Teapot.json
-HF_token_doNOTcommit.txt
+
+*.txt
+.env

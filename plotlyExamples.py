@@ -341,7 +341,7 @@ def barGraph(data):
                 ))
     
     bar_height = 16*len(names)+500
-    print("C_DEBUG: bar height = ", bar_height)
+    #print("C_DEBUG: bar height = ", bar_height)
 
     #fig.show()
     fig.update_layout(height = bar_height,

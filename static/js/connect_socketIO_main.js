@@ -1,9 +1,11 @@
 
+
+
+
 var socket;
 var newcon = true;
 var logAll = true;
 var isPreview = false; logjs
-var isLanguageUI = false;
 var isMain = false;
 var isUE4 = false;
 
@@ -29,7 +31,7 @@ function logjs(data, id) {
 }
 
 var uid = makeid(10);
-console.log("Logged in as " + uid);
+console.log("C_DEBUG in connect_sockeIO_main : Logged in as " + uid);
 
 ue.interface.projectLoaded = function(data) {
     console.log(data);
@@ -137,14 +139,14 @@ function updateMcElements() {
     socket.emit('ex', {usr:uid,  val: "init", id: "init", fn: "enrichment"});
     // socket.emit("ex", {usr:uid,  fn: "legend_scene_display", id: "legend_scene_display", val: "init"});
 
-    // language UI 
-    //socket.emit('ex', {usr:uid,  val: "init", id: "languageUI", fn: "textinput"});
-
     // VRrooms
     socket.emit('ex', {usr:uid,  val: "init", id: "VRrooms", fn: "dropdown"});
 
-
-
+    // buttons morphing
+    // console.log("Forwardstep value before emit:", forwardstep);
+    // socket.emit('ex', { usr: uid, id: "forwardstep", fn: "ue4", val: "init" });
+    // console.log("Backwardstep value before emit:", backwardstep);
+    // socket.emit('ex', { usr: uid, id: "backwardstep", fn: "ue4", val: "init" });
 }
 
 function speakNow(text) {
@@ -175,9 +177,6 @@ $(document).ready(function() {
     if (document.getElementById("main")) {
         isMain = true;
     }
-    if (document.getElementById("languageUI")) {
-        isLanguageUI = true;
-    }
 
     if (document.getElementById("scrollbox1")) {
         document.getElementById("scrollbox1").style.display = "none";
@@ -189,6 +188,7 @@ $(document).ready(function() {
     if (document.getElementById("userid")) {
         document.getElementById("userid").innerHTML = uid;
     }
+
 
 
     ///set up and connect to socket
@@ -218,7 +218,7 @@ $(document).ready(function() {
     socket.on('status', function(data) {
         //console.log(data)
         if (data.usr == uid) {
-            if (isMain || isPreview || isLanguageUI) {
+            if (isMain || isPreview) {
                 // START initialization routine
                 socket.emit('ex', { id: "projDD", fn: "dropdown", val: "init", usr: uid });
             }
@@ -233,19 +233,33 @@ $(document).ready(function() {
 
             // VRrooms
             socket.emit('ex', { usr:uid, id: "VRrooms", fn: "dropdown", val:"init"});
-
-
         }
         //CONNECTION Established - initialize the project (Ui elements initialize when project changes)
 
     });
 
 
+
     socket.on('ex', function(data) {
         logjs(data, 'scrollbox_debug_0');
 
-        //if (logAll && data.usr == uid)
-        //{
+        // Save data to server.log file
+        fetch('/log', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        }).then(response => {
+            if (response.status === 405) {
+                console.error('Method Not Allowed: Ensure the server endpoint supports POST method');
+            } else if (!response.ok) {
+                console.error('Failed to save log data');
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+        });    //if (logAll && data.usr == uid)
+
         console.log("server returned: " + JSON.stringify(data));
 
         //}
@@ -426,7 +440,11 @@ $(document).ready(function() {
                 break;
 
             case 'plotly2js':
-                //console.log(data["parent"]);
+                
+            
+                console.log("C_DEBUG:in plotly2js case :", data["parent"]);
+
+
                 if (document.getElementById(data["parent"])) {
                     const config = { displayModeBar: false }; // this is the line that should hide the navbar.
                     const layout = {};
@@ -576,6 +594,9 @@ $(document).ready(function() {
                             case "Spectral":
                                 $("#layoutSelectSpectral").css('display', 'inline-block');
                                 break;
+                            case "Spring":
+                                $("#layoutSelectSpring").css('display', 'inline-block');
+                                break;
                             // add bindings for options display here4
                         }
                     }
@@ -595,8 +616,6 @@ $(document).ready(function() {
                                 nextButton.setAttribute('val', data.sel);
                                 backButton = document.getElementById("backwardstep");
                                 backButton.setAttribute('val', data.sel);
-
-                                //console.log("C_DEBUG updating Buttons in layoutsDD: ", nextButton.getAttribute("val"));
                         }
                     }
 
@@ -617,7 +636,6 @@ $(document).ready(function() {
                                 nextButton.setAttribute('val', data.sel);
                                 backButton = document.getElementById("backwardstep");
                                 backButton.setAttribute('val', data.sel);
-                                //console.log("C_DEBUG updating Buttons in layoutsRGBDD: ", nextButton.getAttribute("val"));
                         }
                     }
 
@@ -647,23 +665,22 @@ $(document).ready(function() {
                                 nextButton.setAttribute('val', data.sel);
                                 backButton = document.getElementById("backwardstep");
                                 backButton.setAttribute('val', data.sel);
-                                //console.log("C_DEBUG updating Buttons in linksRGBDD: ", nextButton.getAttribute("val"));
                         }
                     }
                 
-                    if(data.id == "linksDD") {
+                    if(data.id == "linksDD") { // THIS CASE DOES NOT EXIST -> one link list per project 
                         switch (data.id){
                             case "linksDD": // if change in DD for link colors = change link colors in network and legend
                                 
-                                if (pfile.links.length <= data.sel) {
-                                    links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
-                                    links_DD.setAttribute("sel", parseInt(0));
-                                    links_DD.setAttribute("value", pfile.links[0]);
-                                } else {
-                                    links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
-                                    links_DD.setAttribute("sel", parseInt(data.sel));
-                                    links_DD.setAttribute("value", pfile.links[data.sel]);
-                                }
+                                //if (pfile.links.length <= data.sel) {
+                                links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
+                                links_DD.setAttribute("sel", parseInt(0));
+                                links_DD.setAttribute("value", pfile.links[0]);
+                                // } else {
+                                //     links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
+                                //     links_DD.setAttribute("sel", parseInt(data.sel));
+                                //     links_DD.setAttribute("value", pfile.links[data.sel]);
+                                // }
 
                                 // update arrow buttons with new index
                                 nextButton = document.getElementById("forwardstep");
@@ -674,7 +691,7 @@ $(document).ready(function() {
                     }
                 
                 ue4(data["fn"], data);
-                console.log("C_DEBUG: sending data to UE4 : ", data);
+                //console.log("C_DEBUG: sending data to UE4 : ", data);
                 }
                 break;
                 
@@ -688,6 +705,7 @@ $(document).ready(function() {
 
                 // init analytics container
                 document.getElementById('analyticsContainer').innerHTML = '';
+                $("#analyticsModCommunityGroups").empty();
                 document.getElementById('nodecounter').innerHTML = pfile['nodecount'] + ' NODES';
                 document.getElementById('linkcounter').innerHTML = pfile['linkcount'] + ' LINKS';
 
@@ -710,16 +728,11 @@ $(document).ready(function() {
                 Legend_displayGraphLayoutbyID(pfile.name, data.sel, "layouts", "graphlayout_nodecolors");
                 Legend_displayGraphLayoutbyID(pfile.name, data.sel, "layouts", "graphlayout_linkcolors");
                 
-                // display legendfiles
-                console.log("C_DEBUG: display legend display.");
-
                 // set arrow buttons with index of DD
                 nextButton = document.getElementById("forwardstep");
                 nextButton.setAttribute('val', data.sel);
                 backButton = document.getElementById("backwardstep");
                 backButton.setAttribute('val', data.sel);
-
-                //console.log("C_DEBUG updating Buttons while load project: ", nextButton.getAttribute("val"));
 
                 if (isPreview) {
                     downloadProjectTextures(); // download textures for preview, report when done
@@ -741,259 +754,149 @@ $(document).ready(function() {
                     ue4("linkblend", data);
                 }
 
-                // checkbox for analytics LINKS
-                if(data["id"]=="cbdefinelinklist"){
-                    socket.emit("ex", {
-                            fn: "checkbox",
-                            id: "cbdefinedlinkslist",
-                            val: data["val"]
-                        });
-                //console.log("C_DEBUG: data id is cbdefinelinklist - data val = ", data["val"]);
-
-
-                // TO DO 
-                // define which links json file to use for analytics 
-                // and access variable in operations where needed
-
-
-
                 break;
-                }
+                
 
             case "ue4":
 
-                if (data.id == "resetlayout") {
+                // if (data.id == "resetlayout") {
 
-                    // socket.emit("ex", {
-                    //     fn: "legend_scene_display",
-                    //     id: "legend_scene_display",
-                    //     val: reset_value
-                    // });
-
-                    // update legend 
-                    Legend_displayNodeInfobyID(pfile.name, 0);
-                    Legend_displayLinkInfobyID(pfile.name, 0);
-                    Legend_displayGraphLayoutbyID(pfile.name, 0, "layouts", "graphlayout");
-                    Legend_displayGraphLayoutbyID(pfile.name, 0, "layouts", "graphlayout_nodecolors");
-                    Legend_displayGraphLayoutbyID(pfile.name, 0, "layouts", "graphlayout_linkcolors");
-
-                    // update DD 
-                    layouts_DD = document.getElementById("layoutsDD").shadowRoot.getElementById("sel");   
-                    layouts_DD.setAttribute("sel", parseInt(0));
-                    layouts_DD.setAttribute("value", pfile.layouts[0]);
-
-                    layoutsRGB_DD = document.getElementById("layoutsRGBDD").shadowRoot.getElementById("sel");
-                    layoutsRGB_DD.setAttribute("sel", parseInt(0));
-                    layoutsRGB_DD.setAttribute("value", pfile.layoutsRGB[0]);
-
-                    linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
-                    linksRGB_DD.setAttribute("sel", parseInt(0));             
-                    linksRGB_DD.setAttribute("value", pfile.linksRGB[0]);
-
-                    links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
-                    links_DD.setAttribute("sel", parseInt(0));
-                    links_DD.setAttribute("value", pfile.links[0]);
-
-                    // update arrow buttons with new index
-                    nextButton = document.getElementById("forwardstep");    
-                    nextButton.setAttribute('val', 0);        
-                    backButton = document.getElementById("backwardstep");           
-                    backButton.setAttribute('val', 0);                
-
-                    data["val"] = 0;
+                //     data.val = 0;
+                //     // socket.emit("ex", {
+                //     //     fn: "legend_scene_display",
+                //     //     id: "legend_scene_display",
+                //     //     val: reset_value
+                //     // });
                     
+                //     // update legend 
+                //     Legend_displayNodeInfobyID(pfile.name, 0);
+                //     Legend_displayLinkInfobyID(pfile.name, 0);
+                //     Legend_displayGraphLayoutbyID(pfile.name, 0, "layouts", "graphlayout");
+                //     Legend_displayGraphLayoutbyID(pfile.name, 0, "layouts", "graphlayout_nodecolors");
+                //     Legend_displayGraphLayoutbyID(pfile.name, 0, "layouts", "graphlayout_linkcolors");
 
-                    if (isPreview) {
-                        actLayout = 0;
-                        actLayoutRGB = 0;
-                        actLinks = 0;
-                        actLinksRGB = 0;
-                        makeNetwork();
-                    }
+                //     // update DD 
+                //     // layouts_DD = document.getElementById("layoutsDD").shadowRoot.getElementById("sel");   
+                //     // layouts_DD.setAttribute("sel", parseInt(0));
+                //     // layouts_DD.setAttribute("value", pfile.layouts[0]);
 
-                }   
+                //     // layoutsRGB_DD = document.getElementById("layoutsRGBDD").shadowRoot.getElementById("sel");
+                //     // layoutsRGB_DD.setAttribute("sel", parseInt(0));
+                //     // layoutsRGB_DD.setAttribute("value", pfile.layoutsRGB[0]);
 
+                //     // linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
+                //     // linksRGB_DD.setAttribute("sel", parseInt(0));             
+                //     // linksRGB_DD.setAttribute("value", pfile.linksRGB[0]);
+
+                //     //links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
+                //     //links_DD.setAttribute("sel", parseInt(0));
+                //     //links_DD.setAttribute("value", pfile.links[0]);
+
+                //     // update arrow buttons with new index
+                //     nextButton = document.getElementById("forwardstep");    
+                //     nextButton.setAttribute('val', 0);        
+                //     backButton = document.getElementById("backwardstep");           
+                //     backButton.setAttribute('val', 0);                
+
+                //     // trigger dropdown cases
+                //     // this is quick fix since no reset button in VR exe implemented (button id = resetlayout")
+                    
+                //     data.fn = "dropdown";
+                //     data.id = "layoutsDD";
+                //     socket.emit("ex", data);
+                //     data.id = "layoutsRGBDD";
+                //     socket.emit("ex", data);
+                //     data.id = "linksRGBDD";
+                //     socket.emit("ex", data);
+
+                //     if (isPreview) {
+                //         actLayout = 0;
+                //         actLayoutRGB = 0;
+                //         actLinksRGB = 0;
+                //         makeNetwork();
+                //     }
+                // }   
 
                 if (data.id == "forwardstep") {
 
-                    // 1. get index of DD layout and set backwardidx
+                    var forwardidx = parseInt(data.val);
+
+                    // 1. get index of DD layout and set idx
                     var layouts_DD = document.getElementById("layoutsDD").shadowRoot.getElementById("sel");
-                    var forwardidx = parseInt(layouts_DD.getAttribute("sel"));
-                    //console.log("C_DEBUG in ue4 forwardidx from layoutsDD = ", forwardidx);
+                    forwardidx = parseInt(layouts_DD.getAttribute("sel"));
+                    console.log("C_DEBUG: forwardidx = ", forwardidx);
 
                     // 2. then add an index to it
                     forwardidx = NEWIndexforwardstep(pfile.layouts.length);
-                    //console.log("C_DEBUG in ue4 forwardstep = ", forwardidx);
-
-                    // // is that necessary??
-                    // socket.emit("ex", {
-                    //     fn: "legend_scene_display",
-                    //     id: "legend_scene_display",
-                    //     val: forwardidx
-                    // });
-
-                    // 3. then update dropdowns accordingly
-
-
-
-                    // links
-
-                    // links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
-                    // links_DD.setAttribute("sel", parseInt(forwardidx));
-                    // links_DD.setAttribute("value", pfile.links[forwardidx]);
-                    // actLinks = forwardidx;
-
-                    //let actLinks;
-                    if (pfile.links.length == 0 || pfile.links.length <= forwardidx) {
-                        links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
-                        links_DD.setAttribute("sel", parseInt(0));
-                        links_DD.setAttribute("value", pfile.links[0]);
-                        actLinks = parseInt(0);
-                        console.log("C_DEBUG in Links < than forwardidx - actLinks = ", actLinks);
-                        console.log("C_DEBUG: pfile.links.length = ", pfile.links.length);
-                        
-
-                    } else {
-                        links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
-                        links_DD.setAttribute("sel", parseInt(forwardidx));
-                        links_DD.setAttribute("value", pfile.links[forwardidx]);
-                        actLinks = forwardidx;
-                        console.log("C_DEBUG in Links forwardidx: ", actLinks);
-                    }
-                    //console.log("C_DEBUG changed Links: ", actLinks);
-
-
-
-                    // link colors  
-                    // linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
-                    // linksRGB_DD.setAttribute("sel", parseInt(forwardidx));
-                    // linksRGB_DD.setAttribute("value", pfile.linksRGB[forwardidx]);
-                    // actLinksRGB = forwardidx;
+                    console.log("C_DEBUG: NEW forwardidx = ", forwardidx);
 
                     //let actLinksRGB;
-                    if (pfile.linksRGB.length == 0 || pfile.linksRGB.length <= forwardidx) {
-                        linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
-                        linksRGB_DD.setAttribute("sel", parseInt(0));
-                        linksRGB_DD.setAttribute("value", pfile.linksRGB[0]);
-                        actLinksRGB = parseInt(0);
-                    } else {
-                        linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
-                        linksRGB_DD.setAttribute("sel", parseInt(forwardidx));
-                        linksRGB_DD.setAttribute("value", pfile.linksRGB[forwardidx]);
-                        actLinksRGB = forwardidx;
-                    }
-
-
+                    //if (pfile.linksRGB.length == 0 || pfile.linksRGB.length <= forwardidx) {
+                    linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
+                    linksRGB_DD.setAttribute("sel", parseInt(forwardidx));
+                    linksRGB_DD.setAttribute("value", pfile.linksRGB[forwardidx]);
 
                     // layouts
                     layouts_DD = document.getElementById("layoutsDD").shadowRoot.getElementById("sel");
                     layouts_DD.setAttribute("sel", parseInt(forwardidx));
                     layouts_DD.setAttribute("value", pfile.layouts[forwardidx]);
-                    //console.log("C_DEBUG changed Layouts: ", forwardidx);
 
                     // layoutRGB
                     layoutsRGB_DD = document.getElementById("layoutsRGBDD").shadowRoot.getElementById("sel");
                     layoutsRGB_DD.setAttribute("sel", parseInt(forwardidx));
                     layoutsRGB_DD.setAttribute("value", pfile.layoutsRGB[forwardidx]);
-                    //console.log("C_DEBUG changed Layouts Colors: ", forwardidx);
-
-                    
                     
                     Legend_displayNodeInfobyID(pfile.name, forwardidx);
                     Legend_displayLinkInfobyID(pfile.name, forwardidx);
                     Legend_displayGraphLayoutbyID(pfile.name, forwardidx, "layouts", "graphlayout");
                     Legend_displayGraphLayoutbyID(pfile.name, forwardidx, "layouts", "graphlayout_nodecolors");
                     Legend_displayGraphLayoutbyID(pfile.name, forwardidx, "layouts", "graphlayout_linkcolors");
-
-                    data["val"] = forwardidx;
-                    //console.log("C_DEBUG: data val forwardidx = ", data["val"]);
-
+                    
                     if (isPreview) {
                         actLayout = forwardidx;
                         actLayoutRGB = forwardidx;
-
+                        actLinksRGB = forwardidx;
                         makeNetwork();
                     }
 
-
+                    data["val"] = forwardidx;
+                    console.log("C_DEBUG: forward - data[val] = ", data["val"]);
                 }
 
 
                 if (data.id == "backwardstep") {
+                    
+                    var backwardidx = parseInt(data.val);
 
                     // 1. get index of DD layout and set backwardidx
                     var layouts_DD = document.getElementById("layoutsDD").shadowRoot.getElementById("sel");
-                    var backwardidx = parseInt(layouts_DD.getAttribute("sel"));
-                    //console.log("C_DEBUG in ue4 backwardidx from layoutsDD = ", backwardidx);
+                    backwardidx = parseInt(layouts_DD.getAttribute("sel"));
 
                     // 2. then add an index to it
                     backwardidx = NEWIndexbackwardstep(pfile.layouts.length);
-                    //console.log("C_DEBUG in ue4 backwardidx = ", backwardidx);
-
-                    // socket.emit("ex", {
-                    //     fn: "legend_scene_display",
-                    //     id: "legend_scene_display",
-                    //     val: backwardidx
-                    // });
-
-                    // 3. then update dropdowns accordingly
-
-                    // // links
-                    // links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
-                    // links_DD.setAttribute("sel", parseInt(backwardidx));
-                    // links_DD.setAttribute("value", pfile.links[backwardidx]);
-                    // actLinks = backwardidx;
-
-
-                    //let actLinks;
-                    if (pfile.links.length == 0 || pfile.links.length <= backwardidx) {
-                        links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
-                        links_DD.setAttribute("sel", parseInt(0));
-                        links_DD.setAttribute("value", pfile.links[0]);
-                        actLinks = parseInt(0);
-
-                    } else {
-                        links_DD = document.getElementById("linksDD").shadowRoot.getElementById("sel");
-                        links_DD.setAttribute("sel", parseInt(backwardidx));
-                        links_DD.setAttribute("value", pfile.links[backwardidx]);
-                        actLinks = backwardidx;
-                    }
-                    //console.log("C_DEBUG changed Links: ", actLinks);
-
-
-                    // link colors
-                    // linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
-                    // linksRGB_DD.setAttribute("sel", parseInt(backwardidx));
-                    // linksRGB_DD.setAttribute("value", pfile.linksRGB[backwardidx]);
-                    // actLinksRGB = backwardidx;
 
                     //let actLinksRGB;
-                    if (pfile.linksRGB.length == 0 || pfile.links.length <= backwardidx) {
-                        linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
-                        linksRGB_DD.setAttribute("sel", parseInt(0));
-                        linksRGB_DD.setAttribute("value", pfile.linksRGB[0]);
-                        actLinksRGB = parseInt(0);     
-                    } else {
-                        linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
-                        linksRGB_DD.setAttribute("sel", parseInt(backwardidx));
-                        linksRGB_DD.setAttribute("value", pfile.linksRGB[backwardidx]);
-                        actLinksRGB = backwardidx;
-                    }
-                    //console.log("C_DEBUG changed Link colors: ", backwardidx);
-
-
+                    //if (pfile.linksRGB.length == 0 || pfile.links.length <= backwardidx) {
+                    linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
+                    linksRGB_DD.setAttribute("sel", parseInt(backwardidx));
+                    linksRGB_DD.setAttribute("value", pfile.linksRGB[backwardidx]);
+                    //actLinksRGB = parseInt(0);     
+                    // } else {
+                    //     linksRGB_DD = document.getElementById("linksRGBDD").shadowRoot.getElementById("sel");
+                    //     linksRGB_DD.setAttribute("sel", parseInt(backwardidx));
+                    //     linksRGB_DD.setAttribute("value", pfile.linksRGB[backwardidx]);
+                    //     actLinksRGB = backwardidx;
+                    // }
 
                     // layouts
                     layouts_DD = document.getElementById("layoutsDD").shadowRoot.getElementById("sel");
                     layouts_DD.setAttribute("sel", parseInt(backwardidx));
                     layouts_DD.setAttribute("value", pfile.layouts[backwardidx]);
-                    //console.log("C_DEBUG changed Layouts: ", backwardidx);
 
                     // layoutRGB
                     layoutsRGB_DD = document.getElementById("layoutsRGBDD").shadowRoot.getElementById("sel");
                     layoutsRGB_DD.setAttribute("sel", parseInt(backwardidx));
                     layoutsRGB_DD.setAttribute("value", pfile.layoutsRGB[backwardidx]);
-                    //console.log("C_DEBUG changed Layouts Colors: ", backwardidx);
 
                     Legend_displayNodeInfobyID(pfile.name, backwardidx);
                     Legend_displayLinkInfobyID(pfile.name, backwardidx);
@@ -1001,22 +904,18 @@ $(document).ready(function() {
                     Legend_displayGraphLayoutbyID(pfile.name, backwardidx, "layouts", "graphlayout_nodecolors");
                     Legend_displayGraphLayoutbyID(pfile.name, backwardidx, "layouts", "graphlayout_linkcolors");
 
-                    data["val"] = backwardidx;
-                    //console.log("C_DEBUG: data val back = ", data["val"]);
-
                     if (isPreview) {
                         actLayout = backwardidx;
                         actLayoutRGB = backwardidx;
-
+                        actLinksRGB = backwardidx;
                         makeNetwork();
                     }
 
-                }
-                
-                //ue4(data["fn"], data);
-                ue4("but", data);
-                //console.log("C_DEBUG: ue4 data = ", data);
+                    data["val"] = backwardidx;
+                    console.log("C_DEBUG: backward - data[val] = ", data["val"]);
 
+                }
+                ue4("but", data);
                 break;
 
 
@@ -1063,6 +962,7 @@ $(document).ready(function() {
                         let request = {
                             fn: "analytics",
                             id: "analyticsDegreeRun",
+                            event: "analytics.degree",
                             highlight: clickedBarX,
                             target: targetDiv,
                             usr: user
@@ -1097,6 +997,7 @@ $(document).ready(function() {
                         let request = {
                             fn: "analytics",
                             id: "analyticsClosenessRun",
+                            event: "analytics.closeness",
                             highlight: clickedBarX,
                             target: targetDiv,
                             usr: user
@@ -1131,6 +1032,7 @@ $(document).ready(function() {
                         let request = {
                             fn: "analytics",
                             id: "analyticsEigenvectorRun",
+                            event: "analytics.eigenvector",
                             highlight: clickedBarX,
                             target: targetDiv,
                             usr: user
@@ -1164,7 +1066,8 @@ $(document).ready(function() {
 
                         let request = {
                             fn: "analytics",
-                            id: "analyticsClusteringCoeffRun",
+                            id: "analyticsClusteringcoefficientRun",
+                            event: "analytics.clustering_coeff",
                             highlight: clickedBarX,
                             target: targetDiv,
                             usr: user
@@ -1281,8 +1184,6 @@ $(document).ready(function() {
 
                 break;
 
-
-
             case "annotation":
 
                 const annotationDD1 = document.getElementById("annotation-dd-1");
@@ -1390,7 +1291,7 @@ $(document).ready(function() {
                 }
                 break;
 
-            case "enrichment":
+            case "enrichment":{
                 if (data.id == "init") {
                     $("#enrichment-colors").css('display', 'none');
                     $("#enrichment-note-result").css('display', 'none');
@@ -1398,7 +1299,7 @@ $(document).ready(function() {
                     if (data.valHideNote == false) { $("#enrichment-note-features").css('display', 'block'); }
 
                     let button_container = document.getElementById("enrichment-query").shadowRoot.getElementById("box");
-                    removeAllChildNodes(button_container);
+                    $(button_container).empty()
                     for (let i = 0; i < data.valQuery.length; i++) {
                         $(button_container).append("<mc-button id = 'button" + i + " 'val= '" + data.valQuery[i].id + "' name = '" + data.valQuery[i].name + "' w = '118' fn = 'node' color = '" + rgbToHex(data.valQuery[i].color[0] * 0.5, data.valQuery[i].color[1] * 0.5, data.valQuery[i].color[2] * 0.5) + "' ></mc-button>");
                     }
@@ -1422,11 +1323,18 @@ $(document).ready(function() {
                 if (data.id == "enrichment-run") {
                     const config = { displayModeBar: false };
                     const layout = {};
-                    let plot_data = JSON.parse(data["valPlot"]);
-                    let payload = data.valPayload
+
                     let targetName = "enrichment-container";
                     let targetContainer = document.getElementById(targetName);
                     let user = data.usr;
+
+                    if (!data["valPlot"]){
+                        targetContainer.innerHTML = "";
+                        return;
+                    }
+                    let plot_data = JSON.parse(data["valPlot"]);
+                    let payload = data.valPayload
+
 
                     Plotly.newPlot(targetName, plot_data, layout, config);
                     targetContainer.on('plotly_click', function(data) {
@@ -1457,20 +1365,108 @@ $(document).ready(function() {
                     $("#enrichment-note-result").css('display', 'block');
                     $("#enrichment-note-result").html(data.val)
                 }
+                break;
+            }
+            case "community_detection": {
+                // clear current buttons
+                var container = $("#analyticsModCommunityGroups");
+                container.empty();
 
-            // case "legend_scene_display":
-            //     if (data.has_scenes === true) {
-            //         $("#legend-scene-description-container").css('display', 'block');
-            //         $("#legend-scene-description-element").html("SCENE : : " + data.text)
-            //     }
-            //     else {
-            //         $("#legend-scene-description-container").css('display', 'none');
-            //         $("#legend-scene-description-element").html("")
-            //     }
+                // create buttons with colors
+                if (!data.data){return;}
+
+                data.data.forEach((entry, idx)=>{
+                    if (idx === 0){return;}
+                    container.append(`<mc-button id = "button ${entry[0]}" val="${entry[0]}" name="C: ${entry[0]}" w="114" fn="add_community_to_clipboard" color="${rgbToHex(entry[1][0], entry[1][1], entry[1][2])}"></mc-button>`);
+                });
+                break;
+            }
+            case "legend_scene_display":{
+                if (data.has_scenes === true) {
+                    $("#legend-scene-description-container").css('display', 'block');
+                    $("#legend-scene-description-element").html("SCENE : : " + data.text)
+                }
+                else {
+                    $("#legend-scene-description-container").css('display', 'none');
+                    $("#legend-scene-description-element").html("")
+                }
+                
+            }
         }
     });
+
+
 
 });
 
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+function rgbToHex(red, green, blue) {
+    const rgb = (red << 16) | (green << 8) | (blue << 0);
+    return '#' + (0x1000000 + rgb).toString(16).slice(1);
+}
+
+function removeAllChildNodes(parent) {
+    if (parent) {
+        while (parent.firstChild) {
+            parent.removeChild(parent.firstChild);
+        }
+    }
+
+}
+
+function clearContainer(container){
+    
+}
+
+function settextscroll(id, val) {
+    console.log(id)
+    var box = document.getElementById(id).shadowRoot.getElementById("box");
+    $(box).scrollTop(val[0]);
+    $(box).scrollLeft(val[1]);
+}
+
+function makeButton(parent, id, text) {
+    var r = $('<input/>').attr({ type: "button", id: id, value: text });
+    $(parent).append(r);
+}
+
+
+function removeOptions(selectElement) {
+    var i, L = selectElement.options.length - 1;
+    for (i = L; i >= 0; i--) {
+        selectElement.remove(i);
+    }
+}
+
+function log2HTML(logObj) {
+    let obj = document.createElement('div');
+    obj.style.margin = "3px";
+
+    if (logObj.type == "log") {
+        obj.innerHTML = `Log : : <span style="font-size:16px; font-weight:bold; color:rgb(200,200,200);">${logObj.msg}</span>`;
+    }
+    if (logObj.type == "warning") {
+        obj.style.color = "rgb(250,0,0)";
+        obj.innerHTML = `Warning : : <span style="font-size:16px; font-weight:bold; color:rgb(200,200,200);">${logObj.msg}</span>`;
+    }
+    return obj;
+}
+
+function handleLayoutExistsDisplay(exists) {
+    // function to handle rerun and save button display in front end
+    // exists: bool, if True: btns are displayed, false: btns are hidden
+    // called on layout tab switch, layout run, init
+    let layoutExistsBtns = document.getElementsByClassName("layoutExists");
+    if (exists === true) {
+        Array.prototype.forEach.call(layoutExistsBtns, function(element) {
+            element.style.display = "inline-block";
+        });
+    } else {
+        Array.prototype.forEach.call(layoutExistsBtns, function(element) {
+            element.style.display = "none";
+        });
+    }
+}

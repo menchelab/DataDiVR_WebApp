@@ -1,5 +1,6 @@
 import json
 import os
+import networkx as nx 
 
 try:
     from uploaderGraph import upload_filesJSON
@@ -7,6 +8,7 @@ except:
     print("Error: Could not import the uploaderGraph module. \n Only importing the necessary functions for the function 'make_json' to run. \n Please ensure the uploader module is in the same directory as this script.")
 
 
+# TO DO: a catch & error message if types are converted , e.g. positions from float to str
 def ensure_json_serializable(obj):
     if isinstance(obj, dict):
         return {k: ensure_json_serializable(v) for k, v in obj.items()}
@@ -55,7 +57,8 @@ def ensure_json_serializable(obj):
 
 
 # the actual merging function to create a json file in the required structure for the newest uploading procedure (state july 2024)
-def make_json(graphs): # former: merge_graphs(graphs):
+def make_json(graphs, save_json=False): # former: merge_graphs(graphs):
+    
     all_nodes = []
     all_links = []
     layouts = []
@@ -67,10 +70,29 @@ def make_json(graphs): # former: merge_graphs(graphs):
     # add check if a list or a single nx.graph object
     if not isinstance(graphs, list):
         graphs = [graphs]
-        
+    
+    # order graphs alphabetically 
+    # catch if not layoutname in keys
     for graph in graphs:
+        try:
+            graph.graph["layoutname"]
+            #print("Layoutname found: ", graph.graph["layoutname"])
+        except KeyError:
+            graph.graph["layoutname"] = "layoutname_" + str(graphs.index(graph))
+            #print("NO Layoutname found: ", graph.graph["layoutname"])
+        
+    graphs = sorted(graphs, key=lambda x: x.graph["layoutname"])
+    
+    for graph in graphs:
+        #print("Processing graph: ", graph.graph["layoutname"])
+        
+        # Remap node IDs to integers
+        mapping = {node: idx for idx, node in enumerate(graph.nodes())}
+        graph_remapped = nx.relabel_nodes(graph, mapping) 
+        
         # Process nodes for global and layout-specific lists
         for node, attrs in graph.nodes(data=True):
+   
             if node not in seen_nodes:
                 
                 # ANNOTATIONS
@@ -93,17 +115,20 @@ def make_json(graphs): # former: merge_graphs(graphs):
                 else:
                     annotation_mod['annotation'] = " - no annotation found."  # Blank annotation
 
-                if not is_json_serializable(node):
-                    node = str(node)  # Convert to string if not JSON serializable
+                # NODE ID
+                nodeid = mapping[node]
                 
+                if not is_json_serializable(node):
+                    nodeid = str(nodeid)  # Convert to string if not JSON serializable
+
                 # NODENAME 
                 try:
                     nodename = attrs.get('name', node)
                 except:
                     nodename = node
-                
+
                 all_nodes.append({
-                    'id': node,
+                    'id': nodeid,
                     'name': nodename,
                     'annotation': annotation_mod
                 })
@@ -112,7 +137,11 @@ def make_json(graphs): # former: merge_graphs(graphs):
         # Process links for global list, now with separate source and target
         for ix, (source, target, attrs) in enumerate(graph.edges(data=True)):
             if (source, target) not in seen_links:
-   
+    
+                # get node id from mapping of source and target
+                source = mapping[source]
+                target = mapping[target]
+                
                 if not is_json_serializable(source):
                     try:
                         source = int(source)
@@ -137,13 +166,29 @@ def make_json(graphs): # former: merge_graphs(graphs):
             'pos': attrs.get('pos', []),
             'cluster': attrs.get('cluster', '') if attrs.get('cluster', '') != "" else None,
             'id': str(node) if not is_json_serializable(node) else node
-        } for node, attrs in graph.nodes(data=True)]
+        } for node, attrs in graph_remapped.nodes(data=True)]
+
+        # # add check for pos types (float, int, str)
+        # for i in range(len(layout_nodes)):
+        #     if isinstance(layout_nodes[i]['pos'], (list)): # and len(layout_nodes[i]['pos']) >= 2 and len(layout_nodes[i]['pos']) <= 3:
+        #         individual_node = layout_nodes[i]['pos']
+        #         for j in range(len(individual_node)):
+        #             if isinstance(individual_node[j], (float)):
+        #                 individual_node[j] = float(individual_node[j])
+        #             else:
+        #                 raise ValueError("Positions must be class type float.")
+
+        #if len(individual_node) < 2 or len(individual_node) > 3:
+        #    raise ValueError("Position must have 2 or 3 dimensions.")
+
+        #print("Layout nodes: ", layout_nodes)
+        #print("Layout pos types: ", [type(node['pos'][0]) for node in layout_nodes])
 
         layout_links = [{
             'linkcolor': attrs.get('linkcolor', ''),
             'source': to_int_or_str(source) if not is_json_serializable(source) else source,
             'target': to_int_or_str(target) if not is_json_serializable(target) else target
-        } for source, target, attrs in graph.edges(data=True)]
+        } for source, target, attrs in graph_remapped.edges(data=True)]
 
         # check if "layoutname" exists
         try:
@@ -154,6 +199,7 @@ def make_json(graphs): # former: merge_graphs(graphs):
             l_layoutnames.append(layout_name)
                 
         layouts.append({'layoutname': layout_name, 'nodes': layout_nodes, 'links': layout_links})
+
 
     # Assuming the structure of the graphs are similar, and using the first graph as the base
     merged_structure = {
@@ -174,17 +220,18 @@ def make_json(graphs): # former: merge_graphs(graphs):
     # store merged json 
     current_wd = os.getcwd()
     
-    try:
-        # Ensure a proper path separator between directory and file name
-        file_path = os.path.join(current_wd, merged_structure["projectname"] + '.json')
-        with open(file_path, 'w') as f:
-            json.dump(merged_structure, f, indent=4)
+    if save_json == True: 
+        try:
+            # Ensure a proper path separator between directory and file name
+            file_path = os.path.join(current_wd, merged_structure["projectname"] + '.json')
+            with open(file_path, 'w') as f:
+                json.dump(merged_structure, f, indent=4)
+            
+            print("Merged JSON file saved as: ", file_path)
         
-        print("Merged JSON file saved as: ", file_path)
-    
-    except Exception as e:
-        print("Error: Could not save merged JSON file.")
-        print("Exception:", e)
+        except Exception as e:
+            print("Error: Could not save merged JSON file.")
+            print("Exception:", e)
     
     return merged_structure
 

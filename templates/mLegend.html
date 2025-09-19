@@ -210,8 +210,8 @@
                         }
                     }
                 }
-                console.log("C_DEBUG - layoutname selected = ", layoutname);
-                console.log("C_DEBUG - list layout_with_clusters = ", l_layout_with_clusters);
+                //console.log("C_DEBUG - layoutname selected = ", layoutname);
+                //console.log("C_DEBUG - list layout_with_clusters = ", l_layout_with_clusters);
 
                 // --------------------- DEPRECATED start
                 // remove "RGB" from layoutname
@@ -617,20 +617,18 @@
         const nextButton = document.getElementById('forwardstep');
         const backButton = document.getElementById('backwardstep');
 
-        let currentIndex = parseInt(nextButton.getAttribute('val'));
-        currentIndex = (currentIndex + 1) % data;
+        let NewcurrentIndex = parseInt(nextButton.getAttribute('val'));
+        NewcurrentIndex = (NewcurrentIndex + 1) % data;
 
-        nextButton.setAttribute('val',currentIndex);
-        backButton.setAttribute('val',currentIndex);
-        //console.log("C_DEBUG: NEWIndexforwardstep value = ", currentIndex)
+        nextButton.setAttribute('val',NewcurrentIndex);
+        backButton.setAttribute('val',NewcurrentIndex);
 
-        return currentIndex;
+        return NewcurrentIndex;
     }
 
     function getIndexforwardstep(data){
         const nextButton = document.getElementById('forwardstep');
         let currentIndex = parseInt(nextButton.getAttribute('val'));
-        //console.log("C_DEBUG: getIndexforwardstep value = ", currentIndex)
 
         return currentIndex;
     }
@@ -645,16 +643,13 @@
 
         backButton.setAttribute('val',currentIndex);
         nextButton.setAttribute('val',currentIndex);
-
-        //console.log("C_DEBUG: NEWIndexbackwardstep value = ", currentIndex)
-
+        
         return currentIndex;
     }
 
     function getIndexbackwardstep(data) {
         const backButton = document.getElementById('backwardstep');
         let currentIndex = parseInt(backButton.getAttribute('val'));
-        //console.log("C_DEBUG: getIndexbackwardstep value = ", currentIndex)
 
         return currentIndex;
     }
@@ -856,7 +851,7 @@
                         }
                         
                     } else {
-                        console.log("C_DEBUG: in else / hide all");
+                        //console.log("C_DEBUG: in else / hide all");
 
                         legendButtons.style.display = 'none';
                         imageElement.style.display = 'none';

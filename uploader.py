@@ -154,8 +154,8 @@ def loadAnnotations(name):
 
 
 
-def makeXYZTexture(project, pixeldata, name=None): 
-
+def makeXYZTexture(project, pixeldata, name=None, latlon_flag=False): 
+    
     hight = 128 * (int((len(pixeldata["data"])) / 16384) + 1)
 
     #print ("hight is " + str(hight))
@@ -165,7 +165,7 @@ def makeXYZTexture(project, pixeldata, name=None):
     texh = [(0,0,0)] * size
     texl = [(0,0,0)] * size
 
-    if "_geo" in pixeldata["name"]:
+    if latlon_flag==True: #"_geo" in pixeldata["name"]:
         #print("is geo")
         unscaled = []
         # convert lat lon to XYZ
@@ -201,7 +201,7 @@ def makeXYZTexture(project, pixeldata, name=None):
         y_norm = []
         z_norm = []
         for i in range(len(pixeldata["data"])):
-                
+                        
             x = float(pixeldata["data"][i][0])
             y = float(pixeldata["data"][i][1])
             z = float(pixeldata["data"][i][2])
@@ -215,9 +215,11 @@ def makeXYZTexture(project, pixeldata, name=None):
         
         if min(x_norm)<0 or min(y_norm)<0 or min(z_norm)<0 or max(x_norm)>1 or max(y_norm)>1 or max(z_norm)>1:
             coordinates_norm = normalize_xyz(pixeldata["data"]) 
-            #print("C_DEBUG: coordinates_norm: ", coordinates_norm)
+            
             for i in range(len(coordinates_norm[0])):
-                        
+                
+                #print("C_DEBUG - line 221: i in coordinates_norm: ", i)
+                
                 x = int(float(coordinates_norm[0][i])*65280)
                 y = int(float(coordinates_norm[1][i])*65280)
                 z = int(float(coordinates_norm[2][i])*65280)
@@ -235,13 +237,16 @@ def makeXYZTexture(project, pixeldata, name=None):
 
                 texh[i] = pixelh
                 texl[i] = pixell
-                #print(pixelh)
+               
+                #print(pixelh) 
                 #print("C_DEBUG: normalized coordinates.")
 
         else:
             #print("C_DEBUG: pixeldata: ", pixeldata["data"])
             for i in range(len(pixeldata["data"])):
 
+                #print("C_DEBUG - line 247: i in coordinates_norm: ", i)
+    
                 x = int(float(pixeldata["data"][i][0])*65280)
                 y = int(float(pixeldata["data"][i][1])*65280)
                 z = int(float(pixeldata["data"][i][2])*65280)
@@ -265,6 +270,9 @@ def makeXYZTexture(project, pixeldata, name=None):
     new_imgh = Image.new('RGB', (128, hight))
     new_imgl = Image.new('RGB', (128, hight))
 
+    #print("C_DEBUG in 272 : texh = ", texh)
+    #print("C_DEBUG in 273 : texl = ", texl)
+    
     new_imgh.putdata(texh)
     new_imgl.putdata(texl)
     
@@ -301,6 +309,8 @@ def makeXYZTexture(project, pixeldata, name=None):
 def makeNodeRGBTexture(project, pixeldata, name=None): 
     # check if data is rgba or hex string
     for i in (pixeldata["data"]):
+        
+        #print("C_DEBUG - line 309: in makeNodeRGBTexture - i in pixeldata: ", i)
         rgba_colors = []
         if type(i) is str and len(i) == 6 and i.startswith('#'):
             rgba_converted = hex_to_rgb(pixeldata["data"][i]) 
@@ -321,7 +331,6 @@ def makeNodeRGBTexture(project, pixeldata, name=None):
 
     new_img = Image.new('RGBA', (128, hight))
     new_img.putdata(tex)
-    
 
     pathRGB = path + '/layoutsRGB/' +  pixeldata["name"] + '.png' # fits pfile naming , former: 'RGB.bmp'
 
@@ -419,8 +428,6 @@ def makeLinkTexNew(project, links, name=None):
 
 # processing links for visualization (upload format: "layouts" key > "links" key)
 # used for visualization of network
-
-
 # ISSUE FIX - link display incorrect if layouts vary in links to show (e.g. 10 links in layout 1 , 200 in layout 2,.. ) due to link IDs being messed up in bitmap
 def makeLinkTexNew_withoutJSON_2(project, links_ids_project, links, name=None):
     hight = 64 * (int((len(links_ids_project.keys())) / 32768) + 1)
@@ -434,6 +441,7 @@ def makeLinkTexNew_withoutJSON_2(project, links_ids_project, links, name=None):
 
     linklist = {}
     linklist["links"] = []
+        
     try:
         edge_to_index = {tuple(edge): i for i, edge in links_ids_project.items()}
         for row in links["data"]:
@@ -500,7 +508,10 @@ def makeLinkTexNew_withoutJSON_2(project, links_ids_project, links, name=None):
         
 
 
+
+
 def makeLinkTexNew_withoutJSON(project, links, name=None): 
+    
     hight = 64 * (int((len(links["data"])) / 32768) + 1)
     #print("image hight = " + str(hight))
     #hight = 512 #int(elem / 512)+1
@@ -519,6 +530,9 @@ def makeLinkTexNew_withoutJSON(project, links, name=None):
             thislink["id"] = i
             thislink["s"] = row[0]
             thislink["e"] = row[1]
+            
+            #print("C_DEBUG: THISLINK: ", thislink)
+
             linklist["links"].append(thislink)
 
             sx = int(row[0]) % 128 # R
@@ -590,7 +604,7 @@ def makeLinksjson(project,links):
 
             #------------------------------------------------------------------------------
             # TO DO 
-            # here comes info e.g. COLOR "c" and WEIGHT "w" and DIRECTION "d" per link
+            # here comes info e.g. WEIGHT "w" and DIRECTION "d" per link
             #------------------------------------------------------------------------------
 
             i += 1
@@ -695,13 +709,14 @@ def makeLinksjson_multipleLinklists_2(project,links_ids_project, links):
 
 def makeLinkRGBTex_2(project, links_ids_project, linksRGB, name=None):
     hight = 64 * (int((len(links_ids_project.keys())) / 32768) + 1)
-    path = 'static/projects/' + project 
+    path = 'static/projects/' + project
     
     rgba_colors = []
     link_rgba = []
+
     # COLOR FORMAT: check if data is rgba or hex string
     try:
-        for ix, edge, col in linksRGB["data"]:
+        for edge, col in linksRGB["data"]:
             if type(col) is str and len(col) == 6 and col.startswith('#'):
                 rgba_converted = hex_to_rgb(linksRGB["data"][col]) 
                 rgba_colors.append(rgba_converted)
@@ -709,11 +724,13 @@ def makeLinkRGBTex_2(project, links_ids_project, linksRGB, name=None):
             else: 
                 rgba_colors = col #linksRGB["data"]
                 link_rgba.append((edge,col))
-            
-    except: # quick fix - if only point cloud upload and no links
-        print("has no colors")
+        print("PROGRESS: made textures for linkcolors...")
+    
+    except:
+        print("PROGRESS: no linkcolors detected for ", linksRGB["name"])
 
-    texc = [(0,0,0,10)] * 512 * hight #black, alpha = 10 used to filter background in legend panel
+
+    texc = [(0,0,0,0)] * 512 * hight #black, alpha = 10 used to filter background in legend panel
  
     new_imgc = Image.new('RGBA', (512, hight))
     #i = 0
@@ -784,10 +801,9 @@ def makeLinkRGBTex(project, linksRGB, name=None):
                 rgba_colors = linksRGB["data"]
 
     except: # quick fix - if only point cloud upload and no links
-        
         print("has no colors")
 
-    texc = [(0,0,0,10)] * 512 * hight #black, alpha = 10 used to filter background in legend panel
+    texc = [(0,0,0,0)] * 512 * hight #black, alpha = 10 used to filter background in legend panel
  
     new_imgc = Image.new('RGBA', (512, hight))
     i = 0
@@ -933,6 +949,7 @@ def upload_filesNew(request):
                 pos[0] = str(accPos[0] / len(row))
                 pos[1] = str(accPos[1] / len(row))
                 pos[2] = str(accPos[2] / len(row))
+                
                 layout["data"].append(pos)
 
             # label nodes to be black

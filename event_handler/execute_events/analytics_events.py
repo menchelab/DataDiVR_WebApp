@@ -3,11 +3,21 @@ from flask_socketio import emit
 import analytics
 import GlobalData as GD
 import util
-import json 
-
+import clipboad
 
 
 def degree_run_event(message, room, project):
+    """
+    Processes the degree distribution analytics event.
+    Retrieves and processes the degree distribution data from the project graph,
+    generates plot data, and sends the results to the client.
+    
+    Args:
+        message (dict): Event data containing user and function details.
+        room (str): Socket connection room identifier.
+        project (str): Project name to retrieve the graph from.
+    """
+    
     if "analyticsDegreeRun" not in GD.session_data.keys():
         ### "expensive" stuff
         if "graph" not in GD.session_data.keys():
@@ -22,6 +32,7 @@ def degree_run_event(message, room, project):
     highlight = None
     if "highlight" in message.keys():
         highlight = int(message["highlight"])
+        
 
     plot_data, highlighted_degrees = analytics.plotly_degree_distribution(
         arr, highlight
@@ -34,11 +45,13 @@ def degree_run_event(message, room, project):
         "target": "analyticsContainer",
         "val": plot_data,
     }
-    emit("ex", response, room=room)
+    emit("ex", response, room=room, namespace = "/main") # added namespace explicitly
 
     # setup new texture
     if highlight is None:
         return
+    
+    analytics.update_analytics_highlight(message["event"], analytics.get_node_ids_from_highlight_sequence(arr, highlighted_degrees))
 
     degree_distribution_textures = analytics.analytics_color_degree_distribution(
         arr, highlighted_degrees
@@ -59,10 +72,23 @@ def degree_run_event(message, room, project):
     ]
     response = {"usr": message["usr"], "fn": "updateTempTex", "textures": textures}
 
-    emit("ex", response, room=room)
+    emit("ex", response, room=room, namespace = "/main") # added namespace explicitly
+
+
 
 
 def closeness_run_event(message, room, project):
+    """
+    Processes the closeness centrality analytics event.
+    Retrieves and processes closeness centrality data from the project graph,
+    generates plot data, and sends the results to the client.
+    
+    Args:
+        message (dict): Event data containing user and function details.
+        room (str): Socket connection room identifier.
+        project (str): Project name to retrieve the graph from.
+    """
+
     if "analyticsClosenessRun" not in GD.session_data.keys():
         ### "expensive" stuff
         if "graph" not in GD.session_data.keys():
@@ -86,13 +112,14 @@ def closeness_run_event(message, room, project):
         "target": "analyticsContainer",
         "val": plot_data,
     }
-    emit("ex", response, room=room)
+    emit("ex", response, room=room, namespace= "/main")  # added namespace explicitly
+
 
     # setup new texture
     if highlight is None:
         return
 
-    print(">", highlighted_closeness, min(arr), max(arr), sum(arr) / len(arr))
+    analytics.update_analytics_highlight(message["event"], analytics.get_node_ids_from_highlight_bounds(arr, highlighted_closeness))
 
     closeness_textures = analytics.analytics_color_continuous(
         arr, highlighted_closeness
@@ -106,10 +133,21 @@ def closeness_run_event(message, room, project):
         {"channel": "linkRGB", "path": closeness_textures["path_links"]},
     ]
     response = {"usr": message["usr"], "fn": "updateTempTex", "textures": textures}
-    emit("ex", response, room=room)
+    emit("ex", response, room=room, namespace = "/main")  # added namespace explicitly
+
+
 
 
 def path_node1_event(message, room):
+    """
+    Handles the selection of the first node for shortest path analytics.
+    Updates server-side data with the selected node and sends the updated data to the client.
+    
+    Args:
+        message (dict): Event data containing user and function details.
+        room (str): Socket connection room identifier.
+    """
+
     # set server data: node +  hex color
     if message["val"] != "init":
         if "analyticsData" not in GD.pdata.keys():
@@ -137,10 +175,20 @@ def path_node1_event(message, room):
     if "analyticsData" in GD.pdata.keys():
         if "shortestPathNode1" in GD.pdata["analyticsData"].keys():
             response["val"] = GD.pdata["analyticsData"]["shortestPathNode1"]
-    emit("ex", response, room=room)
+    emit("ex", response, room=room, namespace = "/main") # added namespace explicitly
+
 
 
 def path_node2_event(message, room):
+    """
+    Handles the selection of the second node for shortest path analytics.
+    Updates server-side data with the selected node and sends the updated data to the client.
+    
+    Args:
+        message (dict): Event data containing user and function details.
+        room (str): Socket connection room identifier.
+    """
+
     # set server data: node +  hex color
     if message["val"] != "init":
         if "analyticsData" not in GD.pdata.keys():
@@ -166,7 +214,8 @@ def path_node2_event(message, room):
     if "analyticsData" in GD.pdata.keys():
         if "shortestPathNode2" in GD.pdata["analyticsData"].keys():
             response["val"] = GD.pdata["analyticsData"]["shortestPathNode2"]
-    emit("ex", response, room=room)
+    emit("ex", response, room=room, namespace = "/main") # added namespace explicitly
+
 
 
 # def path_run_old_event(message, room, project):
@@ -205,6 +254,30 @@ def path_node2_event(message, room):
 
 
 def path_run_event(message, room, project):
+    """
+    Calculates the shortest path between two specified nodes in the graph.
+
+    This function generates the shortest path between a start node and an end node,
+    applies coloring to the path, and sends the results to the client for visualization.
+
+    Args:
+        message (dict): Event data containing user details and the node parameters.
+                        Expected keys:
+                        - "usr": The user initiating the request.
+                        - "start_node": The name or ID of the start node (e.g., "cdk2").
+                        - "end_node": The name or ID of the end node (e.g., "cdk4").
+        room (str): Socket connection room identifier for sending responses.
+        project (str): Project name used to retrieve the graph data.
+
+    Example:
+        To calculate the shortest path between nodes "cdk2" and "cdk4", the message should include:
+        {
+            "usr": "user123",
+            "start_node": "cdk2",
+            "end_node": "cdk4"
+        }
+    """
+
     # generate paths
     if "graph" not in GD.session_data.keys():
         GD.session_data["graph"] = util.project_to_graph(project)
@@ -231,7 +304,7 @@ def path_run_event(message, room, project):
     response_textures["textures"].append(
         {"channel": "linkRGB", "path": shortest_path_display_obj["path_links"]}
     )
-    emit("ex", response_textures, room=room)
+    emit("ex", response_textures, room=room, namespace = "/main") # added namespace explicitly
 
     response_info = {}
     response_info["usr"] = message["usr"]
@@ -242,11 +315,21 @@ def path_run_event(message, room, project):
         "numPathCurrent": shortest_path_display_obj["numPathCurrent"],
         "pathLength": shortest_path_display_obj["pathLength"],
     }
-    emit("ex", response_info, room=room)
+    emit("ex", response_info, room=room, namespace = "/main") # added namespace explicitly
 
 
 
 def path_backwards_event(message, project, room):
+    """
+    Steps backward in the shortest path analytics visualization.
+    Updates the graph visualization and sends the updated textures to the client.
+    
+    Args:
+        message (dict): Event data containing user and function details.
+        project (str): Project name to retrieve the graph from.
+        room (str): Socket connection room identifier.
+    """
+
     # generate paths
     if "graph" not in GD.session_data.keys():
         GD.session_data["graph"] = util.project_to_graph(project)
@@ -287,10 +370,21 @@ def path_backwards_event(message, project, room):
         "numPathCurrent": shortest_path_display_obj["numPathCurrent"],
         "pathLength": shortest_path_display_obj["pathLength"],
     }
-    emit("ex", response_info, room=room)
+    emit("ex", response_info, room=room, namespace = "/main") # added namespace explicitly
+
 
 
 def path_forwards_event(message, room, project):
+    """
+    Steps forward in the shortest path analytics visualization.
+    Updates the graph visualization and sends the updated textures to the client.
+    
+    Args:
+        message (dict): Event data containing user and function details.
+        room (str): Socket connection room identifier.
+        project (str): Project name to retrieve the graph from.
+    """
+     
     # generate paths
     if "graph" not in GD.session_data.keys():
         GD.session_data["graph"] = util.project_to_graph(project)
@@ -331,10 +425,22 @@ def path_forwards_event(message, room, project):
         "numPathCurrent": shortest_path_display_obj["numPathCurrent"],
         "pathLength": shortest_path_display_obj["pathLength"],
     }
-    emit("ex", response_info, room=room)
+    emit("ex", response_info, room=room, namespace = "/main") # added namespace explicitly
+
 
 
 def eigenvector_run_event(message, room, project):
+    """
+    Processes the eigenvector centrality analytics event.
+    Retrieves and processes eigenvector centrality data from the project graph,
+    generates plot data, and sends the results to the client.
+    
+    Args:
+        message (dict): Event data containing user and function details.
+        room (str): Socket connection room identifier.
+        project (str): Project name to retrieve the graph from.
+    """
+
     if "analyticsEigenvectorRun" not in GD.session_data.keys():
         ### "expensive" stuff
         if "graph" not in GD.session_data.keys():
@@ -349,7 +455,7 @@ def eigenvector_run_event(message, room, project):
     if "highlight" in message.keys():
         highlight = float(message["highlight"])
 
-    plot_data, highlighted_closeness = analytics.plotly_eigenvector(arr, highlight)
+    plot_data, highlighted_ev = analytics.plotly_eigenvector(arr, highlight)
 
     response = {}
     response["fn"] = message["fn"]
@@ -357,14 +463,19 @@ def eigenvector_run_event(message, room, project):
     response["id"] = "analyticsEigenvectorPlot"
     response["target"] = "analyticsContainer"  # container to render plot in
     response["val"] = plot_data
-    emit("ex", response, room=room)
+    emit("ex", response, room=room, namespace = "/main") # added namespace explicitly
+
 
     # setup new texture
     if highlight is None:
         return
 
+
+    analytics.update_analytics_highlight(message["event"], analytics.get_node_ids_from_highlight_bounds(arr, highlighted_ev))
+
+
     closeness_textures = analytics.analytics_color_continuous(
-        arr, highlighted_closeness
+        arr, highlighted_ev
     )
     if closeness_textures["textures_created"] is False:
         print("Failed to create textures for Analytics/Eigenvector.")
@@ -380,19 +491,31 @@ def eigenvector_run_event(message, room, project):
     response["textures"].append(
         {"channel": "linkRGB", "path": closeness_textures["path_links"]}
     )
-    emit("ex", response, room=room)
+    emit("ex", response, room=room, namespace = "/main") # added namespace explicitly
 
 
-def clustering_coefficient_run_event(message, room, project):
-    if "analyticsClusteringCoeffRun" not in GD.session_data.keys():
+
+def clusteringcoefficient_run_event(message, room, project):
+    """
+    Processes the clustering coefficient analytics event.
+    Retrieves and processes clustering coefficient data from the project graph,
+    generates plot data, and sends the results to the client.
+    
+    Args:
+        message (dict): Event data containing user and function details.
+        room (str): Socket connection room identifier.
+        project (str): Project name to retrieve the graph from.
+    """
+
+    if "analyticsClusteringcoefficientRun" not in GD.session_data.keys():
         ### "expensive" stuff
         if "graph" not in GD.session_data.keys():
             GD.session_data["graph"] = util.project_to_graph(project)
         graph = GD.session_data["graph"]
-        result = analytics.analytics_clustering_coefficient(graph)
+        result = analytics.analytics_clusteringcoefficient(graph)
         ###
-        GD.session_data["analyticsClusteringCoeffRun"] = result
-    arr = GD.session_data["analyticsClusteringCoeffRun"]
+        GD.session_data["analyticsClusteringcoefficientRun"] = result
+    arr = GD.session_data["analyticsClusteringcoefficientRun"]
 
     highlight = None
     if "highlight" in message.keys():
@@ -408,11 +531,15 @@ def clustering_coefficient_run_event(message, room, project):
     response["id"] = "analyticsClusteringCoeffPlot"
     response["target"] = "analyticsContainer"  # container to render plot in
     response["val"] = plot_data
-    emit("ex", response, room=room)
+    emit("ex", response, room=room, namespace = "/main") # added namespace explicitly
+
 
     # setup new texture
     if highlight is None:
         return
+
+
+    analytics.update_analytics_highlight(message["event"], analytics.get_node_ids_from_highlight_bounds(arr, highlighted_closeness))
 
     closeness_textures = analytics.analytics_color_continuous(
         arr, highlighted_closeness
@@ -431,10 +558,21 @@ def clustering_coefficient_run_event(message, room, project):
     response["textures"].append(
         {"channel": "linkRGB", "path": closeness_textures["path_links"]}
     )
-    emit("ex", response, room=room)
+    emit("ex", response, room=room, namespace = "/main") # added namespace explicitly
+
 
 
 def mod_community_run_event(message, room, project):
+    """
+    Processes the modularity-based community detection event.
+    Detects communities in the graph, updates textures, and sends the results to the client.
+    
+    Args:
+        message (dict): Event data containing user and function details.
+        room (str): Socket connection room identifier.
+        project (str): Project name to retrieve the graph from.
+    """
+
     if "analyticsModcommunityRun" not in GD.session_data.keys():
         ### "expensive" stuff
         if "graph" not in GD.session_data.keys():
@@ -447,6 +585,8 @@ def mod_community_run_event(message, room, project):
 
     node_colors = analytics.color_mod_community_det(arr)
 
+    flattened_colors = analytics.flattened_colors(arr, node_colors)
+    
     generated_textures = analytics.update_network_colors(
         node_colors=node_colors
     )  # link_colors stays None for grey
@@ -463,10 +603,26 @@ def mod_community_run_event(message, room, project):
     response["textures"].append(
         {"channel": "linkRGB", "path": generated_textures["path_links"]}
     )
-    emit("ex", response, room=room)
+    emit("ex", response, room=room, namespace = "/main") # added namespace explicitly
+
+    response2 = {}
+    response2["usr"] = message["usr"]
+    response2["fn"] = "community_detection"
+    response2["data"] = flattened_colors
+    emit("ex", response2, room=room, namespace = "/main") # added namespace explicitly
 
 
 def mod_community_layout_event(message, room, project):
+    """
+    Generates and applies a layout for modularity-based community detection.
+    Updates the graph layout and sends the results to the client.
+    
+    Args:
+        message (dict): Event data containing user and function details.
+        room (str): Socket connection room identifier.
+        project (str): Project name to retrieve the graph from.
+    """
+
     if "analyticsModcommunityRun" not in GD.session_data.keys():
         ### "expensive" stuff
         if "graph" not in GD.session_data.keys():
@@ -503,10 +659,82 @@ def mod_community_layout_event(message, room, project):
     response["textures"].append(
         {"channel": "layoutNodesLow", "path": generated_layout["layout_low"]}
     )
-    emit("ex", response, room=room)
+    emit("ex", response, room=room, namespace = "/main") # added namespace explicitly
+
+
+
+def add_community_to_clipborad(message, room, project):
+    """
+    Adds a community to the clipboard.
+    Retrieves community data from the graph and updates the clipboard with the selected nodes.
+    
+    Args:
+        message (dict): Event data containing user and function details.
+        room (str): Socket connection room identifier.
+        project (str): Project name to retrieve the graph from.
+    """
+
+    community = message["val"]
+    
+    # get graph
+    if "graph" not in GD.session_data.keys():
+        GD.session_data["graph"] = util.project_to_graph(project)
+    graph = GD.session_data["graph"]
+    
+    # get community data
+    if "analyticsModcommunityRun" not in GD.session_data.keys():
+        result = analytics.modularity_community_detection(graph)
+        GD.session_data["analyticsModcommunityRun"] = result
+    communities_list = GD.session_data["analyticsModcommunityRun"]
+    
+    # update clipboard
+    clipboad.addNodesToClipboard(analytics.get_nodes_from_community(community, communities_list))
+    
+    response = {
+        "usr": message["usr"],
+        "id": message["id"],
+        "fn": "cbaddNode",
+        "val": GD.pdata["cbnode"],
+    }
+    emit("ex", response, room=room, namespace = "/main") # added namespace explicitly
+
+
+
+def update_clipboard_from_highlight_event(message: dict, room):
+    """
+    Updates the clipboard with highlighted nodes.
+    Processes the highlighted nodes and sends the updated clipboard data to the client.
+    
+    Args:
+        message (dict): Event data containing user and function details.
+        room (str): Socket connection room identifier.
+    """
+
+    if not "val" in message.keys():
+        return
+
+    analytics.update_clipboard_from_highlight(message["val"])
+
+    response = {
+        "usr": message["usr"],
+        "id": message["id"],
+        "fn": "cbaddNode",
+        "val": GD.pdata["cbnode"],
+    }
+    emit("ex", response, room=room, namespace = "/main") # added namespace explicitly
 
 
 def main(message, room, project):
+    """
+    Routes analytics events to the appropriate handler function.
+    Based on the event ID in the message, calls the corresponding analytics function.
+    
+    Args:
+        message (dict): Event data containing user and function details.
+        room (str): Socket connection room identifier.
+        project (str): Project name to retrieve the graph from.
+    """
+
 
     if message["id"] == "analyticsDegreeRun":
         degree_run_event(message, room, project)
@@ -536,11 +764,24 @@ def main(message, room, project):
     if message["id"] == "analyticsEigenvectorRun":
         eigenvector_run_event(message, room, project)
 
-    if message["id"] == "analyticsClusteringCoeffRun":
-        clustering_coefficient_run_event(message, room, project)
+    if message["id"] == "analyticsClusteringcoefficientRun":
+        clusteringcoefficient_run_event(message, room, project)
 
     if message["id"] == "analyticsModcommunityRun":
         mod_community_run_event(message, room, project)
 
     if message["id"] == "analyticsModcommunityLayout":
         mod_community_layout_event(message, room, project)
+    
+    # copy selections in clipboard 
+    if message["id"] == "analyticsDegreeClipboard":
+        update_clipboard_from_highlight_event(message, room)
+        
+    if message["id"] == "analyticsClosenessClipboard":
+        update_clipboard_from_highlight_event(message, room)
+        
+    if message["id"] == "analyticsEigenvectorClipboard":
+        update_clipboard_from_highlight_event(message, room)
+        
+    if message["id"] == "analyticsClusteringCoeffClipboard":
+        update_clipboard_from_highlight_event(message, room)

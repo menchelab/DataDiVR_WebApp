@@ -40,7 +40,6 @@ import chatGPTTest
 import event_handler
 import GlobalData as GD
 import layout_module
-#import load_extensions
 import plotlyExamples as PE
 
 import search
@@ -53,7 +52,7 @@ import uploaderGraph
 import util
 import websocket_functions as webfunc
 from extensions import load_extensions
-
+#from extensions.languageUI.src.app import blueprint, register_socketio_events
 
 import pandas as pd
 import plotly
@@ -72,8 +71,13 @@ app.debug = False
 app.config["SECRET_KEY"] = "secret"
 app.config["SESSION_TYPE"] = "filesystem"
 
-socketio = SocketIO(app, manage_session=False)
-app, extensions = load_extensions.load(app)
+socketio = SocketIO(app, manage_session=False,
+                    cors_allowed_origins="*")
+# load extensions and register their socketio events
+app, extensions = load_extensions.load(app, socketio)
+
+
+
 
 ### HTML ROUTES ###
 
@@ -90,9 +94,9 @@ def execute_before_first_request():
     GD.loadPFile()
     GD.loadPD()
     GD.loadColor()
+    GD.loadXYZTex() # C_DEBUG text
     GD.loadLinks()
     GD.load_annotations()
-
 
 def index():
     return flask.redirect("/home")
@@ -127,38 +131,40 @@ def main():
 myusers = [{'uid': 4, 'links': [2, 2, 2, 2, 2, 133, 666, 666, 666, 666, 125, 125]}, {'uid': 666, 'links': [133]}, {'uid': 133, 'links': [666]}, {'uid': 555, 'links': [666, 133, 4, 123, 124, 125, 125, 125]}, {'uid': 125, 'links': [555, 128]}, {'uid': 128, 'links': [555]}, {'uid': 130, 'links': [555]}]
 
 
-# #----------------------------------------------------------------------
-# # Language UI
 
-# from functionmappingllm import *
+# =====================================================================
+# Set up logging
+logging.basicConfig(filename='server.log', level=logging.INFO)
 
-# @app.route("/languageUI")
-# def languageUI():
-    
-    
-#     # ISSUE: does not get user name
+@app.route('/log', methods=['GET', 'POST'])
+def get_log():
+    try:
+        with open('server.log') as f:
+            log_content = f.read()
+        return jsonify({"log": log_content})
+    except FileNotFoundError:
+        return jsonify({"error": "Log file not found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
+# Set up logging
+logging.basicConfig(
+    filename='server.log',  # Log file name
+    level=logging.INFO,     # Log level
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'  # Log format
+)
 
-#     return render_template("mLanguageUI.html", extensions=extensions)
-
-
-# @app.route('/languageUI_process', methods=['POST'])
-# def process():
-#     data = request.get_json()
-#     lui_user_input = data.get('text')
-#     result = process_input(lui_user_input)
-#     username = data.get("usr")
-
-#     return jsonify({"userId":username, "result": result})
-
-# #----------------------------------------------------------------------
-
-
-
+# Create a logger object
+logger = logging.getLogger(__name__)
+# =====================================================================
 
 
 
-import plotlyExamples
+
+
+
+
+import plotlyExamples    
 
 @app.route('/evilAI')
 def evilAI():
@@ -169,7 +175,6 @@ def evilAI():
     
     # Create graphJSON
     #graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-
 
     if  request.cookies.get('userID'): # has cookie, add to links
         if request.args.get('uid'):
@@ -392,9 +397,16 @@ def loadProjectAnnotations(name):
 def join(message):
     for func in GD.functions["join"]:
         func(message)
-    room = flask.session.get("room")
+
+    # quick fix to make sure all clients in same room 
+    room = 'shared-room' #flask.session.get("room")
     join_room(room)
-    print(message["usr"])
+
+    #if not room:
+    #    print("No room found in session — using fallback room 1")
+    #    room = 1
+
+    print("JOINING ROOM:", message["usr"])
 
     print(
         webfunc.bcolors.WARNING
@@ -403,41 +415,98 @@ def join(message):
         + webfunc.bcolors.ENDC
     )   
     emit("status", {"usr": message["usr"], "msg": " has entered the room."}, room=room)
-
-
-@socketio.on("ex", namespace="/main")
-@spam_protector
-def ex(message):
-    for func in GD.functions["ex"]:
-        func(message)
-
-    room = flask.session.get("room")
-    project = GD.data["actPro"]
-    # print(webfunc.bcolors.WARNING+ flask.session.get("username")+ "ex: "+ json.dumps(message)+ webfunc.bcolors.ENDC)
-    # message["usr"] = flask.session.get("username")
-
-    print("incoming " + str(message))
-
-    event_handler.handle_socket_execute(message, room, project)
+    
 
 
 @socketio.on("left", namespace="/main")
 def left(message):
     for func in GD.functions["left"]:
         func(message)
-    room = flask.session.get("room")
-    username = flask.session.get("username")
+    
+    #print("C_DEBUG in socketio left - message:", message)
+    room = 'shared-room' #flask.session.get("room")
+    username = message['usr']  #flask.session.get("username")
+    #print("C_DEBUG: username", username)
+
     leave_room(room)
     flask.session.clear()
     emit("status", {"msg": username + " has left the room."}, room=room)
     print(
         webfunc.bcolors.WARNING
-        + flask.session.get("username")
+        + username # flask.session.get("username")
         + " has left the room."
         + webfunc.bcolors.ENDC
     )
 
 
+#------------------------------------------
+# modified for jupyter notebook client 
+@socketio.on("ex", namespace="/main")
+@spam_protector
+def ex(message):
+    
+    #print("in main app: Message received:", message)
+    
+    room = 'shared-room' #flask.session.get("room") # jupyter-room
+    username = message.get("usr", flask.session.get("username", "jupyter-user"))
+    #print(f"Using room: {room}, user: {username}")
+
+    for func in GD.functions["ex"]:
+        func(message)
+    
+    project = GD.data["actPro"]
+
+    print("in main app - Executing function - MESSAGE:", message)
+    event_handler.handle_socket_execute(message, room, project)
+    
+    # added for jupyter client (or any client not sending http requests)
+    emit('module-update', {
+        'id': 'test-node',
+        'val': 42
+    }, room='shared-room', namespace='/main')  
+
+
+# @socketio.on("ex", namespace="/main")
+# @spam_protector
+# def ex(message):
+#     for func in GD.functions["ex"]:
+#         func(message)
+
+#     room = flask.session.get("room")
+#     project = GD.data["actPro"]
+#     # print(webfunc.bcolors.WARNING+ flask.session.get("username")+ "ex: "+ json.dumps(message)+ webfunc.bcolors.ENDC)
+#     # message["usr"] = flask.session.get("username")
+
+#     print("incoming " + str(message))
+    
+#     logger.info(message)
+    
+#     event_handler.handle_socket_execute(message, room, project)
+
+
+
+# added for jupyter client (or any client not sending http requests)
+@socketio.on('init-project', namespace='/main')
+def init_project():
+    #print("🛠 Manually initializing GD project state...")
+    uploader.check_ProjectFolder()
+    util.create_dynamic_links(app)
+    GD.checkProjectGDexists()
+    GD.loadGD()
+    GD.loadPFile()
+    GD.loadPD()
+    GD.loadColor()
+    GD.loadXYZTex() # C_DEBUG text
+    GD.loadLinks()
+    GD.load_annotations()
+    print("GD initialization complete")
+    
+
+
+
+
+#------------------------------------------
+    
 
 if __name__ == "__main__":
     socketio.run(app, debug=True)
