@@ -50,6 +50,36 @@ ue.interface.nodelabels = function(data) {
     socket.emit('ex', out);
 };
 
+ue.interface.paintnodesADD = function(data) {
+    console.log(data);
+    var text = '{"id":"paintnodes", "data": [], "fn": "paintnodes", "op":"ADD"}';
+    var out = JSON.parse(text);
+    out["usr"] = uid;
+    out.data = data;
+    socket.emit('ex', out);
+};
+
+ue.interface.paintnodesSUB = function(data) {
+    console.log(data);
+    var text = '{"id":"paintnodes", "data": [], "fn": "paintnodes", "op":"SUB"}';
+    var out = JSON.parse(text);
+    out["usr"] = uid;
+    out.data = data;
+    socket.emit('ex', out);
+};
+
+ue.interface.manLabel = function(data) {
+    console.log(data);
+    var text = '{"id":"manLabel", "data": [], "fn": "manLabel"}';
+    var out = JSON.parse(text);
+    var input = JSON.parse(data);
+    out["usr"] = uid;
+    out["name"] = input.text
+    out.data = [input.x, input.y, input.z]
+    socket.emit('ex', out);
+};
+
+
 ue.interface.nodelabelclicked = function(data) {
     console.log(data);
     var text = '{"id":"node", "val": -1, "fn": "node"}';

@@ -56,6 +56,76 @@ def colorbox_event(message, room):
     emit("ex", message, room=room)
 
 
+def colorbox_nodePaint_event(message, room):
+    GD.paintedNodesColor = (int(message["r"]),int(message["g"]),int(message["b"]),int(message["a"]*255))
+    paintNodes_renderTexture(message, room)
+
+def paintNodes_event(message, room):
+    print("paintnodes triggered")
+    if message["op"] == "ADD":
+        for id in message["data"]:
+            if id not in GD.paintedNodes:
+                GD.paintedNodes.append(id)
+    if message["op"] == "SUB":
+        for id in message["data"]:
+            try: 
+                x = GD.paintedNodes.index(id)
+                GD.paintedNodes.pop(x)
+            except ValueError: found = False
+    paintNodes_renderTexture(message, room)
+
+
+def paintNodes_renderTexture(message, room):            
+    # copy active color texture
+    im1 = PIL.Image.open(
+        "static/projects/"
+        + GD.data["actPro"]
+        + "/layoutsRGB/"
+        + GD.pfile["layoutsRGB"][int(GD.pdata["layoutsRGBDD"])]
+        + ".png",
+        "r",
+    )
+    im2 = im1.copy()
+    # convert rgb to hex string
+    '''
+    color = (
+        int(message["r"]),
+        int(message["g"]),
+        int(message["b"]),
+        int(message["a"] * 255),
+    )'''
+    color = GD.paintedNodesColor
+    pix_val = list(im1.getdata())
+
+    # colorize clipboard selection
+
+             
+
+    if len(GD.paintedNodes) > 0:
+        for id in GD.paintedNodes:
+            print(id)
+            pix_val[id] = (255,0,0,255) #color
+        
+    im2.putdata(pix_val)
+
+    # save temp texture
+
+    path = "static/projects/" + GD.data["actPro"] + "/layoutsRGB/temp1.png"
+    im2.save(path)
+    im1.close()
+    im2.close()
+    # send update signal to clients
+    textures = [
+        {
+            "channel": "nodeRGB",
+            "path": "static/projects/" + GD.data["actPro"] + "/layoutsRGB/temp1.png",
+        }
+    ]
+    response = {"usr": message["usr"], "fn": "updateTempTex", "textures": textures}
+
+    emit("ex", response, room=room)
+    emit("ex", message, room=room)
+
 def slider_event(message, room):
     if message["id"] not in GD.pdata:
         GD.pdata[message["id"]] = ""

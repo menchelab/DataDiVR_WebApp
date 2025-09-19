@@ -28,6 +28,9 @@ links = {}
 names = {}
 functions = {"ex": [], "join": [], "left": []}
 
+paintedNodes = []
+paintedNodesColor = (128,0,255,255)
+
 annotations = {}  # annotations map
 annotation_types = (
     []
