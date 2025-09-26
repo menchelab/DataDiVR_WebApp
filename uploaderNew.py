@@ -973,7 +973,7 @@ import math
 
 def makeLinkTex(project, name, links,linkcol):
     
-    hight = 64 * (math.floor((len(links)) / 32768) + 1)
+    hight = 64 * (math.floor((len(links)-1) / 32768) + 1)
     path = 'static/projects/' + project 
     print(hight)
     texl = [(0,0,0)] * 1024 * hight

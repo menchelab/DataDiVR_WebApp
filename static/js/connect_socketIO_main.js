@@ -165,6 +165,7 @@ ue.interface.speech = function (data) {
 function updateMcElements() {
   dynelem = document.getElementsByClassName("GD");
 
+
   for (let i = 0; i < dynelem.length; i++) {
     switch (dynelem[i].getAttribute("type")) {
       case "textinput":
@@ -881,7 +882,14 @@ $(document).ready(function () {
         ue4(data["fn"], data);
         console.log(data)
         console.log("--------------")
-        //}
+        socket.emit("ex", {
+          id:"iwas",
+          parent:"aaA",
+          usr: uid,
+          fn: "Plotly2js",
+          msg: "hannah",
+          val:"nix",
+        });
         break;
 
       case "cnl":
@@ -1052,7 +1060,7 @@ $(document).ready(function () {
         // console.log("C_DEBUG: print text message")
         // ue4(data["fn"], data); // NOT TESTED IF Username taken from ue4
         break;
-
+/*
       case "analytics":
         if (data.id == "analyticsDegreePlot") {
           const config = { displayModeBar: false };
@@ -1404,7 +1412,7 @@ $(document).ready(function () {
         }
 
         break;
-
+*/
       case "gotonode":
         ue4(data["fn"], data);
         //alert("rrrrrreeee");

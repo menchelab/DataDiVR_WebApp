@@ -1148,10 +1148,21 @@ def ex(message):
             response["val"] = PE.scatterGraph()
             emit("ex", response, room=room)
 
+
         # Draw Cartographs
         elif message["msg"] == "draw graph":
             response["val"] = CG.cartoGraphs()
             emit("ex", response, room=room)
+
+        elif message["msg"] == "hannah":
+
+            with open('static/projects/'+GD.data["actPro"]+'/'+GD.data["actPro"]+'.json', 'r') as file:
+                data = json.load(file)
+                response = {}
+                response["val"] = json.dumps(data)
+                response["fn"] = "plotly2js" 
+                response["parent"] = "pgraph"
+                emit("ex", response, room=room)
 
     elif message["fn"] == "submit_butt":
         if message["parent"] not in GD.pdata:
@@ -1183,6 +1194,7 @@ def ex(message):
         emit("ex", response, room=room)
 
     elif message["fn"] == "node":
+        #print("!!!" + str(message))
         response = {}
 
         response["val"] = {}
@@ -1211,7 +1223,29 @@ def ex(message):
 
             GD.savePD()
 
-        # print(response)
+        print("!!!!" + str(response))
+        print("!!!!" + str(response["val"]["attrlist"][1]))
+        if str(response["val"]["attrlist"][1]).startswith("EXP_"):
+            
+            pname = str(response["val"]["attrlist"][1]).replace("EXP_", "")
+            print(pname)
+            GD.data["actPro"] = pname
+            GD.saveGD()
+            GD.loadGD()
+            GD.loadPFile()
+            GD.loadPD()
+            GD.loadColor()
+            GD.loadLinks()
+            GD.load_annotations()
+
+            response2 = {}
+            #response2["usr"] = message["usr"]
+            response2["val"] = GD.pfile
+            response2["fn"] = "project"
+            emit("ex", response2, room=room)
+
+
+
         emit("ex", response, room=room)
 
     elif message["fn"] == "children":

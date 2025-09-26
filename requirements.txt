@@ -21,6 +21,7 @@ pymysql
 shapely
 cartoGRAPHs
 urllib3==1.26.6
+opencv-python
 #--find-links https://download.pytorch.org/whl/torch_stable.html
 #torch==1.13.1+cu116
 #whisper

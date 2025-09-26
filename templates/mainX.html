@@ -39,26 +39,24 @@
 
 <body class="unselectable" style="width:1750px">
 
+    <div id="pgraph" style="width: 426px; height:600px; "> </div>
 
-
-    <div id="main" class="row" style="background-color:rgba(170, 170, 170, 0); overflow: hidden;">
+    <div id="main" class="row" style="background-color:rgba(170, 170, 170, 0); overflow: hidden; display:none ">
 
         <div id="outer" class="column">
-            <div id="pgraph" style="width: 426px; height:100px;"> </div>
-            <div style="width: 426px; height:100vh; overflow-y:auto;  overflow-x:hidden; display:none">
+            <div style="width: 426px; height:100vh; overflow-y:auto;  overflow-x:hidden">
 
-                <!-- {% include 'mProject.html' %} -->
                 {% include 'mProject.html' %}
                 {% include 'mSliders.html' %}
-                
 
-                <!-- {% for ext in extensions["ext"] %}
-                {% if "column_1" in ext.keys() %} -->
-                <!-- {% for module in ext["column_1"]%}
+
+                {% for ext in extensions["ext"] %}
+                {% if "column_1" in ext.keys() %}
+                {% for module in ext["column_1"]%}
                 {% include module %}
                 {% endfor %}
                 {% endif %}
-                {% endfor %} -->
+                {% endfor %}
 
             </div>
         </div>
@@ -68,7 +66,17 @@
             <div style="width: 426px; height:100vh; overflow-y:auto;  overflow-x:hidden">
                 <br>
 
+                {% include 'mLegend.html' %}
+                <!-- {% include 'mChat.html' %} -->
+                {% include 'mDebug.html' %}
 
+                {% for ext in extensions["ext"] %}
+                {% if "column_2" in ext.keys() %}
+                {% for module in ext["column_2"]%}
+                {% include module %}
+                {% endfor %}
+                {% endif %}
+                {% endfor %}
 
             </div>
 
@@ -78,7 +86,20 @@
 
             <div style="width: 426px; height:100vh; overflow-y:auto;  overflow-x:hidden">
                 <br>
-          
+                {% include 'mAudio.html' %}
+                {% include 'mGPT.html' %}
+                <!--{% include 'mCartographs.html' %} -->
+                {% include 'mConnections.html' %}
+                {% include 'mAnalytics.html' %}
+                {% include 'mAnnotations.html' %}
+
+                {% for ext in extensions["ext"] %}
+                {% if "column_3" in ext.keys() %}
+                {% for module in ext["column_3"]%}
+                {% include module %}
+                {% endfor %}
+                {% endif %}
+                {% endfor %}
 
             </div>
 
@@ -89,6 +110,20 @@
             <div style="width: 426px; height:100vh; overflow-y:auto;  overflow-x:hidden">
                 <br>
 
+                {% include 'mSelections.html' %}
+                {% include 'mNodesearch.html' %}
+                {% include 'mClipboard.html' %}
+                {% include 'mNodeinfo.html' %}
+                {% include 'mLayout.html' %}
+
+
+                {% for ext in extensions["ext"] %}
+                {% if "column_4" in ext.keys() %}
+                {% for module in ext["column_4"]%}
+                {% include module %}
+                {% endfor %}
+                {% endif %}
+                {% endfor %}
 
             </div>
 
@@ -102,7 +137,18 @@
 
 </html>
 <script>
+    $(document).ready(function () {
+        console.log("here!!!")
+        socket.emit("ex", {
+            id:"iwas",
+            parent:"aaA",
+            usr: uid,
+            fn: "Plotly2js",
+            msg: "hannah",
+            val:"nix",
+        });
 
+    });
     document.getElementById("browser").innerHTML = String(navigator.userAgent)
 
     if (String(navigator.userAgent).includes("UnrealEngine")) {

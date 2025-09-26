@@ -3,21 +3,10 @@ import random
 import pandas as pd
 import socketio
 
-df = pd.read_excel("ExampleSpectroscopyData.xlsx", header=3)
-df.index
-#print(df)
+#df = pd.read_excel("ExampleSpectroscopyData.xlsx", header=3)
 
-df = df.iloc[1:,1:]
-df = df.values
 
-df = df[::4,::2]
-#[ spectrum, time]
-#print(df.columns)
-#print(df[4,1])
-#print(df[:,1])
-#print(df)
-
-dim = df.shape
+dim = [1447,1447]
 
 '''
 nodelist = [{"id":356, "name":"heinz"},{"id":234, "name":"karl"},{"id":899, "name":"eric"},{"id":899, "name":"anton"}]
@@ -34,14 +23,15 @@ linkcol = []
 
 labels = [{"id":12,"n":"X","group":[3]},{"id":12,"n":"Y","group":[1]},{"id":12,"n":"Z","group":[2]}]
 ugs = 0
-print(df.shape)
-for u in range(dim[1]):
+colors = [[255,0,0,128],[0,255,0,128],[0,0,255,128],[255,255,0,128],[0,128,255,128],[128,0,255,128],[0,0,255,128],[255,255,0,128]]
+count = 0
+for u in range(0,dim[1]):
 #u = 100
-    for i in range (dim[0]):
+    for i in range (0,dim[0]+1):
         thisnode = {"id": i + u*dim[0], "name": "node_"+ str(i + u*dim[0]), "special":"someotherproject"}
         nodelist.append(thisnode)
 
-        zpos = (df[i,u])/100000
+        zpos = 0.15
         nodepos.append([(u/dim[1]),(i/dim[0]), zpos])
         #
         #if i < 10:
@@ -51,15 +41,16 @@ for u in range(dim[1]):
 
         if i > 0 :
 
-            linklist.append([i + u*dim[0], i-1 + u*dim[0]])
+            linklist.append([count, count-1])
             
             #
-            linkcol.append([0,0,255,255])
+            linkcol.append(colors[int(((u-1)/64)%8)])
         #if u > 0:
             #linklist.append([u + i*dim[1], u-1 + i*dim[1]])
             #linkcol.append([250,0,0,255])
-
-projectname = "bigtest1"
+        count += 1
+print("links:"+ str(len(linklist)))
+projectname = str(dim[0])+"x"+str(dim[1])
 
 uploaderNew.makeProjectFolders(projectname)
 
