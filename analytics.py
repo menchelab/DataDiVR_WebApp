@@ -176,7 +176,7 @@ def plotly_degree_distribution(degrees, highlighted_bar=None):
             xaxis=dict(title='Degree Range', fixedrange=True),
             yaxis=dict(title='Number of Nodes', fixedrange=True, type='log'),
             bargap=0.1,
-            title=None if highlighted_bar is None else f"Selected Node Degrees: {min_degree_selected} to {max_degree_selected}",
+            title=None if highlighted_bar is None else f"Selected Node Degrees: {min_degree_selected} to {max_degree_selected}",            
             title_y=0.97
         )
         

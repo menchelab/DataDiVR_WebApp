@@ -155,9 +155,6 @@ def build_system_prompt(registry):
         str: A system prompt for the LLM.
     """
 
-    print("C_DEBUG - LANGUAGE_INTERFACE.PY - build_system_prompt...")
-
-
     lines = []
     for fname, meta in registry.items():
         # Extract the module name from the file path
@@ -169,13 +166,15 @@ def build_system_prompt(registry):
     project_data = load_project_info()
     project_name = project_data.get("name", "Unknown Project")
     project_info = project_data.get("info", "No description available.")
+    all_projects = GD.plist if hasattr(GD, "plist") else []
 
-    # Build the project-specific section of the prompt
+    # Add project-specific information to the prompt
     project_section = (
         f"Project Name: {project_name}\n"
         f"Project Description: {project_info}\n\n"
+        f"Available Projects: {', '.join(all_projects)}\n\n"
         f"You have access to this project information. Use it to answer user queries.\n"
-        f"If the user asks about the project or information about the project, provide details based on the above information.\n"
+        f"If the user asks about the project or available projects, provide details based on the above information.\n"
     )
 
     return (
@@ -390,8 +389,12 @@ def create_message(func_name: str, args: dict, file_path: str) -> dict:
     if module_name == "search_events":
         print("C_DEBUG: in search events module...")
         id_value = "search"
-        msg_value = args.get("message", {}).get("val", "")
-        node_id = args.get("message", {}).get("id", "")
+        if "message" in args:      
+            msg_value = args.get("message", {}).get("val", "")
+            node_id = args.get("message", {}).get("id", "")
+        else:
+            msg_value = args.get("val", "")
+            node_id = args.get("id", "")
         message["val"] = msg_value
 
     # catch if nodeinfo module
@@ -414,18 +417,17 @@ def create_message(func_name: str, args: dict, file_path: str) -> dict:
         # get project name and index
         projectname_raw = args.get("message", {}).get("msg", "")
         all_projects = GD.plist
-        all_projects_capitalized = [proj.capitalize() for proj in all_projects]
-        projectname = projectname_raw.capitalize()
+        all_projects_upper = [proj.upper() for proj in all_projects]
+        projectname = projectname_raw.upper()
 
-        if projectname not in all_projects_capitalized:
+        if projectname in all_projects_upper:
+            project_index = all_projects_upper.index(projectname) # get index of matched project name     
+            message["feedback"] = f"Project '{projectname}' selected successfully."
+        else:
             message["feedback"] = f"No project name provided. Selecting default project. Choose from available projects: {', '.join(all_projects)}"
             project_index = 0
             projectname = all_projects[project_index]
 
-        else:
-            project_index = all_projects_capitalized.index(projectname) # get index of matched project name     
-            message["feedback"] = f"Project '{projectname}' selected successfully."
-        
         message["msg"] = projectname
         message["val"] = project_index
         print("C_DEBUG: matched project name:", projectname)

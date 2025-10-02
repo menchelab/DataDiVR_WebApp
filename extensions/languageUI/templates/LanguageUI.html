@@ -81,23 +81,32 @@
         })
         .then((response) => response.json())
         .then((json) => {
-            console.log("C_DEBUG: LUI Response from server:", json);
+            //console.log("C_DEBUG: LUI Response from server:", json);
 
-            // Add user input to the chat window
-            chatwin.innerHTML += `<b> Human | </b>${text}<br><br>`;
+           // Add user input to the chat window
+            const userRow = `
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+                    <div style="div style="flex: 0.2; font-weight: bold; text-align: right; margin-right:6px;">USER ::&nbsp;</div>
+                    <div style="flex: 2;">${text}</div>
+                </div>`;    chatwin.innerHTML += userRow;
 
-            // Parse the server's response using marked.js
-            const formattedResponse = json.response.feedback; // marked.parse(json.response.feedback);
+            const formattedResponse = marked.parse(json.response.feedback);
 
-            // Add the formatted response to the chat window
-            chatwin.innerHTML += `<b> DATA | </b>${formattedResponse}<br>`;
+            // Remove specific HTML tags from the response
+            const cleanedResponse = formattedResponse.replace(/<p>|<\/p>/g, '');
+            const dataRow = `
+                <div style="display: flex; margin-bottom: 10px;">
+                    <div style="div style="flex: 0.2; font-weight: bold; text-align: right; margin-right:6px;">DATA ::&nbsp;</div>
+                    <div style="flex: 2;">${cleanedResponse}</div>
+                </div>`;
+            chatwin.innerHTML += dataRow;
 
             // Scroll to the bottom of the chat window
             chatwin.scrollTop = chatwin.scrollHeight;
-                        
+
             // Add a timestamp to the chat window
             const timestamp = new Date().toLocaleTimeString();
-            chatwin.innerHTML += `<span style="font-size: 0.8em; color: gray; float: right;">${timestamp}</span><br>`;
+            chatwin.innerHTML += `<div style="text-align: right; font-size: 0.6em; color: gray;">${timestamp}</div>`;
 
             // Clear the input field
             document.getElementById("LUItextinput").shadowRoot.getElementById("text").value = '';
