@@ -37,7 +37,6 @@ from flask import (
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from werkzeug.utils import secure_filename
 
-import chatGPTTest
 import event_handler
 import GlobalData as GD
 import layout_module

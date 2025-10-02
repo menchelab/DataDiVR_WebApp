@@ -170,9 +170,11 @@ def paintNodes_renderTexture(message, room):
 
     if len(GD.paintedNodes) > 0:
         for id in GD.paintedNodes:
-            print(id)
-            pix_val[id] = (255,0,0,255) #color
-        
+            if id < len(pix_val):
+                pix_val[id] = color
+            else: 
+                print("id not found. no painted nodes")
+            
     im2.putdata(pix_val)
 
     # save temp texture

@@ -243,27 +243,6 @@ $(document).ready(function() {
     socket.on('ex', function(data) {
         logjs(data, 'scrollbox_debug_0');
 
-        // Save data to server.log file
-        fetch('/log', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        }).then(response => {
-            if (response.status === 405) {
-                console.error('Method Not Allowed: Ensure the server endpoint supports POST method');
-            } else if (!response.ok) {
-                console.error('Failed to save log data');
-            }
-        }).catch(error => {
-            console.error('Error:', error);
-        });    //if (logAll && data.usr == uid)
-
-        console.log("server returned: " + JSON.stringify(data));
-
-        //}
-
         switch (data.fn) {
             case 'projectLoaded':
 

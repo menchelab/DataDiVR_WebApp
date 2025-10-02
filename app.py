@@ -36,7 +36,6 @@ from flask import (
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from werkzeug.utils import secure_filename
 
-import chatGPTTest
 import event_handler
 import GlobalData as GD
 import layout_module
@@ -164,126 +163,126 @@ logger = logging.getLogger(__name__)
 
 
 
-import plotlyExamples    
+# import plotlyExamples    
 
-@app.route('/evilAI')
-def evilAI():
+# @app.route('/evilAI')
+# def evilAI():
 
-    nodes=[]
-    links=[]
-    annot=[]
+#     nodes=[]
+#     links=[]
+#     annot=[]
     
-    # Create graphJSON
-    #graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+#     # Create graphJSON
+#     #graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
 
-    if  request.cookies.get('userID'): # has cookie, add to links
-        if request.args.get('uid'):
-            uid = request.args.get('uid')
-            name = request.cookies.get('userID')
-            for i in myusers:
-                if i['uid'] == int(name):
-                    i['links'].append(int(uid))
-                    break
-            for i in myusers:
-                if i['uid'] == uid:
-                    i['links'].append(int(name))
-                    break
+#     if  request.cookies.get('userID'): # has cookie, add to links
+#         if request.args.get('uid'):
+#             uid = request.args.get('uid')
+#             name = request.cookies.get('userID')
+#             for i in myusers:
+#                 if i['uid'] == int(name):
+#                     i['links'].append(int(uid))
+#                     break
+#             for i in myusers:
+#                 if i['uid'] == uid:
+#                     i['links'].append(int(name))
+#                     break
 
-            for i in myusers:
-                nodes.append(int(i['uid']))
-                annot.append("agent"+ str(i['uid']))
+#             for i in myusers:
+#                 nodes.append(int(i['uid']))
+#                 annot.append("agent"+ str(i['uid']))
 
-            for i in myusers:
-                start = -1
-                try:
-                    start = nodes.index(i['uid']) 
-                except ValueError:
-                    start = -1
+#             for i in myusers:
+#                 start = -1
+#                 try:
+#                     start = nodes.index(i['uid']) 
+#                 except ValueError:
+#                     start = -1
                  
-                for l in i['links']:
-                    try:
-                        end = nodes.index(l)
-                        links.append((start,end))
-                    except ValueError:
-                        end = -1
+#                 for l in i['links']:
+#                     try:
+#                         end = nodes.index(l)
+#                         links.append((start,end))
+#                     except ValueError:
+#                         end = -1
                         
             
-            print(links)
-            print(nodes)
-            print(annot)
-            print(myusers)
-        graphJSON = plotlyExamples.networkGraphRT(nodes, annot , links)
-        #return '<h1>welcome ' + name + '</h1><br>You just met Agent ' + uid
-        return render_template("evilAi.html", user=name, data=myusers, graphJSON=graphJSON)
+#             print(links)
+#             print(nodes)
+#             print(annot)
+#             print(myusers)
+#         graphJSON = plotlyExamples.networkGraphRT(nodes, annot , links)
+#         #return '<h1>welcome ' + name + '</h1><br>You just met Agent ' + uid
+#         return render_template("evilAi.html", user=name, data=myusers, graphJSON=graphJSON)
     
-    #login set cookie
-    else:
-        if request.args.get('uid'):
-            uid = request.args.get('uid')
+#     #login set cookie
+#     else:
+#         if request.args.get('uid'):
+#             uid = request.args.get('uid')
 
-            exists = False
+#             exists = False
 
-            for i in myusers:
-                if i['uid'] == uid:
-                    exists = True
+#             for i in myusers:
+#                 if i['uid'] == uid:
+#                     exists = True
 
-            if not exists:
-                thisUser = {}
-                thisUser["uid"] = int(uid)
-                thisUser["links"] = []
-                myusers.append(thisUser)
-                resp = make_response(render_template('evilAi.html',user=uid, data=myusers) + uid)
-                resp.set_cookie('userID', uid)
-                return resp
-            else:
-                return '<h1>QR code already claimed</h1>'
+#             if not exists:
+#                 thisUser = {}
+#                 thisUser["uid"] = int(uid)
+#                 thisUser["links"] = []
+#                 myusers.append(thisUser)
+#                 resp = make_response(render_template('evilAi.html',user=uid, data=myusers) + uid)
+#                 resp.set_cookie('userID', uid)
+#                 return resp
+#             else:
+#                 return '<h1>QR code already claimed</h1>'
  
         
-        #return render_template('login.html')
+#         #return render_template('login.html')
 
 
 
-@app.route('/setcookie', methods = ['POST', 'GET'])
-def setcookie():
-   #if request.method == 'POST':
-        user = request.form['nm']
+# @app.route('/setcookie', methods = ['POST', 'GET'])
+# def setcookie():
+#    #if request.method == 'POST':
+#         user = request.form['nm']
         
-        resp = make_response(render_template('readcookie.html'))
-        #resp = make_response(render_template('readcookie.html'))
-        resp.set_cookie('userID', user)
+#         resp = make_response(render_template('readcookie.html'))
+#         #resp = make_response(render_template('readcookie.html'))
+#         resp.set_cookie('userID', user)
         
-        return resp
+#         return resp
 
 
-@app.route('/getcookie')
-def getcookie():
-    if  request.cookies.get('userID'):
-        name = request.cookies.get('userID')
-        return '<h1>welcome ' + name + '</h1>'
-    else:
-        return '<h1>no cookie</h1>'
+# @app.route('/getcookie')
+# def getcookie():
+#     if  request.cookies.get('userID'):
+#         name = request.cookies.get('userID')
+#         return '<h1>welcome ' + name + '</h1>'
+#     else:
+#         return '<h1>no cookie</h1>'
 
 
 
-@app.route("/GPT", methods=["POST"])
-def GPT():
-    result = {}
-    if request.method == "POST":
-        data = flask.request.get_json()
-        answer = chatGPTTest.NewGPTrequest(data.get("text"))
-        fname = TextToSpeech.makeogg(answer, 0)
-        print(answer)
-        return {"text": answer, "audiofile": fname + ".ogg"}
+# @app.route("/GPT", methods=["POST"])
+# def GPT():
+#     result = {}
+#     if request.method == "POST":
+#         data = flask.request.get_json()
+#         answer = chatGPTTest.NewGPTrequest(data.get("text"))
+#         fname = TextToSpeech.makeogg(answer, 0)
+#         print(answer)
+#         return {"text": answer, "audiofile": fname + ".ogg"}
 
 
-@app.route("/TTS", methods=["POST", "GET"])
-def TTS():
-    result = {}
-    if request.method == "GET":
-        text = flask.request.args.get("text")
-        voice = int(flask.request.args.get("voice"))
-        result["text"] = TextToSpeech.makeogg(text, voice)
-    return result
+# @app.route("/TTS", methods=["POST", "GET"])
+# def TTS():
+#     result = {}
+#     if request.method == "GET":
+#         text = flask.request.args.get("text")
+#         voice = int(flask.request.args.get("voice"))
+#         result["text"] = TextToSpeech.makeogg(text, voice)
+#     return result
 
 
 @app.route("/nodepanel", methods=["GET"])
