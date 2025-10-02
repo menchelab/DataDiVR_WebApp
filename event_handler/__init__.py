@@ -149,9 +149,10 @@ def handle_socket_execute(message, room, project):
 
 
     elif message["fn"] == "children":
-        ui_events.children_event
+        ui_events.children_event(message, room)
 
-    #elif message["fn"] == "manLabel":
+    elif message["fn"] == "manLabel":
+        ui_events.manLabel_event(message, room)
         
         
     # elif message["fn"] == "but":

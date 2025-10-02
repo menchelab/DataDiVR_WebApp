@@ -257,7 +257,9 @@ def submit_event(message, room):
 #         GD.savePD()
 
 #     emit("ex", response, room=room, namespace = "/main") # quick fix - adding namespace = "/main" to emit
-
+def manLabel_event(message,room):
+    #ToDo: save them in pfile and load on layout change
+    emit("ex", message, room=room)
 
 def children_event(message, room):
     response2 = {}
