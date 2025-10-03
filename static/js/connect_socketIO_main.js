@@ -69,13 +69,15 @@ ue.interface.paintnodesSUB = function(data) {
 };
 
 ue.interface.manLabel = function(data) {
-    console.log(data);
-    var text = '{"id":"manLabel", "data": [], "fn": "manLabel"}';
+    //console.log(data);
+    var text = '{"id":"manLabel", "x": 0, "y":0, "z":0, "fn": "manLabel"}';
     var out = JSON.parse(text);
     var input = JSON.parse(data);
     out["usr"] = uid;
-    out["name"] = input.text
-    out.data = [input.x, input.y, input.z]
+    out["name"] = input.text;
+    out.x = input.x;
+    out.y = input.y;
+    out.z = input.z;
     socket.emit('ex', out);
 };
 
@@ -676,7 +678,7 @@ $(document).ready(function() {
                 
 
             case "project":
-
+                //HAMLO
                 //clearProject();
                 //if (data["usr"]==uid){
                 pfile = data["val"];
@@ -736,7 +738,10 @@ $(document).ready(function() {
                 break;
                 
 
-            case "ue4":
+            case "manLabel":
+                if (data.id == "manLabel") {
+                    ue4(data["fn"], data);
+                }
 
                 // if (data.id == "resetlayout") {
 
@@ -795,7 +800,7 @@ $(document).ready(function() {
                 //         makeNetwork();
                 //     }
                 // }   
-
+            case "ue4":
                 if (data.id == "forwardstep") {
 
                     var forwardidx = parseInt(data.val);
