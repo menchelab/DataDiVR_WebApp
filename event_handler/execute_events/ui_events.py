@@ -57,6 +57,12 @@ def colorbox_event(message, room):
     emit("ex", message, room=room)
 
 def colorbox_nodePaint_event(message, room):
+    #if not message["id"] in GD.pdata.keys():  # check if selection exists in pdata.json
+    #    GD.pdata[message["id"]] = ""
+
+    print("C_DEBUG: colorbox_nodePaint_event triggered - message : "  , message)
+
+
     GD.paintedNodesColor = (int(message["r"]),int(message["g"]),int(message["b"]),int(message["a"]*255))
     paintNodes_renderTexture(message, room)
 
@@ -142,6 +148,8 @@ def paintNodes_event(message, room):
     paintNodes_renderTexture(message, room)
 
 
+color_default = (255,0,0,255)
+
 def paintNodes_renderTexture(message, room):            
     # copy active color texture
     im1 = PIL.Image.open(
@@ -161,16 +169,21 @@ def paintNodes_renderTexture(message, room):
         int(message["b"]),
         int(message["a"] * 255),
     )'''
+    if not hasattr(GD, 'paintedNodesColor'):
+        GD.paintedNodesColor = color_default
+
+    # notetoself (C): put into pdata instead of GD
     color = GD.paintedNodesColor
+    print("C_DEBUG: painting with color: ", color)
+
     pix_val = list(im1.getdata())
+    
+    print("C_DEBUG: painted nodes: ", GD.paintedNodes)
 
     # colorize clipboard selection
-
-             
-
     if len(GD.paintedNodes) > 0:
         for id in GD.paintedNodes:
-            if id < len(pix_val):
+            if id in pix_val:
                 pix_val[id] = color
             else: 
                 print("id not found. no painted nodes")

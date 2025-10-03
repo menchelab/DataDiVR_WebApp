@@ -140,7 +140,9 @@ class SessionManager:
 
         self.load_graph(G)
 
-        print("Session Graph loaded from project folder. Data: Nodes:", len(G.nodes()), "Links:", len(G.edges()))
+        print("Session Graph loaded from project folder. \n"
+              "Project name:  " + self.sel_name + "\n"
+              "Data: Nodes:", len(G.nodes()), "Links:", len(G.edges()))
         return G
 
     def update_selection(self, client, node_ids):
@@ -571,6 +573,24 @@ class AnalysisToolkit:
 # move texture functions into texture generator class
 # rewrite emit textures alike _gen_highlight_textures in enrichment_module
         
+
+
+    #-----------------------------------------------------------
+    # dummy functions for now
+    def get_subset_of_nodes_by_ids(self) -> list:
+        """ 
+        Returns a list of node IDs that are currently selected in the session.
+        """
+        selected_nodes = [1,15,2999,2010,4000] #self.session.get_selected_nodes()
+        return list(selected_nodes) 
+
+    def calculate_node_similarities(self, node_ids):
+        return print("Calculating similarities for nodes based on available annotations :" "\n"
+                     'Metabolic and mitochondrial dysfunction (SDHA, HADH, ACAD8, and FAS), ' "\n"
+                     'Muscle and skeletal disorders (ACTA1, TPM3, TCAP, CRYAB),  ' "\n"
+                     'Immune and hemotologic conditions (CSF3), Neurodegeneration and derodevelopment (NRD2, CRYAB),' "\n"
+                     'Cancer related (EGFR, ATM)')
+
 
 
 
