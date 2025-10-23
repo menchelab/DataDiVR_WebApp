@@ -24,13 +24,20 @@ def handle_socket_execute(message, room, project):
     print("C_DEBUG: handle_socket_execute", message)
 
     # catch if no message fn
-    if "fn" not in message:
+    if "fn" not in message or message["fn"] is None:
+        print("C_DEBUG: No function specified in message:", message)
         return None
+    
+    # catch if no message id
+    if "id" not in message: # or message["id"] is None:
+        print("C_DEBUG: No id specified in message:", message)
+        return None
+
+
 
 
     if message["fn"] == "sel":
         ui_events.selection_event(message)
-
 
     if message["id"] == "protLoad":
         universal_events.protein_load_event(message, room)
@@ -38,8 +45,7 @@ def handle_socket_execute(message, room, project):
 
     # --- SEARCH NODE EVENTS --- 
     elif message["id"] == "search": 
-        search_events.search_event(message, room) #universal_events.search_event(message, room)
-        #nodeinfo_events.node_event(message, room) #ui_events.node_event(message, room)
+        search_events.search_event(message, room) 
 
         # + automatically trigger the graph plotly update after node event
         message_mod = message.copy()
@@ -65,6 +71,28 @@ def handle_socket_execute(message, room, project):
         universal_events.chat_message_event(message, room)
 
 
+
+
+    # --- NODEPAINT SAVE SELECTION EVENTS --- 
+    elif message["fn"] == "saveNodeSelection":
+        print("C_DEBUG: saveNodeSelection event triggered")
+
+
+        sel_name = message["val"]  
+
+        ui_events.save_node_selection_event(message, room)
+   
+
+
+
+
+
+
+
+
+
+
+    # --- UNIVERSAL EVENTS ---
     elif message["id"] == "nl":
         universal_events.node_list_event(message, room)
 

@@ -65,9 +65,6 @@ def node_event(message, room):
     
     GD.pdata["activeNode"] = message["val"]
 
-
-
-
     if "protein_info" in GD.nodes["nodes"][int(message["val"])]:
         if (
             not "protstyle" in GD.pdata.keys()

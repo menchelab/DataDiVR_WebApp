@@ -327,6 +327,7 @@ class TextureGenerator:
 
         return save_path
     
+
     def generate_node_color_texture(self, node_color_map, texture_name, save=False):
         """
         Creates an RGBA texture representing per-node colors.
@@ -376,7 +377,6 @@ class TextureGenerator:
                 json.dump(data, f, indent=4)
 
         return save_path
-
 
 
     def generate_node_position_texture(self, node_position_map, texture_name, save=False, normalize_flag=True):
@@ -793,6 +793,130 @@ class AnalysisToolkit:
     
         return (print(nx.draw(subgraph, node_size=10, with_labels=True)))
     
+
+
+
+
+    def extract_and_highlight_subnetwork_from_nodelist(self, nodelist, color=(255, 255, 0, 255), relayout=False):
+        """
+        Extracts nodes from a nodelist and their links into a subgraph,
+        highlights all nodes and links in that subgraph.
+        """
+        graph = self.session.graph
+        print(graph.nodes())
+        nodenames = [graph.nodes[n]['name'] for n in graph.nodes()]
+        print(nodenames)
+
+
+        # make a list of node indices from whole graph
+        all_nodes = nodenames
+        all_nodes_ids = list(range(len(all_nodes)))        
+        d_node_to_id = dict(zip(all_nodes, all_nodes_ids))
+
+        sub_nodes = nodelist
+
+        # remap node ids to indices 
+        sub_nodes_ids = []
+        for k,v in d_node_to_id.items():
+            if k in sub_nodes:
+                sub_nodes_ids.append(v)
+        
+        sub_nodes = sub_nodes_ids
+
+        subgraph = graph.subgraph(sub_nodes)
+        print("C_DEBUG: subgraph nodes:", subgraph.nodes())
+
+        temp_name = "temp_subnet_highlight_nodelist"
+        
+        #layoutsRGB_name = self.session.active_layoutsRGB
+        layoutsRGB_name = self.session.get_layouts_in_pfile()[0]
+        layoutsRGB_path = f"static/projects/{self.session.sel_name}/layoutsRGB/{layoutsRGB_name}.png"
+
+        #----------------------------------
+        # PUT INTO TEXTURE CLASS - NODE COLORS 
+            
+        if not os.path.exists(layoutsRGB_path):
+            raise FileNotFoundError(f"Cannot find active layoutsRGB texture: {layoutsRGB_path}")
+
+        img = Image.open(layoutsRGB_path).convert("RGBA")
+        pixels = list(img.getdata())
+
+        total_nodes = len(graph.nodes())
+        h = 128 * ((total_nodes // 16384) + 1)
+        width = 128
+
+        for n in sub_nodes_ids:
+            tex_index = n  # Assuming node ID == index
+            if tex_index < len(pixels):
+                pixels[tex_index] = color  # Override only the selected node
+
+        temp_img = Image.new("RGBA", (width, h))
+        temp_img.putdata(pixels)
+
+        nodeRGB_path = f"static/projects/{self.session.sel_name}/layoutsRGB/{temp_name}.png"
+        temp_img.save(nodeRGB_path)
+        
+        # -----------------------------------------------------
+        # ---- Highlight links for the selected node ---
+        connected_edges = list(subgraph.edges())
+        print("C_DEBUG: subgraph edges:", connected_edges)
+
+        
+        total_edges = len(graph.edges())
+        h_links = 64 * (int(total_edges / 32768) + 1)
+        tex_link_data = [(0, 0, 0, 10)] * (512 * h_links)
+
+        edge_to_index = self.session.edge_to_index
+        for edge in connected_edges:
+            i = edge_to_index.get(tuple(sorted(edge))) # to pick up both directions s,e and e,s 
+            if i is not None:
+                tex_link_data[i] = color
+
+        link_img = Image.new("RGBA", (512, h_links))
+        link_img.putdata(tex_link_data)
+
+        linksRGB_path = os.path.join(self.session.project_path, 'linksRGB', f'{temp_name}.png')
+        link_img.save(linksRGB_path)
+
+        # Emit to server
+        nodeRGB_path_rel = f"static/projects/{self.session.sel_name}/layoutsRGB/{temp_name}.png"
+        linksRGB_path_rel = f"static/projects/{self.session.sel_name}/linksRGB/{temp_name}.png"
+
+        # POSITIONS
+        if relayout == True:
+            node_pos = self.layout_subnetwork_with_periphery(sub_nodes, temp=True, layout_name=temp_name)
+            nodeXYZ_path_rel_high, nodeXYZ_path_rel_low = self.tex_gen.generate_node_position_texture(node_pos, temp_name)
+
+            l_textures = [
+                {"channel": "layoutNodesLow", "path": nodeXYZ_path_rel_low}, 
+                {"channel": "layoutNodesHi", "path": nodeXYZ_path_rel_high},
+                {"channel": "nodeRGB", "path": nodeRGB_path_rel},
+                {"channel": "linkRGB", "path": linksRGB_path_rel}
+            ]
+
+        elif relayout == False:
+            #nodeXYZ_path_rel_high = f"static/projects/{self.session.sel_name}/layouts/{layoutsRGB_name}.bmp"
+            #nodeXYZ_path_rel_low = f"static/projects/{self.session.sel_name}/layoutsl/{layoutsRGB_name}l.bmp"
+    
+            l_textures = [
+                {"channel": "nodeRGB", "path": nodeRGB_path_rel},
+                {"channel": "linkRGB", "path": linksRGB_path_rel}
+            ]
+
+        # PUT INTO FUNCTION / same as in highlight_node_withlinks
+        # Emit to server
+        self.session.client.emit("ex", {
+            "usr": self.session.client.uid,
+            "id":None,
+            "fn": "updateTempTex",
+            "textures": l_textures
+        }, namespace=self.session.client.namespace)
+        #----------------------------------
+    
+        return (print(nx.draw(subgraph, node_size=3, with_labels=False)))
+    
+
+
 
 
     def layout_subnetwork_with_periphery(self, sub_nodes, scale_center = 0.1, outer_range=(0.8, 1.0), temp=True, layout_name="temp_layout"):

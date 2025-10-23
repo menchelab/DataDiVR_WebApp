@@ -18,18 +18,6 @@ def protein_load_event(message, room):
     emit("ex", response, room=room)  # send to all clients
 
 
-# moved to search_events.py
-# def search_event(message, room): 
-#     if len(message["val"]) > 1:
-#         x = '{"id": "search", "val":[], "fn": "makeNodeButton", "parent":"scrollbox2"}'
-#         results = json.loads(x)
-#         results["val"] = search.search(message["val"])
-#         results["node_id"] = search.search_nodeid_by_name(message["val"])
-        
-#         print("C_DEBUG: in search_event RESULTS", results)
-
-#         emit("ex", results, room=room, namespace="/main") # quick fix - adding namespace = "/main" to emit
-        
 
 def chat_message_event(message, room):
     response = {}
