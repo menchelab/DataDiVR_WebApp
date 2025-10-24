@@ -824,7 +824,7 @@ class AnalysisToolkit:
         sub_nodes = sub_nodes_ids
 
         subgraph = graph.subgraph(sub_nodes)
-        print("C_DEBUG: subgraph nodes:", subgraph.nodes())
+        print("C_DEBUG: subgraph number of nodes:", len(subgraph.nodes()))
 
         temp_name = "temp_subnet_highlight_nodelist"
         
@@ -857,11 +857,11 @@ class AnalysisToolkit:
         temp_img.save(nodeRGB_path)
         
         # -----------------------------------------------------
-        # ---- Highlight links for the selected node ---
+        # ---- Highlight links for the selected nodes ---
         connected_edges = list(subgraph.edges())
-        print("C_DEBUG: subgraph edges:", connected_edges)
+        print("C_DEBUG: subgraph number of edges:", len(connected_edges))
 
-        
+
         total_edges = len(graph.edges())
         h_links = 64 * (int(total_edges / 32768) + 1)
         tex_link_data = [(0, 0, 0, 10)] * (512 * h_links)
@@ -878,23 +878,26 @@ class AnalysisToolkit:
         linksRGB_path = os.path.join(self.session.project_path, 'linksRGB', f'{temp_name}.png')
         link_img.save(linksRGB_path)
 
-        # Emit to server
+
         nodeRGB_path_rel = f"static/projects/{self.session.sel_name}/layoutsRGB/{temp_name}.png"
         linksRGB_path_rel = f"static/projects/{self.session.sel_name}/linksRGB/{temp_name}.png"
 
+        node_pos = self.layout_subnetwork_with_periphery(sub_nodes, temp=True, layout_name=temp_name)
+        nodeXYZ_path_rel_high, nodeXYZ_path_rel_low = self.tex_gen.generate_node_position_texture(node_pos, temp_name)
+
         # POSITIONS
         if relayout == True:
-            node_pos = self.layout_subnetwork_with_periphery(sub_nodes, temp=True, layout_name=temp_name)
-            nodeXYZ_path_rel_high, nodeXYZ_path_rel_low = self.tex_gen.generate_node_position_texture(node_pos, temp_name)
-
+        
             l_textures = [
-                {"channel": "layoutNodesLow", "path": nodeXYZ_path_rel_low}, 
-                {"channel": "layoutNodesHi", "path": nodeXYZ_path_rel_high},
                 {"channel": "nodeRGB", "path": nodeRGB_path_rel},
-                {"channel": "linkRGB", "path": linksRGB_path_rel}
+                {"channel": "linkRGB", "path": linksRGB_path_rel},
+                {"channel": "layoutNodesLow", "path": nodeXYZ_path_rel_low}, 
+                {"channel": "layoutNodesHi", "path": nodeXYZ_path_rel_high}
+                
             ]
+ 
 
-        elif relayout == False:
+        if relayout == False:
             #nodeXYZ_path_rel_high = f"static/projects/{self.session.sel_name}/layouts/{layoutsRGB_name}.bmp"
             #nodeXYZ_path_rel_low = f"static/projects/{self.session.sel_name}/layoutsl/{layoutsRGB_name}l.bmp"
     
@@ -903,23 +906,23 @@ class AnalysisToolkit:
                 {"channel": "linkRGB", "path": linksRGB_path_rel}
             ]
 
-        # PUT INTO FUNCTION / same as in highlight_node_withlinks
         # Emit to server
         self.session.client.emit("ex", {
             "usr": self.session.client.uid,
-            "id":None,
+            "id": None,
             "fn": "updateTempTex",
             "textures": l_textures
         }, namespace=self.session.client.namespace)
-        #----------------------------------
-    
+        
+
+
         return (print(nx.draw(subgraph, node_size=3, with_labels=False)))
     
 
 
 
 
-    def layout_subnetwork_with_periphery(self, sub_nodes, scale_center = 0.1, outer_range=(0.8, 1.0), temp=True, layout_name="temp_layout"):
+    def layout_subnetwork_with_periphery(self, sub_nodes, scale_center = 0.2, outer_range=(0.8, 1.0), temp=True, layout_name="temp_layout"):
         """
         Generates a new layout with the subnetwork centered and outer nodes arranged on a sphere.
         Saves and registers the layout if temp=False.
@@ -928,7 +931,7 @@ class AnalysisToolkit:
         all_nodes = list(graph.nodes())
 
         subgraph = graph.subgraph(sub_nodes)
-        layout_sub = nx.spring_layout(list(subgraph.nodes()), dim=3, center = (0,0,0), scale = scale_center)
+        layout_sub = nx.spring_layout(list(subgraph.nodes()), dim=3, iterations=10, center = (0,0,0), scale = scale_center)
         layout_sub_sorted = {node: layout_sub[node] for node in subgraph.nodes()}
         layout_sub = dict(zip(subgraph.nodes(), list(layout_sub_sorted.values())))  # Ensure order matches sub_nodes
         

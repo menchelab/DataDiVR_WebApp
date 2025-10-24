@@ -692,6 +692,7 @@ async function downloadTempTexture(path, channel) {
             console.log(linksTempRGB[0], linksTempRGB[1], linksTempRGB[2]);
             updateLinkColors(linksTempRGB);
             break;
+
     }
 }
 

@@ -24,7 +24,7 @@ def handle_socket_execute(message, room, project):
     print("C_DEBUG: handle_socket_execute", message)
 
     # catch if no message fn
-    if "fn" not in message or message["fn"] is None:
+    if "fn" not in message: # or message["fn"] is None:
         print("C_DEBUG: No function specified in message:", message)
         return None
     
@@ -193,6 +193,4 @@ def handle_socket_execute(message, room, project):
 
     else:
         print("C_DEBUG: Unknown function in handle_socket_execute:", message)
-
         emit("ex", message, room=room, namespace = "/main") # quick fix - adding namespace = "/main" to emit
-        
