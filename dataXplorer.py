@@ -15,6 +15,30 @@ import atexit
 from math import sqrt
 from sklearn.preprocessing import MinMaxScaler
 
+
+# HELPER FUNCTIONS 
+def add_layout_to_pfile(project_path, layout_name):
+    pfile_path = os.path.join(project_path, 'pfile.json')
+    with open(pfile_path, 'r') as f:
+        data = json.load(f)
+
+    if layout_name in data["layouts"]:
+        return  # Layout already exists, no need to add
+    
+    else:
+        data["layouts"].append(layout_name)
+        data["layouts"].sort()
+
+        data["layoutsRGB"].append(layout_name)
+        data["layoutsRGB"].sort()
+        
+        data["linksRGB"].append(layout_name)
+        data["linksRGB"].sort()
+
+    with open(pfile_path, 'w') as f:
+        json.dump(data, f, indent=4)
+
+
 # -----------------------------------------------
 # JUPYTER CLIENT CONNECTION 
 # -----------------------------------------------
@@ -684,7 +708,7 @@ class AnalysisToolkit:
         return (print("Found Links : ", len(connected_edges)), print("Subgraph: ", nx.draw(subgraph, node_size=10, with_labels=True)))
     
 
-    def extract_and_highlight_subnetwork(self, node_id, color=(255, 255, 0, 255), relayout=False):
+    def extract_and_highlight_subnetwork(self, node_id, color=(255, 255, 0, 255), relayout=False, scene_name= "temp_subnet_highlight"):
         """
         Extracts the node and its 1-hop neighbors into a subgraph,
         highlights all nodes and links in that subgraph.
@@ -697,7 +721,6 @@ class AnalysisToolkit:
         sub_nodes = [node_id] + neighbors
         subgraph = graph.subgraph(sub_nodes)
 
-        temp_name = "temp_subnet_highlight"
         
         #layoutsRGB_name = self.session.active_layoutsRGB
         layoutsRGB_name = self.session.get_layouts_in_pfile()[0]
@@ -724,7 +747,7 @@ class AnalysisToolkit:
         temp_img = Image.new("RGBA", (width, h))
         temp_img.putdata(pixels)
 
-        nodeRGB_path = f"static/projects/{self.session.sel_name}/layoutsRGB/{temp_name}.png"
+        nodeRGB_path = f"static/projects/{self.session.sel_name}/layoutsRGB/{scene_name}.png"
         temp_img.save(nodeRGB_path)
         
         # -----------------------------------------------------
@@ -744,17 +767,16 @@ class AnalysisToolkit:
         link_img = Image.new("RGBA", (512, h_links))
         link_img.putdata(tex_link_data)
 
-        linksRGB_path = os.path.join(self.session.project_path, 'linksRGB', f'{temp_name}.png')
+        linksRGB_path = os.path.join(self.session.project_path, 'linksRGB', f'{scene_name}.png')
         link_img.save(linksRGB_path)
 
-        # Emit to server
-        nodeRGB_path_rel = f"static/projects/{self.session.sel_name}/layoutsRGB/{temp_name}.png"
-        linksRGB_path_rel = f"static/projects/{self.session.sel_name}/linksRGB/{temp_name}.png"
+        nodeRGB_path_rel = f"static/projects/{self.session.sel_name}/layoutsRGB/{scene_name}.png"
+        linksRGB_path_rel = f"static/projects/{self.session.sel_name}/linksRGB/{scene_name}.png"
 
         # POSITIONS
         if relayout == True:
-            node_pos = self.layout_subnetwork_with_periphery(sub_nodes, temp=True, layout_name=temp_name)
-            nodeXYZ_path_rel_high, nodeXYZ_path_rel_low = self.tex_gen.generate_node_position_texture(node_pos, temp_name)
+            node_pos = self.layout_subnetwork_with_periphery(sub_nodes)
+            nodeXYZ_path_rel_high, nodeXYZ_path_rel_low = self.tex_gen.generate_node_position_texture(node_pos, scene_name)
 
             l_textures = [
                 {"channel": "layoutNodesLow", "path": nodeXYZ_path_rel_low}, 
@@ -791,22 +813,23 @@ class AnalysisToolkit:
         }, namespace=self.session.client.namespace)
         #----------------------------------
     
+
+        # add layout to pfile 
+        add_layout_to_pfile(self.session.project_path, scene_name)
+
         return (print(nx.draw(subgraph, node_size=10, with_labels=True)))
     
 
 
 
 
-    def extract_and_highlight_subnetwork_from_nodelist(self, nodelist, color=(255, 255, 0, 255), relayout=False):
+    def extract_and_highlight_subnetwork_from_nodelist(self, nodelist, color=(255, 255, 0, 255), relayout=False, scene_name= "temp_subnet_highlight_nodelist"):
         """
         Extracts nodes from a nodelist and their links into a subgraph,
         highlights all nodes and links in that subgraph.
         """
         graph = self.session.graph
-        print(graph.nodes())
         nodenames = [graph.nodes[n]['name'] for n in graph.nodes()]
-        print(nodenames)
-
 
         # make a list of node indices from whole graph
         all_nodes = nodenames
@@ -814,6 +837,7 @@ class AnalysisToolkit:
         d_node_to_id = dict(zip(all_nodes, all_nodes_ids))
 
         sub_nodes = nodelist
+        print("C_DEBUG: sub_nodes:", sub_nodes)
 
         # remap node ids to indices 
         sub_nodes_ids = []
@@ -821,13 +845,11 @@ class AnalysisToolkit:
             if k in sub_nodes:
                 sub_nodes_ids.append(v)
         
-        sub_nodes = sub_nodes_ids
+        print("C_DEBUG: sub_nodes_ids:", sub_nodes_ids)
 
-        subgraph = graph.subgraph(sub_nodes)
-        print("C_DEBUG: subgraph number of nodes:", len(subgraph.nodes()))
-
-        temp_name = "temp_subnet_highlight_nodelist"
-        
+        # add fix for catching if nodes are IDs or names
+        subgraph = graph.subgraph(sub_nodes_ids)
+    
         #layoutsRGB_name = self.session.active_layoutsRGB
         layoutsRGB_name = self.session.get_layouts_in_pfile()[0]
         layoutsRGB_path = f"static/projects/{self.session.sel_name}/layoutsRGB/{layoutsRGB_name}.png"
@@ -853,7 +875,7 @@ class AnalysisToolkit:
         temp_img = Image.new("RGBA", (width, h))
         temp_img.putdata(pixels)
 
-        nodeRGB_path = f"static/projects/{self.session.sel_name}/layoutsRGB/{temp_name}.png"
+        nodeRGB_path = f"static/projects/{self.session.sel_name}/layoutsRGB/{scene_name}.png"
         temp_img.save(nodeRGB_path)
         
         # -----------------------------------------------------
@@ -875,35 +897,36 @@ class AnalysisToolkit:
         link_img = Image.new("RGBA", (512, h_links))
         link_img.putdata(tex_link_data)
 
-        linksRGB_path = os.path.join(self.session.project_path, 'linksRGB', f'{temp_name}.png')
+        linksRGB_path = os.path.join(self.session.project_path, 'linksRGB', f'{scene_name}.png')
         link_img.save(linksRGB_path)
 
 
-        nodeRGB_path_rel = f"static/projects/{self.session.sel_name}/layoutsRGB/{temp_name}.png"
-        linksRGB_path_rel = f"static/projects/{self.session.sel_name}/linksRGB/{temp_name}.png"
-
-        node_pos = self.layout_subnetwork_with_periphery(sub_nodes, temp=True, layout_name=temp_name)
-        nodeXYZ_path_rel_high, nodeXYZ_path_rel_low = self.tex_gen.generate_node_position_texture(node_pos, temp_name)
+        nodeRGB_path_rel = f"static/projects/{self.session.sel_name}/layoutsRGB/{scene_name}.png"
+        linksRGB_path_rel = f"static/projects/{self.session.sel_name}/linksRGB/{scene_name}.png"
 
         # POSITIONS
         if relayout == True:
-        
+            
+            node_pos = self.layout_subnetwork_with_periphery(sub_nodes_ids)
+            nodeXYZ_path_rel_high, nodeXYZ_path_rel_low = self.tex_gen.generate_node_position_texture(node_pos, scene_name) 
+            
             l_textures = [
                 {"channel": "nodeRGB", "path": nodeRGB_path_rel},
                 {"channel": "linkRGB", "path": linksRGB_path_rel},
                 {"channel": "layoutNodesLow", "path": nodeXYZ_path_rel_low}, 
                 {"channel": "layoutNodesHi", "path": nodeXYZ_path_rel_high}
-                
             ]
  
 
-        if relayout == False:
-            #nodeXYZ_path_rel_high = f"static/projects/{self.session.sel_name}/layouts/{layoutsRGB_name}.bmp"
-            #nodeXYZ_path_rel_low = f"static/projects/{self.session.sel_name}/layoutsl/{layoutsRGB_name}l.bmp"
+        elif relayout == False:
+            nodeXYZ_path_rel_high = f"static/projects/{self.session.sel_name}/layouts/{layoutsRGB_name}.bmp"
+            nodeXYZ_path_rel_low = f"static/projects/{self.session.sel_name}/layoutsl/{layoutsRGB_name}l.bmp"
     
             l_textures = [
                 {"channel": "nodeRGB", "path": nodeRGB_path_rel},
-                {"channel": "linkRGB", "path": linksRGB_path_rel}
+                {"channel": "linkRGB", "path": linksRGB_path_rel},
+                {"channel": "layoutNodesLow", "path": nodeXYZ_path_rel_low}, 
+                {"channel": "layoutNodesHi", "path": nodeXYZ_path_rel_high}
             ]
 
         # Emit to server
@@ -913,19 +936,27 @@ class AnalysisToolkit:
             "fn": "updateTempTex",
             "textures": l_textures
         }, namespace=self.session.client.namespace)
+
+
+        # add layout to pfile 
+        add_layout_to_pfile(self.session.project_path, scene_name)
         
+        if subgraph.number_of_edges() <= 5000:
 
+            pos_2D = nx.spring_layout(subgraph, dim=2)
 
-        return (print(nx.draw(subgraph, node_size=3, with_labels=False)))
+            return (print(nx.draw(subgraph, pos_2D, node_size=3),
+                          nx.draw_networkx_labels(subgraph, pos_2D, font_size=6)))
+        else:
+            return (print("Subgraph has too many edges to display."))
     
 
 
 
 
-    def layout_subnetwork_with_periphery(self, sub_nodes, scale_center = 0.2, outer_range=(0.8, 1.0), temp=True, layout_name="temp_layout"):
+    def layout_subnetwork_with_periphery(self, sub_nodes, scale_center = 0.2, outer_range=(0.8, 1.0)):
         """
         Generates a new layout with the subnetwork centered and outer nodes arranged on a sphere.
-        Saves and registers the layout if temp=False.
         """
         graph = self.session.graph
         all_nodes = list(graph.nodes())
