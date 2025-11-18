@@ -43,8 +43,49 @@ llm_from_openrouterai = "openai/gpt-oss-20b:free" # "gpt-3.5-turbo" # "meta-llam
 load_dotenv()
 
 # Read the API key from the text file
-with open("extensions\\languageUI\\LUI_funcs\\token_doNOTcommit.txt", "r") as key_file:
-    api_key = key_file.read().strip()
+
+# determine default token file path
+default_token_path = os.path.join("extensions", "languageUI", "LUI_funcs", "token_doNOTcommit.txt")
+
+def _read_key_from_file(path):
+    try:
+        with open(path, "r") as key_file:
+            return key_file.read().strip()
+    except Exception:
+        return None
+
+# Try default file first
+api_key = _read_key_from_file(default_token_path)
+
+# Fallback to common env vars
+if not api_key:
+    api_key = os.getenv("OPENAI_API_KEY") or os.getenv("OPENAI_APIKEY")
+
+# If still missing, prompt the user for a path or to use env var
+if not api_key:
+    while True:
+        try:
+            prompt = (
+                f"Token file not found at '{default_token_path}'.\n"
+                "Enter full path to token file."
+            )
+            user_input = input(prompt).strip()
+        except Exception:
+            user_input = ""
+
+        # Expand ~ and strip surrounding quotes if any
+        user_path = os.path.expanduser(user_input.strip('"').strip("'"))
+        if os.path.exists(user_path):
+            api_key = _read_key_from_file(user_path)
+            if api_key:
+                break
+            print(f"Could not read a key from file: {user_path}")
+        else:
+            print(f"File not found: {user_path}")
+
+# Final guard
+if not api_key:
+    raise RuntimeError("API key not found. Set API_KEY or provide a valid token file path.")
 
 # Assign the API key to OpenAI
 openai.api_key = api_key
