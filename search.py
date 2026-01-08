@@ -181,17 +181,17 @@ def search_by_termtype(term):
         list: A list of dictionaries containing the node's ID, name, and color if found, otherwise an empty list.
     """
 
-    try:
-        term = int(term)
-    except:
-        term = str(term)
+    #try:
+    #    term = int(term)
+    #except:
+    #    term = str(term)
 
 
     if isinstance(term, int):
         print("C_DEBUG : In search.py - search_by_termtype(term): term is int", term)
         return search_id(term)
     
-    if isinstance(term, str):
+    elif isinstance(term, str):
         print("C_DEBUG : In search.py - search_by_termtype(term): term is str", term)
         return search_name(term)
  
