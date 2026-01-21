@@ -360,6 +360,8 @@ class TextureGenerator:
         node_color_map: dict {node_id: (R, G, B, A)} with 0–255 values
         """
         graph = self.session.graph
+        #print("C_DEBUG:check node labels in graph.nodes() : ", list(graph.nodes())[:10])
+
         total_nodes = len(graph.nodes())
         h = 128 * ((total_nodes // 16384) + 1)
         size = 128 * h
