@@ -83,3 +83,4 @@ def node_event(message, room):
         GD.savePD()
 
     emit("ex", response, room=room, namespace = "/main") # quick fix - adding namespace = "/main" to emit
+

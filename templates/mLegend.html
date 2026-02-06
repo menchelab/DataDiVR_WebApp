@@ -1,6 +1,3 @@
-
-
-
 <mc-module id="module-legend" name="Data Legend">
 
 
@@ -112,7 +109,7 @@
                     myDiv.innerHTML = graphlayout;
                 })
                 .fail(function() {
-                    const myDiv = document.getElementById("graphlayout");
+                    const myDiv = document.getElementById(htmlkey);
                     myDiv.style.display = "none";
                     myDiv.innerHTML = "";
                 });
@@ -210,60 +207,39 @@
                         }
                     }
                 }
-                //console.log("C_DEBUG - layoutname selected = ", layoutname);
-                //console.log("C_DEBUG - list layout_with_clusters = ", l_layout_with_clusters);
 
-                // --------------------- DEPRECATED start
-                // remove "RGB" from layoutname
-                //let layoutname_withoutRGB;
-                //if (layoutname.endsWith("RGB")) {
-                //    layoutname_withoutRGB = layoutname.slice(0, -3);
-                //}
-                // else {
-                //     layoutname_withoutRGB = layoutname;
-                // }
-                //console.log("C_DEBUG : layoutname_withoutRGB  = ", layoutname_withoutRGB);
-                // --------------------- DEPRECATED end
-                
+                const allnode_Div = document.getElementById("legend_node_all");
+
+                const nodedesc_Div = document.getElementById("legend_nodedescription");
+                const nodecol_Div = document.getElementById("legend_nodecolor");
+
+                // Clear previous content to avoid duplication
+                nodedesc_Div.innerHTML = "";
+                nodecol_Div.innerHTML = "";
 
                 if (l_layout_with_clusters.includes(layoutname) || layoutname === l_layout_with_clusters) {   // W I T H   D E F I N E D   C L U S T E R S 
             
                     const clusterlist = pfiledata["selections"];
-                    //console.log("C_DEBUG - clusterlist = ", clusterlist); //.reverse());
-                    
-                    const allnode_Div = document.getElementById("legend_node_all");
-
-                    const nodedesc_Div = document.getElementById("legend_nodedescription");
-                    const nodecol_Div = document.getElementById("legend_nodecolor");
-                    nodedesc_Div.innerHTML = "";
-                    nodecol_Div.innerHTML = "";
                     
                     // loop through clusterlist 
                     const labelColorDict = {};
                     for (const key in clusterlist) {
 
-                        const labelColor = clusterlist[key]['labelcolor']; //value.labelcolor.slice(0, -1).join(',');
-                        const name = clusterlist[key]['name']; //value.name;
-
-                        //console.log("C_DEBUG: labelcolor: ", labelColor);
-                        //console.log("C_DEBUG: name: ", name);
+                        const labelColor = clusterlist[key]['labelcolor']; 
+                        const name = clusterlist[key]['name']; 
 
                         labelColorDict[labelColor] = name;
                         
                     }
-                    //: labelColorDict = ", labelColorDict);
             
                     let idx = 0;
                     for (const color in labelColorDict) { 
                         const keys = Object.keys(labelColorDict);
-                        //const color_reformated = 'rgb(' + color + ')';  
                         const colorParts = color.split(',').map(Number); // Split and convert to numbers
                         const color_reformated = 'rgb(' + colorParts.slice(0, 3).join(', ') + ')';
     
-                        // console.log("C_DEBUG: color =", color_reformated);
-                        
                         const textdiv = document.createElement("div");
-                        const text = document.createTextNode(labelColorDict[keys[idx]]); //newNamesDict[color]["name"]);                            
+                        const text = document.createTextNode(labelColorDict[keys[idx]]);                            
                         textdiv.style.fontSize="14px";
                         textdiv.style.lineHeight="24px"; // this should be same as colorImg.height+colorImg.marginBottom
                         textdiv.appendChild(text);
@@ -277,15 +253,7 @@
                     allnode_Div.appendChild(nodedesc_Div);
                 } else {                    
                     // W I T H O U T   D E F I N E D   C L U S T E R S (in pfiledata["selections"])
-                    //console.log("C_DEBUG - in else");
 
-                    const allnode_Div = document.getElementById("legend_node_all");
-
-                    const nodedesc_Div = document.getElementById("legend_nodedescription");
-                    const nodecol_Div = document.getElementById("legend_nodecolor");
-                    nodedesc_Div.innerHTML = "";
-                    nodecol_Div.innerHTML = "";
-                    
                     const img_name =  pfiledata["layoutsRGB"][selected_id];
                     const img = new Image();
                     img.src = 'static/projects/' + project_selected + '/layoutsRGB/'+ img_name+".png";
@@ -311,8 +279,10 @@
                             const g = pixelData[i + 1];
                             const b = pixelData[i + 2];
                             const a = pixelData[i + 3];
-                            const colorKey = `${r},${g},${b}`; 
-                            //const colorKey = `${r},${g},${b},${a}`;
+                            const roundedR = Math.round(r / 10) * 10;
+                            const roundedG = Math.round(g / 10) * 10;
+                            const roundedB = Math.round(b / 10) * 10;
+                            const colorKey = `${roundedR},${roundedG},${roundedB}`;
 
                             // filter alpha value to remove background pixels from legend 
                             if (a === 10) {
@@ -322,7 +292,7 @@
                             // If the color key doesn't exist in the dictionary yet, add it
                             if (!colorsDict.hasOwnProperty(colorKey)) {
                                 const pixelIndex = i / 4; // Get the pixel index
-                                namesDict[pixelIndex] = {"name":"Nodegroup "+node_index, "nodes": []} //, "color" : []}; // Set the index as the key
+                                namesDict[pixelIndex] = {"name":"Nodegroup "+node_index, "nodes": []}; // Set the index as the key
                                 colorsDict[colorKey] = pixelIndex; // Map the color key to the pixel index
                             
                                 node_index += 1; 
@@ -368,107 +338,6 @@
 
         }
     }
-
-    // // Link Info by selected ID 
-    // function Legend_displayLinkInfobyID(project_selected, selected_id) {
-    //     if (document.getElementById('legendpanel')) {
-    //         const p_file = 'static/projects/'+project_selected+'/pfile.json';
-
-    //         const alllink_Div = document.getElementById("legend_link_all");
-
-    //         $.getJSON(p_file, (pfiledata) => {
-
-    //             // catch if selected ID is larger than actual list of pfiledata links
-    //             let corrected_id = selected_id;
-    //             if (pfiledata["linksRGB"].length <= selected_id) {
-    //                 //console.log("C_DEBUG in LINK INFO : ", pfiledata["linksRGB"].length);
-    //                 corrected_id = 0;
-    //             }
-
-    //             const clusterlist = pfiledata["selections"];
-    //             const linkdesc_Div = document.getElementById("legend_linkdescription");
-    //             const linkcol_Div = document.getElementById("legend_linkcolor");
-    //             linkdesc_Div.innerHTML = "";
-    //             linkcol_Div.innerHTML = "";
-
-    //             const img_name =  pfiledata["linksRGB"][corrected_id]; 
-    //             const img = new Image();
-    //             img.src = 'static/projects/' + project_selected + '/linksRGB/'+ img_name+".png";
-        
-    //             const canvas = document.createElement('canvas');
-    //             img.onload = function() {
-    //                 canvas.width = img.width;
-    //                 canvas.height = img.height;
-    //                 const ctx = canvas.getContext('2d');
-    //                 ctx.drawImage(img, 0, 0);
-    //                 const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    //                 const pixelData = imageData.data;
-                    
-    //                 // Loop through all the pixels in the image
-    //                 const colorsDict = {};
-    //                 const namesDict = {};
-    //                 let index = 1;
-
-    //                 for (let i = 0; i < pixelData.length; i += 4) {
-    //                     const r = pixelData[i];
-    //                     const g = pixelData[i + 1];
-    //                     const b = pixelData[i + 2];
-    //                     const a = pixelData[i + 3];
-    //                     const colorKey = `${r},${g},${b}`;
-                        
-    //                     // If the color key doesn't exist in the dictionary yet, add it
-                        
-    //                     // filter alpha values pixel with a = 10 since background pixels
-    //                     if (a === 10) {
-    //                         continue; // Skip this pixel
-    //                     }   
-
-    //                     if (!colorsDict.hasOwnProperty(colorKey)) {
-    //                         const pixelIndex = i / 4; // Get the pixel index
-    //                         namesDict[pixelIndex] = {"name":"Connections ", //+index, 
-    //                                                 "nodes": []} //, "color" : []}; // Set the index as the key
-    //                         colorsDict[colorKey] = pixelIndex; // Map the color key to the pixel index
-    //                         index += 1;
-    //                     }
-    //                     const pixelIndex = colorsDict[colorKey]; // Retrieve the pixel index from the color key mapping
-    //                     namesDict[pixelIndex]["nodes"].push(i / 4); 
-    //                 }
-    //                 // Create a new dictionary with the colorKey as the key
-    //                 const newNamesDict = {};
-    //                 for (const pixelIndex in namesDict) {
-    //                         const colorKey = `${pixelData[pixelIndex * 4]},${pixelData[pixelIndex * 4 + 1]},${pixelData[pixelIndex * 4 + 2]}`;
-    //                         newNamesDict[colorKey] = namesDict[pixelIndex];
-    //                     }
-    //                 // console.log("C_DEBUG: newNamesDict: ", newNamesDict);
-                    
-    //                 // Loop through the namesDict and create an element for each node
-    //                 for (const color in newNamesDict) {
-    //                     if (color != '0,0,0') {
-    //                         const color_reformated = 'rgb(' + color + ')';    
-
-    //                         const colorImg = displayColorAsDiv(color_reformated,  18.5,18.5, 5.5, 0);//30, 5, 0, 0); // 20px 20px square
-    //                         linkcol_Div.appendChild(colorImg);
-                        
-    //                         const textdiv = document.createElement("div");
-    //                         textdiv.style.fontSize="14px";
-    //                         textdiv.style.lineHeight="24px"; // this should be same as colorImg.height+colorImg.marginBottom
-    //                         const text = document.createTextNode(newNamesDict[color]["name"]);
-    //                         textdiv.appendChild(text);
-    //                         linkdesc_Div.appendChild(textdiv);
-    //                     } 
-    //                     alllink_Div.appendChild(linkcol_Div);
-    //                     alllink_Div.appendChild(linkdesc_Div);
-    //                 }
-    //             };
-
-    //         })
-    //         .fail(function() {
-    //             console.log("Error: Could not load JSON file");
-    //         });
-    //     }
-    // }
-
-
 
     // Link Info by selected ID 
     function Legend_displayLinkInfobyID(project_selected, selected_id) {
@@ -556,11 +425,16 @@
                         let index = 1;
 
                         for (let i = 0; i < pixelData.length; i += 4) {
+                            
                             const r = pixelData[i];
                             const g = pixelData[i + 1];
                             const b = pixelData[i + 2];
                             const a = pixelData[i + 3];
-                            const colorKey = `${r},${g},${b}`;
+                            
+                            const roundedR = Math.round(r / 10) * 10;
+                            const roundedG = Math.round(g / 10) * 10;
+                            const roundedB = Math.round(b / 10) * 10;
+                            const colorKey = `${roundedR},${roundedG},${roundedB}`;
                             
                             if (a === 10) {
                                 continue; // Skip background pixels
@@ -607,10 +481,6 @@
             });
         }
     }
-
-
-
-
 
     // forward button adding index
     function NEWIndexforwardstep(data){
