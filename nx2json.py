@@ -3,7 +3,12 @@ import os
 import networkx as nx 
 
 try:
+    import sys
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    if current_dir not in sys.path:
+        sys.path.append(current_dir)
     from uploaderGraph import upload_filesJSON
+   
 except:
     print("Error: Could not import the uploaderGraph module. \n Only importing the necessary functions for the function 'make_json' to run. \n Please ensure the uploader module is in the same directory as this script.")
 
@@ -163,7 +168,7 @@ def make_json(graphs, save_json=False): # former: merge_graphs(graphs):
         # Prepare layout-specific nodes and links
         layout_nodes = [{
             'nodecolor': attrs.get('nodecolor', ''),
-            'pos': attrs.get('pos', []),
+            'pos': attrs.get('pos', []).tolist(),
             'cluster': attrs.get('cluster', '') if attrs.get('cluster', '') != "" else None,
             'id': str(node) if not is_json_serializable(node) else node
         } for node, attrs in graph_remapped.nodes(data=True)]
@@ -239,3 +244,4 @@ def create_project(graphs):
     merged_structure = make_json(graphs)
     upload_filesJSON(merged_structure)
     #return merged_structure
+

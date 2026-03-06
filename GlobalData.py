@@ -7,6 +7,7 @@ from PIL import Image
 
 import util
 
+
 # idata = {'mes': 'dfhdfhfh', 'usr': 'NaS7QA89nxLg9nKQAAAn', 'tag': 'flask'}
 
 # scb1Data = ["TMP","MMU", "PAM", "CHR", "OMG","WTF","HH2H","ASS1"]
@@ -149,14 +150,14 @@ def loadPD():
             print("pdata created")
 
     with open("static/projects/" + data["actPro"] + "/pdata.json", "r") as json_file:
-
         pdata = json.load(json_file)
-        print(pdata)
+        #print(pdata)
+        json_file.close()
 
     with open("static/projects/" + data["actPro"] + "/nodes.json", "r") as json_file:
-
         nodes = json.load(json_file)
         nodes = util.prepare_protein_structures(nodes)
+        json_file.close()
 
     if path.exists("static/projects/" + data["actPro"] + "/links.json"):
         with open(
