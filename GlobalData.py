@@ -86,6 +86,7 @@ def checkProjectGDexists():
 
     global data
     example_projects = listExampleProjects()
+    all_projects = listProjects()
 
     # this is not necessary due to catch in uploader.check_ProjectFolder() 
     # # in case of GD json not exists
@@ -102,7 +103,10 @@ def checkProjectGDexists():
 
     # if project does not exist, set to example project 
     if not path.exists("static/projects/" + data["actPro"]):
-        data["actPro"] = example_projects[0]
+        try:
+            data["actPro"] = all_projects[0]
+        except:
+            data["actPro"] = example_projects[0]
         with open("static/projects/GD.json", "w") as json_file:
             json.dump(data, json_file, indent="\t")
             #print("C_DEBUG: Project set to example project since GD.json project not existing ", data["actPro"])
@@ -129,7 +133,7 @@ def loadPFile():
     global pfile
     with open("static/projects/" + data["actPro"] + "/pfile.json", "r") as json_file:
         pfile = json.load(json_file)
-        print(pfile)
+        #print(pfile)
     json_file.close()
 
 
@@ -145,7 +149,7 @@ def loadPD():
     if not path.exists("static/projects/" + data["actPro"] + "/pdata.json"):
         with open("static/projects/" + data["actPro"] + "/pdata.json", "w") as outfile:
             json.dump(pdata, outfile, indent="\t")
-            # print(data)
+            #print(data)
             outfile.close()
             print("pdata created")
 
