@@ -50,14 +50,33 @@ class JupyterClient: # include mac address at some point
         self.server_url = server_url
         self.latest_data = None
         self.message_log = []
-        
+
+        self.connected = False
+
         atexit.register(self.disconnect)  # Register cleanup function on exit
 
         # Register handlers
-        self.sio.on('ex', self._on_ex, namespace=self.namespace)
-        self.sio.on('connect', self._on_connect, namespace=self.namespace)
+        #self.sio.on('ex', self._on_ex, namespace=self.namespace)
+        #self.sio.on('connect', self._on_connect, namespace=self.namespace)
+        # self.connect()
         
-        self.connect() 
+    def connect(self):
+        if not self.connected:
+            try:
+                self.sio.connect(self.server_url, namespaces=[self.namespace])
+                self.connected = True
+                print(f"Connected to {self.server_url}{self.namespace}")
+            except Exception as e:
+                print(f"Failed to connect to {self.server_url}{self.namespace}: {e}")
+
+    def disconnect(self):
+            if self.connected:
+                # Disconnect from the backend
+                self.connected = False
+                print("Disconnected from /main")
+
+
+
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
     def _on_ex(self, data):
         self.latest_data = data
@@ -360,6 +379,8 @@ class TextureGenerator:
         node_color_map: dict {node_id: (R, G, B, A)} with 0–255 values
         """
         graph = self.session.graph
+        #print("C_DEBUG:check node labels in graph.nodes() : ", list(graph.nodes())[:10])
+
         total_nodes = len(graph.nodes())
         h = 128 * ((total_nodes // 16384) + 1)
         size = 128 * h

@@ -58,6 +58,9 @@ def handle_socket_execute(message, room, project):
     elif message["fn"] == "node":
         nodeinfo_events.node_event(message, room) #ui_events.node_event(message, room)
         
+        ui_events.highlight_node_and_links_ue4(message, room)
+
+
         # + automatically trigger the graph plotly update after node event
         message_mod = message.copy()
         message_mod["parent"] = "plotly2js"
@@ -69,7 +72,6 @@ def handle_socket_execute(message, room, project):
     # Chat text message
     elif message["fn"] == "chatmessage":
         universal_events.chat_message_event(message, room)
-
 
 
 

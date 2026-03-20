@@ -337,22 +337,33 @@ $(document).ready(function() {
                 document.getElementById(data.id).shadowRoot.getElementById("color").style.backgroundColor = 'rgba(' + data.r + ',' + data.g + ',' + data.b + ',' + data.a * 255 + ')';
                 break;
 
-            case "updateTempTex":
-                if (isPreview) {
-                    // predefine layoutpaths here to send them afterwards to webgl if both are set within one socket connection
-                    let layoutNodesHiPath, layoutNodesLowPath;
-                    for (let i = 0; i < data.textures.length; i++) {
-                        let textureData = data.textures[i];
-                        if (textureData.channel === "layoutNodesHi") { layoutNodesHiPath = textureData.path; continue; }
-                        if (textureData.channel === "layoutNodesLow") { layoutNodesLowPath = textureData.path; continue; }
-                        downloadTempTexture(textureData.path, textureData.channel);
-                    }
-                    if (layoutNodesHiPath !== undefined && layoutNodesLowPath !== undefined) { updateLayoutTemp(layoutNodesLowPath, layoutNodesHiPath); }
 
-                } else {
-                    ue4(data["fn"], data);
-                }
+            
+
+
+            case "updateTempTex":
+                console.log("C_DEBUG: updateTempTex event received with data:", data);
+
+
+
+                // if (isPreview) {
+                //     // predefine layoutpaths here to send them afterwards to webgl if both are set within one socket connection
+                //     let layoutNodesHiPath, layoutNodesLowPath;
+                //     for (let i = 0; i < data.textures.length; i++) {
+                //         let textureData = data.textures[i];
+                //         if (textureData.channel === "layoutNodesHi") { layoutNodesHiPath = textureData.path; continue; }
+                //         if (textureData.channel === "layoutNodesLow") { layoutNodesLowPath = textureData.path; continue; }
+                //         downloadTempTexture(textureData.path, textureData.channel);
+                //     }
+                //     if (layoutNodesHiPath !== undefined && layoutNodesLowPath !== undefined) { updateLayoutTemp(layoutNodesLowPath, layoutNodesHiPath); }
+
+                // } else {
+                ue4(data["fn"], data);
+                //}
                 break;
+
+
+
 
 
 
@@ -365,29 +376,28 @@ $(document).ready(function() {
                 if (isPreview) { setUserLabelPos(data["val"]["id"], data["val"]["n"]); }
                 //$("#piechart").append("<d3pie-widget data = '{a: " + Math.floor(Math.random()*100) + ", b: " + Math.floor(Math.random()*100) + ", c:" + Math.floor(Math.random()*100) + ", d:" + Math.floor(Math.random()*100) + ", e:" + Math.floor(Math.random()*100) + ", f:" + Math.floor(Math.random()*100) + ", g:" + Math.floor(Math.random()*100) + "}' color = '#" + Math.floor(Math.random()*16777215).toString(16) + "'></d3draw-widget>");
                 ue4(data["fn"], data);
-                if (document.getElementById("mProtein_container")) {
 
 
-                    if (data.val.hasOwnProperty("protein_info")) {
-                        var styldata = []
-                        initDropdown("protnamedown", data.val.uniprot, data.val.uniprot[0]);
-                        if (data.val.protein_info.length > 0) {
-                            for (let i = 0; i < Object.keys(data.val.protein_info[0]).length; i++) {
-                                if (Object.keys(data.val.protein_info[0])[i] != 'file') {
-                                    styldata.push(Object.keys(data.val.protein_info[0])[i])
-                                }
+                // FROM TILL ?
+                // if (document.getElementById("mProtein_container")) {
+                //     if (data.val.hasOwnProperty("protein_info")) {
+                //         var styldata = []
+                //         initDropdown("protnamedown", data.val.uniprot, data.val.uniprot[0]);
+                //         if (data.val.protein_info.length > 0) {
+                //             for (let i = 0; i < Object.keys(data.val.protein_info[0]).length; i++) {
+                //                 if (Object.keys(data.val.protein_info[0])[i] != 'file') {
+                //                     styldata.push(Object.keys(data.val.protein_info[0])[i])
+                //                 }
+                //             }
+                //             document.getElementById("mProtein_container").style.display = "block";
+                //             initDropdown("protstyle", styldata, styldata[0]);
+                //         }
+                //     }
+                //     else {
+                //         document.getElementById("mProtein_container").style.display = "none";
+                //     }
+                // }
 
-                            }
-                            document.getElementById("mProtein_container").style.display = "block";
-                            initDropdown("protstyle", styldata, styldata[0]);
-                        }
-
-                    }
-                    else {
-                        document.getElementById("mProtein_container").style.display = "none";
-
-                    }
-                }
 
                 break;
 
@@ -725,8 +735,8 @@ $(document).ready(function() {
 
             case "cnl":
                 ue4(data["fn"], data);
-                break;
-
+                break;        
+                                
             case "checkbox":
                 if (document.getElementById(data["id"])) {
                     document.getElementById(data["id"]).shadowRoot.getElementById("box").checked = data["val"];
