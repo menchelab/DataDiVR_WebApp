@@ -218,7 +218,7 @@ def cartoGraphs():
                         thickness=5,
                         title='Node Degree',
                         xanchor='left',
-                        titleside='right'
+                        #titleside='right'
                     ),
                 )
             )

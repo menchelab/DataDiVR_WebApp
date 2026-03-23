@@ -90,7 +90,7 @@ def networkGraphRT(nlist, alist, llist):
                 thickness=5,
                 title='Node Connections',
                 xanchor='left',
-                titleside='right'
+                #titleside='right'
             ),
             line_width=2))
 
@@ -225,7 +225,7 @@ def networkGraph():
                 thickness=5,
                 title='Node Connections',
                 xanchor='left',
-                titleside='right'
+                #titleside='right'
             ),
             line_width=2))
 

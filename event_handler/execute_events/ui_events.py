@@ -287,7 +287,10 @@ def highlight_node_and_links_ue4(message, room):
     im2_nodes = im1_nodes.copy()
 
     # Highlight selected node
-    node_id = message["val"] #["data"][0]
+    node_id = int(message["val"]) #["data"][0]
+    #print("C_DEBUG : highlighting node id: ", node_id)
+    #print("C_DEBUG : type of node_id: ", type(node_id))
+
     pix_val = list(im1_nodes.getdata())
     pix_val[node_id] = highlight_color
 
