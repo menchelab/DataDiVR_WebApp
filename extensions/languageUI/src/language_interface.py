@@ -37,7 +37,7 @@ FUNCTION_FN_MAPPING = {
 # ----------------------------------------
 
 # define model
-llm_from_openrouterai = "meta-llama/llama-3.3-70b-instruct:free" #"openai/gpt-oss-20b:free" # "gpt-3.5-turbo" # "meta-llama/llama-3.3-70b-instruct:free"   #"z-ai/glm-4.5-air:free", "openai/gpt-oss-20b:free"  
+llm_from_openrouterai = "openai/gpt-oss-20b:free" #"meta-llama/llama-3.3-70b-instruct:free" #"openai/gpt-oss-20b:free" # "gpt-3.5-turbo" # "meta-llama/llama-3.3-70b-instruct:free"   #"z-ai/glm-4.5-air:free", "openai/gpt-oss-20b:free"  
 
 # API / Model keys - Load .env and init OpenAI
 load_dotenv()

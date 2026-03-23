@@ -46,7 +46,7 @@ function Install-Requirements {
             Write-Host "Installing the following requirements for the extension $ext_name :"
             Get-Content $requirements_file
             Write-Host ""
-            python -m pip install -r $requirements_file
+            python -m pip install -r $requirements_file --use-deprecated=legacy-resolver
         } else {
             Write-Host "No requirements file found for extension $ext_name, therefore no python packages are installed for this extension."
         }

@@ -13,7 +13,9 @@ Install-Requirements
 #pip install flask_cors
 #pip install pymysql
 pip install wheel
-python -m pip install -r requirements.txt
+#python -m pip install -r requirements.txt
+python -m pip install -r requirements.txt --use-deprecated=legacy-resolver
+
 $env:FLASK_ENV="development"
 $env:FLASK_APP="app.py"
 #flask run --port 5000
