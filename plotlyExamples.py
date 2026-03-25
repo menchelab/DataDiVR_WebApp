@@ -105,8 +105,8 @@ def networkGraphRT(nlist, alist, llist):
 
     fig = go.Figure(data=[edge_trace, node_trace],
                 layout=go.Layout(
-                    title='',
-                    titlefont_size=16,
+                    #title='',
+                    #titlefont_size=16,
                     showlegend=False,
                     hovermode='closest',
                     margin=dict(b=20,l=5,r=5,t=40),
@@ -240,8 +240,8 @@ def networkGraph():
 
     fig = go.Figure(data=[edge_trace, node_trace],
                 layout=go.Layout(
-                    title='',
-                    titlefont_size=16,
+                    #title='',
+                    #titlefont_size=16,
                     showlegend=False,
                     hovermode='closest',
                     margin=dict(b=20,l=5,r=5,t=40),

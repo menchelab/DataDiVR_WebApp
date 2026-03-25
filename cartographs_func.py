@@ -112,8 +112,8 @@ def draw_figure_cartographs(data):
         fig.add_trace(i)
         
     fig.layout = go.Layout(
-                    title='',
-                    titlefont_size=16,
+                    #title='',
+                    #titlefont_size=16,
                     showlegend=False,
                     hovermode='closest',
                     margin=dict(b=20,l=5,r=5,t=40),
