@@ -166,12 +166,19 @@ def make_json(graphs, save_json=False): # former: merge_graphs(graphs):
                 seen_links.add((source, target))
 
         # Prepare layout-specific nodes and links
-        layout_nodes = [{
+        layout_nodes = []
+        for node, attrs in graph_remapped.nodes(data=True):
+            
+            pos = attrs.get('pos', [])
+            if not isinstance(pos, list):
+                pos = pos.tolist() if hasattr(pos, 'tolist') else [pos]
+            
+            layout_nodes.append({
             'nodecolor': attrs.get('nodecolor', ''),
-            'pos': attrs.get('pos', []).tolist(),
+            'pos': pos,
             'cluster': attrs.get('cluster', '') if attrs.get('cluster', '') != "" else None,
             'id': str(node) if not is_json_serializable(node) else node
-        } for node, attrs in graph_remapped.nodes(data=True)]
+            })
 
         # # add check for pos types (float, int, str)
         # for i in range(len(layout_nodes)):
