@@ -169,11 +169,17 @@ def make_json(graphs, save_json=False): # former: merge_graphs(graphs):
         layout_nodes = []
         for node, attrs in graph_remapped.nodes(data=True):
             
-            pos = attrs.get('pos', [])
-            if not isinstance(pos, list):
-                pos = pos.tolist() if hasattr(pos, 'tolist') else [pos]
-            
-            layout_nodes.append({
+            if isinstance(attrs.get('pos', []), np.ndarray):
+                #print("C_DEBUG NPARRAY: positions are numpy array, converting to list.")
+                pos = attrs.get('pos', []).tolist()
+            elif isinstance(attrs.get('pos', []), list) or isinstance(attrs.get('pos', []), tuple):
+                #print("C_DEBUG LIST/TUPLE: positions are LIST/TUPLE, using as is.")
+                pos = attrs.get('pos', [])
+            else:
+                #print("C_DEBUG: empty positions or incorrect datatype.")
+                pos = [0, round(node * 0.1, 1), 0] # make random position based on node id, if no position is given or if the datatype is incorrect (e.g. string)
+
+            layout_nodes.appevnd({
             'nodecolor': attrs.get('nodecolor', ''),
             'pos': pos,
             'cluster': attrs.get('cluster', '') if attrs.get('cluster', '') != "" else None,
