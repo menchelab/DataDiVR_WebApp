@@ -1,6 +1,8 @@
 import json
 import os
 import networkx as nx 
+import numpy as np 
+
 
 try:
     import sys
@@ -179,7 +181,7 @@ def make_json(graphs, save_json=False): # former: merge_graphs(graphs):
                 #print("C_DEBUG: empty positions or incorrect datatype.")
                 pos = [0, round(node * 0.1, 1), 0] # make random position based on node id, if no position is given or if the datatype is incorrect (e.g. string)
 
-            layout_nodes.appevnd({
+            layout_nodes.append({
             'nodecolor': attrs.get('nodecolor', ''),
             'pos': pos,
             'cluster': attrs.get('cluster', '') if attrs.get('cluster', '') != "" else None,
