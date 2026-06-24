@@ -186,18 +186,28 @@ def search_by_termtype(term):
     #except:
     #    term = str(term)
 
-
-    if isinstance(term, int):
+    # try to make input an int if possible, otherwise keep it as a string
+    try:
+        term = int(term)
         print("C_DEBUG : In search.py - search_by_termtype(term): term is int", term)
         return search_id(term)
     
-    elif isinstance(term, str):
+    except ValueError:
+        term = str(term)
         print("C_DEBUG : In search.py - search_by_termtype(term): term is str", term)
         return search_name(term)
+
+    # if isinstance(term, int):
+    #     print("C_DEBUG : In search.py - search_by_termtype(term): term is int", term)
+    #     return search_id(term)
+    
+    # elif isinstance(term, str):
+    #     print("C_DEBUG : In search.py - search_by_termtype(term): term is str", term)
+    #     return search_name(term)
  
-    else:
-        print("Error: Unknown term type or invalid term format. Please provide a valid term type (id, name, attribute) and ensure the term matches the expected format.")
-        return []
+    # else:
+    #     print("Error: Unknown term type or invalid term format. Please provide a valid term type (id, name, attribute) and ensure the term matches the expected format.")
+    #     return []
 
 
 

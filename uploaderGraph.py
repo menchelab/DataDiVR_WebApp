@@ -105,6 +105,7 @@ def upload_filesJSON(request, overwrite=True):
     links = [] # this is the original linklist including all uploaded links 
     linkcolors = []
     labels = []
+    linklabels = []
     graphlayouts = []
     
     if isinstance(request, dict): # using "_GeneratedProject.ipynb" 
@@ -139,23 +140,25 @@ def upload_filesJSON(request, overwrite=True):
         parseGraphJSON_nodepositions(layout, nodepositions)
         parseGraphJSON_nodecolors(layout, nodecolors)
         
-        parseGraphJSON_labels(layout, labels) 
+        parseGraphJSON_labels(layout, labels)
         #print("C_DEBUG: parsed labels line 143: ", labels)
+        parseGraphJSON_linklabels(layout, linklabels)
 
         parseGraphJSON_links_many(layout, linksdicts)
         parseGraphJSON_linkcolors(layout, linkcolors)
-        
+
         parseGraphJSON_layoutnames(layout, graphlayouts)
         graphlayouts = [item for sublist in graphlayouts for item in sublist] # unpack list in lists
         names = graphlayouts
-        
+
     # in case of no layouts key (i e "old" json format)
-    else: 
+    else:
         parseGraphJSON_nodepositions(jsonfiles, nodepositions)
         parseGraphJSON_nodecolors(jsonfiles, nodecolors)
-    
+
         parseGraphJSON_labels(jsonfiles, labels)
         #print("C_DEBUG: parsed labels line 158: ", labels)
+        parseGraphJSON_linklabels(jsonfiles, linklabels)
 
         parseGraphJSON_links_many(jsonfiles, linksdicts)
         parseGraphJSON_linkcolors(jsonfiles, linkcolors)
@@ -351,7 +354,44 @@ def upload_filesJSON(request, overwrite=True):
 
     else:
         pfile["labelcount"] = 0
-    
+
+    #----------------------------------
+    # LINK COLOR LABELS
+    #----------------------------------
+    for linklabellist in linklabels:
+        if "data" in linklabellist and len(linklabellist["data"]) > 0:
+            for row in linklabellist["data"]:
+                name = row[0]
+                row.pop(0)
+                pfile["linkselections"].append({"name": name, "nodes": row,
+                                                "layoutname": linklabellist["name"]})
+
+    # match link labels to respective layout to get label colors for legend
+    linkcounter = 0
+    if len(pfile["linkselections"]) > 0:
+        for e, _ in enumerate(pfile["linkselections"]):
+            layoutname_pfile = pfile["linkselections"][e]["layoutname"]
+
+            for x, i in enumerate(graphlayouts):
+                if i == layoutname_pfile:
+                    # first link ID of each linkcolorname group (name already popped)
+                    unique_firstlinks = []
+                    for lab in linklabels[x]["data"]:
+                        if len(lab) > 0:
+                            unique_firstlinks.append(lab[0])
+
+                    for linkid in unique_firstlinks:
+                        if int(linkid) < len(linkcolors[x]["data"]):
+                            linkcol = linkcolors[x]["data"][int(linkid)]
+                            if linkid in pfile["linkselections"][e]["nodes"]:
+                                pfile["linkselections"][e]["labelcolor"] = linkcol
+
+                    linkcounter += 1
+
+        pfile["linkcolorcount"] = linkcounter
+    else:
+        pfile["linkcolorcount"] = 0
+
     print("PROGRESS: made node position textures...")
 
 
@@ -932,9 +972,50 @@ def parseGraphJSON_labels(files,target):
             vecList = {}
             vecList["data"] = labels
             vecList["name"] = name_of_file
-            
+
             target.append(vecList)
-        
+
+
+def parseGraphJSON_linklabels(files, target):
+    if len(files) > 0:
+        for ix, file in enumerate(files):
+
+            if "graph" in file:
+                if "name" in file["graph"]:
+                    name_of_file = file["graph"]["name"]
+                elif "projectname" in file["graph"]:
+                    name_of_file = file["graph"]["projectname"]
+                else:
+                    name_of_file = "Automatic-Projectname" + str(ix)
+            elif "layoutname" in file:
+                name_of_file = file["layoutname"]
+            else:
+                name_of_file = "Automatic-LayoutID" + str(ix)
+
+            linknames = []
+            linkids = []
+
+            if "links" in file:
+                for link_ix, link in enumerate(file["links"]):
+                    if "linkcolorname" in link and link["linkcolorname"] is not None and link["linkcolorname"] != "":
+                        linknames.append(link["linkcolorname"])
+                        linkids.append(link_ix)
+
+            set_linknames = list(set(linknames))
+            labels = []
+            for name in set_linknames:
+                sublist = []
+                for k, v in zip(linkids, linknames):
+                    if name == v:
+                        sublist.append(str(k))
+                sublist.insert(0, name)
+                labels.append(sublist)
+
+            vecList = {}
+            vecList["data"] = labels
+            vecList["name"] = name_of_file
+            target.append(vecList)
+
 
 # graph desciption
 def parseGraphJSON_graphinfo(files,target):

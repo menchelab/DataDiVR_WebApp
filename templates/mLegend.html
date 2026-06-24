@@ -339,7 +339,7 @@
         }
     }
 
-    // Link Info by selected ID 
+    // Link Info by selected ID
     function Legend_displayLinkInfobyID(project_selected, selected_id) {
         if (document.getElementById('legendpanel')) {
             const p_file = 'static/projects/'+project_selected+'/pfile.json';
@@ -354,15 +354,16 @@
                     corrected_id = 0;
                 }
 
-                let layoutname = pfiledata["linksRGB"][corrected_id];  // Assuming links also have layout names similar to nodes
-                
-                let l_layout_with_clusters = [];
-                if (pfiledata["selections"].length != 0) {
-                    for (layoutid in pfiledata["selections"]) {
-                        if ("layoutname" in pfiledata["selections"][layoutid]) {
-                            let layout_with_clusters = pfiledata["selections"][layoutid]["layoutname"];
-                            if (!l_layout_with_clusters.includes(layout_with_clusters)) {
-                                l_layout_with_clusters.push(layout_with_clusters); // Push unique layout with clusters
+                let layoutname = pfiledata["linksRGB"][corrected_id];
+
+                // collect layouts that have named link color groups in linkselections
+                let l_layout_with_linknames = [];
+                if (pfiledata.hasOwnProperty("linkselections") && pfiledata["linkselections"].length != 0) {
+                    for (const layoutid in pfiledata["linkselections"]) {
+                        if ("layoutname" in pfiledata["linkselections"][layoutid]) {
+                            const layout_with_linknames = pfiledata["linkselections"][layoutid]["layoutname"];
+                            if (!l_layout_with_linknames.includes(layout_with_linknames)) {
+                                l_layout_with_linknames.push(layout_with_linknames);
                             }
                         }
                     }
@@ -373,19 +374,21 @@
                 linkdesc_Div.innerHTML = "";
                 linkcol_Div.innerHTML = "";
 
-                if (l_layout_with_clusters.includes(layoutname) || layoutname === l_layout_with_clusters) { 
-                    // Handle case when layout is in selections (with clusters)
-                    const clusterlist = pfiledata["selections"];
+                if (l_layout_with_linknames.includes(layoutname) || layoutname === l_layout_with_linknames) {
+                    // W I T H   D E F I N E D   L I N K   C O L O R   N A M E S
+                    const linkselectlist = pfiledata["linkselections"];
                     const labelColorDict = {};
 
-                    for (const key in clusterlist) {
-                        const labelColor = clusterlist[key]['labelcolor'];
-                        const name = clusterlist[key]['name'];
-                        labelColorDict[labelColor] = name;
+                    for (const key in linkselectlist) {
+                        if (linkselectlist[key]["layoutname"] === layoutname) {
+                            const labelColor = linkselectlist[key]['labelcolor'];
+                            const name = linkselectlist[key]['name'];
+                            labelColorDict[labelColor] = name;
+                        }
                     }
 
                     let idx = 0;
-                    for (const color in labelColorDict) { 
+                    for (const color in labelColorDict) {
                         const keys = Object.keys(labelColorDict);
                         const colorParts = color.split(',').map(Number);
                         const color_reformated = 'rgb(' + colorParts.slice(0, 3).join(', ') + ')';
@@ -401,16 +404,16 @@
                         linkcol_Div.appendChild(colorImg);
 
                         idx += 1;
-                    } 
+                    }
                     alllink_Div.appendChild(linkcol_Div);
                     alllink_Div.appendChild(linkdesc_Div);
 
                 } else {
-                    // Handle case when layout is NOT in selections (without clusters)
-                    const img_name =  pfiledata["linksRGB"][corrected_id]; 
+                    // W I T H O U T   D E F I N E D   L I N K   C O L O R   N A M E S  (pixel analysis)
+                    const img_name = pfiledata["linksRGB"][corrected_id];
                     const img = new Image();
                     img.src = 'static/projects/' + project_selected + '/linksRGB/'+ img_name+".png";
-            
+
                     const canvas = document.createElement('canvas');
                     img.onload = function() {
                         canvas.width = img.width;
@@ -425,17 +428,16 @@
                         let index = 1;
 
                         for (let i = 0; i < pixelData.length; i += 4) {
-                            
                             const r = pixelData[i];
                             const g = pixelData[i + 1];
                             const b = pixelData[i + 2];
                             const a = pixelData[i + 3];
-                            
+
                             const roundedR = Math.round(r / 10) * 10;
                             const roundedG = Math.round(g / 10) * 10;
                             const roundedB = Math.round(b / 10) * 10;
                             const colorKey = `${roundedR},${roundedG},${roundedB}`;
-                            
+
                             if (a === 10) {
                                 continue; // Skip background pixels
                             }
@@ -447,7 +449,7 @@
                                 index += 1;
                             }
                             const pixelIndex = colorsDict[colorKey];
-                            namesDict[pixelIndex]["nodes"].push(i / 4); 
+                            namesDict[pixelIndex]["nodes"].push(i / 4);
                         }
 
                         const newNamesDict = {};
@@ -458,18 +460,18 @@
 
                         for (const color in newNamesDict) {
                             if (color != '0,0,0') {
-                                const color_reformated = 'rgb(' + color + ')';    
+                                const color_reformated = 'rgb(' + color + ')';
 
                                 const colorImg = displayColorAsDiv(color_reformated, 18.5, 18.5, 5.5, 0);
                                 linkcol_Div.appendChild(colorImg);
-                            
+
                                 const textdiv = document.createElement("div");
                                 textdiv.style.fontSize = "14px";
                                 textdiv.style.lineHeight = "24px";
                                 const text = document.createTextNode(newNamesDict[color]["name"]);
                                 textdiv.appendChild(text);
                                 linkdesc_Div.appendChild(textdiv);
-                            } 
+                            }
                             alllink_Div.appendChild(linkcol_Div);
                             alllink_Div.appendChild(linkdesc_Div);
                         }

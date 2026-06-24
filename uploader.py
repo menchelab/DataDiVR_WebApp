@@ -97,6 +97,7 @@ def makeProjectFolders(name):
     pfile["links"] = []
     pfile["linksRGB"] = []
     pfile["selections"] = []
+    pfile["linkselections"] = []
     pfile["scenes"] = []
 
     try:

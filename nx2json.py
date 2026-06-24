@@ -206,6 +206,7 @@ def make_json(graphs, save_json=False): # former: merge_graphs(graphs):
 
         layout_links = [{
             'linkcolor': attrs.get('linkcolor', ''),
+            'linkcolorname': attrs.get('linkcolorname', '') if attrs.get('linkcolorname', '') != "" else None,
             'source': to_int_or_str(source) if not is_json_serializable(source) else source,
             'target': to_int_or_str(target) if not is_json_serializable(target) else target
         } for source, target, attrs in graph_remapped.edges(data=True)]
