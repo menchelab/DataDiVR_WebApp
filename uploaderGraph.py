@@ -503,17 +503,19 @@ def upload_filesJSON(request, overwrite=True):
     
     pfile["annotationTypes"] = complex_annotations    # define in pfile if you use annotation types or default flat annotation list
 
-    # consider reimplementation
-    # #----------------------------------
-    # # processing legends pictures (if any)
-    # #----------------------------------
-    # legendfiles = []
-    # if isinstance(request, dict):
-    #     #os.mkdir(folder+'legends/') # just generate legends folder
-    #     pfile["legendfiles"] = None
-    # else: 
-    #     loadLegendFiles(request.files.getlist("legendFiles"), folder+'legends/', legendfiles)
-    #     pfile["legendfiles"] = legendfiles
+    #----------------------------------
+    # processing legends pictures (if any)
+    #----------------------------------
+    legendfiles = []
+    if isinstance(request, dict):
+        for src_path in request.get("legendfiles", []):
+            if os.path.isfile(src_path):
+                filename = os.path.basename(src_path)
+                shutil.copy(src_path, os.path.join(folder, 'legends', filename))
+                legendfiles.append(filename)
+    else:
+        loadLegendFiles(request.files.getlist("legendFiles"), folder+'legends/', legendfiles)
+    pfile["legendfiles"] = legendfiles
 
 
     #----------------------------------

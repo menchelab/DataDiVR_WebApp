@@ -232,7 +232,8 @@ def make_json(graphs, save_json=False): # former: merge_graphs(graphs):
         'annotationTypes': True,
         'nodes': all_nodes,
         'links': all_links,
-        'layouts': layouts
+        'layouts': layouts,
+        'legendfiles': graphs[0].graph.get("legendfiles", [])
     }
 
     # Ensure the merged structure is JSON serializable
