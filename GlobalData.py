@@ -133,8 +133,19 @@ def loadPFile():
     global pfile
     with open("static/projects/" + data["actPro"] + "/pfile.json", "r") as json_file:
         pfile = json.load(json_file)
-        #print(pfile)
     json_file.close()
+
+    # sync legendfiles from the legends/ folder so dropping files there is sufficient
+    _legend_exts = {'.jpg', '.jpeg', '.png', '.gif', '.html', '.htm'}
+    _legends_dir = "static/projects/" + data["actPro"] + "/legends"
+    if path.exists(_legends_dir):
+        _files = sorted(
+            f for f in os.listdir(_legends_dir)
+            if os.path.splitext(f)[1].lower() in _legend_exts
+        )
+        if _files != pfile.get("legendfiles", []):
+            pfile["legendfiles"] = _files
+            savePFile()
 
 
 def loadPD():
