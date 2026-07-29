@@ -205,16 +205,17 @@ $(document).ready(function() {
 
 
     socket.on('disconnect', function() {
-        console.log("disconnected - trying to connect")
-        socket.emit('join', {});
+        console.log("disconnected - SocketIO will auto-reconnect")
+        // socket.emit('join', {}) is a no-op here since the socket is disconnected
         if (document.getElementById("disconnected")) {
             document.getElementById("disconnected").style.display = "block"
         }
         if (document.getElementById("outer")) {
             document.getElementById("outer").style.backgroundColor = "rgb(239 0 0 / 34%)"
         }
-        location.reload()
-
+        // location.reload() was removed: it triggered a full page reload on every disconnect,
+        // causing a new connection → projDD init → project event broadcast to room →
+        // VR reloads its project. SocketIO's built-in reconnect handles this correctly.
     });
 
     socket.on('status', function(data) {

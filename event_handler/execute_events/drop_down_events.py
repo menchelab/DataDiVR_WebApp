@@ -82,20 +82,26 @@ def init(message, response, room=None, namespace="/main"):
 
         response2["val"] = GD.pfile
         response2["fn"] = "project"
-        emit("ex", response2, room=room, namespace=namespace)
+        # emit only to the requesting socket — broadcasting to room causes VR to reload
+        # its project every time any other client (e.g. a web browser) connects
+        emit("ex", response2, namespace=namespace)
     else:
         if message["id"] not in GD.pdata:
             GD.pdata[message["id"]] = 0
         response["sel"] = GD.pdata[message["id"]]
-        # assign data for options
+        # assign data for options; layout/color/link dropdowns always init at position 0
         if message["id"] == "layoutsDD":
             response["opt"] = GD.pfile["layouts"]
+            response["sel"] = 0
         elif message["id"] == "layoutsRGBDD":
             response["opt"] = GD.pfile["layoutsRGB"]
+            response["sel"] = 0
         elif message["id"] == "linksDD":
             response["opt"] = GD.pfile["links"]
+            response["sel"] = 0
         elif message["id"] == "linksRGBDD":
             response["opt"] = GD.pfile["linksRGB"]
+            response["sel"] = 0
         elif message["id"] == "selectionsDD":
             options = []
             for i in range(len(GD.pfile["selections"])):
@@ -103,8 +109,7 @@ def init(message, response, room=None, namespace="/main"):
             response["opt"] = options
             print(options)
 
-        if "opt" in response.keys():
-            # dirty fix that sel of pdata layoutsDD is somwhow always = 2
+        if "opt" in response.keys() and message["id"] not in ("layoutsDD", "layoutsRGBDD", "linksDD", "linksRGBDD"):
             response["sel"] = str(min(len(response["opt"]) - 1, int(response["sel"])))
 
     # dropdown for annotations
@@ -245,8 +250,14 @@ def main(message, room=None, namespace="/main"):
         # init message called when socket connection is established
         if message["val"] == "init":
             init(message, response, room, namespace)
+            # send init response only to the requesting socket, not the whole room
+            # broadcasting init responses causes VR clients to receive other clients'
+            # init sequences and reload their project unexpectedly
+            emit("ex", response, namespace=namespace)
         else:  # user input message
             user_input(message, response, room, namespace)
-    emit("ex", response, room=room, namespace=namespace)
+            emit("ex", response, room=room, namespace=namespace)
+    else:
+        emit("ex", response, room=room, namespace=namespace)
    
     print(response)
