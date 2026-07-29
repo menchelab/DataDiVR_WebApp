@@ -159,8 +159,7 @@ def loadPD():
 
     if not path.exists("static/projects/" + data["actPro"] + "/pdata.json"):
         with open("static/projects/" + data["actPro"] + "/pdata.json", "w") as outfile:
-            json.dump(pdata, outfile, indent="\t")
-            #print(data)
+            json.dump({}, outfile, indent="\t")  # always use empty dict — global pdata may carry stale values from previous project
             outfile.close()
             print("pdata created")
 
