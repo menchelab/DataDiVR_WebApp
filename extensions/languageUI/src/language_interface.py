@@ -2,10 +2,8 @@ import openai
 import os
 from openai import OpenAI
 from dotenv import load_dotenv
-import json 
-import importlib
+import json
 
-from flask import session 
 
 from extensions.languageUI.src.lui_helpers import load_project_info
 import GlobalData as GD
@@ -37,7 +35,7 @@ FUNCTION_FN_MAPPING = {
 # ----------------------------------------
 
 # define model
-llm_from_openrouterai = "openai/gpt-oss-20b:free" #"meta-llama/llama-3.3-70b-instruct:free" #"openai/gpt-oss-20b:free" # "gpt-3.5-turbo" # "meta-llama/llama-3.3-70b-instruct:free"   #"z-ai/glm-4.5-air:free", "openai/gpt-oss-20b:free"  
+llm_from_openrouterai = "meta-llama/llama-3.1-8b-instruct:free"
 
 # API / Model keys - Load .env and init OpenAI
 load_dotenv()
@@ -256,7 +254,11 @@ def route_command(user_input: str) -> dict:
 
     # Build the system prompt
     system_prompt = build_system_prompt(ACTION_REGISTRY)
-    messages = [{"role": "system", "content": system_prompt}] + memory.load_memory_variables({})["chat_history"]
+    chat_history = [
+        {"role": "user" if m.type == "human" else "assistant", "content": m.content}
+        for m in memory.load_memory_variables({})["chat_history"]
+    ]
+    messages = [{"role": "system", "content": system_prompt}] + chat_history
 
     # Send the prompt to the LLM
     try:
@@ -353,7 +355,10 @@ def handle_general_prompt(prompt: str) -> dict:
 
     # Send the conversation history to the LLM
     try:
-        messages = memory.load_memory_variables({})["chat_history"]
+        messages = [
+            {"role": "user" if m.type == "human" else "assistant", "content": m.content}
+            for m in memory.load_memory_variables({})["chat_history"]
+        ]
         response = client.chat.completions.create(
             model=llm_from_openrouterai,
             messages=messages,
@@ -487,46 +492,6 @@ def create_message(func_name: str, args: dict, file_path: str) -> dict:
 
 
 
-
-# ----------------------------------------
-# Fallback LLM general chat - choose model here
-# ----------------------------------------
-# This function handles general prompts that do not match any specific action.
-# It sends the prompt to the LLM and returns the response.
-def handle_general_prompt(prompt: str) -> dict:
-    """
-    Handles general prompts by sending the user input to the LLM and retrieving a structured response.
-    The response includes a "feedback" key containing the answer.
-
-    Args:
-        prompt (str): The user input.
-
-    Returns:
-        dict: A structured response with the answer under "feedback".
-    """
-    print("C_DEBUG - LANGUAGE_INTERFACE.PY - handle_general_prompt:", prompt)
-
-    # Add the user's input to the conversation history
-    session["conversation_history"].append({"role": "user", "content": prompt})
-
-    # Send the conversation history to the LLM
-    response = client.chat.completions.create(
-        model=llm_from_openrouterai,
-        messages=session["conversation_history"],
-        temperature=0.3,
-        max_tokens=500
-    )
-
-    # Extract the LLM response content
-    llm_response = response.choices[0].message.content.strip()
-    print("C_DEBUG - LANGUAGE_INTERFACE.PY - in handle_general_prompt - LLM response:", llm_response)
-
-    # Add the assistant's response to the conversation history
-    session["conversation_history"].append({"role": "assistant", "content": llm_response})
-    #print(f"C_DEBUG: Conversation history before LLM call:\n{json.dumps(session['conversation_history'], indent=4)}")
-
-    # Return the response in the required structure
-    return {"feedback": llm_response}
 
 
 
