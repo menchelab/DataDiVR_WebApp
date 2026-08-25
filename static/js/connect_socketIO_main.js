@@ -249,10 +249,14 @@ $(document).ready(function() {
         switch (data.fn) {
             case 'projectLoaded':
 
+                // updateMcElements() is safe to call unconditionally here — server-side
+                // all init responses now go only to the requesting socket (flask.request.sid),
+                // so there is no cross-client race.  Restricting it to uid==usr broke
+                // /main and /preview initialization because VR triggers projectLoaded
+                // with its own uid, so browsers never ran updateMcElements at all.
                 updateMcElements();
 
                 if (data.usr == uid) {
-
                     if (isPreview) {
                         // Wait until ui is initialized
                         setTimeout(function() {
@@ -260,7 +264,6 @@ $(document).ready(function() {
                             makeNetwork();
                         }, 2000);
                     }
-
                 }
 
                 break;
@@ -334,6 +337,35 @@ $(document).ready(function() {
                     $(content).append("<mc-button id = 'button" + i + " 'val= '" + data.val[i].id + "' name = '" + data.val[i].name + "' w = '118' fn = 'node' color = '" + rgbToHex(data.val[i].color[0] * 0.5, data.val[i].color[1] * 0.5, data.val[i].color[2] * 0.5) + "' ></mc-button>");
                 }
                 break;
+
+            // suggested label candidates for the current selection (VR paint/lasso +
+            // GUI clipboard, combined - see label_events.get_active_node_selection).
+            // Rendered into whichever of the paint / clipboard panels are present.
+            case "labelSuggestions":
+                ["labelSuggestBox", "labelSuggestBoxCb"].forEach(function (boxId) {
+                    var box = document.getElementById(boxId);
+                    if (!box) return; // panel not present on this page
+                    var content = box.shadowRoot.getElementById("box");
+                    removeAllChildNodes(content);
+                    if (data.val.length === 0) {
+                        var reasonText = {
+                            "selection_too_small": "No suggestions: select at least 2 nodes first.",
+                            "no_annotation_data": "No suggestions: this project has no annotation/attribute data to compare against.",
+                            "no_terms_found": "No suggestions: no attribute terms found among the selected nodes."
+                        }[data.reason] || "No suggestions.";
+                        $(content).append("<div style='padding:4px;'>" + reasonText + "</div>");
+                    } else {
+                        for (let i = 0; i < data.val.length; i++) {
+                            var candidate = data.val[i];
+                            var flag = candidate.significant ? "" : " · below p&lt;0.05";
+                            $(content).append(
+                                "<div style='padding:4px;'>" + candidate.term +
+                                " <span style='opacity:0.6;'>(" + candidate.type + ", p=" + candidate.pvalue.toExponential(2) + flag + ")</span></div>"
+                            );
+                        }
+                    }
+                });
+                break;
             case "colorbox":
                 document.getElementById(data.id).shadowRoot.getElementById("color").style.backgroundColor = 'rgba(' + data.r + ',' + data.g + ',' + data.b + ',' + data.a * 255 + ')';
                 break;
@@ -371,7 +403,7 @@ $(document).ready(function() {
             case 'node':
                 if (document.getElementById("nodeL2")) {
                     document.getElementById("nodeL2").innerHTML = data["val"]["n"] + "<br><h6>" + "[" + data["nch"] + " Links]</h6>";
-                    document.getElementById("nodeRawdata").textContent = JSON.stringify(data["val"], undefined, 2);
+                    document.getElementById("nodeRawdata").innerHTML = renderNodeInfoHTML(data["val"]);
                     document.getElementById("nodecount").innerHTML = "[" + data["val"]["id"] + "]";
                 }
                 if (isPreview) { setUserLabelPos(data["val"]["id"], data["val"]["n"]); }
@@ -682,6 +714,19 @@ $(document).ready(function() {
                         }
                     }
                 
+                    // When projDD updates (on initial connect or project change from /main),
+                    // also init the layout/color/link dropdowns.  projDD has class PD not GD
+                    // so updateMcElements() skips it; this is the only reliable hook that
+                    // fires both on first load AND on project switch for web-UI clients.
+                    // The project event that sets pfile always arrives before dropdown/projDD,
+                    // so GD.pfile is already loaded server-side when these reach the server.
+                    if (data.id == "projDD" && (isMain || isPreview)) {
+                        socket.emit('ex', { usr: uid, id: "layoutsDD",    fn: "dropdown", val: "init" });
+                        socket.emit('ex', { usr: uid, id: "layoutsRGBDD", fn: "dropdown", val: "init" });
+                        socket.emit('ex', { usr: uid, id: "linksDD",      fn: "dropdown", val: "init" });
+                        socket.emit('ex', { usr: uid, id: "linksRGBDD",   fn: "dropdown", val: "init" });
+                    }
+
                 ue4(data["fn"], data);
                 //console.log("C_DEBUG: sending data to UE4 : ", data);
                 }
@@ -703,6 +748,10 @@ $(document).ready(function() {
 
                 var content = document.getElementById('cbscrollbox').shadowRoot.getElementById("box");
                 removeAllChildNodes(content);
+
+                // clear node search / node info / connections / selections / label
+                // suggestions - all keyed to nodes of the project we just left
+                clearProjectDependentPanels();
 
                 // initial info on L E G E N D P A N E L based on DD
                 Legend_displayGraphInfo(pfile.name);
@@ -731,7 +780,7 @@ $(document).ready(function() {
                 }
                 ue4(data["fn"], data);
 
-                //}    
+                //}
                 break;
 
             case "cnl":
@@ -840,7 +889,7 @@ $(document).ready(function() {
                     layoutsRGB_DD = document.getElementById("layoutsRGBDD").shadowRoot.getElementById("sel");
                     layoutsRGB_DD.setAttribute("sel", parseInt(forwardidx));
                     layoutsRGB_DD.setAttribute("value", pfile.layoutsRGB[forwardidx]);
-                    
+
                     Legend_displayNodeInfobyID(pfile.name, forwardidx);
                     Legend_displayLinkInfobyID(pfile.name, forwardidx);
                     Legend_displayGraphLayoutbyID(pfile.name, forwardidx, "layouts", "graphlayout");
@@ -1398,6 +1447,67 @@ $(document).ready(function() {
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+}
+
+function nodeInfoFormatValue(val) {
+    // Renders a single node-attribute value as readable HTML, recursing into
+    // nested arrays/objects instead of dumping raw JSON.
+    if (val === null || val === undefined || val === "") {
+        return '<span class="nodeinfo-empty">&mdash;</span>';
+    }
+
+    if (Array.isArray(val)) {
+        if (val.length === 0) {
+            return '<span class="nodeinfo-empty">&mdash;</span>';
+        }
+        var isPrimitiveList = val.every(function (v) {
+            return v === null || typeof v !== "object";
+        });
+        if (isPrimitiveList) {
+            return val.map(function (v) {
+                return '<span class="nodeinfo-chip">' + escapeHtml(v) + '</span>';
+            }).join("");
+        }
+        // array of objects -> render each entry as its own nested table
+        return val.map(function (item, i) {
+            return '<div class="nodeinfo-nested"><div class="nodeinfo-nested-title">[' + i + ']</div>'
+                + nodeInfoFormatValue(item) + '</div>';
+        }).join("");
+    }
+
+    if (typeof val === "object") {
+        return nodeInfoBuildTable(val);
+    }
+
+    var str = String(val);
+    if (/^https?:\/\//i.test(str)) {
+        return '<a href="' + escapeHtml(str) + '" target="_blank" rel="noopener">' + escapeHtml(str) + '</a>';
+    }
+    return escapeHtml(str);
+}
+
+function nodeInfoBuildTable(obj) {
+    var rows = Object.keys(obj).map(function (key) {
+        return '<tr><td class="nodeinfo-key">' + escapeHtml(key) + '</td><td class="nodeinfo-val">'
+            + nodeInfoFormatValue(obj[key]) + '</td></tr>';
+    }).join("");
+    return '<table class="nodeinfo-table">' + rows + '</table>';
+}
+
+function renderNodeInfoHTML(data) {
+    // Formats the raw node-attribute object from the "node" socket event
+    // into a readable key/value table instead of a raw JSON dump.
+    if (!data || typeof data !== "object") {
+        return '<span class="nodeinfo-empty">No data</span>';
+    }
+    return nodeInfoBuildTable(data);
+}
+
 function rgbToHex(red, green, blue) {
     const rgb = (red << 16) | (green << 8) | (blue << 0);
     return '#' + (0x1000000 + rgb).toString(16).slice(1);
@@ -1410,6 +1520,57 @@ function removeAllChildNodes(parent) {
         }
     }
 
+}
+
+// Clears UI state left over from the previously active project (search
+// results, node/connections info, label suggestions, ...) - node ids and
+// attributes are never comparable across projects, so anything keyed by
+// them needs to be wiped whenever the project changes, not just re-fetched.
+// Called from the "project" case below (project switch broadcast).
+function clearProjectDependentPanels() {
+    // node search (mNodesearch.html)
+    if (document.getElementById("scrollbox2")) {
+        removeAllChildNodes(document.getElementById("scrollbox2").shadowRoot.getElementById("box"));
+    }
+    if (document.getElementById("searchcount")) {
+        document.getElementById("searchcount").innerHTML = "[-]";
+    }
+    if (document.getElementById("search")) {
+        document.getElementById("search").shadowRoot.getElementById("text").value = "";
+    }
+
+    // node info (mNodeinfo.html)
+    if (document.getElementById("nodeL2")) {
+        document.getElementById("nodeL2").innerHTML = "";
+    }
+    if (document.getElementById("nodecount")) {
+        document.getElementById("nodecount").innerHTML = "[-]";
+    }
+    if (document.getElementById("nodeRawdata")) {
+        document.getElementById("nodeRawdata").innerHTML = "";
+    }
+
+    // connections (mConnections.html)
+    if (document.getElementById("linkL2")) {
+        document.getElementById("linkL2").innerHTML = "";
+    }
+    if (document.getElementById("plotly2js")) {
+        document.getElementById("plotly2js").innerHTML = "";
+    }
+    if (document.getElementById("scrollbox3")) {
+        removeAllChildNodes(document.getElementById("scrollbox3").shadowRoot.getElementById("box"));
+    }
+
+    // selections (mSelections.html)
+    if (document.getElementById("scrollbox1")) {
+        removeAllChildNodes(document.getElementById("scrollbox1").shadowRoot.getElementById("box"));
+    }
+
+    // label suggestions (mNodePainter.html / mClipboard.html)
+    ["labelSuggestBox", "labelSuggestBoxCb"].forEach(function (boxId) {
+        var box = document.getElementById(boxId);
+        if (box) { removeAllChildNodes(box.shadowRoot.getElementById("box")); }
+    });
 }
 
 function clearContainer(container){

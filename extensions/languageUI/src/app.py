@@ -89,8 +89,6 @@ def language_ui():
 
 
 
-from extensions.languageUI.src.language_interface import memory
-
 @blueprint.route("/languageUI_process", methods=["POST"])
 def language_ui_process():
     """
@@ -157,17 +155,14 @@ def language_ui_process():
         elif command["type"] == "general_query":
             print("C_DEBUG: Handling general query")
 
-            #general_response = lang_interface.handle_general_prompt(command["general_query"])
-            general_response = command.get("response", "")
-            general_response_feedback = general_response.get("feedback", "No response generated.")
+            if "quick_response" in command:
+                response_text = command["quick_response"]
+            else:
+                response_text = lang_interface.generate_general_response()
 
-            # Add the assistant's response to the memory buffer
-            lang_interface.memory.chat_memory.add_ai_message(general_response_feedback)
-
-            # Return the general query response
             return jsonify({
                 "function_name": "general_query",
-                "response": general_response,
+                "response": {"feedback": response_text},
                 "user": username,
             })
 

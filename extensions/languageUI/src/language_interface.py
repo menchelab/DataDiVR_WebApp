@@ -1,14 +1,99 @@
 import openai
 import os
+import re
+import time
+import random
+import ast
 from openai import OpenAI
 from dotenv import load_dotenv
+from typing import Optional
 import json
 
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+from rapidfuzz import fuzz, process as rf_process
 
 from extensions.languageUI.src.lui_helpers import load_project_info
 import GlobalData as GD
 
 from langchain.memory import ConversationBufferMemory
+
+
+def _extract_json(text: str) -> str:
+    """Strip markdown fences and return the first balanced {...} JSON object."""
+    text = re.sub(r"```(?:json)?", "", text).replace("```", "").strip()
+    # Some agent-tuned free models emit their native tool-call format even
+    # though we never passed the `tools` API param, so it's never parsed out
+    # into a separate field - it just leaks into plain text, e.g.
+    # "<|tool_call_start|>[foo(bar(...))]<|tool_call_end|>". Strip the
+    # wrapper tokens; the {...} extraction below still runs on what's left.
+    text = re.sub(r"<\|tool_call_(?:start|end)\|>", "", text)
+    text = re.sub(r"</?tool_call>", "", text)
+    start = text.find('{')
+    if start == -1:
+        return text
+    depth = 0
+    for i, ch in enumerate(text[start:], start):
+        if ch == '{':
+            depth += 1
+        elif ch == '}':
+            depth -= 1
+            if depth == 0:
+                return text[start:i + 1]
+    return text[start:]
+
+
+def _extract_tool_call_action(text: str) -> Optional[dict]:
+    """
+    Best-effort fallback for when a model leaks its native tool-call format
+    as plain text instead of JSON (happens with agent-tuned free models even
+    though we never pass the `tools` API param - nothing parses it out into
+    a separate field, so it just shows up in the content), e.g.:
+        "<|tool_call_start|>[cdk5(select_layout_event(message={'msg': '...',
+        'usr': 'user'}, room='/main'))]<|tool_call_end|>"
+    That's syntactically valid Python, regardless of how it's wrapped/nested
+    - parse it as an expression with `ast` and pull out the first call to a
+    function we actually recognize, rather than round-tripping to the LLM
+    again just to ask for the same thing reformatted.
+    """
+    cleaned = re.sub(r"<\|tool_call_(?:start|end)\|>", "", text)
+    cleaned = re.sub(r"</?tool_call>", "", cleaned).strip()
+    try:
+        tree = ast.parse(cleaned, mode="eval")
+    except (SyntaxError, ValueError):
+        return None
+
+    for node in ast.walk(tree):
+        if not (isinstance(node, ast.Call) and isinstance(node.func, ast.Name)):
+            continue
+        func_name = node.func.id
+        if func_name not in ACTION_REGISTRY:
+            continue
+        try:
+            kwargs = {kw.arg: ast.literal_eval(kw.value) for kw in node.keywords if kw.arg}
+        except (ValueError, SyntaxError):
+            continue
+        # keep dict-shaped kwargs (e.g. "message={...}") as the action args;
+        # if none were dicts, fall back to whatever kwargs there were
+        args = {k: v for k, v in kwargs.items() if isinstance(v, dict)} or kwargs
+        return {"type": "action", "function": func_name, "args": args}
+    return None
+
+
+def _quick_respond(user_input: str) -> Optional[dict]:
+    """Return instant responses for queries that don't need the LLM at all."""
+    lower = user_input.lower()
+
+    # Project listing
+    if any(kw in lower for kw in ("list project", "show project", "available project", "what project", "which project", "all project")):
+        projects = GD.plist if hasattr(GD, "plist") else []
+        project_list = "\n".join(f"- {p}" for p in projects)
+        return {
+            "type": "general_query",
+            "quick_response": f"**Available projects:**\n{project_list}"
+        }
+
+    return None
 
 
 
@@ -23,6 +108,7 @@ FUNCTION_FN_MAPPING = {
     "search_events": "node",
     "nodeinfo_events": "node",
     "project_events": "dropdown",
+    "layout_events": "layout",
 
     # add others ... 
 }
@@ -34,8 +120,18 @@ FUNCTION_FN_MAPPING = {
 # MODELS + APIs
 # ----------------------------------------
 
-# define model
-llm_from_openrouterai = "meta-llama/llama-3.1-8b-instruct:free"
+# Free OpenRouter models to try, in order of preference.
+# NOTE: OpenRouter's roster of ':free' models changes often - models get
+# retired from the free tier (they then 404 with "This model is unavailable
+# for free ... use this slug instead: <paid-slug>") or get overloaded and
+# 429. Verified against https://openrouter.ai/api/v1/models (pricing
+# prompt=0/completion=0) - re-check that endpoint if these start 404ing too.
+MODEL_CANDIDATES = [
+    "liquid/lfm-2.5-2.6b:free",          # 2.6B, explicitly tuned for agent workflows / data extraction - best fit for strict JSON routing
+    "nvidia/nemotron-3.5-lightning:free",  # 3B active / 30B MoE, agentic workloads, 1M context - fallback
+    "poolside/laguna-s-2.1:free",        # 8B active MoE - last-resort fallback
+]
+llm_from_openrouterai = MODEL_CANDIDATES[0]  # kept for backwards compatibility / logging
 
 # API / Model keys - Load .env and init OpenAI
 load_dotenv()
@@ -89,12 +185,77 @@ if not api_key:
 openai.api_key = api_key
 
 # Initialize the OpenAI client (if needed)
+# - timeout: the SDK default is 10 minutes per request - way too long for an
+#   interactive router. A slow/overloaded free model should fail fast so our
+#   own retry/fallback logic (below) can move on, not hang silently.
+# - max_retries=0: the SDK retries transient errors internally by default
+#   (2 more attempts), which would silently stack under our own retry loop
+#   and multiply wait times. We already handle retries/backoff/fallback
+#   ourselves in _chat_completion_with_retry, so disable the SDK's.
 client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
-    api_key=api_key
+    api_key=api_key,
+    timeout=25.0,
+    max_retries=0,
 )
 
 
+# ----------------------------------------
+# 429 / rate-limit resilient chat completion
+# ----------------------------------------
+def _chat_completion_with_retry(messages, temperature=0.0, max_tokens=256, max_retries=3):
+    """
+    Calls OpenRouter chat completions, handling failures gracefully:
+      - 429 (rate limit / overloaded): retries the same model with exponential
+        backoff + jitter (handles brief upstream overload / hitting the
+        per-minute free-tier limit).
+      - 404 (model no longer offered for free): skips straight to the next
+        model - retrying the same model would just 404 again.
+      - Either way, falls back to the next model in MODEL_CANDIDATES once the
+        current one is exhausted (handles a specific free model being
+        saturated or retired).
+    Raises the last error if every model/attempt is exhausted.
+    """
+    last_error = None
+    for model in MODEL_CANDIDATES:
+        for attempt in range(max_retries):
+            try:
+                response = client.chat.completions.create(
+                    model=model,
+                    messages=messages,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                )
+                if model != MODEL_CANDIDATES[0]:
+                    print(f"C_DEBUG: Fell back to model '{model}' successfully.")
+                return response
+            except openai.RateLimitError as e:
+                last_error = e
+                wait = (2 ** attempt) + random.uniform(0, 1)
+                print(f"C_DEBUG: 429 rate limit on '{model}' (attempt {attempt + 1}/{max_retries}). Waiting {wait:.1f}s...")
+                time.sleep(wait)
+            except openai.NotFoundError as e:
+                # Model has been pulled from the free tier (or renamed) - no point retrying it.
+                last_error = e
+                print(f"C_DEBUG: '{model}' is no longer available for free (404): {e}. Skipping to next model.")
+                break
+            except openai.APIStatusError as e:
+                # Some overloaded free models come back as a generic 5xx/429-like status
+                # rather than a typed RateLimitError - treat 429 the same way here.
+                if e.status_code == 429:
+                    last_error = e
+                    wait = (2 ** attempt) + random.uniform(0, 1)
+                    print(f"C_DEBUG: 429 (APIStatusError) on '{model}' (attempt {attempt + 1}/{max_retries}). Waiting {wait:.1f}s...")
+                    time.sleep(wait)
+                elif e.status_code == 404:
+                    last_error = e
+                    print(f"C_DEBUG: '{model}' returned 404: {e}. Skipping to next model.")
+                    break
+                else:
+                    raise
+        print(f"C_DEBUG: Model '{model}' exhausted retries, trying next fallback model...")
+
+    raise last_error or RuntimeError("All models exhausted with no response.")
 
 
 # ----------------------------------------
@@ -164,11 +325,207 @@ def get_action_registry_from_DataDiVR():
 
 
 registry_VR = get_action_registry_from_DataDiVR()
-ACTION_REGISTRY = {**registry_VR} 
+ACTION_REGISTRY = {**registry_VR}
 
 memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 print("C_DEBUG: Initialized conversation memory.", memory)
 print("C_DEBUG: Initial memory state:", memory.load_memory_variables({})["chat_history"])
+
+
+# ----------------------------------------
+# Local intent classifier - routes without calling the LLM
+# ----------------------------------------
+# Every registered function already needs a docstring to show up in
+# ACTION_REGISTRY at all, so it doubles as training data here: TF-IDF +
+# cosine similarity against those docstrings classifies user input locally,
+# instantly, with no network call and no dependence on how well a given free
+# LLM follows the JSON prompt template. Only fires when confident; anything
+# below threshold (including genuine general questions) falls through to the
+# LLM router unchanged - so this never reduces coverage, only latency.
+#
+# To make a new function routable this way: just give it a clear docstring
+# (first line/paragraph = what it does; quote a couple of example phrasings
+# the way project_main/search_event/node_event already do). Nothing else to
+# register or maintain here.
+
+_REJECT_INTENT = "__general_query__"
+_REJECT_TRAINING_TEXT = (
+    "Hello how are you doing today. Tell me a joke. What is the weather like. "
+    "Thank you very much for your help. Can you explain what this tool does. "
+    "What can I ask you. This is general conversation, not a specific command. "
+    "Nice to meet you. Goodbye. What is your name."
+)
+
+INTENT_CONFIDENCE_THRESHOLD = 0.30  # top match must clear this cosine similarity...
+INTENT_MARGIN_THRESHOLD = 0.05      # ...and beat the runner-up by at least this much
+
+# Only these modules have argument-filling logic in _quick_route_from_intent
+# below (mirroring create_message()'s special-cased branches). A confident
+# match on a function from any other module still falls through to the LLM,
+# since we don't yet know how to build valid args for it.
+_SLOT_FILLABLE_MODULES = {"project_events", "search_events", "nodeinfo_events", "layout_events"}
+
+# Layout names (e.g. "09-CDK5-hyperactive_diseaseInference") are technical,
+# hyphenated, project-specific strings - rapidfuzz only reliably resolves
+# near-verbatim mentions ("load the alzheimers layout") this way. Looser,
+# conceptual phrasing ("show me the disease landscape") needs real semantic
+# understanding, which is exactly what the LLM fallback + the layout list
+# injected into build_system_prompt() is for - so this threshold is
+# deliberately conservative, unlike the project-name threshold.
+LAYOUT_MATCH_THRESHOLD = 65
+
+
+def _resolve_layout(raw: str):
+    """Resolve a layout name/description against the current project's
+    GD.pfile['layouts']. Returns (index, name) on a confident match, else
+    None. Tries an exact (case-insensitive) match first, then fuzzy."""
+    layouts = GD.pfile.get("layouts", []) if hasattr(GD, "pfile") else []
+    if not layouts or not raw:
+        return None
+
+    lowered = [l.lower() for l in layouts]
+    if raw.strip().lower() in lowered:
+        idx = lowered.index(raw.strip().lower())
+        return idx, layouts[idx]
+
+    # a single bare number anywhere in the input ("load layout 3") is a
+    # direct index - but only if it's the *only* number present, so this
+    # doesn't misfire on layout names that themselves contain digits
+    # (e.g. "09-CDK5-hyperactive_diseaseInference" has two digit runs).
+    numbers = re.findall(r"\d+", raw)
+    if len(numbers) == 1:
+        idx = int(numbers[0])
+        if 0 <= idx < len(layouts):
+            return idx, layouts[idx]
+
+    best = rf_process.extractOne(raw, layouts, scorer=fuzz.WRatio)
+    if not best or best[1] < LAYOUT_MATCH_THRESHOLD:
+        return None
+    return layouts.index(best[0]), best[0]
+
+_ENTITY_STOPWORDS = {
+    "search", "for", "find", "look", "up", "show", "me", "about", "details",
+    "node", "info", "information", "the", "a", "an", "of", "on", "please",
+}
+
+
+def _condense_docstring(doc: str) -> str:
+    """Keep the summary + any quoted example phrasings, drop the
+    Args/Returns/... boilerplate - docstrings are written for developers and
+    are mostly noise for matching against short natural-language input."""
+    summary = re.split(r"\n\s*(?:Args|Returns|Emits|Workflow|Behavior|Notes):", doc)[0].strip()
+    examples = re.findall(r'"([^"]{4,60})"', doc)
+    return summary + " " + " ".join(examples)
+
+
+def _build_intent_index(registry):
+    names, corpus = [], []
+    for fname, meta in registry.items():
+        names.append(fname)
+        corpus.append(_condense_docstring(meta["doc"]))
+    names.append(_REJECT_INTENT)
+    corpus.append(_REJECT_TRAINING_TEXT)
+
+    vectorizer = TfidfVectorizer(stop_words="english", ngram_range=(1, 2))
+    matrix = vectorizer.fit_transform(corpus)
+    return vectorizer, matrix, names
+
+
+_intent_vectorizer, _intent_matrix, _intent_names = _build_intent_index(ACTION_REGISTRY)
+
+
+def _classify_intent(user_input: str):
+    """Returns (function_name, score) for a confident local match, else None."""
+    qvec = _intent_vectorizer.transform([user_input])
+    sims = cosine_similarity(qvec, _intent_matrix)[0]
+    order = sims.argsort()[::-1]
+    top, runner_up = order[0], order[1]
+
+    if _intent_names[top] == _REJECT_INTENT:
+        return None
+    if sims[top] < INTENT_CONFIDENCE_THRESHOLD:
+        return None
+    if (sims[top] - sims[runner_up]) < INTENT_MARGIN_THRESHOLD:
+        return None
+    return _intent_names[top], float(sims[top])
+
+
+def _extract_entity(user_input: str) -> str:
+    """Generic fallback slot-filler: strip common trigger/stopwords, return
+    whatever content remains (the project/node name the user meant)."""
+    tokens = re.findall(r"[\w\-]+", user_input)
+    remaining = [t for t in tokens if t.lower() not in _ENTITY_STOPWORDS]
+    return " ".join(remaining).strip()
+
+
+def _quick_route_from_intent(func_name: str, user_input: str) -> Optional[dict]:
+    """Builds an action dict for a locally-classified intent, or None if we
+    can't confidently fill its arguments (caller falls through to the LLM)."""
+    meta = ACTION_REGISTRY.get(func_name)
+    if not meta:
+        return None
+    module_name = os.path.splitext(os.path.basename(meta["file_path"]))[0]
+    if module_name not in _SLOT_FILLABLE_MODULES:
+        return None
+
+    if module_name == "project_events":
+        projects = GD.plist if hasattr(GD, "plist") else []
+        if not projects:
+            return None
+        best = rf_process.extractOne(user_input, projects, scorer=fuzz.partial_ratio)
+        if not best or best[1] < 70:
+            return None
+        return {
+            "type": "action",
+            "function": "project_main",
+            "args": {"message": {"msg": best[0], "id": "projDD", "usr": "user"}},
+        }
+
+    if module_name in ("search_events", "nodeinfo_events"):
+        entity = _extract_entity(user_input)
+        if not entity:
+            return None
+        # A bare numeric value is a direct node index (node_event); anything
+        # else is a name to look up (search_event resolves name -> node).
+        target_func = "node_event" if entity.isdigit() else "search_event"
+        return {
+            "type": "action",
+            "function": target_func,
+            "args": {"message": {"val": entity, "id": "search", "usr": "user"}},
+        }
+
+    if module_name == "layout_events":
+        resolved = _resolve_layout(user_input)
+        if not resolved:
+            # Likely a conceptual/descriptive phrasing ("disease landscape")
+            # rather than a near-verbatim layout name - needs the LLM's
+            # semantic judgment against the injected layout list instead.
+            return None
+        index, name = resolved
+        return {
+            "type": "action",
+            "function": "select_layout_event",
+            "args": {"message": {"msg": name, "val": index, "usr": "user"}},
+        }
+
+    return None
+
+
+def _quick_route(user_input: str) -> Optional[dict]:
+    """
+    Deterministically resolve unambiguous commands without calling the LLM:
+    classify intent locally, then fill its args. Returns an action dict in
+    the same shape route_command's LLM path produces, or None if nothing
+    matched confidently (falls through to the LLM as usual).
+    """
+    classified = _classify_intent(user_input)
+    if not classified:
+        return None
+    func_name, score = classified
+    action = _quick_route_from_intent(func_name, user_input)
+    if action:
+        print(f"C_DEBUG: Quick-routed (no LLM) to '{action['function']}' via intent '{func_name}' (score {score:.2f})")
+    return action
 
 
 # ----------------------------------------
@@ -178,58 +535,50 @@ print("C_DEBUG: Initial memory state:", memory.load_memory_variables({})["chat_h
 # This prompt will be used to instruct the LLM to map user input to a specific function
 # and its arguments.
 def build_system_prompt(registry):
-    """
-    Builds a system prompt for the LLM based on the action registry and project-specific information.
-
-    This prompt instructs the LLM to map user input to one of the available Python functions
-    and their arguments. It dynamically includes all registered functions and their docstrings,
-    as well as project-specific information retrieved from the current project's metadata.
-
-    The project information is dynamically retrieved from GD.data["actPro"].
-
-    Args:
-        registry (dict): The action registry containing function metadata.
-
-    Returns:
-        str: A system prompt for the LLM.
-    """
-
     lines = []
     for fname, meta in registry.items():
-        # Extract the module name from the file path
         module_name = os.path.splitext(os.path.basename(meta["file_path"]))[0]
-        fn_value = FUNCTION_FN_MAPPING.get(module_name, "general")  # Map module to `fn` value
+        fn_value = FUNCTION_FN_MAPPING.get(module_name, "general")
         lines.append(f"- `{fname}(...)` (fn: `{fn_value}`): {meta['doc']}")
 
-    # get project information 
     project_data = load_project_info()
     project_name = project_data.get("name", "Unknown Project")
-    project_info = project_data.get("info", "No description available.")
     all_projects = GD.plist if hasattr(GD, "plist") else []
+    all_layouts = GD.pfile.get("layouts", []) if hasattr(GD, "pfile") else []
 
-    # Add project-specific information to the prompt
-    project_section = (
-        f"Project Name: {project_name}\n"
-        f"Project Description: {project_info}\n\n"
-        f"Available Projects: {', '.join(all_projects)}\n\n"
-        f"You have access to this project information. Use it to answer user queries.\n"
-        f"If the user asks about the project or available projects, provide details based on the above information.\n"
-    )
-
+    example_project = all_projects[0] if all_projects else "SomeProject"
+    example_layout = all_layouts[0] if all_layouts else "SomeLayout"
     return (
-        "You are a smart router for user requests. Based on the user input, you must decide whether to:\n"
-        "1. Map the input to one of the following Python functions (type: 'action').\n"
-        "2. If no function matches, treat the input as a general query (type: 'general_query').\n\n"
-        + project_section +
+        "You are a router. Classify the user input and return ONLY a JSON object.\n\n"
+        f"Current project: {project_name}\n"
+        f"Available projects: {', '.join(all_projects)}\n\n"
+        f"Available layouts for the current project: {', '.join(all_layouts)}\n"
+        "Layout names often hint at what they show (a disease name, a process, a "
+        "protein complex, etc.) - match the user's description to the layout name "
+        "whose meaning fits best, even if the words don't match literally "
+        "(e.g. \"show me the disease view\" could mean a layout named "
+        "\"...diseaseInference\").\n\n"
         "Available functions:\n"
         + "\n".join(lines) +
         "\n\n"
-        "Return ONLY a JSON object in one of the following formats:\n"
-        "For an action:\n"
-        '{"type": "action", "function": "function_name", "args": {"arg1": "value1", "arg2": "value2"}}\n'
-        "For a general query:\n"
-        '{"type": "general_query", "response": {"feedback": "Your natural language response here."}}\n'
-        "Do not include any additional text or explanations outside the JSON object."
+        "If the input maps to a function, return:\n"
+        '{"type": "action", "function": "function_name", "args": {"arg1": "value1"}}\n'
+        "Otherwise return:\n"
+        '{"type": "general_query"}\n\n'
+        "Example — any phrasing that means opening/switching/navigating to a project:\n"
+        f'User: "open project {example_project}" → '
+        '{{"type": "action", "function": "project_main", "args": {{"message": {{"msg": "{example_project}", "id": "projDD", "usr": "user"}}}}}}\n\n'
+        "Example — any phrasing that means switching to a specific layout (pick the "
+        "closest-matching name from 'Available layouts' above, by meaning, not just spelling):\n"
+        f'User: "show me the {example_layout} view" → '
+        '{{"type": "action", "function": "select_layout_event", "args": {{"message": {{"msg": "'
+        + example_layout + '", "usr": "user"}}}}}}\n\n'
+        "Formatting rules (follow exactly):\n"
+        "- Output ONLY the JSON object, nothing else — no explanation, no markdown, no ``` code fences.\n"
+        "- Do NOT use tool-calling / function-calling syntax (no <|tool_call_start|> tokens, no "
+        "python-style function(arg=value) calls). This is plain JSON text, not a tool call.\n"
+        "- Output it as a SINGLE LINE. Do NOT pretty-print or indent it.\n"
+        "- Keep it minimal - no extra keys beyond what's needed."
     )
 
 
@@ -237,22 +586,19 @@ def build_system_prompt(registry):
 
 
 def route_command(user_input: str) -> dict:
-    """
-    Routes the user input to the appropriate function using the LLM.
-    If the LLM response does not match a known function, treat it as a general query.
-    Includes project-specific information in the system prompt.
+    """Routes user input to an action or general_query. Returns minimal JSON — no response text."""
+    quick = _quick_respond(user_input)
+    if quick:
+        return quick
 
-    Args:
-        user_input (str): The user input.
+    quick_action = _quick_route(user_input)
+    if quick_action and quick_action.get("function") in ACTION_REGISTRY:
+        memory.chat_memory.add_user_message(user_input)
+        memory.chat_memory.add_ai_message(f"(quick-routed to {quick_action['function']})")
+        return quick_action
 
-    Returns:
-        dict: A dictionary containing the routed command or general query response.
-    """
-    # Add the user's input to the memory buffer
     memory.chat_memory.add_user_message(user_input)
-    print("C_DEBUG: Current memory buffer:", memory.load_memory_variables({})["chat_history"])
 
-    # Build the system prompt
     system_prompt = build_system_prompt(ACTION_REGISTRY)
     chat_history = [
         {"role": "user" if m.type == "human" else "assistant", "content": m.content}
@@ -260,125 +606,104 @@ def route_command(user_input: str) -> dict:
     ]
     messages = [{"role": "system", "content": system_prompt}] + chat_history
 
-    # Send the prompt to the LLM
     try:
-        response = client.chat.completions.create(
-            model=llm_from_openrouterai,
-            messages=messages,
-            temperature=0.3,  # Lower temperature for more deterministic responses
-            max_tokens=500
-        )
+        response = _chat_completion_with_retry(messages, temperature=0.0, max_tokens=500)
+        llm_response = (response.choices[0].message.content or "").strip()
+        print("Routing response:", llm_response)
+        if not llm_response:
+            return {"type": "general_query"}
+        extracted = _extract_json(llm_response)
+        if not extracted.startswith('{'):
+            tool_call_action = _extract_tool_call_action(llm_response)
+            if tool_call_action:
+                print("C_DEBUG: Response wasn't JSON but parsed as a leaked tool-call:", tool_call_action)
+                return validate_llm_response(tool_call_action)
+            print("C_DEBUG: Routing response not JSON, falling back to general_query")
+            return {"type": "general_query"}
 
-        # Parse the LLM response
-        llm_response = response.choices[0].message.content.strip()
+        try:
+            parsed = json.loads(extracted)
+        except json.JSONDecodeError as decode_err:
+            # Might be a leaked native tool-call (e.g. Python call syntax
+            # with single-quoted dicts) rather than truncated/malformed JSON
+            # - try parsing that before spending a whole extra LLM round trip.
+            tool_call_action = _extract_tool_call_action(llm_response)
+            if tool_call_action:
+                print("C_DEBUG: JSON parse failed, but parsed as a leaked tool-call instead:", tool_call_action)
+                return validate_llm_response(tool_call_action)
 
-        # Add the assistant's response to the memory buffer
-        memory.chat_memory.add_ai_message(llm_response)
+            # Otherwise likely truncated (ran out of max_tokens) or malformed
+            # (small model ignored the single-line/no-fence instructions).
+            # Give the model one more chance with an explicit correction
+            # instead of surfacing a raw error to the user.
+            print(f"C_DEBUG: Malformed JSON from routing model ({decode_err}). Retrying once with a correction nudge.")
+            retry_messages = messages + [
+                {"role": "assistant", "content": llm_response},
+                {"role": "user", "content": (
+                    "That was not valid JSON (it may have been truncated or pretty-printed). "
+                    "Reply again with ONLY the same JSON object, compact on a single line, "
+                    "no markdown fences, no line breaks."
+                )},
+            ]
+            try:
+                retry_response = _chat_completion_with_retry(retry_messages, temperature=0.0, max_tokens=500)
+                retry_text = (retry_response.choices[0].message.content or "").strip()
+                print("Routing response (retry):", retry_text)
+                extracted_retry = _extract_json(retry_text)
+                if not extracted_retry.startswith('{'):
+                    return {"type": "general_query"}
+                parsed = json.loads(extracted_retry)
+            except Exception as retry_err:
+                print(f"C_DEBUG: Retry also failed to produce valid JSON ({retry_err}). Falling back to general_query.")
+                return {"type": "general_query"}
 
-        print("\nLLM response:", llm_response)
-
-        parsed = json.loads(llm_response)
-
-        return validate_llm_response(parsed, user_input)
+        return validate_llm_response(parsed)
 
     except Exception as e:
         print("C_DEBUG: Error in route_command:", str(e))
-        return {
-            "type": "error",
-            "feedback": f"An error occurred while processing the command: {str(e)}"
-        }
+        return {"type": "error", "feedback": f"An error occurred: {str(e)}"}
  
 
 
-def validate_llm_response(parsed_response, user_input):
-    """
-    Validates the LLM response to ensure it matches the expected structure.
-
-    Args:
-        parsed_response (dict): The parsed response from the LLM.
-        user_input (str): The original user input.
-
-    Returns:
-        dict: A validated response.
-    """
-
-    print("C_DEBUG: Validating LLM response: ", parsed_response)
-    if "type" not in parsed_response:
-        return {
-            "type": "general_query",
-            "query": user_input,
-            "feedback": "Missing 'type' in LLM response."
-        }
-
-    if parsed_response["type"] == "action":
-        if "function" not in parsed_response or "args" not in parsed_response:
-            return {
-                "type": "general_query",
-                "query": user_input,
-                "feedback": "Invalid 'action' response format."
-            }
-        return parsed_response
-
-    if parsed_response["type"] == "general_query":
-        if "response" in parsed_response:
-            if "feedback" not in parsed_response.get("response", {}):
-                return {
-                    "type": "general_query",
-                    "query": user_input,
-                    "feedback": "No feedback provided."
-                }
-            return parsed_response 
-
-    return {
-        "type": "general_query",
-        "query": user_input,
-        "feedback": "Unknown response type."
-    }
+def validate_llm_response(parsed_response):
+    print("C_DEBUG: Routing decision:", parsed_response)
+    if parsed_response.get("type") == "action":
+        if "function" in parsed_response and "args" in parsed_response:
+            return parsed_response
+    return {"type": "general_query"}
 
 
 
-def handle_general_prompt(prompt: str) -> dict:
-    """
-    Handles general prompts by sending the user input to the LLM and retrieving a structured response.
-    The response includes a "feedback" key containing the answer.
+def generate_general_response() -> str:
+    """Free-form LLM call that returns plain markdown text. No JSON parsing."""
+    project_data = load_project_info()
+    project_name = project_data.get("name", "Unknown Project")
+    project_info = project_data.get("info", "No description available.")
+    all_projects = GD.plist if hasattr(GD, "plist") else []
 
-    Args:
-        prompt (str): The user input.
+    system_prompt = (
+        "You are a helpful assistant for DataDiVR, a network visualization tool.\n"
+        f"Current project: {project_name}\n"
+        f"Project description: {project_info}\n"
+        f"Available projects: {', '.join(all_projects)}\n\n"
+        "Answer the user's question concisely. You may use markdown for formatting."
+    )
 
-    Returns:
-        dict: A structured response with the answer under "feedback".
-    """
-    print("C_DEBUG - LANGUAGE_INTERFACE.PY - handle_general_prompt:", prompt)
+    chat_history = [
+        {"role": "user" if m.type == "human" else "assistant", "content": m.content}
+        for m in memory.load_memory_variables({})["chat_history"]
+    ]
+    messages = [{"role": "system", "content": system_prompt}] + chat_history
 
-    # Add the user's input to the memory buffer
-    memory.chat_memory.add_user_message(prompt)
-
-    # Send the conversation history to the LLM
     try:
-        messages = [
-            {"role": "user" if m.type == "human" else "assistant", "content": m.content}
-            for m in memory.load_memory_variables({})["chat_history"]
-        ]
-        response = client.chat.completions.create(
-            model=llm_from_openrouterai,
-            messages=messages,
-            temperature=0.3,
-            max_tokens=500
-        )
-
-        # Extract the LLM response content
-        llm_response = response.choices[0].message.content.strip()
-        print("C_DEBUG - LANGUAGE_INTERFACE.PY - in handle_general_prompt - LLM response:", llm_response)
-
-        # Add the assistant's response to the memory buffer
-        memory.chat_memory.add_ai_message(llm_response)
-
-        # Return the response in the required structure
-        return {"feedback": llm_response}
-
+        response = _chat_completion_with_retry(messages, temperature=0.5, max_tokens=1024)
+        result = (response.choices[0].message.content or "").strip()
+        memory.chat_memory.add_ai_message(result)
+        print("C_DEBUG: General response:", result)
+        return result
     except Exception as e:
-        print("C_DEBUG: Error in handle_general_prompt:", str(e))
-        return {"feedback": f"An error occurred: {str(e)}"}
+        print("C_DEBUG: Error in generate_general_response:", str(e))
+        return f"An error occurred: {str(e)}"
 
 
 
@@ -478,6 +803,31 @@ def create_message(func_name: str, args: dict, file_path: str) -> dict:
         message["val"] = project_index
         print("C_DEBUG: matched project name:", projectname)
         print("C_DEBUG: matched project index:", project_index)
+
+    # catch if layout module
+    if module_name == "layout_events":
+        print("C_DEBUG: in layout events module...")
+        id_value = "layoutSelect"
+        message["fn"] = "layout"
+
+        layout_raw = args.get("message", {}).get("msg") or str(args.get("message", {}).get("val", ""))
+        resolved = _resolve_layout(layout_raw)
+        layouts = GD.pfile.get("layouts", []) if hasattr(GD, "pfile") else []
+
+        if resolved:
+            layout_index, layout_name = resolved
+            message["feedback"] = f"Layout '{layout_name}' selected successfully."
+        elif layouts:
+            layout_index, layout_name = 0, layouts[0]
+            message["feedback"] = f"Could not match a layout to '{layout_raw}'. Selecting default layout. Choose from available layouts: {', '.join(layouts)}"
+        else:
+            layout_index, layout_name = 0, None
+            message["feedback"] = "No layouts available for the current project."
+
+        message["msg"] = layout_name
+        message["val"] = layout_index
+        print("C_DEBUG: matched layout name:", layout_name)
+        print("C_DEBUG: matched layout index:", layout_index)
 
 
     #-------------------------------------------------------------------

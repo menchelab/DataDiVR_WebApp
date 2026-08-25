@@ -69,47 +69,52 @@
         var chatwin = document.getElementById("scrollboxLUI").shadowRoot.getElementById("box");
         var username = document.getElementById("userid").innerText;
 
+        // Show user message immediately
+        const userRow = `
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+                <div style="flex: 0.2; font-weight: bold; text-align: right; margin-right:6px;">USER ::&nbsp;</div>
+                <div style="flex: 2;">${text}</div>
+            </div>`;
+        chatwin.innerHTML += userRow;
+
+        // Show loading indicator
+        const loadingId = 'loading_' + Date.now();
+        chatwin.innerHTML += `
+            <div id="${loadingId}" style="display: flex; margin-bottom: 10px; color: gray; font-style: italic;">
+                <div style="flex: 0.2; font-weight: bold; text-align: right; margin-right:6px;">DATA ::&nbsp;</div>
+                <div style="flex: 2;">&#x25CC; processing&#x2026;</div>
+            </div>`;
+        chatwin.scrollTop = chatwin.scrollHeight;
+
+        // Clear input immediately
+        document.getElementById("LUItextinput").shadowRoot.getElementById("text").value = '';
+
         fetch("/LUI/languageUI_process", {
             method: "POST",
-            body: JSON.stringify({
-                usr: username,
-                text: text,
-            }),
-            headers: {
-                "Content-type": "application/json; charset=UTF-8"
-            }
+            body: JSON.stringify({ usr: username, text: text }),
+            headers: { "Content-type": "application/json; charset=UTF-8" }
         })
         .then((response) => response.json())
         .then((json) => {
-            //console.log("C_DEBUG: LUI Response from server:", json);
-
-           // Add user input to the chat window
-            const userRow = `
-                <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
-                    <div style="div style="flex: 0.2; font-weight: bold; text-align: right; margin-right:6px;">USER ::&nbsp;</div>
-                    <div style="flex: 2;">${text}</div>
-                </div>`;    chatwin.innerHTML += userRow;
-
             const formattedResponse = marked.parse(json.response.feedback);
-
-            // Remove specific HTML tags from the response
             const cleanedResponse = formattedResponse.replace(/<p>|<\/p>/g, '');
             const dataRow = `
                 <div style="display: flex; margin-bottom: 10px;">
-                    <div style="div style="flex: 0.2; font-weight: bold; text-align: right; margin-right:6px;">DATA ::&nbsp;</div>
+                    <div style="flex: 0.2; font-weight: bold; text-align: right; margin-right:6px;">DATA ::&nbsp;</div>
                     <div style="flex: 2;">${cleanedResponse}</div>
                 </div>`;
-            chatwin.innerHTML += dataRow;
 
-            // Scroll to the bottom of the chat window
-            chatwin.scrollTop = chatwin.scrollHeight;
+            // Replace the loading indicator with the actual response
+            const loadingEl = chatwin.querySelector('#' + loadingId);
+            if (loadingEl) {
+                loadingEl.outerHTML = dataRow;
+            } else {
+                chatwin.innerHTML += dataRow;
+            }
 
-            // Add a timestamp to the chat window
             const timestamp = new Date().toLocaleTimeString();
             chatwin.innerHTML += `<div style="text-align: right; font-size: 0.6em; color: gray;">${timestamp}</div>`;
-
-            // Clear the input field
-            document.getElementById("LUItextinput").shadowRoot.getElementById("text").value = '';
+            chatwin.scrollTop = chatwin.scrollHeight;
         });
     }
 

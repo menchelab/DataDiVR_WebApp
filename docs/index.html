@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>DataDiVR WebApp — Documentation</title>
+<link rel="stylesheet" href="_static/style.css"/>
+</head>
+<body>
+
+<nav id="sidebar">
+  <div class="brand">
+    <h1>DataDiVR WebApp</h1>
+    <span>API Documentation</span>
+  </div>
+  <ul>
+    <li class="section-label">Guides</li>
+    <li><a href="workflows.html">Workflow Examples</a></li>
+    <li class="section-label">Modules</li>
+    <li><a href="index.html" class="active">Overview</a></li>
+    <li><a href="uploader.html">uploader.py</a></li>
+    <li><a href="uploaderGraph.html">uploaderGraph.py</a></li>
+    <li><a href="dataXplorer.html">dataXplorer.py</a></li>
+    <li><a href="languageUI.html">languageUI extension</a></li>
+  </ul>
+</nav>
+
+<main>
+  <header class="page-header">
+    <h1>DataDiVR WebApp — Documentation</h1>
+    <p class="subtitle">Python modules for data upload, texture generation, interactive exploration, and natural-language control of the VR visualizer.</p>
+  </header>
+
+  <div class="page-body">
+
+    <a href="workflows.html" style="display:flex;align-items:center;gap:16px;background:linear-gradient(135deg,#1a2035,#2d3f6e);border-radius:8px;padding:20px 28px;text-decoration:none;margin-bottom:36px;">
+      <span style="font-size:28px;">▶</span>
+      <span>
+        <span style="display:block;font-size:17px;font-weight:700;color:#fff;">Workflow Examples</span>
+        <span style="display:block;font-size:13px;color:rgba(255,255,255,.6);margin-top:3px;">Start here — quickstart, multiple layouts, cluster groups, interactive analysis, and natural-language commands</span>
+      </span>
+    </a>
+
+    <h2 class="section-title">Module Reference</h2>
+
+    <div class="overview-grid">
+
+      <a class="overview-card" href="uploader.html">
+        <h3>uploader</h3>
+        <div class="mod">uploader.py</div>
+        <p>CSV-based data ingestion pipeline. Converts node positions, colors, and link lists into BMP/PNG GPU textures and saves them into the project folder structure.</p>
+        <div class="tags">
+          <span class="badge badge-func">Functions</span>
+        </div>
+      </a>
+
+      <a class="overview-card" href="uploaderGraph.html">
+        <h3>uploaderGraph</h3>
+        <div class="mod">uploaderGraph.py</div>
+        <p>JSON-based graph uploader. Parses the DataDiVR graph JSON format (nodes, links, colors, cluster labels, multiple layouts) and generates all project assets.</p>
+        <div class="tags">
+          <span class="badge badge-func">Functions</span>
+        </div>
+      </a>
+
+      <a class="overview-card" href="dataXplorer.html">
+        <h3>dataXplorer</h3>
+        <div class="mod">dataXplorer.py</div>
+        <p>Jupyter-friendly toolkit for interactive graph analysis. Connects to the running DataDiVR server via SocketIO, manages session state, generates textures on-the-fly, and pushes visual updates to the VR client.</p>
+        <div class="tags">
+          <span class="badge badge-class">Classes</span>
+          <span class="badge badge-func">Functions</span>
+        </div>
+      </a>
+
+      <a class="overview-card" href="languageUI.html">
+        <h3>languageUI</h3>
+        <div class="mod">extensions/languageUI/</div>
+        <p>Natural-language interface extension. An LLM-powered router that translates plain-text user commands into structured DataDiVR events, with conversation memory and a dedicated browser UI.</p>
+        <div class="tags">
+          <span class="badge badge-route">Flask Blueprint</span>
+          <span class="badge badge-func">Functions</span>
+        </div>
+      </a>
+
+    </div>
+
+    <h2 class="section-title">Architecture Overview</h2>
+
+    <div class="card">
+      <div class="card-body">
+        <p>DataDiVR WebApp is a Flask + SocketIO server that drives a VR network visualizer. Data flows through the following pipeline:</p>
+        <pre>
+<span class="cm"># 1. Upload raw data (CSV or JSON format)</span>
+<span class="fn">upload_filesNew</span>(request)       <span class="cm"># uploader.py   — CSV path</span>
+<span class="fn">upload_filesJSON</span>(request)      <span class="cm"># uploaderGraph.py — JSON path</span>
+
+<span class="cm"># 2. Assets written to project folder</span>
+static/projects/&lt;name&gt;/
+  layouts/        <span class="cm"># BMP position textures (high bits)</span>
+  layoutsl/       <span class="cm"># BMP position textures (low bits)</span>
+  layoutsRGB/     <span class="cm"># PNG node-color textures</span>
+  links/          <span class="cm"># BMP link topology textures</span>
+  linksRGB/       <span class="cm"># PNG link-color textures</span>
+  pfile.json      <span class="cm"># project index</span>
+  nodes.json      <span class="cm"># node metadata</span>
+  links.json      <span class="cm"># flat link list for analytics</span>
+
+<span class="cm"># 3. Interactive analysis from Jupyter</span>
+client = <span class="fn">JupyterClient</span>()        <span class="cm"># dataXplorer.py</span>
+session = <span class="fn">SessionManager</span>(...)
+toolkit = <span class="fn">AnalysisToolkit</span>(...)
+toolkit.<span class="fn">highlight_node_withlinks</span>(node_id)
+
+<span class="cm"># 4. Natural-language control</span>
+<span class="cm"># GET  /LUI/languageUI   → chat UI</span>
+<span class="cm"># POST /LUI/languageUI_process → LLM routes command</span>
+        </pre>
+
+        <h3 class="func-name" style="margin-top:16px;">Project folder structure</h3>
+        <p style="margin-top:8px;">Every DataDiVR project lives under <code>static/projects/&lt;projectname&gt;/</code> and must contain the files listed above. The <code>pfile.json</code> index lists the available texture names for each channel.</p>
+
+        <h3 class="func-name" style="margin-top:16px;">Texture encoding</h3>
+        <p style="margin-top:8px;">Node positions are encoded across two textures (high/low byte pairs) so that 16-bit precision can be stored in 8-bit RGB channels. The texture width is always 128 px; height is a multiple of 128 and grows with the node count. Link textures are 1024 px wide (topology) or 512 px wide (colors).</p>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+</body>
+</html>

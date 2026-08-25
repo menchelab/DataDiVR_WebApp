@@ -18,7 +18,7 @@ def colorbox_event(message, room):
         "static/projects/"
         + GD.data["actPro"]
         + "/layoutsRGB/"
-        + GD.pfile["layoutsRGB"][int(GD.pdata["layoutsRGBDD"])]
+        + GD.pfile["layoutsRGB"][GD.safe_pdata_index("layoutsRGBDD", GD.pfile["layoutsRGB"])]
         + ".png",
         "r",
     )
@@ -65,7 +65,7 @@ def paintNodes_renderTexture(message, room):
         "static/projects/"
         + GD.data["actPro"]
         + "/layoutsRGB/"
-        + GD.pfile["layoutsRGB"][int(GD.pdata["layoutsRGBDD"])]
+        + GD.pfile["layoutsRGB"][GD.safe_pdata_index("layoutsRGBDD", GD.pfile["layoutsRGB"])]
         + ".png",
         "r",
     )
@@ -280,7 +280,7 @@ def highlight_node_and_links_ue4(message, room):
         "static/projects/"
         + GD.data["actPro"]
         + "/layoutsRGB/"
-        + GD.pfile["layoutsRGB"][int(GD.pdata["layoutsRGBDD"])]
+        + GD.pfile["layoutsRGB"][GD.safe_pdata_index("layoutsRGBDD", GD.pfile["layoutsRGB"])]
         + ".png",
         "r",
     )
@@ -307,7 +307,7 @@ def highlight_node_and_links_ue4(message, room):
         "static/projects/"
         + GD.data["actPro"]
         + "/linksRGB/"
-        + GD.pfile["linksRGB"][int(GD.pdata["linksRGBDD"])]
+        + GD.pfile["linksRGB"][GD.safe_pdata_index("linksRGBDD", GD.pfile["linksRGB"])]
         + ".png",
         "r",
     )

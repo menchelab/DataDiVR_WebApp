@@ -67,6 +67,41 @@ def search(term):
     return results
 
 
+def _dedupe_preserve_order(results):
+    """
+    Remove duplicate result dicts while preserving the order they were found in.
+    (A plain `{tuple(d.items()) for d in results}` set comprehension would also
+    dedupe, but sets have no defined order, so it silently scrambles the results.)
+    """
+    seen = set()
+    deduped = []
+    for res in results:
+        key = tuple(res.items())
+        if key not in seen:
+            seen.add(key)
+            deduped.append(res)
+    return deduped
+
+
+def _rank_by_match_quality(results, term):
+    """
+    Sort search results so the best-fitting match comes first:
+    exact name match, then name starts with the term, then everything else.
+    The relative order within each of those groups is left as-is (unordered).
+    """
+    term_lower = term.lower()
+
+    def match_rank(res):
+        name = str(res.get("name", "")).lower()
+        if name == term_lower:
+            return 0
+        if name.startswith(term_lower):
+            return 1
+        return 2
+
+    return sorted(results, key=match_rank)
+
+
 def search_id(term):
     """
     Search for nodes by their ID in the current project.
@@ -89,7 +124,7 @@ def search_id(term):
                 results.append(res)
 
         # make sure no duplicates are in the results
-        results = [dict(t) for t in {tuple(d.items()) for d in results}]
+        results = _dedupe_preserve_order(results)
 
     print("C_DEBUG: search_id results:", results)
 
@@ -103,6 +138,8 @@ def search_name(term):
         term (str): The name of the node to search for.
     Returns:
         list: A list of dictionaries containing the nodes' ID, name, and color if found, otherwise an empty list.
+            The best-fitting match (exact name match, then name-starts-with-term)
+            is returned first; the rest of the matches are unordered.
     """
     project = GD.data["actPro"]
     if project != "none":
@@ -118,8 +155,9 @@ def search_name(term):
                     res = {"id": node["id"], "name": node["n"], "color": GD.pixel_valuesc[node["id"]]}
                     results.append(res)
 
-        # Remove duplicates from the results
-        results = [dict(t) for t in {tuple(d.items()) for d in results}]
+        # Remove duplicates from the results, then float the best-fitting match to the top
+        results = _dedupe_preserve_order(results)
+        results = _rank_by_match_quality(results, term)
 
     print("C_DEBUG: search_name results:", results)
 

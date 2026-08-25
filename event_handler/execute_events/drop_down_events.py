@@ -84,7 +84,7 @@ def init(message, response, room=None, namespace="/main"):
         response2["fn"] = "project"
         # emit only to the requesting socket — broadcasting to room causes VR to reload
         # its project every time any other client (e.g. a web browser) connects
-        emit("ex", response2, namespace=namespace)
+        emit("ex", response2, room=flask.request.sid, namespace=namespace)
     else:
         if message["id"] not in GD.pdata:
             GD.pdata[message["id"]] = 0
@@ -207,6 +207,21 @@ def user_input(message, response, room=None, namespace="/main"):
             print("newGD Variable created")
 
         GD.pdata[message["id"]] = message["val"]
+
+        # layout-family dropdowns are used later as list indices into the
+        # matching pfile.json list (e.g. GD.pfile["layoutsRGB"][idx]) - clamp
+        # here so a bad/stale value (out-of-sync forward/backward step, or a
+        # value left over from before a project's layouts were reorganized)
+        # can't get persisted and blow up an IndexError further down the line
+        _pfile_key = {
+            "layoutsDD": "layouts",
+            "layoutsRGBDD": "layoutsRGB",
+            "linksDD": "links",
+            "linksRGBDD": "linksRGB",
+        }.get(message["id"])
+        if _pfile_key is not None:
+            GD.safe_pdata_index(message["id"], GD.pfile.get(_pfile_key, []))
+
         GD.savePD()
 
     if message["id"] == "selectionsDD":
@@ -253,7 +268,7 @@ def main(message, room=None, namespace="/main"):
             # send init response only to the requesting socket, not the whole room
             # broadcasting init responses causes VR clients to receive other clients'
             # init sequences and reload their project unexpectedly
-            emit("ex", response, namespace=namespace)
+            emit("ex", response, room=flask.request.sid, namespace=namespace)
         else:  # user input message
             user_input(message, response, room, namespace)
             emit("ex", response, room=room, namespace=namespace)

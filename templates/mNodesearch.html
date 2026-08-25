@@ -3,7 +3,7 @@
             [-]</p>
         <mc-TextInput id="search" container="scrollbox2" type="textinput" fn="search"></mc-TextInput>
         <button id="searchbutton1" class="swagButton" onclick="nodesearch()">GO</button>   
-        <mc-scrollbox id='scrollbox2'></mc-scrollbox>
+        <mc-scrollbox id='scrollbox2' style="--scrollbox-max-height: 285px;"></mc-scrollbox>
 </mc-module>
 <script>
 function nodesearch() {
@@ -12,4 +12,16 @@ function nodesearch() {
     console.log("searching for: " + text);
     socket.emit('ex', { usr:uid, id: "search", parent: "scrollbox2", fn: "search", val:text});
 }
+
+// Pressing Enter in the search box triggers the same action as the GO button.
+document.getElementById("search").shadowRoot.getElementById("text").addEventListener("keydown", function(event) {
+    if (event.key === "Enter") {
+        // do not add a new line in the textarea
+        event.preventDefault();
+        nodesearch();
+    }
+});
+
+// Hide the microphone/record toggle for the search box (not used here).
+document.getElementById("search").shadowRoot.querySelector('label[for="rec"]').style.display = "none";
 </script>

@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>languageUI — DataDiVR Docs</title>
+<link rel="stylesheet" href="_static/style.css"/>
+</head>
+<body>
+
+<nav id="sidebar">
+  <div class="brand">
+    <h1>DataDiVR WebApp</h1>
+    <span>API Documentation</span>
+  </div>
+  <ul>
+    <li class="section-label">Guides</li>
+    <li><a href="workflows.html">Workflow Examples</a></li>
+    <li class="section-label">Modules</li>
+    <li><a href="index.html">Overview</a></li>
+    <li><a href="uploader.html">uploader.py</a></li>
+    <li><a href="uploaderGraph.html">uploaderGraph.py</a></li>
+    <li><a href="dataXplorer.html">dataXplorer.py</a></li>
+    <li><a href="languageUI.html" class="active">languageUI extension</a></li>
+    <li class="section-label">On this page</li>
+  </ul>
+  <div class="toc">
+    <a href="#overview">Overview</a>
+    <a href="#setup">Setup &amp; configuration</a>
+    <a href="#routes">Flask routes (app.py)</a>
+    <a href="#language_interface">language_interface.py</a>
+    <a href="#lui_helpers">lui_helpers.py</a>
+    <a href="#extending">Extending the registry</a>
+  </div>
+</nav>
+
+<main>
+  <header class="page-header">
+    <h1>languageUI extension</h1>
+    <p class="subtitle">Natural-language interface — an LLM-powered command router that converts plain-text input into structured DataDiVR events, with conversation memory and a dedicated browser UI.</p>
+    <div class="module-path">extensions/languageUI/</div>
+  </header>
+
+  <div class="page-body">
+
+    <!-- ── OVERVIEW ── -->
+    <h2 class="section-title" id="overview">Architecture</h2>
+
+    <div class="card">
+      <div class="card-body">
+        <p>The extension is a self-contained Flask Blueprint mounted at <code>/LUI</code>. When a user types a message in the browser UI, the extension:</p>
+        <ol style="margin: 10px 0 0 18px; line-height:2.2;">
+          <li>Receives the text via <code>POST /LUI/languageUI_process</code></li>
+          <li>Passes it to <code>route_command()</code> together with the system prompt built from the <strong>action registry</strong></li>
+          <li>The LLM returns either an <strong>action</strong> (function + args) or a <strong>general_query</strong> (free-text reply)</li>
+          <li>For actions: <code>create_message()</code> builds a SocketIO-compatible dict, which is forwarded to <code>event_handler.handle_socket_execute()</code></li>
+          <li>For general queries: the LLM response is returned directly to the browser</li>
+        </ol>
+
+        <pre style="margin-top:16px;">
+Browser → <span class="fn">POST /LUI/languageUI_process</span>
+  ↓ user_input
+<span class="fn">route_command</span>(user_input)
+  ↓ system prompt built from ACTION_REGISTRY
+LLM (OpenRouter API)
+  ↓ JSON: {type, function, args} or {type, response}
+  ├─ type == <span class="str">"action"</span>
+  │   └─ <span class="fn">create_message</span>() → socket dict
+  │       └─ <span class="fn">event_handler.handle_socket_execute</span>() → VR client
+  └─ type == <span class="str">"general_query"</span>
+      └─ feedback text → browser</pre>
+      </div>
+    </div>
+
+    <!-- ── SETUP ── -->
+    <h2 class="section-title" id="setup">Setup &amp; configuration</h2>
+
+    <div class="card">
+      <div class="card-body">
+        <h3 class="func-name">API key</h3>
+        <p style="margin-top:8px;">The extension uses <a href="https://openrouter.ai" target="_blank">OpenRouter</a> as the API gateway. The key is resolved in the following priority order:</p>
+        <ol style="margin:8px 0 0 18px;line-height:2.2;">
+          <li><code>extensions/languageUI/LUI_funcs/token_doNOTcommit.txt</code> — plain-text key file (not committed to git)</li>
+          <li>Environment variable <code>OPENAI_API_KEY</code> or <code>OPENAI_APIKEY</code></li>
+          <li>Interactive prompt (path to a key file) when running from terminal</li>
+        </ol>
+        <div class="note-box">
+          <strong>Never commit the token file.</strong> The filename is already listed in <code>.gitignore</code>.
+        </div>
+
+        <h3 class="func-name" style="margin-top:16px;">Model selection</h3>
+        <p style="margin-top:8px;">The default model is set at the top of <code>language_interface.py</code>:</p>
+        <pre><span class="cm"># Change this to switch the LLM</span>
+llm_from_openrouterai = <span class="str">"openai/gpt-oss-20b:free"</span></pre>
+        <p>Any model available on OpenRouter can be used. Free-tier models suffice for routing but produce less reliable JSON.</p>
+
+        <h3 class="func-name" style="margin-top:16px;">Requirements</h3>
+        <pre><span class="cm"># extensions/languageUI/requirements.txt</span>
+nltk
+rapidfuzz
+pyspellchecker
+langchain
+langchain-community==0.3.12
+huggingface_hub
+langchain_huggingface</pre>
+
+        <h3 class="func-name" style="margin-top:16px;">Mounting</h3>
+        <p style="margin-top:8px;">The Blueprint is registered in the main <code>app.py</code> via:</p>
+        <pre><span class="kw">from</span> extensions.languageUI.src.app <span class="kw">import</span> blueprint <span class="kw">as</span> LUI_blueprint
+app.<span class="fn">register_blueprint</span>(LUI_blueprint)</pre>
+      </div>
+    </div>
+
+    <!-- ── ROUTES ── -->
+    <h2 class="section-title" id="routes">Flask routes — app.py</h2>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>GET /LUI/languageUI</h3>
+        <span class="badge badge-route">route</span>
+      </div>
+      <div class="card-body">
+        <p>Renders the <code>LanguageUI.html</code> chat interface. Passes the current room and username from the Flask session to the template.</p>
+        <p>Access at: <code>http://127.0.0.1:5000/LUI/languageUI</code></p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>POST /LUI/languageUI_process</h3>
+        <span class="badge badge-route">route</span>
+      </div>
+      <div class="card-body">
+        <p>Accepts a JSON body, routes the command through the LLM, and returns the result.</p>
+
+        <h3 class="func-name">Request body</h3>
+        <table class="param-table" style="margin-top:8px;">
+          <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+          <tr><td class="param-name">text</td><td class="param-type">str</td><td>The user's plain-text command or question</td></tr>
+          <tr><td class="param-name">usr</td><td class="param-type">str</td><td>Username (echoed in the response)</td></tr>
+        </table>
+
+        <h3 class="func-name" style="margin-top:14px;">Response — action</h3>
+        <pre>{
+  <span class="str">"function_name"</span>: <span class="str">"search_by_name"</span>,
+  <span class="str">"response"</span>: {
+    <span class="str">"fn"</span>: <span class="str">"node"</span>, <span class="str">"id"</span>: <span class="str">"search"</span>,
+    <span class="str">"val"</span>: <span class="str">"EGFR"</span>, <span class="str">"usr"</span>: <span class="str">"user42"</span>,
+    <span class="str">"feedback"</span>: <span class="str">"'search_by_name' has been triggered successfully."</span>
+  },
+  <span class="str">"user"</span>: <span class="str">"user42"</span>
+}</pre>
+
+        <h3 class="func-name" style="margin-top:14px;">Response — general query</h3>
+        <pre>{
+  <span class="str">"function_name"</span>: <span class="str">"general_query"</span>,
+  <span class="str">"response"</span>: { <span class="str">"feedback"</span>: <span class="str">"This project contains 4,523 nodes…"</span> },
+  <span class="str">"user"</span>: <span class="str">"user42"</span>
+}</pre>
+
+        <h3 class="func-name" style="margin-top:14px;">Error responses</h3>
+        <table class="param-table">
+          <tr><th>HTTP status</th><th>Cause</th></tr>
+          <tr><td>400</td><td>Empty input or no active project</td></tr>
+          <tr><td>500</td><td>LLM API error or internal exception</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── LANGUAGE INTERFACE ── -->
+    <h2 class="section-title" id="language_interface">language_interface.py</h2>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>get_action_registry_from_DataDiVR</h3>
+        <span class="sig">() → dict</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Dynamically scans all <code>.py</code> files in <code>event_handler/execute_events/</code> and registers every function that has a docstring. Called once at module import time to populate <code>ACTION_REGISTRY</code>.</p>
+        <div class="returns-box">
+          <strong>Returns:</strong>
+          <code>{"func_name": {"function": &lt;fn&gt;, "doc": str, "file_path": str}, …}</code>
+        </div>
+        <div class="note-box">
+          <strong>To expose a new action to the LLM:</strong> add a function <em>with a docstring</em> to any <code>.py</code> file in <code>event_handler/execute_events/</code>. The registry is rebuilt on server restart.
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>build_system_prompt</h3>
+        <span class="sig">(registry) → str</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Constructs the system prompt sent to the LLM on every request. The prompt includes:</p>
+        <ul style="margin:8px 0 0 18px;line-height:2.2;">
+          <li>All registered function names, their <code>fn</code> channel values, and their docstrings</li>
+          <li>Current project name and description (from <code>pfile.json</code>)</li>
+          <li>List of all available projects</li>
+          <li>Instructions to return JSON in one of two formats</li>
+        </ul>
+        <h3 class="func-name" style="margin-top:12px;">LLM output format</h3>
+        <pre><span class="cm">// Action</span>
+{ <span class="str">"type"</span>: <span class="str">"action"</span>, <span class="str">"function"</span>: <span class="str">"func_name"</span>, <span class="str">"args"</span>: {…} }
+
+<span class="cm">// General query</span>
+{ <span class="str">"type"</span>: <span class="str">"general_query"</span>, <span class="str">"response"</span>: { <span class="str">"feedback"</span>: <span class="str">"…"</span> } }</pre>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>route_command</h3>
+        <span class="sig">(user_input) → dict</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>The main routing function. Adds the user message to the LangChain <code>ConversationBufferMemory</code>, sends the full conversation history plus the system prompt to the LLM, parses the JSON response, and validates it.</p>
+        <table class="param-table">
+          <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+          <tr><td class="param-name">user_input</td><td class="param-type">str</td><td>Raw text from the user</td></tr>
+        </table>
+        <div class="returns-box"><strong>Returns:</strong> Validated dict with <code>type</code>, <code>function</code>/<code>args</code> or <code>response</code> keys</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>validate_llm_response</h3>
+        <span class="sig">(parsed_response, user_input) → dict</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Checks that the LLM returned a well-formed dict. If the response is malformed, returns a safe <code>general_query</code> fallback with a human-readable error message instead of raising an exception.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>create_message</h3>
+        <span class="sig">(func_name, args, file_path) → dict</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Translates a validated LLM action into a SocketIO event dict compatible with <code>event_handler.handle_socket_execute()</code>. The <code>fn</code> field is resolved via <code>FUNCTION_FN_MAPPING</code> based on the source module name.</p>
+
+        <h3 class="func-name" style="margin-top:12px;">FUNCTION_FN_MAPPING</h3>
+        <p style="margin-top:6px;">Maps source module names to their <code>fn</code> string:</p>
+        <table class="param-table">
+          <tr><th>Module</th><th>fn value</th></tr>
+          <tr><td class="param-name">analytics_events</td><td><code>"analytics"</code></td></tr>
+          <tr><td class="param-name">search_events</td><td><code>"node"</code></td></tr>
+          <tr><td class="param-name">nodeinfo_events</td><td><code>"node"</code></td></tr>
+          <tr><td class="param-name">project_events</td><td><code>"dropdown"</code></td></tr>
+        </table>
+
+        <h3 class="func-name" style="margin-top:12px;">Module-specific catch cases</h3>
+        <p style="margin-top:6px;"><code>create_message</code> applies per-module post-processing before returning:</p>
+        <ul style="margin:8px 0 0 18px;line-height:2.2;">
+          <li><strong>analytics_events</strong> — sets <code>id</code> to the camelCase run ID and <code>msg</code> to <code>"RUN"</code></li>
+          <li><strong>search_events</strong> — sets <code>id</code> to <code>"search"</code> and extracts <code>val</code></li>
+          <li><strong>nodeinfo_events</strong> — extracts <code>val</code> (node ID) and <code>msg</code> (node name)</li>
+          <li><strong>project_events</strong> — case-insensitive project name matching against <code>GD.plist</code>; sets <code>val</code> to project index</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>handle_general_prompt</h3>
+        <span class="sig">(prompt) → dict</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Fallback for prompts that do not match any action. Sends the full conversation history to the LLM and returns <code>{"feedback": str}</code>. Conversation history is stored in the LangChain memory buffer.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>clear_memory</h3>
+        <span class="sig">() → None</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Clears the LangChain <code>ConversationBufferMemory</code>, resetting the conversation history. Call this to start a fresh session without restarting the server.</p>
+      </div>
+    </div>
+
+    <!-- ── LUI HELPERS ── -->
+    <h2 class="section-title" id="lui_helpers">lui_helpers.py</h2>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>load_project_info</h3>
+        <span class="sig">() → dict</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Reads the active project name from <code>GD.data["actPro"]</code>, loads the project's <code>pfile.json</code>, and populates <code>GD.plist</code> with all available project names. Used by <code>build_system_prompt</code> to inject project context into the LLM.</p>
+        <div class="returns-box"><strong>Returns:</strong> <code>{"name": str, "info": str}</code> — project name and description</div>
+      </div>
+    </div>
+
+    <!-- ── EXTENDING ── -->
+    <h2 class="section-title" id="extending">Extending the action registry</h2>
+
+    <div class="card">
+      <div class="card-body">
+        <p>To make a new DataDiVR function available via natural language:</p>
+        <ol style="margin:10px 0 0 18px;line-height:2.4;">
+          <li>Create or edit a <code>.py</code> file in <code>event_handler/execute_events/</code></li>
+          <li>Write the function with a clear docstring that explains what it does and what arguments it takes — the LLM reads this docstring to decide when and how to call the function</li>
+          <li>Add the module → <code>fn</code> mapping to <code>FUNCTION_FN_MAPPING</code> in <code>language_interface.py</code> if the module is new</li>
+          <li>Add a module-specific catch case in <code>create_message()</code> if the message structure differs from the defaults</li>
+          <li>Restart the server — the registry is rebuilt on import</li>
+        </ol>
+
+        <h3 class="func-name" style="margin-top:16px;">Example: adding a layout switch action</h3>
+        <pre><span class="cm"># event_handler/execute_events/layout_events.py</span>
+
+<span class="kw">def</span> <span class="fn">switch_to_layout</span>(message, room, project):
+    <span class="str">"""
+    Switch the active 3D layout displayed in the VR viewer.
+    Args:
+        layout_name (str): The name of the layout to switch to.
+    """</span>
+    layout_name = message.get(<span class="str">"val"</span>, <span class="str">""</span>)
+    <span class="cm"># … emit layout change event …</span></pre>
+        <pre><span class="cm"># language_interface.py — add to FUNCTION_FN_MAPPING</span>
+FUNCTION_FN_MAPPING = {
+    ...
+    <span class="str">"layout_events"</span>: <span class="str">"dropdown"</span>,
+}</pre>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+</body>
+</html>

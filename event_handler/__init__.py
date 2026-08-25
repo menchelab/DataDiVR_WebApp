@@ -9,6 +9,7 @@ from .execute_events import (
     clipboard_events,
     drop_down_events,
     enrichment_events,
+    label_events,
     layout_events,
     ui_events,
     universal_events,
@@ -116,6 +117,9 @@ def handle_socket_execute(message, room, project):
             ui_events.paintNodes_event(message, room)
 
         emit("ex", message, room=room)
+
+    elif message["fn"] == "labelSuggest":
+        label_events.suggest_label_event(message, room)
 
     elif message["fn"] == "selections":
         if message["id"] == "selectionsCb":

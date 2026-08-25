@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>uploaderGraph — DataDiVR Docs</title>
+<link rel="stylesheet" href="_static/style.css"/>
+</head>
+<body>
+
+<nav id="sidebar">
+  <div class="brand">
+    <h1>DataDiVR WebApp</h1>
+    <span>API Documentation</span>
+  </div>
+  <ul>
+    <li class="section-label">Guides</li>
+    <li><a href="workflows.html">Workflow Examples</a></li>
+    <li class="section-label">Modules</li>
+    <li><a href="index.html">Overview</a></li>
+    <li><a href="uploader.html">uploader.py</a></li>
+    <li><a href="uploaderGraph.html" class="active">uploaderGraph.py</a></li>
+    <li><a href="dataXplorer.html">dataXplorer.py</a></li>
+    <li><a href="languageUI.html">languageUI extension</a></li>
+    <li class="section-label">On this page</li>
+  </ul>
+  <div class="toc">
+    <a href="#json-format">JSON format</a>
+    <a href="#upload">Upload entry point</a>
+    <a href="#loaders">File loaders</a>
+    <a href="#parsers">JSON parsers</a>
+    <a href="#utilities">Utilities</a>
+  </div>
+</nav>
+
+<main>
+  <header class="page-header">
+    <h1>uploaderGraph</h1>
+    <p class="subtitle">JSON-based graph upload pipeline — parses the DataDiVR graph JSON format and generates all project assets in one call.</p>
+    <div class="module-path">uploaderGraph.py</div>
+  </header>
+
+  <div class="page-body">
+
+    <p>This module is the <strong>recommended upload path</strong>. It accepts a single JSON document that describes a graph with one or more named layouts, then generates every required texture file and metadata JSON automatically.</p>
+
+    <!-- ── JSON FORMAT ── -->
+    <h2 class="section-title" id="json-format">Graph JSON format</h2>
+
+    <div class="card">
+      <div class="card-body">
+        <p>The top-level JSON structure supports two variants:</p>
+        <pre><span class="cm">// Modern format — multiple layouts in one file</span>
+{
+  <span class="str">"info"</span>: <span class="str">"Human-readable description"</span>,
+  <span class="str">"nodes"</span>: [
+    {
+      <span class="str">"id"</span>:        <span class="num">0</span>,
+      <span class="str">"name"</span>:      <span class="str">"GeneName"</span>,
+      <span class="str">"annotation"</span>: <span class="str">"any string"</span>
+    }
+  ],
+  <span class="str">"links"</span>: [
+    {
+      <span class="str">"source"</span>:        <span class="num">0</span>,
+      <span class="str">"target"</span>:        <span class="num">1</span>,
+      <span class="str">"linkcolor"</span>:     <span class="str">"#ff8800"</span>,    <span class="cm">// hex, rgba(), or [r,g,b,a]</span>
+      <span class="str">"linkcolorname"</span>: <span class="str">"Group A"</span>   <span class="cm">// optional — for legend</span>
+    }
+  ],
+  <span class="str">"layouts"</span>: [
+    {
+      <span class="str">"layoutname"</span>: <span class="str">"spring_layout"</span>,
+      <span class="str">"nodes"</span>: [
+        {
+          <span class="str">"id"</span>:         <span class="num">0</span>,
+          <span class="str">"pos"</span>:        [<span class="num">0.5</span>, <span class="num">0.3</span>, <span class="num">0.1</span>],
+          <span class="str">"nodecolor"</span>:  [<span class="num">255</span>, <span class="num">100</span>, <span class="num">0</span>, <span class="num">200</span>],
+          <span class="str">"cluster"</span>:    <span class="str">"ClusterA"</span>
+        }
+      ],
+      <span class="str">"links"</span>: [
+        { <span class="str">"source"</span>: <span class="num">0</span>, <span class="str">"target"</span>: <span class="num">1</span>, <span class="str">"linkcolor"</span>: [<span class="num">255</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">100</span>] }
+      ]
+    }
+  ]
+}</pre>
+
+        <div class="note-box">
+          <strong>Tip:</strong> Use <code>nx2json.py</code> or the <code>_GenerateProject_Example.ipynb</code> notebook to convert a NetworkX graph into this format automatically.
+        </div>
+
+        <h3 class="func-name" style="margin-top:14px;">Color formats accepted</h3>
+        <table class="param-table" style="margin-top:8px;">
+          <tr><th>Format</th><th>Example</th></tr>
+          <tr><td>Hex RGB</td><td><code>"#ff8800"</code></td></tr>
+          <tr><td>Hex RGBA (8-digit)</td><td><code>"#ff880080"</code></td></tr>
+          <tr><td>RGBA string</td><td><code>"rgba(255,136,0,200)"</code></td></tr>
+          <tr><td>RGBA list/tuple</td><td><code>[255, 136, 0, 200]</code></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── UPLOAD ENTRY POINT ── -->
+    <h2 class="section-title" id="upload">Upload entry point</h2>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>upload_filesJSON</h3>
+        <span class="sig">(request, overwrite=True) → str</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>The main upload orchestrator. Accepts either a Flask HTTP request (browser upload) or a Python <code>dict</code> (Jupyter notebook). Parses the entire graph JSON, generates all textures, and writes the project files.</p>
+
+        <table class="param-table">
+          <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+          <tr><td class="param-name">request</td><td class="param-type">Flask request | dict</td>
+              <td>Flask multipart request (key <code>"graphJSON"</code>) or a plain dict containing the graph JSON directly</td></tr>
+          <tr><td class="param-name">overwrite</td><td class="param-type">bool</td>
+              <td>If <code>True</code> (default), silently replaces an existing project. If <code>False</code>, prompts in Jupyter or returns an error in the browser.</td></tr>
+        </table>
+
+        <p style="margin-top:12px;"><strong>Processing steps:</strong></p>
+        <ol style="margin:8px 0 0 18px;line-height:2;">
+          <li>Creates project folder structure via <code>makeProjectFolders</code></li>
+          <li>Parses graph metadata, nodes, links, colors, cluster labels, layout names</li>
+          <li>Writes position BMP textures (<code>layouts/</code>, <code>layoutsl/</code>)</li>
+          <li>Writes color PNG textures (<code>layoutsRGB/</code>, <code>linksRGB/</code>)</li>
+          <li>Writes link topology BMP textures (<code>links/</code>)</li>
+          <li>Processes cluster label colors for legend display</li>
+          <li>Saves <code>pfile.json</code>, <code>nodes.json</code>, <code>links.json</code></li>
+        </ol>
+
+        <div class="returns-box"><strong>Returns:</strong> HTML status string with per-step results</div>
+
+        <h3 class="func-name" style="margin-top:16px;">Jupyter usage example</h3>
+        <pre><span class="kw">from</span> uploaderGraph <span class="kw">import</span> upload_filesJSON
+
+<span class="cm"># Build the graph JSON dict (e.g. from nx2json)</span>
+graph_json = {
+    <span class="str">"info"</span>: <span class="str">"My network"</span>,
+    <span class="str">"nodes"</span>: [...],
+    <span class="str">"links"</span>: [...],
+    <span class="str">"layouts"</span>: [...]
+}
+
+result = <span class="fn">upload_filesJSON</span>(graph_json, overwrite=<span class="kw">True</span>)
+<span class="fn">print</span>(result)</pre>
+      </div>
+    </div>
+
+    <!-- ── FILE LOADERS ── -->
+    <h2 class="section-title" id="loaders">File loaders</h2>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>loadGraphJSON</h3>
+        <span class="sig">(files, target) → None</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Reads a list of Flask <code>FileStorage</code> objects, decodes them as UTF-8 JSON, and appends the parsed dicts to <code>target</code>.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>loadGraphDict</h3>
+        <span class="sig">(files, target) → None</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Same as <code>loadGraphJSON</code> but for Python dicts (Jupyter path). Simply appends each dict to <code>target</code>.</p>
+      </div>
+    </div>
+
+    <!-- ── JSON PARSERS ── -->
+    <h2 class="section-title" id="parsers">JSON parsers</h2>
+
+    <p>All parser functions follow the same convention: they accept <code>files</code> (a list of already-loaded JSON dicts) and mutate an output <code>target</code> list.</p>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>parseGraphJSON_nodepositions</h3>
+        <span class="sig">(files, target) → None</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Extracts node <code>"pos"</code> values from each layout dict. Handles missing, NaN, string, and 2-D positions gracefully:</p>
+        <table class="param-table">
+          <tr><th>Edge case</th><th>Handling</th></tr>
+          <tr><td>Empty <code>pos</code></td><td>Random position in [0.4, 0.6]³</td></tr>
+          <tr><td>String coordinates</td><td>Falls back to <code>[0.5, 0.5, 0.5]</code></td></tr>
+          <tr><td>NaN values</td><td>Falls back to <code>[0, 0, 0]</code></td></tr>
+          <tr><td>2-D positions</td><td>Z set to <code>0.0</code></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>parseGraphJSON_nodecolors</h3>
+        <span class="sig">(files, target) → None</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Extracts <code>"nodecolor"</code> values and normalises them to RGBA integer tuples. Supports all four color formats (see JSON format section). Falls back to magenta <code>(255, 0, 255, 100)</code> for unrecognised values.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>parseGraphJSON_links_set</h3>
+        <span class="sig">(files, target) → None</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Parses the top-level <code>"links"</code> array (all links across all layouts) into a deduplicated list. Used to build the global link index and <code>links.json</code>.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>parseGraphJSON_links_many</h3>
+        <span class="sig">(files, target) → None</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Parses per-layout <code>"links"</code> arrays. Returns a list of lists (one inner list per layout) used to build per-layout link bitmaps.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>parseGraphJSON_linkcolors</h3>
+        <span class="sig">(files, target) → None</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Extracts <code>"linkcolor"</code> values from per-layout link arrays and normalises them to RGBA tuples. Falls back to magenta for unrecognised formats.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>parseGraphJSON_labels</h3>
+        <span class="sig">(files, target) → None</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Groups nodes by their <code>"cluster"</code> attribute and builds label lists in the format expected by the selections system: <code>["ClusterName", "node_id_1", "node_id_2", …]</code>.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>parseGraphJSON_linklabels</h3>
+        <span class="sig">(files, target) → None</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Groups links by their <code>"linkcolorname"</code> attribute to build link-color label lists used for the legend panel.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>parseGraphJSON_nodeinfo</h3>
+        <span class="sig">(files) → list[dict]</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Returns a list of <code>{"name": str, "annotation": any}</code> dicts — one per node — from the top-level <code>"nodes"</code> array.</p>
+        <div class="returns-box"><strong>Returns:</strong> <code>[{"name": …, "annotation": …}, …]</code></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>parseGraphJSON_graphinfo</h3>
+        <span class="sig">(files, target) → None</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Extracts the graph description string from either the top-level <code>"info"</code> key (new format) or <code>graph.graphdesc</code> (old format) and appends <code>{"info": str}</code> to <code>target</code>.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>parseGraphJSON_layoutnames</h3>
+        <span class="sig">(files, target) → None</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Collects <code>"layoutname"</code> values from all layout dicts, returning a flat list of names in the same order as the layout data arrays. Falls back to <code>"Automatic-LayoutID&lt;N&gt;"</code> when the key is absent.</p>
+      </div>
+    </div>
+
+    <!-- ── UTILITIES ── -->
+    <h2 class="section-title" id="utilities">Color utilities</h2>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>hex_to_rgb</h3>
+        <span class="sig">(hx) → list[int]</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Converts a hex color string (with optional <code>#</code>) to a 3-element list <code>[R, G, B]</code>.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>hex_to_rgba</h3>
+        <span class="sig">(hex_color) → tuple[int, int, int, int]</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Converts an 8-digit hex string (e.g. <code>"#ff880080"</code>) to an RGBA integer 4-tuple.</p>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+</body>
+</html>

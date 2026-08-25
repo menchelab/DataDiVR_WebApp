@@ -1,0 +1,346 @@
+/* DataDiVR Documentation — shared styles */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --nav-bg:    #1a2035;
+  --nav-text:  #c9d1e0;
+  --nav-link:  #7eb8f7;
+  --accent:    #4f8ef7;
+  --accent2:   #2d6fd4;
+  --bg:        #f8f9fb;
+  --card-bg:   #ffffff;
+  --border:    #dde2ea;
+  --code-bg:   #f0f3f8;
+  --text:      #1c2333;
+  --muted:     #5a6478;
+  --tag-pos:   #1a6f3c;
+  --tag-ret:   #0d5396;
+  --tag-note:  #6b4a00;
+  --radius:    6px;
+  --sidebar-w: 270px;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--text);
+  background: var(--bg);
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ── SIDEBAR ── */
+nav#sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  background: var(--nav-bg);
+  color: var(--nav-text);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+nav#sidebar .brand {
+  padding: 22px 20px 14px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+nav#sidebar .brand h1 {
+  font-size: 17px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -.3px;
+}
+nav#sidebar .brand span {
+  font-size: 11px;
+  color: #8899bb;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+}
+
+nav#sidebar ul {
+  list-style: none;
+  padding: 12px 0;
+}
+nav#sidebar ul li a {
+  display: block;
+  padding: 6px 22px;
+  color: var(--nav-link);
+  text-decoration: none;
+  font-size: 13.5px;
+  border-left: 3px solid transparent;
+  transition: background .15s, border-color .15s;
+}
+nav#sidebar ul li a:hover,
+nav#sidebar ul li a.active {
+  background: rgba(255,255,255,.06);
+  border-left-color: var(--accent);
+  color: #fff;
+}
+nav#sidebar ul li.section-label {
+  padding: 14px 22px 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #556;
+}
+nav#sidebar .toc {
+  padding: 0 0 12px;
+}
+nav#sidebar .toc a {
+  padding: 4px 22px 4px 34px;
+  font-size: 12.5px;
+  color: #8899bb;
+}
+nav#sidebar .toc a:hover { color: var(--nav-link); }
+
+/* ── MAIN ── */
+main {
+  flex: 1;
+  overflow-x: hidden;
+  padding: 0;
+}
+
+header.page-header {
+  background: linear-gradient(135deg, #1a2035 0%, #2d3f6e 100%);
+  color: #fff;
+  padding: 42px 60px 36px;
+}
+header.page-header h1 {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -.5px;
+}
+header.page-header .subtitle {
+  margin-top: 6px;
+  color: rgba(255,255,255,.65);
+  font-size: 15px;
+}
+header.page-header .module-path {
+  margin-top: 14px;
+  font-size: 13px;
+  background: rgba(0,0,0,.25);
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  color: #a8d8ff;
+}
+
+.page-body { padding: 40px 60px 80px; max-width: 960px; }
+
+/* ── SECTION HEADINGS ── */
+h2.section-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 8px;
+  margin: 44px 0 20px;
+}
+h2.section-title:first-of-type { margin-top: 0; }
+
+h3.func-name {
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--accent2);
+}
+
+/* ── CARDS ── */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+.card-header {
+  background: #f2f5fb;
+  border-bottom: 1px solid var(--border);
+  padding: 12px 20px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.card-header h3 {
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--accent2);
+}
+.card-header .sig {
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 13px;
+  color: var(--muted);
+}
+.badge {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 99px;
+  letter-spacing: .4px;
+  text-transform: uppercase;
+}
+.badge-class  { background: #e8f0fe; color: #2d5fa8; }
+.badge-func   { background: #e6f4ea; color: #1a6f3c; }
+.badge-method { background: #fff3e0; color: #8a4a00; }
+.badge-route  { background: #fce8e6; color: #b3261e; }
+
+.card-body { padding: 16px 20px; }
+.card-body p { margin-bottom: 10px; color: var(--text); }
+
+/* ── PARAM TABLE ── */
+.param-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0 16px;
+  font-size: 13.5px;
+}
+.param-table th {
+  text-align: left;
+  padding: 6px 14px;
+  background: var(--code-bg);
+  border-bottom: 2px solid var(--border);
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: var(--muted);
+}
+.param-table td {
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.param-table tr:last-child td { border-bottom: none; }
+.param-table .param-name {
+  font-family: "SFMono-Regular", Consolas, monospace;
+  color: var(--accent2);
+  white-space: nowrap;
+}
+.param-table .param-type {
+  font-family: "SFMono-Regular", Consolas, monospace;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* ── RETURN BOX ── */
+.returns-box {
+  background: #f0f7ff;
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 10px 16px;
+  margin: 10px 0;
+  font-size: 13.5px;
+}
+.returns-box strong { color: var(--tag-ret); }
+
+/* ── NOTE BOX ── */
+.note-box {
+  background: #fffbeb;
+  border-left: 3px solid #f59e0b;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 10px 16px;
+  margin: 12px 0;
+  font-size: 13.5px;
+  color: var(--tag-note);
+}
+
+/* ── INLINE CODE ── */
+code {
+  font-family: "SFMono-Regular", Consolas, monospace;
+  background: var(--code-bg);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 13px;
+  color: #c0392b;
+}
+
+/* ── CODE BLOCK ── */
+pre {
+  background: #1e2a3a;
+  color: #abb2bf;
+  padding: 16px 20px;
+  border-radius: var(--radius);
+  overflow-x: auto;
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 12px 0;
+}
+pre .kw  { color: #c678dd; }
+pre .str { color: #98c379; }
+pre .cm  { color: #5c6370; font-style: italic; }
+pre .fn  { color: #61afef; }
+pre .num { color: #d19a66; }
+
+/* ── OVERVIEW CARDS (index page) ── */
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 18px;
+  margin-top: 24px;
+}
+.overview-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  text-decoration: none;
+  color: inherit;
+  transition: box-shadow .2s, transform .2s;
+}
+.overview-card:hover {
+  box-shadow: 0 4px 18px rgba(0,0,0,.10);
+  transform: translateY(-2px);
+}
+.overview-card h3 { font-size: 17px; font-weight: 700; color: var(--accent2); }
+.overview-card .mod { font-size: 12px; font-family: monospace; color: var(--muted); margin-top: 3px; }
+.overview-card p { margin-top: 10px; font-size: 13.5px; color: var(--muted); }
+.overview-card .tags { margin-top: 12px; display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* ── METHODS LIST (inside class card) ── */
+.method-list { margin: 8px 0; }
+.method-list details { border-bottom: 1px solid var(--border); }
+.method-list details:last-child { border-bottom: none; }
+.method-list summary {
+  cursor: pointer;
+  padding: 9px 0 9px 4px;
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 13.5px;
+  color: var(--accent2);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.method-list summary::before {
+  content: "▶";
+  font-size: 9px;
+  color: var(--muted);
+  transition: transform .2s;
+}
+.method-list details[open] summary::before { transform: rotate(90deg); }
+.method-list summary:hover { color: var(--accent); }
+.method-list .method-body { padding: 4px 0 12px 16px; }
+
+/* ── ATTRIBUTES TABLE ── */
+.attr-table { font-size: 13.5px; width: 100%; border-collapse: collapse; margin: 8px 0; }
+.attr-table td { padding: 5px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.attr-table tr:last-child td { border-bottom: none; }
+.attr-table .attr-name { font-family: monospace; color: #c0392b; }
+.attr-table .attr-type { font-family: monospace; color: var(--muted); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 860px) {
+  body { flex-direction: column; }
+  nav#sidebar { width: 100%; min-width: 0; height: auto; position: static; }
+  .page-body { padding: 24px 20px 60px; }
+  header.page-header { padding: 28px 20px 22px; }
+}

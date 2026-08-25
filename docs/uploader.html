@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>uploader — DataDiVR Docs</title>
+<link rel="stylesheet" href="_static/style.css"/>
+</head>
+<body>
+
+<nav id="sidebar">
+  <div class="brand">
+    <h1>DataDiVR WebApp</h1>
+    <span>API Documentation</span>
+  </div>
+  <ul>
+    <li class="section-label">Guides</li>
+    <li><a href="workflows.html">Workflow Examples</a></li>
+    <li class="section-label">Modules</li>
+    <li><a href="index.html">Overview</a></li>
+    <li><a href="uploader.html" class="active">uploader.py</a></li>
+    <li><a href="uploaderGraph.html">uploaderGraph.py</a></li>
+    <li><a href="dataXplorer.html">dataXplorer.py</a></li>
+    <li><a href="languageUI.html">languageUI extension</a></li>
+    <li class="section-label">On this page</li>
+  </ul>
+  <div class="toc">
+    <a href="#upload">Upload entry point</a>
+    <a href="#project">Project management</a>
+    <a href="#textures">Texture generators</a>
+    <a href="#utilities">Utilities</a>
+  </div>
+</nav>
+
+<main>
+  <header class="page-header">
+    <h1>uploader</h1>
+    <p class="subtitle">CSV-based data ingestion — converts raw coordinate and color CSV files into GPU-ready textures.</p>
+    <div class="module-path">uploader.py</div>
+  </header>
+
+  <div class="page-body">
+
+    <p>This module handles the <strong>CSV upload path</strong>. Users supply comma-separated files for node positions, node colors, link topology, and link colors. The module converts them into BMP / PNG texture images and a JSON project index that the VR renderer reads at runtime.</p>
+
+    <div class="note-box">
+      For the JSON-based upload path (recommended for new projects), see <a href="uploaderGraph.html"><strong>uploaderGraph</strong></a>.
+    </div>
+
+    <!-- ── UPLOAD ENTRY POINT ── -->
+    <h2 class="section-title" id="upload">Upload entry point</h2>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>upload_filesNew</h3>
+        <span class="sig">(request) → str</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Main upload handler for CSV-format projects. Reads multipart form files from a Flask <code>request</code>, creates the project folder if needed, generates all textures (positions, colors, links), writes <code>nodes.json</code> and <code>pfile.json</code>, and returns an HTML status string.</p>
+
+        <p><strong>Expected form file keys:</strong></p>
+        <table class="param-table">
+          <tr><th>Key</th><th>Content</th></tr>
+          <tr><td class="param-name">nodesXYZ</td><td>CSV: one row per node — <code>x,y,z</code></td></tr>
+          <tr><td class="param-name">nodesRGB</td><td>CSV: one row per node — <code>r,g,b,a</code></td></tr>
+          <tr><td class="param-name">links</td><td>CSV: one row per link — <code>source_id,target_id</code></td></tr>
+          <tr><td class="param-name">linksRGB</td><td>CSV: one row per link — <code>r,g,b,a</code></td></tr>
+          <tr><td class="param-name">nprop</td><td>CSV: node property / annotation rows</td></tr>
+          <tr><td class="param-name">labels</td><td>CSV: cluster label rows</td></tr>
+          <tr><td class="param-name">legendFiles</td><td>Image files saved into <code>legends/</code></td></tr>
+          <tr><td class="param-name">new_name</td><td>Form field: the project namespace / folder name</td></tr>
+        </table>
+
+        <div class="returns-box"><strong>Returns:</strong> HTML string with per-step SUCCESS / ERROR messages</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>parsefiles</h3>
+        <span class="sig">(files, target) → None</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Reads a list of Flask file objects, decodes them as UTF-8 CSV text, and appends <code>{"name": filename, "data": [[col, …], …]}</code> dicts to <code>target</code>.</p>
+        <table class="param-table">
+          <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+          <tr><td class="param-name">files</td><td class="param-type">list[FileStorage]</td><td>Flask file objects from <code>request.files.getlist()</code></td></tr>
+          <tr><td class="param-name">target</td><td class="param-type">list</td><td>Output list that parsed dicts are appended to</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>loadLegendFiles</h3>
+        <span class="sig">(files, legendfolder, target) → None</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Saves uploaded image files directly to the <code>legends/</code> subdirectory of the project folder and appends their filenames to <code>target</code>.</p>
+        <table class="param-table">
+          <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+          <tr><td class="param-name">files</td><td class="param-type">list[FileStorage]</td><td>Flask file objects</td></tr>
+          <tr><td class="param-name">legendfolder</td><td class="param-type">str</td><td>Absolute path to the <code>legends/</code> folder</td></tr>
+          <tr><td class="param-name">target</td><td class="param-type">list</td><td>Output list of saved filenames</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── PROJECT MANAGEMENT ── -->
+    <h2 class="section-title" id="project">Project management</h2>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>makeProjectFolders</h3>
+        <span class="sig">(name) → None</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Creates the full directory tree for a new project and writes an empty <code>pfile.json</code> skeleton.</p>
+        <table class="param-table">
+          <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+          <tr><td class="param-name">name</td><td class="param-type">str</td><td>Project name (used as folder name under <code>static/projects/</code>)</td></tr>
+        </table>
+        <p style="margin-top:10px;">Creates these sub-folders:</p>
+        <pre>static/projects/&lt;name&gt;/
+  layouts/      <span class="cm"># high-byte position textures</span>
+  layoutsl/     <span class="cm"># low-byte position textures</span>
+  layoutsRGB/   <span class="cm"># node color textures</span>
+  links/        <span class="cm"># link topology textures</span>
+  linksRGB/     <span class="cm"># link color textures</span>
+  legends/      <span class="cm"># legend image files</span>
+  pfile.json    <span class="cm"># project index</span></pre>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>check_ProjectFolder</h3>
+        <span class="sig">() → None</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Ensures <code>static/projects/</code> exists. If <code>GD.json</code> is missing, copies the demo project into place.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>loadProjectInfo</h3>
+        <span class="sig">(name) → Response</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Returns a Flask JSON response listing all file names in each asset subfolder of the named project.</p>
+        <table class="param-table">
+          <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+          <tr><td class="param-name">name</td><td class="param-type">str</td><td>Project name</td></tr>
+        </table>
+        <div class="returns-box"><strong>Returns:</strong> <code>jsonify(layouts, layoutsRGB, links, linksRGB)</code> or the string <code>"no such project"</code></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>loadAnnotations</h3>
+        <span class="sig">(name) → dict</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Loads and returns the <code>names.json</code> annotation file for the named project.</p>
+      </div>
+    </div>
+
+    <!-- ── TEXTURE GENERATORS ── -->
+    <h2 class="section-title" id="textures">Texture generators</h2>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>makeXYZTexture</h3>
+        <span class="sig">(project, pixeldata, name, latlon_flag) → str</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Encodes 3-D node positions into a pair of 8-bit RGB BMP images (high and low bytes) using a 16-bit encoding scheme that gives the VR renderer sub-pixel precision.</p>
+        <table class="param-table">
+          <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+          <tr><td class="param-name">project</td><td class="param-type">str</td><td>Project name</td></tr>
+          <tr><td class="param-name">pixeldata</td><td class="param-type">dict</td><td><code>{"name": str, "data": [[x,y,z], …]}</code></td></tr>
+          <tr><td class="param-name">name</td><td class="param-type">str | None</td><td>Override texture file name (optional)</td></tr>
+          <tr><td class="param-name">latlon_flag</td><td class="param-type">bool</td><td>If <code>True</code>, interprets data as <code>[lat, lon]</code> and converts via <a href="#geodetic_to_geocentric"><code>geodetic_to_geocentric</code></a></td></tr>
+        </table>
+        <p><strong>Output files:</strong> <code>layouts/&lt;name&gt;.bmp</code> (high), <code>layoutsl/&lt;name&gt;l.bmp</code> (low)</p>
+        <div class="returns-box"><strong>Returns:</strong> HTML success/error string</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>makeNodeRGBTexture</h3>
+        <span class="sig">(project, pixeldata, name) → str</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Creates a 128×H RGBA PNG texture encoding per-node colors. Accepts both RGBA tuples and hex strings.</p>
+        <table class="param-table">
+          <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+          <tr><td class="param-name">pixeldata</td><td class="param-type">dict</td><td><code>{"name": str, "data": [(r,g,b,a), …]}</code></td></tr>
+        </table>
+        <p><strong>Output file:</strong> <code>layoutsRGB/&lt;name&gt;.png</code></p>
+        <div class="returns-box"><strong>Returns:</strong> HTML success/error string</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>makeLinkTexNew</h3>
+        <span class="sig">(project, links, name) → str</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Encodes link topology into a 1024×H RGB BMP (two pixels per link — source and target node IDs) and writes <code>links.json</code> alongside it.</p>
+        <table class="param-table">
+          <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+          <tr><td class="param-name">links</td><td class="param-type">dict</td><td><code>{"name": str, "data": [[src_id, tgt_id], …]}</code></td></tr>
+        </table>
+        <p><strong>Output files:</strong> <code>links/&lt;name&gt;.bmp</code>, <code>links.json</code></p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>makeLinkTexNew_withoutJSON</h3>
+        <span class="sig">(project, links, name) → str</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Same as <code>makeLinkTexNew</code> but does <em>not</em> write <code>links.json</code>. Used when the JSON is handled separately (e.g., when combining multiple link lists).</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>makeLinkTexNew_withoutJSON_2</h3>
+        <span class="sig">(project, links_ids_project, links, name) → str</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Like <code>makeLinkTexNew_withoutJSON</code> but uses a global link-ID lookup (<code>links_ids_project</code>) so that per-layout link bitmaps share a consistent edge index across all layouts.</p>
+        <table class="param-table">
+          <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+          <tr><td class="param-name">links_ids_project</td><td class="param-type">dict</td><td>Maps global link index → <code>[src, tgt]</code></td></tr>
+          <tr><td class="param-name">links</td><td class="param-type">dict</td><td>Per-layout link dict with <code>"data"</code> key</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>makeLinkRGBTex</h3>
+        <span class="sig">(project, linksRGB, name) → str</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Creates a 512×H RGBA PNG texture encoding per-link colors. Pixels map 1:1 to the link index.</p>
+        <table class="param-table">
+          <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+          <tr><td class="param-name">linksRGB</td><td class="param-type">dict</td><td><code>{"name": str, "data": [(r,g,b,a), …]}</code></td></tr>
+        </table>
+        <p><strong>Output file:</strong> <code>linksRGB/&lt;name&gt;.png</code></p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>makeLinkRGBTex_2</h3>
+        <span class="sig">(project, links_ids_project, linksRGB, name) → str</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Like <code>makeLinkRGBTex</code> but uses the global link ID dict for consistent pixel placement across multiple layouts.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>makeLinksjson</h3>
+        <span class="sig">(project, links) → None</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Writes <code>links.json</code> — the flat link list used by the analytics engine. Each entry has <code>{"id", "s", "e"}</code>.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>makeLinksjson_multipleLinklists</h3>
+        <span class="sig">(project, links) → None</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Writes <code>linkslayouts.json</code> containing per-layout link lists, used when different layouts show different subsets of edges.</p>
+      </div>
+    </div>
+
+    <!-- ── UTILITIES ── -->
+    <h2 class="section-title" id="utilities">Coordinate &amp; color utilities</h2>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>geodetic_to_geocentric</h3>
+        <span class="sig">(latitude, longitude) → tuple[float, float, float]</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Converts geographic coordinates (latitude / longitude in degrees) to geocentric Cartesian (x, y, z) using the WGS-84 ellipsoid.</p>
+        <table class="param-table">
+          <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+          <tr><td class="param-name">latitude</td><td class="param-type">float</td><td>Latitude in degrees</td></tr>
+          <tr><td class="param-name">longitude</td><td class="param-type">float</td><td>Longitude in degrees</td></tr>
+        </table>
+        <div class="returns-box"><strong>Returns:</strong> <code>(x, -y, z)</code> in metres</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>normalize_xyz</h3>
+        <span class="sig">(coords) → tuple[array, array, array]</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Min-max normalises a list of <code>(x, y, z)</code> tuples independently on each axis to the range [0, 1] using scikit-learn's <code>minmax_scale</code>.</p>
+        <div class="returns-box"><strong>Returns:</strong> Tuple of three numpy arrays <code>(x_norm, y_norm, z_norm)</code></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>hex_to_rgb</h3>
+        <span class="sig">(hx) → tuple[int, int, int]</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Converts a hex color string (with or without leading <code>#</code>) to an RGB integer triple.</p>
+        <pre><span class="fn">hex_to_rgb</span>(<span class="str">"#ff8800"</span>)  <span class="cm"># → (255, 136, 0)</span></pre>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+</body>
+</html>

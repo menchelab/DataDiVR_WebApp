@@ -213,7 +213,7 @@ def analytics_color_degree_distribution(degrees, highlight):
         link_colors = [(55, 55, 55, 30) for _ in links["links"]]
 
         # create images
-        texture_nodes_active = Image.open("static/projects/" + GD.data["actPro"] + "/layoutsRGB/" + GD.pfile["layoutsRGB"][int(GD.pdata["layoutsRGBDD"])] + ".png", "r")
+        texture_nodes_active = Image.open("static/projects/" + GD.data["actPro"] + "/layoutsRGB/" + GD.pfile["layoutsRGB"][GD.safe_pdata_index("layoutsRGBDD", GD.pfile["layoutsRGB"])] + ".png", "r")
         texture_links_active = Image.open("static/projects/" + GD.data["actPro"] + "/linksRGB/" + GD.pfile["linksRGB"][int(GD.pdata["linksRGBDD"])] + ".png", "r")
 
         texture_nodes = texture_nodes_active.copy()
@@ -268,7 +268,7 @@ def update_network_colors(node_colors, link_colors=None):
         link_colors = [(10,10,10, 30) for _ in links["links"]] #[(55, 55, 55, 30) for _ in links["links"]]
 
     # create images
-    texture_nodes_active = Image.open("static/projects/" + GD.data["actPro"] + "/layoutsRGB/" + GD.pfile["layoutsRGB"][int(GD.pdata["layoutsRGBDD"])] + ".png", "r")
+    texture_nodes_active = Image.open("static/projects/" + GD.data["actPro"] + "/layoutsRGB/" + GD.pfile["layoutsRGB"][GD.safe_pdata_index("layoutsRGBDD", GD.pfile["layoutsRGB"])] + ".png", "r")
     texture_links_active = Image.open("static/projects/" + GD.data["actPro"] + "/linksRGB/" + GD.pfile["linksRGB"][int(GD.pdata["linksRGBDD"])] + ".png", "r")
 
     texture_nodes = texture_nodes_active.copy()
@@ -338,7 +338,7 @@ def analytics_color_continuous(assignment_arr, highlight):
         link_colors = [(55, 55, 55, 30) for _ in links["links"]]
 
         # create images
-        texture_nodes_active = Image.open("static/projects/" + GD.data["actPro"] + "/layoutsRGB/" + GD.pfile["layoutsRGB"][int(GD.pdata["layoutsRGBDD"])] + ".png", "r")
+        texture_nodes_active = Image.open("static/projects/" + GD.data["actPro"] + "/layoutsRGB/" + GD.pfile["layoutsRGB"][GD.safe_pdata_index("layoutsRGBDD", GD.pfile["layoutsRGB"])] + ".png", "r")
         texture_links_active = Image.open("static/projects/" + GD.data["actPro"] + "/linksRGB/" + GD.pfile["linksRGB"][int(GD.pdata["linksRGBDD"])] + ".png", "r")
 
         texture_nodes = texture_nodes_active.copy()
@@ -418,7 +418,7 @@ def analytics_color_shortest_path(path):
             link_colors.append((25,25,25, 30))
         
         # create images
-        texture_nodes_active = Image.open("static/projects/"+ GD.data["actPro"]  + "/layoutsRGB/"+ GD.pfile["layoutsRGB"][int(GD.pdata["layoutsRGBDD"])]+".png","r")
+        texture_nodes_active = Image.open("static/projects/"+ GD.data["actPro"]  + "/layoutsRGB/"+ GD.pfile["layoutsRGB"][GD.safe_pdata_index("layoutsRGBDD", GD.pfile["layoutsRGB"])]+".png","r")
         texture_links_active = Image.open("static/projects/"+ GD.data["actPro"]  + "/linksRGB/"+ GD.pfile["linksRGB"][int(GD.pdata["linksRGBDD"])]+".png","r")
 
         texture_nodes = texture_nodes_active.copy()

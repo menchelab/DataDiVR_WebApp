@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>dataXplorer — DataDiVR Docs</title>
+<link rel="stylesheet" href="_static/style.css"/>
+</head>
+<body>
+
+<nav id="sidebar">
+  <div class="brand">
+    <h1>DataDiVR WebApp</h1>
+    <span>API Documentation</span>
+  </div>
+  <ul>
+    <li class="section-label">Guides</li>
+    <li><a href="workflows.html">Workflow Examples</a></li>
+    <li class="section-label">Modules</li>
+    <li><a href="index.html">Overview</a></li>
+    <li><a href="uploader.html">uploader.py</a></li>
+    <li><a href="uploaderGraph.html">uploaderGraph.py</a></li>
+    <li><a href="dataXplorer.html" class="active">dataXplorer.py</a></li>
+    <li><a href="languageUI.html">languageUI extension</a></li>
+    <li class="section-label">On this page</li>
+  </ul>
+  <div class="toc">
+    <a href="#overview">Overview</a>
+    <a href="#JupyterClient">JupyterClient</a>
+    <a href="#SessionManager">SessionManager</a>
+    <a href="#TextureGenerator">TextureGenerator</a>
+    <a href="#ProjectFileManager">ProjectFileManager</a>
+    <a href="#AnalysisToolkit">AnalysisToolkit</a>
+    <a href="#helpers">Module helpers</a>
+  </div>
+</nav>
+
+<main>
+  <header class="page-header">
+    <h1>dataXplorer</h1>
+    <p class="subtitle">Jupyter-friendly interactive analysis toolkit — connect to the DataDiVR server, manipulate the graph, generate textures on-the-fly, and push live visual updates to the VR client.</p>
+    <div class="module-path">dataXplorer.py</div>
+  </header>
+
+  <div class="page-body">
+
+    <!-- ── OVERVIEW ── -->
+    <h2 class="section-title" id="overview">Architecture</h2>
+
+    <div class="card">
+      <div class="card-body">
+        <p>The module is built around five cooperating classes. Typical Jupyter usage:</p>
+        <pre><span class="kw">from</span> dataXplorer <span class="kw">import</span> JupyterClient, SessionManager, TextureGenerator, ProjectFileManager, AnalysisToolkit
+
+<span class="cm"># 1. Connect to the running DataDiVR server</span>
+client  = <span class="fn">JupyterClient</span>(uid=<span class="str">"myNotebook"</span>)
+client.<span class="fn">connect</span>()
+
+<span class="cm"># 2. Select a project and load its graph</span>
+session = <span class="fn">SessionManager</span>(sel_id=<span class="num">0</span>, sel_name=<span class="str">"MyProject"</span>, client=client)
+G       = session.<span class="fn">load_graph_from_project</span>()
+
+<span class="cm"># 3. Build collaborating objects</span>
+tex_gen  = <span class="fn">TextureGenerator</span>(session)
+file_mgr = <span class="fn">ProjectFileManager</span>(session)
+syncer   = <span class="fn">VisualizerSyncer</span>(session)
+toolkit  = <span class="fn">AnalysisToolkit</span>(session, tex_gen, syncer, file_mgr)
+
+<span class="cm"># 4. Highlight a node and its links in the VR view</span>
+toolkit.<span class="fn">highlight_node_withlinks</span>(node_id=<span class="num">42</span>)
+
+<span class="cm"># 5. Extract a subnetwork</span>
+toolkit.<span class="fn">extract_and_highlight_subnetwork</span>(node_id=<span class="num">42</span>, relayout=<span class="kw">True</span>)</pre>
+      </div>
+    </div>
+
+    <!-- ── JUPYTERCLIENT ── -->
+    <h2 class="section-title" id="JupyterClient">JupyterClient</h2>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>JupyterClient</h3>
+        <span class="badge badge-class">class</span>
+      </div>
+      <div class="card-body">
+        <p>A SocketIO client that bridges Jupyter notebooks to the DataDiVR Flask-SocketIO server on the <code>/main</code> namespace.</p>
+
+        <h3 class="func-name">Constructor</h3>
+        <table class="param-table" style="margin-top:8px;">
+          <tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr>
+          <tr><td class="param-name">uid</td><td class="param-type">str</td><td><code>"jupyter-client"</code></td><td>Unique identifier for this client in the room</td></tr>
+          <tr><td class="param-name">server_url</td><td class="param-type">str</td><td><code>"http://127.0.0.1:5000"</code></td><td>URL of the DataDiVR Flask server</td></tr>
+          <tr><td class="param-name">namespace</td><td class="param-type">str</td><td><code>"/main"</code></td><td>SocketIO namespace</td></tr>
+        </table>
+
+        <h3 class="func-name" style="margin-top:16px;">Attributes</h3>
+        <table class="attr-table">
+          <tr><td class="attr-name">sio</td><td class="attr-type">socketio.Client</td><td>Underlying SocketIO client instance</td></tr>
+          <tr><td class="attr-name">connected</td><td class="attr-type">bool</td><td>Whether the socket is currently connected</td></tr>
+          <tr><td class="attr-name">latest_data</td><td class="attr-type">any</td><td>Last payload received on the <code>"ex"</code> event</td></tr>
+          <tr><td class="attr-name">message_log</td><td class="attr-type">list</td><td>History of received messages</td></tr>
+        </table>
+
+        <div class="method-list">
+          <details>
+            <summary>connect()</summary>
+            <div class="method-body">
+              <p>Establishes the SocketIO connection, joins the shared room with <code>uid</code>, and starts a background keep-alive thread.</p>
+            </div>
+          </details>
+          <details>
+            <summary>disconnect()</summary>
+            <div class="method-body">
+              <p>Emits a <code>"left"</code> event and cleanly disconnects. Called automatically via <code>atexit</code>.</p>
+            </div>
+          </details>
+          <details>
+            <summary>emit(*args, **kwargs)</summary>
+            <div class="method-body">
+              <p>Thin wrapper around <code>sio.emit</code> — use for custom events.</p>
+            </div>
+          </details>
+          <details>
+            <summary>send(fn, val, msg, id, textures, channel, extra, success)</summary>
+            <div class="method-body">
+              <p>Builds and emits a structured <code>"ex"</code> event. All parameters are optional and only included when provided.</p>
+              <table class="param-table">
+                <tr><th>Parameter</th><th>Description</th></tr>
+                <tr><td class="param-name">fn</td><td>Function name string (e.g. <code>"dropdown"</code>, <code>"node"</code>)</td></tr>
+                <tr><td class="param-name">val</td><td>Numeric or string value</td></tr>
+                <tr><td class="param-name">msg</td><td>Message string</td></tr>
+                <tr><td class="param-name">id</td><td>UI element ID</td></tr>
+                <tr><td class="param-name">textures</td><td>List of texture update dicts</td></tr>
+                <tr><td class="param-name">extra</td><td>Dict of arbitrary additional keys</td></tr>
+              </table>
+            </div>
+          </details>
+          <details>
+            <summary>change_project(sel_id, sel_name)</summary>
+            <div class="method-body">
+              <p>Convenience method — sends a project dropdown change event and the subsequent <code>projectLoaded</code> confirmation.</p>
+              <table class="param-table">
+                <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+                <tr><td class="param-name">sel_id</td><td class="param-type">int</td><td>Project dropdown index</td></tr>
+                <tr><td class="param-name">sel_name</td><td class="param-type">str</td><td>Project name</td></tr>
+              </table>
+            </div>
+          </details>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SESSION MANAGER ── -->
+    <h2 class="section-title" id="SessionManager">SessionManager</h2>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>SessionManager</h3>
+        <span class="badge badge-class">class</span>
+      </div>
+      <div class="card-body">
+        <p>Maintains all mutable state for an analysis session: the NetworkX graph, active texture names, and node selections from both VR and Jupyter clients.</p>
+
+        <h3 class="func-name">Constructor</h3>
+        <table class="param-table" style="margin-top:8px;">
+          <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+          <tr><td class="param-name">sel_id</td><td class="param-type">int</td><td>Project dropdown index</td></tr>
+          <tr><td class="param-name">sel_name</td><td class="param-type">str</td><td>Project name (must match <code>static/projects/</code> folder)</td></tr>
+          <tr><td class="param-name">client</td><td class="param-type">JupyterClient</td><td>Connected client instance</td></tr>
+        </table>
+
+        <h3 class="func-name" style="margin-top:16px;">Attributes</h3>
+        <table class="attr-table">
+          <tr><td class="attr-name">graph</td><td class="attr-type">nx.Graph</td><td>The loaded NetworkX graph</td></tr>
+          <tr><td class="attr-name">project_path</td><td class="attr-type">str</td><td><code>static/projects/&lt;sel_name&gt;</code></td></tr>
+          <tr><td class="attr-name">selections</td><td class="attr-type">dict</td><td><code>{"vr": set(), "jupyter": set()}</code> — node selections from each source</td></tr>
+          <tr><td class="attr-name">edge_to_index</td><td class="attr-type">dict</td><td>Maps <code>(src, tgt)</code> tuples to pixel indices in the link texture</td></tr>
+          <tr><td class="attr-name">active_layout</td><td class="attr-type">str</td><td>Currently active position layout name</td></tr>
+          <tr><td class="attr-name">active_layoutsRGB</td><td class="attr-type">str</td><td>Currently active node-color texture name</td></tr>
+          <tr><td class="attr-name">active_linksRGB</td><td class="attr-type">str</td><td>Currently active link-color texture name</td></tr>
+        </table>
+
+        <div class="method-list">
+          <details>
+            <summary>load_graph_from_project() → nx.Graph</summary>
+            <div class="method-body">
+              <p>Reads <code>nodes.json</code> and <code>links.json</code> from the project folder, builds a NetworkX <code>Graph</code>, stores it in <code>self.graph</code>, and returns it.</p>
+            </div>
+          </details>
+          <details>
+            <summary>load_graph(graph)</summary>
+            <div class="method-body">
+              <p>Injects a pre-built NetworkX graph and rebuilds the <code>edge_to_index</code> lookup dict. Use this when you construct the graph in notebook code rather than loading from disk.</p>
+            </div>
+          </details>
+          <details>
+            <summary>update_selection(client, node_ids)</summary>
+            <div class="method-body">
+              <p>Stores a selection set from a named source (<code>"vr"</code> or <code>"jupyter"</code>).</p>
+            </div>
+          </details>
+          <details>
+            <summary>get_selected_nodes() → set</summary>
+            <div class="method-body">
+              <p>Returns the union of VR and Jupyter selections.</p>
+            </div>
+          </details>
+          <details>
+            <summary>get_layouts_in_pfile() → list[str]</summary>
+            <div class="method-body">
+              <p>Reads <code>pfile.json</code> and returns the list of registered layout names.</p>
+            </div>
+          </details>
+          <details>
+            <summary>retrieve_active_layout_info(layout_type, index_override) → str</summary>
+            <div class="method-body">
+              <p>Reads the currently selected layout name from <code>pdata.json</code> (or uses <code>index_override</code>), updates the corresponding active-texture attribute, and returns the name.</p>
+              <table class="param-table">
+                <tr><th>Parameter</th><th>Values</th></tr>
+                <tr><td class="param-name">layout_type</td><td><code>"layouts"</code> | <code>"layoutsRGB"</code> | <code>"linksRGB"</code></td></tr>
+              </table>
+            </div>
+          </details>
+          <details>
+            <summary>get_active_layouts(data)</summary>
+            <div class="method-body">
+              <p>Called with a SocketIO message dict. Dispatches to <code>retrieve_active_layout_info</code> based on the <code>fn</code> / <code>id</code> combination in the message (project load, dropdown change, forward/back step).</p>
+            </div>
+          </details>
+          <details>
+            <summary>reload_project()</summary>
+            <div class="method-body">
+              <p>Re-emits a project-change event to force the VR client to reload the project.</p>
+            </div>
+          </details>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TEXTURE GENERATOR ── -->
+    <h2 class="section-title" id="TextureGenerator">TextureGenerator</h2>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>TextureGenerator</h3>
+        <span class="badge badge-class">class</span>
+      </div>
+      <div class="card-body">
+        <p>Generates GPU textures from in-memory data (e.g. computed layouts or analysis results) and saves them directly into the project folder, bypassing the upload pipeline.</p>
+
+        <div class="method-list">
+          <details>
+            <summary>normalize_xyz(coords) → list[tuple]</summary>
+            <div class="method-body">
+              <p>Min-max normalises a list of <code>(x, y, z)</code> tuples to [0, 1] using <code>sklearn.preprocessing.MinMaxScaler</code>.</p>
+            </div>
+          </details>
+          <details>
+            <summary>generate_node_position_texture(node_position_map, texture_name, save, normalize_flag) → tuple[str, str]</summary>
+            <div class="method-body">
+              <p>Encodes a <code>{node_id: (x, y, z)}</code> dict into a pair of 128×H BMP images using the high/low byte scheme.</p>
+              <table class="param-table">
+                <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+                <tr><td class="param-name">node_position_map</td><td class="param-type">dict</td><td>Maps node ID → <code>(x, y, z)</code></td></tr>
+                <tr><td class="param-name">texture_name</td><td class="param-type">str</td><td>Base file name (no extension)</td></tr>
+                <tr><td class="param-name">save</td><td class="param-type">bool</td><td>If <code>True</code>, registers the texture in <code>pfile.json</code></td></tr>
+                <tr><td class="param-name">normalize_flag</td><td class="param-type">bool</td><td>Normalise coordinates before encoding (default <code>True</code>)</td></tr>
+              </table>
+              <div class="returns-box"><strong>Returns:</strong> <code>(path_high, path_low)</code> — paths to the two BMP files</div>
+            </div>
+          </details>
+          <details>
+            <summary>generate_node_color_texture(node_color_map, texture_name, save) → str</summary>
+            <div class="method-body">
+              <p>Creates a 128×H RGBA PNG texture from a <code>{node_id: (R,G,B,A)}</code> dict.</p>
+              <table class="param-table">
+                <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+                <tr><td class="param-name">node_color_map</td><td class="param-type">dict</td><td>Maps node ID → RGBA 4-tuple (0–255)</td></tr>
+                <tr><td class="param-name">save</td><td class="param-type">bool</td><td>If <code>True</code>, registers the texture in <code>pfile.json</code></td></tr>
+              </table>
+              <div class="returns-box"><strong>Returns:</strong> Path to the saved PNG</div>
+            </div>
+          </details>
+          <details>
+            <summary>generate_link_color_texture(edge_color_map, texture_name, save) → str</summary>
+            <div class="method-body">
+              <p>Creates a 512×H RGBA PNG texture from an <code>{(src, tgt): (R,G,B,A)}</code> dict. Edge indices come from <code>session.edge_to_index</code>.</p>
+              <div class="returns-box"><strong>Returns:</strong> Path to the saved PNG</div>
+            </div>
+          </details>
+          <details>
+            <summary>get_generated_types() → set</summary>
+            <div class="method-body">
+              <p>Returns the set of texture channels that were actively generated in this session (<code>"layouts"</code>, <code>"layoutsRGB"</code>, <code>"linksRGB"</code>). Used by <code>ProjectFileManager.sync_layout_files</code>.</p>
+            </div>
+          </details>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PROJECT FILE MANAGER ── -->
+    <h2 class="section-title" id="ProjectFileManager">ProjectFileManager</h2>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>ProjectFileManager</h3>
+        <span class="badge badge-class">class</span>
+      </div>
+      <div class="card-body">
+        <p>Handles <code>pfile.json</code> updates and cross-layout file synchronisation.</p>
+
+        <div class="method-list">
+          <details>
+            <summary>update_pfile(texture_name)</summary>
+            <div class="method-body">
+              <p>Appends <code>texture_name</code> to all three channels (<code>linksRGB</code>, <code>layouts</code>, <code>layoutsRGB</code>) in <code>pfile.json</code> if not already present.</p>
+            </div>
+          </details>
+          <details>
+            <summary>sync_layout_files(texture_name, generated_types, overwrite)</summary>
+            <div class="method-body">
+              <p>For asset folders that were <em>not</em> actively generated (i.e., not in <code>generated_types</code>), copies the first existing file in that folder to the target name. This ensures every layout has a file for every channel even when only some channels were computed.</p>
+              <table class="param-table">
+                <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+                <tr><td class="param-name">generated_types</td><td class="param-type">set[str]</td><td>Folders already generated — skip these</td></tr>
+                <tr><td class="param-name">overwrite</td><td class="param-type">bool</td><td>Whether to overwrite existing files</td></tr>
+              </table>
+            </div>
+          </details>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ANALYSIS TOOLKIT ── -->
+    <h2 class="section-title" id="AnalysisToolkit">AnalysisToolkit</h2>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>AnalysisToolkit</h3>
+        <span class="badge badge-class">class</span>
+      </div>
+      <div class="card-body">
+        <p>High-level analysis methods that combine texture generation and SocketIO emit in one call. All methods write textures to the project folder and push live <code>updateTempTex</code> events to the connected VR client.</p>
+
+        <div class="method-list">
+          <details>
+            <summary>highlight_node_withlinks(node_id, temp_name)</summary>
+            <div class="method-body">
+              <p>Highlights a single node and all its direct edges in yellow (<code>(255, 255, 0, 255)</code>) by overlaying the current <code>active_layoutsRGB</code> texture and emitting two temporary textures to the VR client. Also triggers the in-VR node info panel for the selected node.</p>
+              <table class="param-table">
+                <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+                <tr><td class="param-name">node_id</td><td class="param-type">int</td><td>Node index in the graph</td></tr>
+                <tr><td class="param-name">temp_name</td><td class="param-type">str</td><td>File stem for the temporary textures (default <code>"temp_node_highlight"</code>)</td></tr>
+              </table>
+            </div>
+          </details>
+          <details>
+            <summary>extract_and_highlight_subnetwork(node_id, color, relayout, scene_name)</summary>
+            <div class="method-body">
+              <p>Builds the 1-hop ego-network around <code>node_id</code>, highlights all its nodes and edges, and optionally re-positions the subnetwork (center) while pushing all other nodes to a random sphere shell.</p>
+              <table class="param-table">
+                <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+                <tr><td class="param-name">node_id</td><td class="param-type">int</td><td>Centre node</td></tr>
+                <tr><td class="param-name">color</td><td class="param-type">tuple</td><td>RGBA highlight color (default yellow)</td></tr>
+                <tr><td class="param-name">relayout</td><td class="param-type">bool</td><td>If <code>True</code>, also generates new position textures</td></tr>
+                <tr><td class="param-name">scene_name</td><td class="param-type">str</td><td>Texture file stem (also registered in <code>pfile.json</code>)</td></tr>
+              </table>
+            </div>
+          </details>
+          <details>
+            <summary>extract_and_highlight_subnetwork_from_nodelist(nodelist, color, relayout, scene_name)</summary>
+            <div class="method-body">
+              <p>Like <code>extract_and_highlight_subnetwork</code> but accepts a list of node <em>names</em> (strings) instead of a single node ID. Resolves names to graph indices automatically.</p>
+              <table class="param-table">
+                <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+                <tr><td class="param-name">nodelist</td><td class="param-type">list[str]</td><td>Node names as they appear in <code>graph.nodes[n]["name"]</code></td></tr>
+              </table>
+            </div>
+          </details>
+          <details>
+            <summary>layout_subnetwork_with_periphery(sub_nodes, scale_center, outer_range) → dict</summary>
+            <div class="method-body">
+              <p>Computes a new 3-D layout: the subnetwork is spring-laid at the center; all other nodes are placed randomly on a sphere in <code>outer_range</code>. Used by <code>extract_and_highlight_subnetwork</code> when <code>relayout=True</code>.</p>
+              <div class="returns-box"><strong>Returns:</strong> <code>{node_id: (x, y, z)}</code> for all nodes in the graph</div>
+            </div>
+          </details>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── HELPERS ── -->
+    <h2 class="section-title" id="helpers">Module-level helpers</h2>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>add_layout_to_pfile</h3>
+        <span class="sig">(project_path, layout_name) → None</span>
+        <span class="badge badge-func">function</span>
+      </div>
+      <div class="card-body">
+        <p>Adds <code>layout_name</code> to the <code>layouts</code>, <code>layoutsRGB</code>, and <code>linksRGB</code> lists in <code>pfile.json</code> if it is not already present. Sorts all three lists alphabetically after updating.</p>
+        <table class="param-table">
+          <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+          <tr><td class="param-name">project_path</td><td class="param-type">str</td><td>Absolute or relative path to the project folder</td></tr>
+          <tr><td class="param-name">layout_name</td><td class="param-type">str</td><td>Layout / texture base name</td></tr>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+</body>
+</html>

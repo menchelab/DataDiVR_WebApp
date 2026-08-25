@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Workflow Examples — DataDiVR Docs</title>
+<link rel="stylesheet" href="_static/style.css"/>
+<style>
+/* ── workflow page extras ── */
+.step-list { counter-reset: step-counter; margin: 0; padding: 0; list-style: none; }
+.step-list > li {
+  counter-increment: step-counter;
+  position: relative;
+  padding: 0 0 28px 52px;
+  border-left: 2px solid var(--border);
+  margin-left: 18px;
+}
+.step-list > li:last-child { border-left: none; padding-bottom: 0; }
+.step-list > li::before {
+  content: counter(step-counter);
+  position: absolute;
+  left: -18px;
+  top: 0;
+  width: 34px;
+  height: 34px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.step-list > li h4 {
+  font-size: 14.5px;
+  font-weight: 600;
+  margin: 4px 0 8px;
+  color: var(--text);
+}
+
+.wf-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+.wf-header h2 { font-size: 22px; font-weight: 700; color: var(--text); }
+.wf-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  padding: 3px 10px;
+  border-radius: 99px;
+  background: #e8f0fe;
+  color: #2d5fa8;
+}
+.wf-label.upload { background: #e6f4ea; color: #1a6f3c; }
+.wf-label.analysis { background: #fff3e0; color: #8a4a00; }
+.wf-label.nlp { background: #fce8e6; color: #b3261e; }
+
+.wf-desc {
+  color: var(--muted);
+  font-size: 14px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px dashed var(--border);
+}
+
+.result-box {
+  background: #f0f7f0;
+  border-left: 3px solid #34a853;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 10px 16px;
+  margin: 10px 0;
+  font-size: 13.5px;
+}
+
+.wf-section {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card-bg);
+  padding: 28px 32px 24px;
+  margin-bottom: 40px;
+}
+
+.toc-jumps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 20px 0 36px;
+}
+.toc-jumps a {
+  display: inline-block;
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  font-size: 13px;
+  color: var(--accent2);
+  text-decoration: none;
+  transition: background .15s;
+}
+.toc-jumps a:hover { background: var(--code-bg); }
+</style>
+</head>
+<body>
+
+<nav id="sidebar">
+  <div class="brand">
+    <h1>DataDiVR WebApp</h1>
+    <span>API Documentation</span>
+  </div>
+  <ul>
+    <li class="section-label">Guides</li>
+    <li><a href="workflows.html" class="active">Workflow Examples</a></li>
+    <li class="section-label">Modules</li>
+    <li><a href="index.html">Overview</a></li>
+    <li><a href="uploader.html">uploader.py</a></li>
+    <li><a href="uploaderGraph.html">uploaderGraph.py</a></li>
+    <li><a href="dataXplorer.html">dataXplorer.py</a></li>
+    <li><a href="languageUI.html">languageUI extension</a></li>
+    <li class="section-label">On this page</li>
+  </ul>
+  <div class="toc">
+    <a href="#wf1">1. Quickstart</a>
+    <a href="#wf2">2. Multiple layouts</a>
+    <a href="#wf3">3. Cluster groups</a>
+    <a href="#wf4">4. JSON file → project</a>
+    <a href="#wf5">5. Interactive analysis</a>
+    <a href="#wf6">6. Language UI</a>
+  </div>
+</nav>
+
+<main>
+  <header class="page-header">
+    <h1>Workflow Examples</h1>
+    <p class="subtitle">End-to-end recipes — from a NetworkX graph to an interactive VR visualization in as few steps as possible.</p>
+  </header>
+
+  <div class="page-body">
+
+    <p>Each workflow below is self-contained and runnable from a Jupyter notebook inside the <code>DataDiVR_WebApp/</code> directory (with the Flask server running). Copy the code into a notebook cell and adapt the graph to your data.</p>
+
+    <div class="toc-jumps">
+      <a href="#wf1">Quickstart</a>
+      <a href="#wf2">Multiple layouts</a>
+      <a href="#wf3">Cluster groups &amp; legend</a>
+      <a href="#wf4">JSON file → project</a>
+      <a href="#wf5">Interactive analysis</a>
+      <a href="#wf6">Language UI commands</a>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════
+         WORKFLOW 1 — QUICKSTART
+         ════════════════════════════════════════════════════ -->
+    <div class="wf-section" id="wf1">
+      <div class="wf-header">
+        <h2>1 — Quickstart: graph → VR in one call</h2>
+        <span class="wf-label upload">Upload</span>
+      </div>
+      <p class="wf-desc">The minimal path: one NetworkX graph, one layout, one call. Useful when you just want to get your data into the viewer as fast as possible.</p>
+
+      <ol class="step-list">
+        <li>
+          <h4>Import helpers and create a NetworkX graph</h4>
+          <pre><span class="kw">import</span> networkx <span class="kw">as</span> nx
+<span class="kw">import</span> nx2json <span class="kw">as</span> nx2j
+
+<span class="cm"># Any nx.Graph works — replace this with your own data</span>
+G = nx.karate_club_graph()
+<span class="fn">print</span>(<span class="str">"Nodes:"</span>, G.number_of_nodes(), <span class="str">" Links:"</span>, G.number_of_edges())</pre>
+        </li>
+        <li>
+          <h4>Set project name and description</h4>
+          <pre>G.graph[<span class="str">'projectname'</span>] = <span class="str">'KarateClub'</span>
+G.graph[<span class="str">'info'</span>]        = <span class="str">'Zachary karate club — classic social network benchmark.'</span>
+G.graph[<span class="str">'layoutname'</span>]  = <span class="str">'spring-3d'</span></pre>
+        </li>
+        <li>
+          <h4>Compute a 3-D layout and assign node positions</h4>
+          <pre>pos = nx.spring_layout(G, dim=<span class="num">3</span>, k=<span class="num">0.3</span>, iterations=<span class="num">50</span>, seed=<span class="num">42</span>)
+nx.set_node_attributes(G, {n: <span class="fn">tuple</span>(v) <span class="kw">for</span> n, v <span class="kw">in</span> pos.items()}, name=<span class="str">'pos'</span>)</pre>
+        </li>
+        <li>
+          <h4>Set node and link colors (RGBA tuples, 0–255)</h4>
+          <pre>nx.set_node_attributes(G, {n: (<span class="num">0</span>, <span class="num">120</span>, <span class="num">255</span>, <span class="num">200</span>) <span class="kw">for</span> n <span class="kw">in</span> G.nodes()}, name=<span class="str">'nodecolor'</span>)
+nx.set_edge_attributes(G, (<span class="num">0</span>, <span class="num">120</span>, <span class="num">255</span>, <span class="num">150</span>), name=<span class="str">'linkcolor'</span>)</pre>
+        </li>
+        <li>
+          <h4>Create the project — one call generates all files</h4>
+          <pre>nx2j.<span class="fn">create_project</span>([G])</pre>
+          <div class="result-box">
+            Project folder <code>static/projects/KarateClub/</code> is created with all BMP/PNG textures and JSON metadata. Reload the project dropdown in the DataDiVR browser UI to see it.
+          </div>
+        </li>
+      </ol>
+
+      <div class="note-box"><strong>Note:</strong> <code>nx2j.create_project()</code> is a convenience wrapper around <code>nx2j.make_json()</code> + <code>uploaderGraph.upload_filesJSON()</code>. Use the lower-level functions if you need to inspect or save the intermediate JSON.</div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════
+         WORKFLOW 2 — MULTIPLE LAYOUTS
+         ════════════════════════════════════════════════════ -->
+    <div class="wf-section" id="wf2">
+      <div class="wf-header">
+        <h2>2 — Multiple layouts of the same graph</h2>
+        <span class="wf-label upload">Upload</span>
+      </div>
+      <p class="wf-desc">Each layout is a separate <code>nx.Graph</code> object with the same nodes but potentially different edge subsets, positions, and colors. The VR viewer lets users step through them with the forward/back arrows. Taken from <code>_GenerateProject_Example.ipynb</code>.</p>
+
+      <ol class="step-list">
+        <li>
+          <h4>Build the base graph and set shared project metadata</h4>
+          <pre>G = nx.circular_ladder_graph(<span class="num">400</span>)
+G.graph[<span class="str">'projectname'</span>] = <span class="str">'MultiLayout-Demo'</span>
+G.graph[<span class="str">'info'</span>]        = <span class="str">'Same graph, five layouts with different edge subsets and color schemes.'</span>
+
+<span class="cm"># Optional: give every node a name and annotation</span>
+<span class="kw">for</span> n <span class="kw">in</span> G.nodes():
+    G.nodes[n][<span class="str">'name'</span>]       = <span class="str">'Node_'</span> + <span class="fn">str</span>(n)
+    G.nodes[n][<span class="str">'annotation'</span>] = {<span class="str">'group'</span>: <span class="str">'A'</span> <span class="kw">if</span> n % <span class="num">2</span> == <span class="num">0</span> <span class="kw">else</span> <span class="str">'B'</span>}</pre>
+        </li>
+        <li>
+          <h4>Create one Graph object per layout</h4>
+          <pre><span class="kw">import</span> random
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+<span class="kw">def</span> <span class="fn">random_edge_subset</span>(G, keep_fraction, seed):
+    <span class="str">"""Return a copy of G keeping only a random fraction of edges."""</span>
+    rng = random.Random(seed)
+    G_sub = G.copy()
+    to_drop = rng.<span class="fn">sample</span>(<span class="fn">list</span>(G_sub.edges()), <span class="fn">int</span>(G_sub.number_of_edges() * (<span class="num">1</span> - keep_fraction)))
+    G_sub.<span class="fn">remove_edges_from</span>(to_drop)
+    <span class="kw">return</span> G_sub
+
+<span class="cm"># Layout 1 — 75 % of edges, blue, RGBA tuples</span>
+G_lay1 = <span class="fn">random_edge_subset</span>(G, keep_fraction=<span class="num">0.75</span>, seed=<span class="num">42</span>)
+G_lay1.graph[<span class="str">'layoutname'</span>] = <span class="str">'layout1-blue'</span>
+pos1 = {n: <span class="fn">tuple</span>(v) <span class="kw">for</span> n, v <span class="kw">in</span> nx.<span class="fn">spring_layout</span>(G_lay1, dim=<span class="num">3</span>, seed=<span class="num">1</span>).items()}
+nx.<span class="fn">set_node_attributes</span>(G_lay1, pos1, name=<span class="str">'pos'</span>)
+nx.<span class="fn">set_node_attributes</span>(G_lay1, {n: (<span class="num">0</span>, <span class="num">0</span>, <span class="num">255</span>, <span class="num">200</span>) <span class="kw">for</span> n <span class="kw">in</span> G_lay1.nodes()}, name=<span class="str">'nodecolor'</span>)
+nx.<span class="fn">set_edge_attributes</span>(G_lay1, (<span class="num">0</span>, <span class="num">0</span>, <span class="num">255</span>, <span class="num">200</span>), name=<span class="str">'linkcolor'</span>)
+nx.<span class="fn">set_edge_attributes</span>(G_lay1, <span class="str">'Blue connections'</span>, name=<span class="str">'linkcolorname'</span>)
+
+<span class="cm"># Layout 2 — 60 % of edges, red, hex strings</span>
+G_lay2 = <span class="fn">random_edge_subset</span>(G, keep_fraction=<span class="num">0.60</span>, seed=<span class="num">7</span>)
+G_lay2.graph[<span class="str">'layoutname'</span>] = <span class="str">'layout2-red'</span>
+pos2 = {n: v.tolist() <span class="kw">for</span> n, v <span class="kw">in</span> nx.<span class="fn">spring_layout</span>(G_lay2, dim=<span class="num">3</span>, seed=<span class="num">2</span>).items()}
+nx.<span class="fn">set_node_attributes</span>(G_lay2, pos2, name=<span class="str">'pos'</span>)
+nx.<span class="fn">set_node_attributes</span>(G_lay2, {n: <span class="str">'#ff0000'</span> <span class="kw">for</span> n <span class="kw">in</span> G_lay2.nodes()}, name=<span class="str">'nodecolor'</span>)
+nx.<span class="fn">set_edge_attributes</span>(G_lay2, <span class="str">'#ff0000'</span>, name=<span class="str">'linkcolor'</span>)
+nx.<span class="fn">set_edge_attributes</span>(G_lay2, <span class="str">'Red connections'</span>, name=<span class="str">'linkcolorname'</span>)
+
+<span class="cm"># Layout 3 — 50 % of edges, green, 8-digit hex with alpha</span>
+G_lay3 = <span class="fn">random_edge_subset</span>(G, keep_fraction=<span class="num">0.50</span>, seed=<span class="num">99</span>)
+G_lay3.graph[<span class="str">'layoutname'</span>] = <span class="str">'layout3-green'</span>
+pos3 = {n: np.<span class="fn">asarray</span>(v) <span class="kw">for</span> n, v <span class="kw">in</span> nx.<span class="fn">spring_layout</span>(G_lay3, dim=<span class="num">3</span>, seed=<span class="num">3</span>).items()}
+nx.<span class="fn">set_node_attributes</span>(G_lay3, pos3, name=<span class="str">'pos'</span>)          <span class="cm"># numpy arrays are supported</span>
+nx.<span class="fn">set_node_attributes</span>(G_lay3, {n: <span class="str">'#00cc0080'</span> <span class="kw">for</span> n <span class="kw">in</span> G_lay3.nodes()}, name=<span class="str">'nodecolor'</span>)
+nx.<span class="fn">set_edge_attributes</span>(G_lay3, <span class="str">'#00cc0080'</span>, name=<span class="str">'linkcolor'</span>)
+nx.<span class="fn">set_edge_attributes</span>(G_lay3, <span class="str">'Green connections'</span>, name=<span class="str">'linkcolorname'</span>)</pre>
+          <div class="note-box"><strong>Color formats:</strong> all three are equivalent to DataDiVR — RGBA tuples, <code>#rrggbb</code> hex, and <code>#rrggbbaa</code> hex-with-alpha are all accepted in the same project.</div>
+        </li>
+        <li>
+          <h4>Create the project from all layouts at once</h4>
+          <pre>Graphs = [G_lay1, G_lay2, G_lay3]
+nx2j.<span class="fn">create_project</span>(Graphs)</pre>
+          <div class="result-box">All three layouts appear in the <strong>Layouts</strong> dropdown in the DataDiVR viewer. Press the left/right arrows in the VR view to step through them.</div>
+        </li>
+      </ol>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════
+         WORKFLOW 3 — CLUSTER GROUPS
+         ════════════════════════════════════════════════════ -->
+    <div class="wf-section" id="wf3">
+      <div class="wf-header">
+        <h2>3 — Cluster groups with legend</h2>
+        <span class="wf-label upload">Upload</span>
+      </div>
+      <p class="wf-desc">Assign each node to a named cluster via the <code>"cluster"</code> attribute. DataDiVR builds the selections panel and legend automatically. Links can also be grouped by name via <code>"linkcolorname"</code>.</p>
+
+      <ol class="step-list">
+        <li>
+          <h4>Divide nodes into groups and set the cluster attribute</h4>
+          <pre>G_clusters = G.copy()
+G_clusters.graph[<span class="str">'layoutname'</span>] = <span class="str">'layout-clusters'</span>
+G_clusters.graph[<span class="str">'projectname'</span>] = <span class="str">'ClusterDemo'</span>
+
+num_nodes = G_clusters.number_of_nodes()
+<span class="kw">for</span> n <span class="kw">in</span> G_clusters.nodes():
+    <span class="kw">if</span>   n < num_nodes // <span class="num">3</span>:        G_clusters.nodes[n][<span class="str">'cluster'</span>] = <span class="str">'Group Alpha'</span>
+    <span class="kw">elif</span> n < <span class="num">2</span> * num_nodes // <span class="num">3</span>:   G_clusters.nodes[n][<span class="str">'cluster'</span>] = <span class="str">'Group Beta'</span>
+    <span class="kw">else</span>:                            G_clusters.nodes[n][<span class="str">'cluster'</span>] = <span class="str">'Group Gamma'</span></pre>
+        </li>
+        <li>
+          <h4>Assign node colors matching their cluster</h4>
+          <pre>NODE_COLORS = {
+    <span class="str">'Group Alpha'</span>: (<span class="num">255</span>, <span class="num">200</span>,   <span class="num">0</span>, <span class="num">220</span>),   <span class="cm"># yellow</span>
+    <span class="str">'Group Beta'</span>:  (<span class="num">255</span>, <span class="num">120</span>,   <span class="num">0</span>, <span class="num">220</span>),   <span class="cm"># orange</span>
+    <span class="str">'Group Gamma'</span>: (  <span class="num">0</span>,  <span class="num">80</span>, <span class="num">220</span>, <span class="num">220</span>),   <span class="cm"># blue</span>
+}
+nx.set_node_attributes(G_clusters,
+    {n: NODE_COLORS[G_clusters.nodes[n][<span class="str">'cluster'</span>]] <span class="kw">for</span> n <span class="kw">in</span> G_clusters.nodes()},
+    name=<span class="str">'nodecolor'</span>)</pre>
+        </li>
+        <li>
+          <h4>Assign link colors and names per edge</h4>
+          <pre><span class="cm"># Identify which group each node belongs to</span>
+groups = {g: {n <span class="kw">for</span> n <span class="kw">in</span> G_clusters.nodes() <span class="kw">if</span> G_clusters.nodes[n][<span class="str">'cluster'</span>] == g}
+          <span class="kw">for</span> g <span class="kw">in</span> NODE_COLORS}
+
+d_linkcolors = {}
+d_linknames  = {}
+<span class="kw">for</span> u, v <span class="kw">in</span> G_clusters.edges():
+    <span class="kw">for</span> group_name, group_set <span class="kw">in</span> groups.items():
+        <span class="kw">if</span> u <span class="kw">in</span> group_set <span class="kw">and</span> v <span class="kw">in</span> group_set:
+            d_linkcolors[(u, v)] = NODE_COLORS[group_name]
+            d_linknames [(u, v)] = group_name + <span class="str">' links'</span>
+            <span class="kw">break</span>
+    <span class="kw">else</span>:
+        d_linkcolors[(u, v)] = (<span class="num">160</span>, <span class="num">160</span>, <span class="num">160</span>, <span class="num">120</span>)
+        d_linknames [(u, v)] = <span class="str">'Cross-group links'</span>
+
+nx.set_edge_attributes(G_clusters, d_linkcolors, name=<span class="str">'linkcolor'</span>)
+nx.set_edge_attributes(G_clusters, d_linknames,  name=<span class="str">'linkcolorname'</span>)</pre>
+        </li>
+        <li>
+          <h4>Set positions and create the project</h4>
+          <pre>pos = {n: <span class="fn">tuple</span>(v) <span class="kw">for</span> n, v <span class="kw">in</span> nx.<span class="fn">spring_layout</span>(G_clusters, dim=<span class="num">3</span>, seed=<span class="num">13</span>).items()}
+nx.set_node_attributes(G_clusters, pos, name=<span class="str">'pos'</span>)
+
+nx2j.<span class="fn">create_project</span>([G_clusters])</pre>
+          <div class="result-box">
+            The <strong>Selections</strong> panel in DataDiVR lists <em>Group Alpha</em>, <em>Group Beta</em>, <em>Group Gamma</em>. The legend panel shows the matching colors. Clicking a group name in the panel highlights all nodes in that cluster.
+          </div>
+        </li>
+      </ol>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════
+         WORKFLOW 4 — JSON FILE → PROJECT
+         ════════════════════════════════════════════════════ -->
+    <div class="wf-section" id="wf4">
+      <div class="wf-header">
+        <h2>4 — Save to JSON, reload, and create project</h2>
+        <span class="wf-label upload">Upload</span>
+      </div>
+      <p class="wf-desc">Use this pattern when you want to share a graph file, regenerate a project without re-running the full pipeline, or load a graph file produced by an external tool.</p>
+
+      <ol class="step-list">
+        <li>
+          <h4>Serialize a list of graphs to the DataDiVR JSON format</h4>
+          <pre><span class="kw">import</span> json, os
+<span class="kw">import</span> nx2json <span class="kw">as</span> nx2j
+
+Graphs = [G_lay1, G_lay2, G_lay3]   <span class="cm"># your list of nx.Graph layouts</span>
+
+merged = nx2j.<span class="fn">make_json</span>(Graphs, save_json=<span class="kw">True</span>)
+<span class="cm"># Saves &lt;projectname&gt;.json in the current working directory</span>
+<span class="cm"># Returns the dict so you can inspect it</span></pre>
+          <p style="margin-top:8px;">Alternatively, save to a specific path:</p>
+          <pre>merged = nx2j.<span class="fn">make_json</span>(Graphs)
+<span class="kw">with</span> <span class="fn">open</span>(<span class="str">'temp-files/MyGraph.json'</span>, <span class="str">'w'</span>) <span class="kw">as</span> f:
+    json.<span class="fn">dump</span>(merged, f, indent=<span class="num">4</span>)</pre>
+        </li>
+        <li>
+          <h4>Later: load the JSON file and create the project</h4>
+          <pre><span class="kw">import</span> json
+<span class="kw">import</span> uploaderGraph <span class="kw">as</span> uG
+
+<span class="kw">with</span> <span class="fn">open</span>(<span class="str">'temp-files/MyGraph.json'</span>, <span class="str">'r'</span>) <span class="kw">as</span> f:
+    G_merged = json.<span class="fn">load</span>(f)
+
+uG.<span class="fn">upload_filesJSON</span>(G_merged, overwrite=<span class="kw">True</span>)</pre>
+          <div class="result-box">
+            The project is recreated from the JSON file. Set <code>overwrite=True</code> to replace an existing project silently; set <code>overwrite=False</code> to be prompted before overwriting.
+          </div>
+        </li>
+      </ol>
+
+      <div class="note-box">
+        <strong>Working with existing JSON files:</strong> if you receive a <code>.json</code> file in the DataDiVR graph format from a collaborator, skip <code>make_json</code> entirely — just load it with <code>json.load()</code> and pass the dict directly to <code>upload_filesJSON()</code>.
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════
+         WORKFLOW 5 — INTERACTIVE ANALYSIS
+         ════════════════════════════════════════════════════ -->
+    <div class="wf-section" id="wf5">
+      <div class="wf-header">
+        <h2>5 — Interactive analysis from Jupyter</h2>
+        <span class="wf-label analysis">Analysis</span>
+      </div>
+      <p class="wf-desc">Connect a Jupyter notebook to the <em>running</em> DataDiVR server and push live visual updates — highlight a node, extract a subnetwork, or generate a custom texture — without restarting the server or re-uploading the project.</p>
+
+      <ol class="step-list">
+        <li>
+          <h4>Start the DataDiVR server and open your project in the browser first</h4>
+          <pre><span class="cm"># In a terminal (not in this notebook):</span>
+<span class="cm"># python app.py</span>
+<span class="cm"># Then open http://127.0.0.1:5000 and load your project</span></pre>
+        </li>
+        <li>
+          <h4>Connect the Jupyter client and load the graph</h4>
+          <pre><span class="kw">from</span> dataXplorer <span class="kw">import</span> (JupyterClient, SessionManager,
+                             TextureGenerator, ProjectFileManager,
+                             VisualizerSyncer, AnalysisToolkit)
+
+<span class="cm"># Connect to the running server</span>
+client = <span class="fn">JupyterClient</span>(uid=<span class="str">'myNotebook'</span>, server_url=<span class="str">'http://127.0.0.1:5000'</span>)
+client.<span class="fn">connect</span>()
+
+<span class="cm"># Select the project you want to work with</span>
+PROJECT_NAME = <span class="str">'KarateClub'</span>
+PROJECT_IDX  = <span class="num">0</span>  <span class="cm"># index in the project dropdown</span>
+session = <span class="fn">SessionManager</span>(sel_id=PROJECT_IDX, sel_name=PROJECT_NAME, client=client)
+G = session.<span class="fn">load_graph_from_project</span>()   <span class="cm"># loads nodes.json + links.json into nx.Graph</span>
+<span class="fn">print</span>(<span class="str">f"Loaded: {G.number_of_nodes()} nodes, {G.number_of_edges()} edges"</span>)</pre>
+        </li>
+        <li>
+          <h4>Build the analysis toolkit</h4>
+          <pre>tex_gen  = <span class="fn">TextureGenerator</span>(session)
+file_mgr = <span class="fn">ProjectFileManager</span>(session)
+syncer   = <span class="fn">VisualizerSyncer</span>(session)
+toolkit  = <span class="fn">AnalysisToolkit</span>(session, tex_gen, syncer, file_mgr)</pre>
+        </li>
+        <li>
+          <h4>Highlight a node and its direct connections in the VR view</h4>
+          <pre><span class="cm"># Highlight node 5 — yellow overlay pushed live to the VR client</span>
+toolkit.<span class="fn">highlight_node_withlinks</span>(node_id=<span class="num">5</span>)</pre>
+          <div class="result-box">Node 5 and all its connected edges turn yellow in the VR view. The node info panel opens in 3D space showing the node's name and ID.</div>
+        </li>
+        <li>
+          <h4>Extract and highlight a 1-hop subnetwork</h4>
+          <pre><span class="cm"># All direct neighbors of node 5, with a custom purple color</span>
+toolkit.<span class="fn">extract_and_highlight_subnetwork</span>(
+    node_id=<span class="num">5</span>,
+    color=(<span class="num">180</span>, <span class="num">0</span>, <span class="num">255</span>, <span class="num">230</span>),
+    relayout=<span class="kw">False</span>    <span class="cm"># keep existing positions</span>
+)</pre>
+          <div class="result-box">The ego-network of node 5 is highlighted in purple. The subgraph is drawn inline in the notebook for a quick 2-D preview.</div>
+        </li>
+        <li>
+          <h4>Re-layout the subnetwork at the center of the scene</h4>
+          <pre><span class="cm"># Set relayout=True to compute a new 3-D position texture:</span>
+<span class="cm"># the subnetwork moves to the center; other nodes are pushed to a sphere shell</span>
+toolkit.<span class="fn">extract_and_highlight_subnetwork</span>(
+    node_id=<span class="num">5</span>,
+    relayout=<span class="kw">True</span>,
+    scene_name=<span class="str">'ego-node5'</span>  <span class="cm"># saved as a persistent layout in pfile.json</span>
+)</pre>
+        </li>
+        <li>
+          <h4>Highlight a custom list of nodes by name</h4>
+          <pre><span class="cm"># Pass node names as they appear in nodes.json ("n" field)</span>
+my_nodes = [<span class="str">'Node_0'</span>, <span class="str">'Node_7'</span>, <span class="str">'Node_15'</span>, <span class="str">'Node_23'</span>]
+toolkit.<span class="fn">extract_and_highlight_subnetwork_from_nodelist</span>(
+    nodelist=my_nodes,
+    color=(<span class="num">255</span>, <span class="num">80</span>, <span class="num">0</span>, <span class="num">230</span>)  <span class="cm"># orange</span>
+)</pre>
+        </li>
+        <li>
+          <h4>Generate a fully custom color texture from your own analysis</h4>
+          <pre><span class="kw">import</span> networkx <span class="kw">as</span> nx
+
+<span class="cm"># Example: color nodes by degree centrality</span>
+centrality = nx.degree_centrality(G)
+max_c = <span class="fn">max</span>(centrality.values())
+
+node_color_map = {}
+<span class="kw">for</span> node_id, c <span class="kw">in</span> centrality.items():
+    norm = c / max_c                          <span class="cm"># 0–1</span>
+    r = <span class="fn">int</span>(<span class="num">255</span> * norm)
+    b = <span class="fn">int</span>(<span class="num">255</span> * (<span class="num">1</span> - norm))
+    node_color_map[node_id] = (r, <span class="num">50</span>, b, <span class="num">220</span>)
+
+<span class="cm"># Write texture and register it in pfile.json</span>
+tex_gen.<span class="fn">generate_node_color_texture</span>(node_color_map, <span class="str">'degree-centrality'</span>, save=<span class="kw">True</span>)
+
+<span class="cm"># Push it live to the VR client</span>
+client.<span class="fn">emit</span>(<span class="str">'ex'</span>, {
+    <span class="str">'usr'</span>: client.uid,
+    <span class="str">'fn'</span>: <span class="str">'updateTempTex'</span>,
+    <span class="str">'id'</span>: <span class="kw">None</span>,
+    <span class="str">'textures'</span>: [{<span class="str">'channel'</span>: <span class="str">'nodeRGB'</span>, <span class="str">'path'</span>: <span class="str">f'static/projects/{PROJECT_NAME}/layoutsRGB/degree-centrality.png'</span>}]
+}, namespace=client.namespace)</pre>
+          <div class="result-box">Nodes are colored on a red-to-blue scale by degree centrality, updated live in the VR view without reloading the project.</div>
+        </li>
+      </ol>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════
+         WORKFLOW 6 — LANGUAGE UI
+         ════════════════════════════════════════════════════ -->
+    <div class="wf-section" id="wf6">
+      <div class="wf-header">
+        <h2>6 — Natural-language commands via languageUI</h2>
+        <span class="wf-label nlp">Language UI</span>
+      </div>
+      <p class="wf-desc">The languageUI extension lets you control the DataDiVR viewer by typing plain-text commands in a browser chat panel. The LLM maps your request to a backend function or answers it as a general question.</p>
+
+      <ol class="step-list">
+        <li>
+          <h4>Start the server and open the Language UI</h4>
+          <pre><span class="cm"># 1. Make sure your API key is in:</span>
+<span class="cm">#    extensions/languageUI/LUI_funcs/token_doNOTcommit.txt</span>
+<span class="cm">#    (or set OPENAI_API_KEY in your environment)</span>
+
+<span class="cm"># 2. Start the server</span>
+<span class="cm">#    python app.py</span>
+
+<span class="cm"># 3. Open in browser:</span>
+<span class="cm">#    http://127.0.0.1:5000/LUI/languageUI</span></pre>
+        </li>
+        <li>
+          <h4>Example commands you can type</h4>
+          <table class="param-table" style="margin-top:8px;">
+            <tr><th>What you type</th><th>What happens</th></tr>
+            <tr><td><em>"search for EGFR"</em></td><td>Triggers the node search — the VR viewer highlights the node named EGFR</td></tr>
+            <tr><td><em>"switch to the KarateClub project"</em></td><td>Changes the active project in the dropdown</td></tr>
+            <tr><td><em>"run the degree centrality analysis"</em></td><td>Triggers the matching analytics event</td></tr>
+            <tr><td><em>"what nodes are in this project?"</em></td><td>LLM answers as a general query using the project description</td></tr>
+            <tr><td><em>"how many nodes does this graph have?"</em></td><td>LLM answers using project metadata from pfile.json</td></tr>
+          </table>
+        </li>
+        <li>
+          <h4>How the routing works under the hood</h4>
+          <pre><span class="cm"># Simplified version of what POST /LUI/languageUI_process does:</span>
+<span class="kw">from</span> extensions.languageUI.src <span class="kw">import</span> language_interface <span class="kw">as</span> lang
+
+<span class="cm"># Route the command</span>
+result = lang.<span class="fn">route_command</span>(<span class="str">"search for EGFR"</span>)
+<span class="cm"># → {"type": "action", "function": "search_by_name", "args": {"val": "EGFR"}}</span>
+
+<span class="cm"># Build the socket message and dispatch it</span>
+msg = lang.<span class="fn">create_message</span>(result[<span class="str">'function'</span>], result[<span class="str">'args'</span>],
+                              lang.ACTION_REGISTRY[result[<span class="str">'function'</span>]][<span class="str">'file_path'</span>])
+<span class="cm"># → {"fn": "node", "id": "search", "val": "EGFR", "usr": "…", "feedback": "…"}</span></pre>
+        </li>
+        <li>
+          <h4>Register a new action so the LLM can call it</h4>
+          <pre><span class="cm"># Add to event_handler/execute_events/my_events.py</span>
+
+<span class="kw">def</span> <span class="fn">highlight_top_hubs</span>(message, room, project):
+    <span class="str">"""
+    Highlight the top N most-connected hub nodes in the current graph.
+    Args:
+        top_n (int): How many hubs to highlight. Default is 10.
+    """</span>
+    top_n = message.get(<span class="str">'args'</span>, {}).get(<span class="str">'top_n'</span>, <span class="num">10</span>)
+    <span class="cm"># … compute degree, generate texture, emit updateTempTex …</span></pre>
+          <p style="margin-top:10px;">Then add the mapping in <code>language_interface.py</code>:</p>
+          <pre>FUNCTION_FN_MAPPING[<span class="str">"my_events"</span>] = <span class="str">"analytics"</span></pre>
+          <div class="result-box">After restarting the server, typing <em>"highlight the top 5 hubs"</em> in the Language UI chat will call your new function.</div>
+        </li>
+        <li>
+          <h4>Clear conversation memory to start fresh</h4>
+          <pre><span class="kw">from</span> extensions.languageUI.src.language_interface <span class="kw">import</span> clear_memory
+<span class="fn">clear_memory</span>()   <span class="cm"># resets the LangChain ConversationBufferMemory</span></pre>
+        </li>
+      </ol>
+    </div>
+
+  </div>
+</main>
+
+</body>
+</html>

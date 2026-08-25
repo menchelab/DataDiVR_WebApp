@@ -15,6 +15,67 @@ if (String(navigator.userAgent).includes("UnrealEngine")) {
     console.log("not ue4")
 }
 
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+}
+
+function nodeInfoFormatValue(val) {
+    // Renders a single node-attribute value as readable HTML, recursing into
+    // nested arrays/objects instead of dumping raw JSON.
+    if (val === null || val === undefined || val === "") {
+        return '<span class="nodeinfo-empty">&mdash;</span>';
+    }
+
+    if (Array.isArray(val)) {
+        if (val.length === 0) {
+            return '<span class="nodeinfo-empty">&mdash;</span>';
+        }
+        var isPrimitiveList = val.every(function (v) {
+            return v === null || typeof v !== "object";
+        });
+        if (isPrimitiveList) {
+            return val.map(function (v) {
+                return '<span class="nodeinfo-chip">' + escapeHtml(v) + '</span>';
+            }).join("");
+        }
+        // array of objects -> render each entry as its own nested table
+        return val.map(function (item, i) {
+            return '<div class="nodeinfo-nested"><div class="nodeinfo-nested-title">[' + i + ']</div>'
+                + nodeInfoFormatValue(item) + '</div>';
+        }).join("");
+    }
+
+    if (typeof val === "object") {
+        return nodeInfoBuildTable(val);
+    }
+
+    var str = String(val);
+    if (/^https?:\/\//i.test(str)) {
+        return '<a href="' + escapeHtml(str) + '" target="_blank" rel="noopener">' + escapeHtml(str) + '</a>';
+    }
+    return escapeHtml(str);
+}
+
+function nodeInfoBuildTable(obj) {
+    var rows = Object.keys(obj).map(function (key) {
+        return '<tr><td class="nodeinfo-key">' + escapeHtml(key) + '</td><td class="nodeinfo-val">'
+            + nodeInfoFormatValue(obj[key]) + '</td></tr>';
+    }).join("");
+    return '<table class="nodeinfo-table">' + rows + '</table>';
+}
+
+function renderNodeInfoHTML(data) {
+    // Formats the raw node-attribute object from the "node" socket event
+    // into a readable key/value table instead of a raw JSON dump.
+    if (!data || typeof data !== "object") {
+        return '<span class="nodeinfo-empty">No data</span>';
+    }
+    return nodeInfoBuildTable(data);
+}
+
 function logjs(data, id) {
     if (document.getElementById("userid")) {
         var content = document.getElementById(id).shadowRoot.getElementById("box");
@@ -256,9 +317,14 @@ $(document).ready(function() {
         switch (data.fn) {
             case 'projectLoaded':
 
-                updateMcElements();
-                
+                // 'projectLoaded' is broadcast to every client in the room, but
+                // updateMcElements() re-emits an "init" for every GD-classed element on
+                // this page - it must only run for the client whose own request
+                // actually triggered the load, or every other already-initialized
+                // client redundantly reinitializes itself on each broadcast.
                 if (data.usr == uid) {
+
+                    updateMcElements();
 
                     if (isPreview) {
                         // Wait until ui is initialized
@@ -367,7 +433,7 @@ $(document).ready(function() {
             case 'node':
                 if (document.getElementById("nodeL2")) {
                     document.getElementById("nodeL2").innerHTML = data["val"]["n"] + "<br><h6>" + "[" + data["nch"] + " Links]</h6>";
-                    document.getElementById("nodeRawdata").textContent = JSON.stringify(data["val"], undefined, 2);
+                    document.getElementById("nodeRawdata").innerHTML = renderNodeInfoHTML(data["val"]);
                     document.getElementById("nodecount").innerHTML = "[" + data["val"]["id"] + "]";
                 }
                 if (isPreview) { setUserLabelPos(data["val"]["id"], data["val"]["n"]); }

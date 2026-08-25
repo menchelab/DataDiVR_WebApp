@@ -1196,4 +1196,73 @@ code {
     padding: 0 0 0 0px;
 }
 
+/* ---- Node Info panel ---- */
+.nodeinfo-container {
+    font-size: 13px;
+    line-height: 1.4;
+    text-align: left;
+    clear: both;
+}
+
+table.nodeinfo-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 2px 0;
+}
+
+table.nodeinfo-table td {
+    padding: 4px 6px;
+    vertical-align: top;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+td.nodeinfo-key {
+    width: 22%;
+    color: #fff;
+    font-weight: bold;
+    white-space: nowrap;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.02em;
+}
+
+td.nodeinfo-val {
+    color: #fff;
+    word-break: break-word;
+}
+
+.nodeinfo-val a {
+    color: #fff;
+}
+
+.nodeinfo-empty {
+    color: #fff;
+    font-style: italic;
+}
+
+.nodeinfo-chip {
+    display: inline-block;
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 3px;
+    padding: 1px 6px;
+    margin: 1px 3px 1px 0;
+    font-size: 12px;
+    color: #fff;
+}
+
+.nodeinfo-nested {
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
+    margin-bottom: 4px;
+    padding: 2px 4px;
+}
+
+.nodeinfo-nested-title {
+    color: #fff;
+    font-size: 11px;
+    font-weight: bold;
+    margin: 2px 0;
+}
+
 

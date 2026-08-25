@@ -30,10 +30,12 @@ names = {}
 functions = {"ex": [], "join": [], "left": []}
 paintedNodes = []
 paintedNodesColor = (128,0,255,255)
-annotations = {}  # annotations map
+annotations = {}  # categorical annotations map: type -> {term: [node_ids]}
 annotation_types = (
     []
 )  # stores types of annotations, per default if no types exist it holds only "default"
+annotations_numeric = {}  # numeric annotations map: type -> {node_id: value}
+annotation_types_numeric = []  # stores types of numeric annotations
 
 
 # todo deal with multiple linklists
@@ -208,6 +210,33 @@ def savePFile():
     outfile.close()
 
 
+def safe_pdata_index(pdata_key, options):
+    """
+    Returns a valid int index into `options` for GD.pdata[pdata_key].
+
+    pdata.json is only loaded/saved per-project and is never re-validated
+    against the current pfile.json lists (e.g. layoutsRGB), so a stored
+    index can go stale and out of range - e.g. after a project's layouts
+    were reorganized, or from a forward/backward step that briefly desynced
+    the layout-family dropdowns. Rather than let callers do
+    `pfile[key][int(pdata[pdata_key])]` and risk an IndexError, clamp here
+    and persist the corrected value so it doesn't keep tripping.
+    """
+    if not options:
+        return 0
+    try:
+        idx = int(pdata.get(pdata_key, 0))
+    except (TypeError, ValueError):
+        idx = 0
+    if not (0 <= idx < len(options)):
+        print(f"C_DEBUG: safe_pdata_index - pdata['{pdata_key}']={pdata.get(pdata_key)!r} "
+              f"out of range for {len(options)} option(s), resetting to 0")
+        idx = 0
+        pdata[pdata_key] = 0
+        savePD()
+    return idx
+
+
 def loadColor():
     try:
         imc = Image.open(
@@ -325,60 +354,109 @@ def load_annotations_simple_old():
     )  # annotations initilized increasing alphabetically
 
 
+def _is_number(value):
+    # bool is technically an int subclass in Python - exclude it, it's categorical
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
+def _add_categorical_annotation(anno_type, term, node_id):
+    if anno_type not in annotation_types:
+        annotation_types.append(anno_type)
+        annotations[anno_type] = {}
+    if term not in annotations[anno_type]:
+        annotations[anno_type][term] = []
+    annotations[anno_type][term].append(node_id)
+
+
+def _add_numeric_annotation(anno_type, value, node_id):
+    if anno_type not in annotation_types_numeric:
+        annotation_types_numeric.append(anno_type)
+        annotations_numeric[anno_type] = {}
+    annotations_numeric[anno_type][node_id] = value
+
+
+def _classify_attr_value(anno_type, value, node_id):
+    """
+    Routes a single attribute value to the categorical or numeric annotation
+    store based on its actual runtime type, so a mix of shapes within one
+    project's attrlist (e.g. CDK5: scalar entrezID next to a GO:BP term list;
+    Silhouettes_attributes: a nested similarity_scores dict next to single-value
+    numeric attributes) is handled per-attribute instead of forcing one shape
+    for the whole project.
+
+    Handles: scalar string (-> single-value category), scalar number (-> numeric),
+    list of strings (-> one category per item), list of numbers (-> numeric, mean
+    of the list), and one level of nested dict (flattened into "type.subkey",
+    recursively classified - covers e.g. {"similarity_scores": {"circle": 0.42}}).
+    Anything else (None, bool, empty list, unsupported type) is skipped.
+    """
+    if value is None:
+        return
+    if isinstance(value, dict):
+        for subkey, subvalue in value.items():
+            _classify_attr_value(f"{anno_type}.{subkey}", subvalue, node_id)
+        return
+    if isinstance(value, list):
+        if len(value) == 0:
+            return
+        if all(_is_number(v) for v in value):
+            _add_numeric_annotation(anno_type, sum(value) / len(value), node_id)
+        else:
+            for v in value:
+                if isinstance(v, str):
+                    _add_categorical_annotation(anno_type, v, node_id)
+        return
+    if _is_number(value):
+        _add_numeric_annotation(anno_type, value, node_id)
+        return
+    if isinstance(value, str):
+        _add_categorical_annotation(anno_type, value, node_id)
+        return
+    # unsupported scalar type (e.g. bool) - skip
+
+
 def load_annotations_complex():
-    global annotations
-    global annotation_types
+    global annotations, annotation_types, annotations_numeric, annotation_types_numeric
     annotation_types = []
     annotations = {}
+    annotation_types_numeric = []
+    annotations_numeric = {}
 
     for node in nodes["nodes"]:
         if "attrlist" not in node.keys():
             continue
-        
-        # check if dict beforehand: 
-        if not isinstance(node["attrlist"], dict):
-            #print("C_DEBUG: loading annotations simple due to invalid format.")
-            load_annotations_simple()
-            
-        else: 
-            for anno_type, anno_list in node["attrlist"].items():
 
-                if anno_type not in annotation_types:
-                    annotation_types.append(anno_type)
-                    annotations[anno_type] = {}
+        attrlist = node["attrlist"]
+        if not isinstance(attrlist, dict):
+            # anomaly: this project is flagged as typed (annotationTypes=True) but
+            # this one node doesn't follow that shape - skip just this node rather
+            # than discarding every other node's already-classified attributes.
+            print(f"C_DEBUG: node {node.get('id')} attrlist is not a dict, skipping for annotations.")
+            continue
 
-                # check if anno_list is a list
-                if not isinstance(anno_list, list):
-                    #print("C_DEBUG: loading annotations simple due to invalid format.")
-                    load_annotations_simple()
-                    return
-
-                for anno in anno_list:
-                    if anno not in annotations[anno_type].keys():
-                        annotations[anno_type][anno] = []
-                    annotations[anno_type][anno].append(node["id"])
+        for anno_type, anno_value in attrlist.items():
+            _classify_attr_value(anno_type, anno_value, node["id"])
 
 
 def load_annotations_simple():
-    global annotations
-    global annotation_types
+    global annotations, annotation_types, annotations_numeric, annotation_types_numeric
     annotation_types = ["default"]
     annotations = {"default": {}}
+    annotation_types_numeric = []
+    annotations_numeric = {}
 
     for node in nodes["nodes"]:
         if "attrlist" not in node.keys():
             continue
 
         anno_list = node["attrlist"]
+        if not isinstance(anno_list, list):
+            continue
 
         for idx, anno in enumerate(anno_list):
             if idx == 0 and anno == node["n"]:
                 continue
-            if not isinstance(anno, str):
-                continue
-            if anno not in annotations["default"].keys():
-                annotations["default"][anno] = []
-            annotations["default"][anno].append(node["id"])
+            _classify_attr_value("default", anno, node["id"])
 
 
 def load_annotations():

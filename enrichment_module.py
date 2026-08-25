@@ -65,6 +65,132 @@ def query_clear():
     GD.savePD()
 
 
+def suggest_labels_for_nodes(node_ids, max_results=5, sig_level=0.05):
+    """
+    Suggest label candidates for an ad-hoc set of nodes (e.g. painted/lasso-selected
+    in VR, or gathered in the clipboard) by checking, across every annotation type
+    the project has, what's distinctive about this set vs. the whole project - two
+    kinds of attribute get handled differently, since they need different statistics:
+
+    - categorical (GD.annotations, e.g. GO:BP terms, Compartment, Community ID):
+      which attribute VALUES are overrepresented in this set, via the same Fisher's
+      exact test the manual Enrichment module uses, run across all types at once
+      instead of one type picked via dropdown.
+    - numeric (GD.annotations_numeric, e.g. convexity, similarity_scores.circle):
+      whether this set's AVERAGE for an attribute is unusually high or low vs. the
+      rest of the project, via a Mann-Whitney U test (no normality assumption).
+
+    Note: significance cutoffs are intentionally not used to drop results here -
+    this is a ranked suggestion list a human picks from, not a formal significance
+    test, so results aren't dropped just because a Bonferroni-corrected p-value
+    (harsh with a small sample + a large attribute vocabulary) misses a fixed alpha.
+    `sig_level` is only used to flag candidates as "significant" for display;
+    `max_results` is the real cutoff.
+
+    Read-only: does not touch GD.pdata/pfile or persist anything.
+
+    Returns a tuple `(candidates, reason)`:
+        candidates: up to `max_results` results, best first,
+                    [{"term", "type", "pvalue", "significant"}, ...]
+        reason: None on success, otherwise a short machine-readable string
+                explaining why `candidates` is empty (surfaced to the UI so this
+                doesn't have to be diagnosed from server logs) - one of:
+                "selection_too_small", "no_annotation_data", "no_terms_found"
+    """
+    node_ids = list({int(n) for n in node_ids})  # dedupe + normalize to int
+
+    if len(node_ids) < 2:
+        print("ENRICHMENT: Selection too small to suggest a label (need >= 2 nodes).")
+        return [], "selection_too_small"
+
+    has_categorical = bool(GD.annotation_types and GD.annotations)
+    has_numeric = bool(GD.annotation_types_numeric and GD.annotations_numeric)
+    if not has_categorical and not has_numeric:
+        print("ENRICHMENT: No annotation data available for this project.")
+        return [], "no_annotation_data"
+
+    background_count = int(GD.pfile["nodecount"])
+    candidates = []
+
+    # --- categorical: which attribute values are overrepresented in this set ---
+    if has_categorical:
+        for feature_type in GD.annotation_types:
+            dict_features_to_samples = GD.annotations.get(feature_type, {})
+            if not dict_features_to_samples:
+                continue
+
+            # invert term -> [node_ids] into node -> [terms] for this type, staying
+            # consistent with however GlobalData._classify_attr_value bucketed the
+            # raw attrlist shape (scalar, list, or nested dict) rather than
+            # re-parsing attrlist here.
+            node_to_terms = {}
+            for term, member_ids in dict_features_to_samples.items():
+                for member_id in member_ids:
+                    node_to_terms.setdefault(member_id, []).append(term)
+            dict_samples_to_features = {n: node_to_terms.get(n, []) for n in node_ids}
+
+            try:
+                test_result = _fisher_test(
+                    sig_level=math.inf,  # don't filter here - rank + truncate ourselves below
+                    sampleset=node_ids,
+                    d_sample_attributes=dict_samples_to_features,
+                    d_attributes_sample=dict_features_to_samples,
+                    background=background_count,
+                )
+            except Exception as e:
+                print(f"ENRICHMENT: label suggestion failed for type '{feature_type}': {e}")
+                continue
+
+            for term, pvalue in test_result.items():
+                # scipy's fisher_exact returns numpy scalar types (numpy.float64),
+                # and comparisons on them yield numpy.bool_ - neither is JSON
+                # serializable by the socket emit below, so cast to native types.
+                pvalue = float(pvalue)
+                candidates.append({
+                    "term": term,
+                    "type": feature_type,
+                    "pvalue": pvalue,
+                    "significant": bool(pvalue <= sig_level),
+                })
+
+    # --- numeric: which attribute averages are unusually high/low in this set ---
+    if has_numeric:
+        for feature_type in GD.annotation_types_numeric:
+            values_by_node = GD.annotations_numeric.get(feature_type, {})
+            if not values_by_node:
+                continue
+
+            sample_values = [values_by_node[n] for n in node_ids if n in values_by_node]
+            rest_values = [v for n, v in values_by_node.items() if n not in node_ids]
+            if len(sample_values) < 2 or len(rest_values) < 2:
+                continue  # not enough data on either side to compare
+
+            try:
+                # scipy's mannwhitneyu also returns numpy scalar types - same cast
+                # requirement as the fisher_exact path above.
+                _, pvalue = st.mannwhitneyu(sample_values, rest_values, alternative="two-sided")
+                pvalue = float(pvalue)
+            except Exception as e:
+                print(f"ENRICHMENT: numeric label suggestion failed for type '{feature_type}': {e}")
+                continue
+
+            sample_mean = sum(sample_values) / len(sample_values)
+            rest_mean = sum(rest_values) / len(rest_values)
+            direction = "high" if sample_mean > rest_mean else "low"
+            candidates.append({
+                "term": f"{direction} {feature_type} (avg {sample_mean:.3g} vs {rest_mean:.3g})",
+                "type": feature_type,
+                "pvalue": pvalue,
+                "significant": bool(pvalue <= sig_level),
+            })
+
+    # NOTE: Bonferroni correction happens per-type inside _fisher_test; ranking the
+    # merged categorical + numeric list by raw p-value is a heuristic for suggestion
+    # purposes, not a formally corrected comparison across types/tests.
+    candidates.sort(key=lambda c: c["pvalue"])
+    candidates = candidates[:max_results]
+    return candidates, (None if candidates else "no_terms_found")
+
 
 def _plot(data, highlight_bar=None):
     # preprocess
@@ -238,7 +364,7 @@ def _gen_highlight_textures(query_ids, feature_type, feature):
             node_color = COLOR_FEATURE_QUERY
         node_colors.append(node_color)
     
-    texture_nodes_active = Image.open("static/projects/"+ GD.data["actPro"]  + "/layoutsRGB/"+ GD.pfile["layoutsRGB"][int(GD.pdata["layoutsRGBDD"])]+".png","r")
+    texture_nodes_active = Image.open("static/projects/"+ GD.data["actPro"]  + "/layoutsRGB/"+ GD.pfile["layoutsRGB"][GD.safe_pdata_index("layoutsRGBDD", GD.pfile["layoutsRGB"])]+".png","r")
     texture_nodes = texture_nodes_active.copy()
     texture_nodes.putdata(node_colors)
     texture_nodes.save(path_nodes, "PNG")

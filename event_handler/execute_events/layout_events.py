@@ -5,6 +5,88 @@ import layout_module
 import util
 
 
+def _emit_dropdown_change(message, room, namespace, dropdown_id, options, index):
+    """Broadcasts a dropdown-change event ("ex", fn="dropdown") for one of
+    the layout-family dropdowns (layoutsDD / layoutsRGBDD / linksRGBDD) -
+    the same event those dropdowns emit on manual selection, which is what
+    actually triggers clients to load the corresponding texture."""
+    GD.pdata[dropdown_id] = index
+    GD.savePD()
+    response = {
+        "usr": message.get("usr", "default_user"),
+        "id": dropdown_id,
+        "fn": "dropdown",
+        "parent": dropdown_id,
+        "opt": options,
+        "sel": index,
+        "name": options[index],
+    }
+    emit("ex", response, room=room, namespace=namespace)
+
+
+def select_layout_event(message, room, namespace="/main"):
+    """
+    Switches the visualized network to one of the project's pre-computed,
+    named layouts (as listed in the project's pfile.json "layouts" array).
+
+    This mirrors what the VR forward/backward step controls do (not a plain
+    manual dropdown pick, which the UI deliberately allows to go out of
+    sync): it keeps the node-position layout, node-color layout
+    (layoutsRGB), and link-color layout (linksRGB) all pointed at the same
+    named layout together, so the visualization never ends up with
+    mismatched positions/colors. The link *topology* list (links) is left
+    alone, since projects normally only have one. Use this when the user
+    refers to a layout by name or by what it shows, such as "show me the
+    disease landscape", "switch to the alzheimers layout", "load layout 3",
+    or "go to the biological process view".
+
+    Args:
+        message (dict): Event data. Expected keys:
+            - "usr" (str): The user ID initiating the request.
+            - "val" (int): The already-resolved index into GD.pfile["layouts"].
+              Resolving a name/description to this index (exact match, fuzzy
+              match, or LLM judgment against the available layout names) is
+              the caller's job - this function just applies the switch.
+        room (str): Socket connection room identifier.
+
+    Emits:
+        Three dropdown-change events ("ex", fn="dropdown"): "layoutsDD",
+        and - kept in sync by matching layout name, falling back to the
+        same index - "layoutsRGBDD" and "linksRGBDD".
+    """
+    layouts = GD.pfile.get("layouts", []) if hasattr(GD, "pfile") else []
+    if not layouts:
+        print("C_DEBUG: select_layout_event - no layouts available for current project.")
+        return
+
+    try:
+        index = int(message.get("val"))
+    except (TypeError, ValueError):
+        print(f"C_DEBUG: select_layout_event - invalid layout index: {message.get('val')!r}")
+        return
+    if not (0 <= index < len(layouts)):
+        print(f"C_DEBUG: select_layout_event - layout index {index} out of range (0-{len(layouts) - 1}).")
+        return
+
+    layout_name = layouts[index]
+    _emit_dropdown_change(message, room, namespace, "layoutsDD", layouts, index)
+    print(f"C_DEBUG: select_layout_event - switched to layout '{layout_name}' (index {index})")
+
+    # Keep node-color and link-color layouts in lockstep, the same way
+    # forward/backward stepping does - match by name where possible (in
+    # case a project's lists aren't in the same order), else same index.
+    for dropdown_id, pfile_key in (("layoutsRGBDD", "layoutsRGB"), ("linksRGBDD", "linksRGB")):
+        options = GD.pfile.get(pfile_key, [])
+        if not options:
+            continue
+        paired_index = options.index(layout_name) if layout_name in options else index
+        if not (0 <= paired_index < len(options)):
+            print(f"C_DEBUG: select_layout_event - '{pfile_key}' has no matching entry for '{layout_name}', leaving it as-is.")
+            continue
+        _emit_dropdown_change(message, room, namespace, dropdown_id, options, paired_index)
+        print(f"C_DEBUG: select_layout_event - synced {dropdown_id} to '{options[paired_index]}' (index {paired_index})")
+
+
 def init_event(message, room):
     if message["val"] != "init":
         return
@@ -546,6 +628,9 @@ def spectral_apply_event(message, room):
 
 
 def main(message, room):
+    if message["id"] == "layoutSelect":
+        select_layout_event(message, room)
+
     if message["id"] == "layoutInit":
         init_event(message, room)
 

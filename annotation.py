@@ -105,7 +105,7 @@ class AnnotationTextures:
                     continue
                 nodes_colors.append(self.colors["none"])
         
-        texture_nodes_active = Image.open("static/projects/"+ GD.data["actPro"]  + "/layoutsRGB/"+ GD.pfile["layoutsRGB"][int(GD.pdata["layoutsRGBDD"])]+".png","r")
+        texture_nodes_active = Image.open("static/projects/"+ GD.data["actPro"]  + "/layoutsRGB/"+ GD.pfile["layoutsRGB"][GD.safe_pdata_index("layoutsRGBDD", GD.pfile["layoutsRGB"])]+".png","r")
         texture_nodes = texture_nodes_active.copy()
         texture_nodes.putdata(nodes_colors)
         texture_nodes.save(self.path_nodes, "PNG")
