@@ -672,6 +672,7 @@ async function downloadProjectTextures() {
         linksRGB.push(await DownloadImage(path));
     }
 
+    initialized = true; // all textures are downloaded - safe to build/update the scene now
     makeNetwork(); //
     var text = '{"id":"x", "success": "true", "fn": "projectLoaded"}';
     var out = JSON.parse(text);
@@ -681,6 +682,7 @@ async function downloadProjectTextures() {
 }
 
 async function downloadTempTexture(path, channel) {
+    if (!initialized) { return; } // scene not built yet - nothing to color, and the update would be lost silently
     switch (channel) {
         case "nodeRGB":
             let nodesTempRGB = await DownloadImage(path);

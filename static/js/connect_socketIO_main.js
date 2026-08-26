@@ -256,15 +256,9 @@ $(document).ready(function() {
                 // with its own uid, so browsers never ran updateMcElements at all.
                 updateMcElements();
 
-                if (data.usr == uid) {
-                    if (isPreview) {
-                        // Wait until ui is initialized
-                        setTimeout(function() {
-                            initialized = true;
-                            makeNetwork();
-                        }, 2000);
-                    }
-                }
+                // isPreview's network build is driven by the "project" case, which calls
+                // downloadProjectTextures() (that sets initialized = true itself once all
+                // textures are actually loaded - see webGL_preview.js). Nothing to do here.
 
                 break;
 
@@ -377,22 +371,20 @@ $(document).ready(function() {
             case "updateTempTex":
                 console.log("C_DEBUG: updateTempTex event received with data:", data);
 
+                if (isPreview) {
+                    // predefine layoutpaths here to send them afterwards to webgl if both are set within one socket connection
+                    let layoutNodesHiPath, layoutNodesLowPath;
+                    for (let i = 0; i < data.textures.length; i++) {
+                        let textureData = data.textures[i];
+                        if (textureData.channel === "layoutNodesHi") { layoutNodesHiPath = textureData.path; continue; }
+                        if (textureData.channel === "layoutNodesLow") { layoutNodesLowPath = textureData.path; continue; }
+                        downloadTempTexture(textureData.path, textureData.channel);
+                    }
+                    if (layoutNodesHiPath !== undefined && layoutNodesLowPath !== undefined) { updateLayoutTemp(layoutNodesLowPath, layoutNodesHiPath); }
 
-
-                // if (isPreview) {
-                //     // predefine layoutpaths here to send them afterwards to webgl if both are set within one socket connection
-                //     let layoutNodesHiPath, layoutNodesLowPath;
-                //     for (let i = 0; i < data.textures.length; i++) {
-                //         let textureData = data.textures[i];
-                //         if (textureData.channel === "layoutNodesHi") { layoutNodesHiPath = textureData.path; continue; }
-                //         if (textureData.channel === "layoutNodesLow") { layoutNodesLowPath = textureData.path; continue; }
-                //         downloadTempTexture(textureData.path, textureData.channel);
-                //     }
-                //     if (layoutNodesHiPath !== undefined && layoutNodesLowPath !== undefined) { updateLayoutTemp(layoutNodesLowPath, layoutNodesHiPath); }
-
-                // } else {
-                ue4(data["fn"], data);
-                //}
+                } else {
+                    ue4(data["fn"], data);
+                }
                 break;
 
 
