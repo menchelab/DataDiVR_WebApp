@@ -71,13 +71,7 @@ app.config["SECRET_KEY"] = "secret"
 app.config["SESSION_TYPE"] = "filesystem"
 
 socketio = SocketIO(app, manage_session=False,
-                    cors_allowed_origins="*",
-                    # TEMP DIAGNOSTIC LOGGING - remove once the multi-client UE
-                    # disconnect issue is root-caused. Prints every ping/pong
-                    # and the actual reason a socket gets closed (ping timeout
-                    # vs transport error vs client-is-gone) to the Flask
-                    # console, instead of us guessing from timing alone.
-                    logger=True, engineio_logger=True)
+                    cors_allowed_origins="*")
 # load extensions and register their socketio events
 app, extensions = load_extensions.load(app, socketio)
 
