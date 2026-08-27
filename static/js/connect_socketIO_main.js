@@ -215,8 +215,13 @@ $(document).ready(function() {
     });
 
 
-    socket.on('disconnect', function() {
-        console.log("disconnected - SocketIO will auto-reconnect")
+    socket.on('disconnect', function(reason) {
+        // TEMP DIAGNOSTIC: reason is one of "io server disconnect", "io client
+        // disconnect", "ping timeout", "transport close", "transport error" -
+        // logging it tells us whether this is a server-side stall (ping
+        // timeout) or the connection actually being severed (transport
+        // close/error), instead of guessing from timing alone.
+        console.log("disconnected - reason:", reason, "- SocketIO will auto-reconnect unless reason is 'io server disconnect'")
         // socket.emit('join', {}) is a no-op here since the socket is disconnected
         if (document.getElementById("disconnected")) {
             document.getElementById("disconnected").style.display = "block"
@@ -227,6 +232,19 @@ $(document).ready(function() {
         // location.reload() was removed: it triggered a full page reload on every disconnect,
         // causing a new connection → projDD init → project event broadcast to room →
         // VR reloads its project. SocketIO's built-in reconnect handles this correctly.
+    });
+
+    // TEMP DIAGNOSTIC: visibility into whether/how the client actually
+    // recovers after a disconnect - reconnection events fire on the Manager
+    // (socket.io), not on the socket itself, in this client version (4.1.2).
+    socket.io.on('reconnect_attempt', function(attempt) {
+        console.log("reconnect attempt #" + attempt);
+    });
+    socket.io.on('reconnect', function(attempt) {
+        console.log("reconnected after " + attempt + " attempt(s)");
+    });
+    socket.io.on('reconnect_failed', function() {
+        console.log("reconnect FAILED - giving up, UI will stay disconnected until manual refresh");
     });
 
     socket.on('status', function(data) {
