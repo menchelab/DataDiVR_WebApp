@@ -1,3 +1,12 @@
+# must run before anything else imports socket/ssl/threading/etc. so gevent's
+# cooperative (non-blocking) versions are the ones actually used - see the
+# async_mode="gevent" note on the SocketIO(...) call below for why this
+# matters (fixes remote UE client stalls/disconnects without losing native
+# WebSocket transport, which async_mode="threading" doesn't support at all
+# in this engineio version - it silently falls back to HTTP long-polling)
+from gevent import monkey
+monkey.patch_all()
+
 import base64
 import csv
 import json
@@ -71,7 +80,7 @@ app.config["SECRET_KEY"] = "secret"
 app.config["SESSION_TYPE"] = "filesystem"
 
 socketio = SocketIO(app, manage_session=False,
-                    cors_allowed_origins="*", async_mode="threading",
+                    cors_allowed_origins="*", async_mode="gevent",
                     ping_interval=25, ping_timeout=90)
 # load extensions and register their socketio events
 app, extensions = load_extensions.load(app, socketio)
