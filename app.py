@@ -71,7 +71,8 @@ app.config["SECRET_KEY"] = "secret"
 app.config["SESSION_TYPE"] = "filesystem"
 
 socketio = SocketIO(app, manage_session=False,
-                    cors_allowed_origins="*")
+                    cors_allowed_origins="*", async_mode="threading",
+                    ping_interval=25, ping_timeout=90)
 # load extensions and register their socketio events
 app, extensions = load_extensions.load(app, socketio)
 
