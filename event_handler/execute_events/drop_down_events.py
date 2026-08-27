@@ -89,19 +89,27 @@ def init(message, response, room=None, namespace="/main"):
         if message["id"] not in GD.pdata:
             GD.pdata[message["id"]] = 0
         response["sel"] = GD.pdata[message["id"]]
-        # assign data for options; layout/color/link dropdowns always init at position 0
+        # assign options for layout/color/link dropdowns, keeping the persisted
+        # selection (GD.pdata) instead of forcing back to 0. init() runs on every
+        # "dropdown"/init message, which fires on *every* socket (re)connect - not
+        # just first project load - including SocketIO's automatic reconnect after
+        # a refresh/network blip/server hiccup. Hardcoding 0 here snapped the
+        # dropdown (and, for whichever client is bridged into a live Unreal Engine
+        # pixel-streaming session, the actual running UE4 instance via the ue4()
+        # broadcast at the end of the "dropdown" case) back to the first layout
+        # every time, discarding whatever layout was actually active.
         if message["id"] == "layoutsDD":
             response["opt"] = GD.pfile["layouts"]
-            response["sel"] = 0
+            response["sel"] = GD.safe_pdata_index(message["id"], GD.pfile["layouts"])
         elif message["id"] == "layoutsRGBDD":
             response["opt"] = GD.pfile["layoutsRGB"]
-            response["sel"] = 0
+            response["sel"] = GD.safe_pdata_index(message["id"], GD.pfile["layoutsRGB"])
         elif message["id"] == "linksDD":
             response["opt"] = GD.pfile["links"]
-            response["sel"] = 0
+            response["sel"] = GD.safe_pdata_index(message["id"], GD.pfile["links"])
         elif message["id"] == "linksRGBDD":
             response["opt"] = GD.pfile["linksRGB"]
-            response["sel"] = 0
+            response["sel"] = GD.safe_pdata_index(message["id"], GD.pfile["linksRGB"])
         elif message["id"] == "selectionsDD":
             options = []
             for i in range(len(GD.pfile["selections"])):

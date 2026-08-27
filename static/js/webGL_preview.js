@@ -212,6 +212,10 @@ async function updateLayoutTemp(path_low, path_hi) {
         nodemeshes = [];
         linkmeshes = []
         labels = [];
+        // see the matching reset in makeNetwork() for why link_ids must be
+        // cleared on every rebuild - and this rebuild path additionally never
+        // populated it at all below, so it was always stale/mismatched here.
+        link_ids = [];
 
         // make new nodes from temp files
 
@@ -298,6 +302,7 @@ async function updateLayoutTemp(path_low, path_hi) {
             line.name = "line"
             scene.add(line);
             linkmeshes.push(line)
+            link_ids.push(l)
             count = l
         }
     }
@@ -323,6 +328,18 @@ function makeNetwork() {
         nodemeshes = [];
         linkmeshes = []
         labels = [];
+        // link_ids[i] maps the i-th rendered link mesh back to its original
+        // link index l (links can get skipped below via `continue`, so
+        // linkmeshes.length isn't a straight 1:1 with pfile.linkcount -
+        // updateLinkColors() needs this to fetch the right pixel from a
+        // freshly downloaded linksRGB texture on every node-highlight update).
+        // This is a global array that only ever got push()'d, never cleared -
+        // every rebuild (layout switch, project switch, forward/backward step)
+        // left the previous build's entries in place and appended the new
+        // build's after them, so updateLinkColors() ended up reading stale
+        // index values left over from an earlier, unrelated build: exactly the
+        // "totally wrong links highlighted" symptom. Reset it with the others.
+        link_ids = [];
 
         // MAKE NODES
 
@@ -583,46 +600,67 @@ function toScreenPosition(obj, camera) {
 function DownloadImage(url) {
 
     return new Promise(function(resolve, reject) {
-        //  https://stackoverflow.com/questions/48969495/in-javascript-how-do-i-should-i-use-async-await-with-xmlhttprequest  
+        //  https://stackoverflow.com/questions/48969495/in-javascript-how-do-i-should-i-use-async-await-with-xmlhttprequest
         var oReq = new XMLHttpRequest();
         oReq.open("GET", url, true);
         oReq.responseType = "arraybuffer";
 
         oReq.onload = function(oEvent) {
 
-            var arrayBuffer = oReq.response; // Note: not oReq.responseText
-            var binaryString = '';
-
-            if (arrayBuffer) {
-                var byteArray = new Uint8Array(arrayBuffer);
-
-                for (var i = 0; i < byteArray.byteLength; i++) {
-                    binaryString += String.fromCharCode(byteArray[i]); //extracting the bytes
-                }
-                var base64 = window.btoa(binaryString); //creating base64 string
-                str = "data:image/png;base64," + base64; //creating a base64 uri
-                var image = new Image();
-                image.src = str;
-                image.onload = function() {
-                    var canvas = document.createElement("canvas");
-                    canvas.width = image.width;
-                    canvas.height = image.height;
-
-                    var ctx = canvas.getContext('2d');
-                    ctx.drawImage(image, 0, 0);
-                    var imageData = ctx.getImageData(0, 0, image.width, image.height);
-                    resolve(imageData["data"]);
-                }
-                //document.getElementById(parent).appendChild(canvas);
+            // XHR onload fires for HTTP error statuses too (e.g. 404) - only a
+            // network-level failure hits onerror below. Without this check, a
+            // missing/not-yet-written texture (temp_nodes.png/temp_links.png can
+            // be requested before the server finishes saving it) falls through
+            // with an empty arrayBuffer, the Image never fires onload (no onerror
+            // was attached either), and this promise used to hang forever -
+            // silently freezing whichever await was waiting on it until the page
+            // was refreshed. Reject explicitly instead.
+            if (oReq.status < 200 || oReq.status >= 300) {
+                reject({ status: oReq.status, statusText: oReq.statusText, url: url });
+                return;
             }
 
+            var arrayBuffer = oReq.response; // Note: not oReq.responseText
+
+            if (!arrayBuffer || arrayBuffer.byteLength === 0) {
+                reject({ status: oReq.status, statusText: "empty response body", url: url });
+                return;
+            }
+
+            // Hand the raw bytes to the browser via a Blob object URL instead of
+            // manually base64-encoding them (byte-by-byte String.fromCharCode
+            // loop + window.btoa). That manual conversion ran synchronously on
+            // the main thread for every texture - several sequentially at
+            // project load, and again on every single node click (the
+            // highlight temp textures) - blocking it long/often enough that
+            // the browser can miss Socket.IO's ping/pong heartbeat and the
+            // connection gets dropped as timed out, even though the tab is
+            // still alive. A Blob URL skips that conversion entirely.
+            var mime = /\.bmp(\?|$)/i.test(url) ? "image/bmp" : "image/png";
+            var blob = new Blob([arrayBuffer], { type: mime });
+            var blobUrl = URL.createObjectURL(blob);
+            var image = new Image();
+            image.onload = function() {
+                var canvas = document.createElement("canvas");
+                canvas.width = image.width;
+                canvas.height = image.height;
+
+                var ctx = canvas.getContext('2d');
+                ctx.drawImage(image, 0, 0);
+                var imageData = ctx.getImageData(0, 0, image.width, image.height);
+                URL.revokeObjectURL(blobUrl);
+                resolve(imageData["data"]);
+            }
+            image.onerror = function() {
+                URL.revokeObjectURL(blobUrl);
+                reject({ status: oReq.status, statusText: "image decode failed", url: url });
+            };
+            image.src = blobUrl;
+            //document.getElementById(parent).appendChild(canvas);
         };
 
         oReq.onerror = function() {
-            reject({
-                status: this.status,
-                statusText: xhr.statusText
-            });
+            reject({ status: oReq.status, statusText: oReq.statusText, url: url });
         };
 
         oReq.send(null);
@@ -630,6 +668,19 @@ function DownloadImage(url) {
 }
 
 function clearProject() {
+    // Mark the scene not-ready for the duration of the reload. A project
+    // switch fires downloadProjectTextures() without awaiting it, then almost
+    // immediately triggers layoutsDD/layoutsRGBDD/linksDD/linksRGBDD dropdown
+    // re-inits (see the "projDD" branch of the "dropdown" case). Those
+    // responses can easily arrive - and call makeNetwork()/downloadTempTexture()
+    // - before the new project's textures finish downloading below. Without
+    // resetting this flag, makeNetwork() would see the stale `true` from the
+    // previous project and try to render against arrays that were just wiped
+    // (or only half refilled), throwing mid-build and leaving preview stuck on
+    // broken state until a manual refresh. downloadProjectTextures() sets this
+    // back to true only once everything is actually ready.
+    initialized = false;
+
     layouts = [];
     actLayout = 0;
     layoutsl = [];
@@ -644,6 +695,18 @@ function clearProject() {
 
 
 
+async function DownloadImageOrNull(url) {
+    // one bad/missing texture shouldn't abort the whole project load and leave
+    // the preview permanently stuck (unresponsive to later updates) until a
+    // manual refresh - log it and let the caller carry on with a gap instead.
+    try {
+        return await DownloadImage(url);
+    } catch (err) {
+        console.error("C_DEBUG: failed to download project texture, continuing without it:", url, err);
+        return null;
+    }
+}
+
 async function downloadProjectTextures() {
     clearProject();
     console.log("downloading project maps " + pfile["name"]);
@@ -651,25 +714,25 @@ async function downloadProjectTextures() {
     for (let index = 0; index < pfile["layouts"].length; index++) {
         var path = "/static/projects/" + pfile["name"] + "/layouts/" + pfile["layouts"][index] + ".bmp";
         var pathl = "/static/projects/" + pfile["name"] + "/layoutsl/" + pfile["layouts"][index] + "l.bmp";
-        layouts.push(await DownloadImage(path));
-        layoutsl.push(await DownloadImage(pathl));
+        layouts.push(await DownloadImageOrNull(path));
+        layoutsl.push(await DownloadImageOrNull(pathl));
     }
 
     for (let index = 0; index < pfile["layoutsRGB"].length; index++) {
         var path = "/static/projects/" + pfile["name"] + "/layoutsRGB/" + pfile["layoutsRGB"][index] + ".png";
-        layoutsRGB.push(await DownloadImage(path));
+        layoutsRGB.push(await DownloadImageOrNull(path));
     }
 
     for (let index = 0; index < pfile["links"].length; index++) {
         var path = "/static/projects/" + pfile["name"] + "/links/" + pfile["links"][index] + ".bmp";
-        links.push(await DownloadImage(path));
+        links.push(await DownloadImageOrNull(path));
 
     }
 
 
     for (let index = 0; index < pfile["linksRGB"].length; index++) {
         var path = "/static/projects/" + pfile["name"] + "/linksRGB/" + pfile["linksRGB"][index] + ".png";
-        linksRGB.push(await DownloadImage(path));
+        linksRGB.push(await DownloadImageOrNull(path));
     }
 
     initialized = true; // all textures are downloaded - safe to build/update the scene now
@@ -683,18 +746,26 @@ async function downloadProjectTextures() {
 
 async function downloadTempTexture(path, channel) {
     if (!initialized) { return; } // scene not built yet - nothing to color, and the update would be lost silently
-    switch (channel) {
-        case "nodeRGB":
-            let nodesTempRGB = await DownloadImage(path);
-            console.log(nodesTempRGB[0], nodesTempRGB[1], nodesTempRGB[2]);
-            updateNodeColors(nodesTempRGB);
-            break;
-        case "linkRGB":
-            let linksTempRGB = await DownloadImage(path);
-            console.log(linksTempRGB[0], linksTempRGB[1], linksTempRGB[2]);
-            updateLinkColors(linksTempRGB);
-            break;
+    try {
+        switch (channel) {
+            case "nodeRGB":
+                let nodesTempRGB = await DownloadImage(path);
+                console.log(nodesTempRGB[0], nodesTempRGB[1], nodesTempRGB[2]);
+                updateNodeColors(nodesTempRGB);
+                break;
+            case "linkRGB":
+                let linksTempRGB = await DownloadImage(path);
+                console.log(linksTempRGB[0], linksTempRGB[1], linksTempRGB[2]);
+                updateLinkColors(linksTempRGB);
+                break;
 
+        }
+    } catch (err) {
+        // don't leave this rejection unhandled/silent - this runs on every node
+        // selection, so a single failed fetch (e.g. a highlight request that
+        // raced ahead of the server writing the temp file) shouldn't be a mystery
+        // "nothing happened" moment that only a page refresh recovers from.
+        console.error("C_DEBUG: failed to load temp texture for channel '" + channel + "':", err);
     }
 }
 

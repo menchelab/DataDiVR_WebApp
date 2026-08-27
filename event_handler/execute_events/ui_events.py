@@ -1,7 +1,36 @@
+import os
+import uuid
+
 import PIL
 from flask_socketio import emit
 
 import GlobalData as GD
+
+
+def _atomic_save(image, path):
+    """
+    Save `image` to the shared/well-known `path` without ever exposing a
+    partially-written file to a concurrent reader.
+
+    These temp textures (temp1.png, temp_nodes.png, temp_links.png) are fixed,
+    well-known filenames shared by every connected client (main/preview/unreal
+    all read the same path). With multiple clients in the same room, two node
+    selections / paint actions arriving close together can be handled on
+    overlapping threads, and PIL's Image.save() writes the destination file
+    in place - a client's texture fetch landing mid-write would see a
+    truncated/corrupt PNG (intermittent "something's off" glitches that
+    disappear if you happen to retry). Write to a unique staging file first,
+    then atomically rename it onto the canonical path (os.replace is atomic
+    on the same filesystem) so readers only ever see a fully-written file.
+    """
+    # PIL infers the save format from the filename's extension when `format`
+    # isn't passed explicitly - keep the real extension on the staging file
+    # (and pass format explicitly too) rather than appending ".tmp", which
+    # made PIL raise "unknown file extension: .tmp".
+    root, ext = os.path.splitext(path)
+    staging_path = f"{root}.{uuid.uuid4().hex}{ext}"
+    image.save(staging_path, format=image.format or "PNG")
+    os.replace(staging_path, path)
 
 
 def selection_event(message):
@@ -41,7 +70,7 @@ def colorbox_event(message, room):
     # save temp texture
 
     path = "static/projects/" + GD.data["actPro"] + "/layoutsRGB/temp1.png"
-    im2.save(path)
+    _atomic_save(im2, path)
     im1.close()
     im2.close()
     # send update signal to clients
@@ -98,7 +127,7 @@ def paintNodes_renderTexture(message, room):
 
     # save temp texture
     path = "static/projects/" + GD.data["actPro"] + "/layoutsRGB/temp1.png"
-    im2.save(path)
+    _atomic_save(im2, path)
     im1.close()
     im2.close()
     # send update signal to clients
@@ -264,7 +293,6 @@ def reset_layout_event(message, room):
         
 
 
-import os
 import json
 
 def highlight_node_and_links_ue4(message, room):
@@ -298,7 +326,7 @@ def highlight_node_and_links_ue4(message, room):
 
     # save temp texture
     path = "static/projects/" + GD.data["actPro"] + "/layoutsRGB/temp_nodes.png"
-    im2_nodes.save(path)
+    _atomic_save(im2_nodes, path)
     im1_nodes.close()
     im2_nodes.close()
 
@@ -356,8 +384,8 @@ def highlight_node_and_links_ue4(message, room):
     
     # save temp texture
     path = "static/projects/" + GD.data["actPro"] + "/linksRGB/temp_links.png"
-    im2_links.save(path)
-    im1_links.close()   
+    _atomic_save(im2_links, path)
+    im1_links.close()
     im2_links.close()
 
     # send update signal to clients

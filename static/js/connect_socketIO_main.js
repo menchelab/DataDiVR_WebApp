@@ -887,13 +887,21 @@ $(document).ready(function() {
                     Legend_displayGraphLayoutbyID(pfile.name, forwardidx, "layouts", "graphlayout");
                     Legend_displayGraphLayoutbyID(pfile.name, forwardidx, "layouts", "graphlayout_nodecolors");
                     Legend_displayGraphLayoutbyID(pfile.name, forwardidx, "layouts", "graphlayout_linkcolors");
-                    
+
                     if (isPreview) {
                         actLayout = forwardidx;
                         actLayoutRGB = forwardidx;
                         actLinksRGB = forwardidx;
                         makeNetwork();
                     }
+
+                    // keep the backend's GD.pdata in sync with the layout now shown -
+                    // forward/backward stepping only updates the DOM/preview locally, so
+                    // without this the server keeps using a stale layout index (e.g. for
+                    // node-selection highlight texture generation, see highlight_node_and_links_ue4)
+                    socket.emit('ex', { usr: uid, fn: "sel", id: "layoutsDD", opt: forwardidx });
+                    socket.emit('ex', { usr: uid, fn: "sel", id: "layoutsRGBDD", opt: forwardidx });
+                    socket.emit('ex', { usr: uid, fn: "sel", id: "linksRGBDD", opt: forwardidx });
 
                     data["val"] = forwardidx;
                     console.log("C_DEBUG: forward - data[val] = ", data["val"]);
@@ -946,6 +954,14 @@ $(document).ready(function() {
                         actLinksRGB = backwardidx;
                         makeNetwork();
                     }
+
+                    // keep the backend's GD.pdata in sync with the layout now shown -
+                    // forward/backward stepping only updates the DOM/preview locally, so
+                    // without this the server keeps using a stale layout index (e.g. for
+                    // node-selection highlight texture generation, see highlight_node_and_links_ue4)
+                    socket.emit('ex', { usr: uid, fn: "sel", id: "layoutsDD", opt: backwardidx });
+                    socket.emit('ex', { usr: uid, fn: "sel", id: "layoutsRGBDD", opt: backwardidx });
+                    socket.emit('ex', { usr: uid, fn: "sel", id: "linksRGBDD", opt: backwardidx });
 
                     data["val"] = backwardidx;
                     console.log("C_DEBUG: backward - data[val] = ", data["val"]);
