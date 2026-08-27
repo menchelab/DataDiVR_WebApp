@@ -1,5 +1,6 @@
 import json
 import os.path
+import threading
 from collections import OrderedDict
 from os import path
 
@@ -24,6 +25,18 @@ data = {}  # GD.json
 plist = []
 pfile = {}
 pdata = {}
+
+# Guards the "which project is active" critical section (data["actPro"],
+# pfile, pdata, links, annotations - all swapped out wholesale on a project
+# switch) against a concurrent, unrelated GD.pdata write from another client's
+# request (e.g. a layout/color/link dropdown selection). Without this lock, a
+# write like "GD.pdata[key] = val; savePD()" that happens to interleave
+# between a switch's data["actPro"] reassignment and loadPD() re-populating
+# pdata for the new project ends up saving an old project's dropdown value
+# into the new project's pdata.json - corrupting it permanently (every later
+# load of that project reads the same wrong, persisted index back) rather
+# than just being a one-off race.
+project_switch_lock = threading.Lock()
 nodes = {}
 links = {}
 names = {}

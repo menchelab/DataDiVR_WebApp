@@ -9,6 +9,17 @@ var isPreview = false; logjs
 var isMain = false;
 var isUE4 = false;
 
+// Fallback for a project switch where nobody in the room ever reports
+// readiness (see the 'projectLoaded' case and the "dropdown"/projDD handling
+// below). Normally Unreal (or a preview tab's own texture download) emits
+// 'projectLoaded', which broadcasts room-wide and triggers updateMcElements()
+// to (re-)init the layout/color/link dropdowns once assets are actually
+// ready. A main-only session with no preview tab and no Unreal client
+// connected has nothing to emit that signal, so those dropdowns would just
+// stay stale forever after a project switch without this timer.
+var projectLoadFallbackTimer = null;
+var PROJECT_LOAD_FALLBACK_DELAY_MS = 4000;
+
 
 if (String(navigator.userAgent).includes("UnrealEngine")) {
     isUE4 = true;
@@ -248,6 +259,10 @@ $(document).ready(function() {
 
         switch (data.fn) {
             case 'projectLoaded':
+
+                // A real readiness signal arrived - the main-only fallback timer (see the
+                // "dropdown"/projDD handling) no longer needs to fire.
+                if (projectLoadFallbackTimer) { clearTimeout(projectLoadFallbackTimer); projectLoadFallbackTimer = null; }
 
                 // updateMcElements() is safe to call unconditionally here — server-side
                 // all init responses now go only to the requesting socket (flask.request.sid),
@@ -706,17 +721,30 @@ $(document).ready(function() {
                         }
                     }
                 
-                    // When projDD updates (on initial connect or project change from /main),
-                    // also init the layout/color/link dropdowns.  projDD has class PD not GD
-                    // so updateMcElements() skips it; this is the only reliable hook that
-                    // fires both on first load AND on project switch for web-UI clients.
-                    // The project event that sets pfile always arrives before dropdown/projDD,
-                    // so GD.pfile is already loaded server-side when these reach the server.
-                    if (data.id == "projDD" && (isMain || isPreview)) {
-                        socket.emit('ex', { usr: uid, id: "layoutsDD",    fn: "dropdown", val: "init" });
-                        socket.emit('ex', { usr: uid, id: "layoutsRGBDD", fn: "dropdown", val: "init" });
-                        socket.emit('ex', { usr: uid, id: "linksDD",      fn: "dropdown", val: "init" });
-                        socket.emit('ex', { usr: uid, id: "linksRGBDD",   fn: "dropdown", val: "init" });
+                    // NOTE: layoutsDD/layoutsRGBDD/linksDD/linksRGBDD used to be re-init'd
+                    // right here, immediately on the projDD echo - before the engine had
+                    // any chance to actually load the new project's assets. Since GD.pdata
+                    // now persists the real selected index across reconnects (instead of
+                    // always answering "0"), that immediate request could ask Unreal to
+                    // bind a non-zero layoutRGB/linksRGB texture it hadn't streamed in yet,
+                    // which shows as its fallback unbound-texture material (white/glowy
+                    // nodes+links) until something else nudges it. These 4 dropdowns are
+                    // all class="GD" (see mProject.html), so they're already covered by
+                    // updateMcElements() - which now runs once Unreal confirms it's actually
+                    // ready, via the 'projectLoaded' case below - so this eager duplicate
+                    // request is removed rather than raced against that ready signal.
+                    //
+                    // Fallback: if nobody in the room ever reports readiness (a main-only
+                    // session with no preview tab and no Unreal client connected), give the
+                    // room a window to self-report first, then catch up via updateMcElements()
+                    // if nothing did. Cancelled below the moment a real 'projectLoaded' arrives.
+                    if (data.id == "projDD" && isMain) {
+                        if (projectLoadFallbackTimer) { clearTimeout(projectLoadFallbackTimer); }
+                        projectLoadFallbackTimer = setTimeout(function() {
+                            console.log("C_DEBUG: no 'projectLoaded' signal after project switch - running updateMcElements() as a fallback (no preview/Unreal client reported readiness)");
+                            projectLoadFallbackTimer = null;
+                            updateMcElements();
+                        }, PROJECT_LOAD_FALLBACK_DELAY_MS);
                     }
 
                 ue4(data["fn"], data);

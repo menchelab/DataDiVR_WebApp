@@ -165,46 +165,74 @@ def search_name(term):
 
 
 
-# def search_attribute(term):
-#     """
-#     Search for a node by an attribute in the current project.
-#     Args:
-#         term (str): The attribute to search for.
-#     Returns:
-#         list: A list of dictionaries containing the node's ID, name, and color if found, otherwise an empty list.
-#     """
-#     project = GD.data["actPro"]
-#     results = []
-#     if project != "none":
-#         term = term.replace("\n", "")
-#         nodes = GD.nodes["nodes"]
-    
-#         print("C_DEBUG: Searching for ATTRIBUTE:", term)
+def search_attributes(term):
+    """
+    Search for nodes whose attributes/annotations (attrlist) contain the given term.
 
-#         for node in nodes:
-#             if "attrlist" in node:
-#                 # check if attribute structure is a list or a dict
-#                 if isinstance(node["attrlist"], list):
-#                     for attr in node["attrlist"]:
-#                         if term.lower() in attr.lower() or attr.lower() in term.lower() or re.search(r'\b'+term.lower()+r'\b', attr.lower()):
-#                             res = {"id": node["id"], "name": node["n"], "color": GD.pixel_valuesc[node["id"]]}
-#                             results.append(res)
+    Covers both attrlist shapes used across projects:
+        - list-style: attrlist = ["term1", "term2", ...]
+        - dict-style: attrlist = {"GO:BP": ["GO:0007399", ...], "DO": ["autistic disorder", ...], ...}
+    In the dict-style case, each value may itself be a list (e.g. GO-term IDs,
+    DO disease names) or a plain string; both are searched.
 
-#                 elif isinstance(node["attrlist"], dict):
-#                     for key, value in node["attrlist"].items():
-#                         if isinstance(value, list):
-#                             for v in value:
-#                                 if term.lower() in v.lower() or v.lower() in term.lower() or re.search(r'\b'+term.lower()+r'\b', v.lower()):
-#                                     res = {"id": node["id"], "name": node["n"], "color": GD.pixel_valuesc[node["id"]]}
-#                                     results.append(res)
+    Args:
+        term (str): The attribute/annotation text to search for (substring match,
+            case-insensitive), e.g. a GO ID like "GO:0007399" or a disease name
+            like "autistic disorder".
+    Returns:
+        list: A list of dictionaries containing the node's ID, name, and color for
+            every node with a matching attribute/annotation, otherwise an empty list.
+    """
+    project = GD.data["actPro"]
+    results = []
+    if project != "none":
+        term = str(term).replace("\n", "")
+        term_lower = term.lower()
+        nodes = GD.nodes["nodes"]
 
-#                         elif isinstance(value, str):
-#                             if term.lower() in value.lower():
-#                                 res = {"id": node["id"], "name": node["n"], "color": GD.pixel_valuesc[node["id"]]}
-#                                 results.append(res)
-#         # make sure no duplicates are in the results
-#         results = [dict(t) for t in {tuple(d.items()) for d in results}]
-#     return results
+        print("C_DEBUG: Searching for ATTRIBUTE:", term)
+
+        for node in nodes:
+            attrlist = node.get("attrlist")
+            if not attrlist or "n" not in node:
+                continue
+
+            matched = False
+
+            if isinstance(attrlist, list):
+                for attr in attrlist:
+                    if term_lower in str(attr).lower():
+                        matched = True
+                        break
+
+            elif isinstance(attrlist, dict):
+                for key, value in attrlist.items():
+                    if isinstance(value, list):
+                        for v in value:
+                            try:
+                                if term_lower in str(v).lower():
+                                    matched = True
+                                    break
+                            except Exception as e:
+                                print("Error processing value:", e)
+                                continue
+                    elif isinstance(value, str):
+                        if term_lower in value.lower():
+                            matched = True
+
+                    if matched:
+                        break
+
+            if matched:
+                res = {"id": node["id"], "name": node["n"], "color": GD.pixel_valuesc[node["id"]]}
+                results.append(res)
+
+        # make sure no duplicates are in the results
+        results = _dedupe_preserve_order(results)
+
+    print("C_DEBUG: search_attributes results:", results)
+
+    return results
 
 
 
@@ -213,10 +241,18 @@ def search_name(term):
 def search_by_termtype(term):
     """
     Search for a node by its term type and term in the current project.
+
+    Numeric terms are matched against node IDs only (unchanged behavior).
+    String terms are matched against both the node name and any available
+    attributes/annotations (e.g. GO-term IDs, DO disease names in attrlist),
+    so a query like "autistic disorder" can surface nodes annotated with that
+    DO term even though it never appears in the node name.
+
     Args:
         term (Union[int, str]): The term to search for.
     Returns:
-        list: A list of dictionaries containing the node's ID, name, and color if found, otherwise an empty list.
+        list: A list of dictionaries containing the node's ID, name, and color if found,
+            otherwise an empty list. Name matches are ranked ahead of attribute-only matches.
     """
 
     #try:
@@ -229,11 +265,22 @@ def search_by_termtype(term):
         term = int(term)
         print("C_DEBUG : In search.py - search_by_termtype(term): term is int", term)
         return search_id(term)
-    
+
     except ValueError:
         term = str(term)
         print("C_DEBUG : In search.py - search_by_termtype(term): term is str", term)
-        return search_name(term)
+
+        name_results = search_name(term)
+        attribute_results = search_attributes(term)
+
+        # combine, dedupe, and float the best name matches to the top while
+        # keeping attribute-only matches (e.g. a DO/GO term hit) further down
+        results = _dedupe_preserve_order(name_results + attribute_results)
+        results = _rank_by_match_quality(results, term)
+
+        print("C_DEBUG: search_by_termtype combined results:", results)
+
+        return results
 
     # if isinstance(term, int):
     #     print("C_DEBUG : In search.py - search_by_termtype(term): term is int", term)

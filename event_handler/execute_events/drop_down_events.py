@@ -86,39 +86,46 @@ def init(message, response, room=None, namespace="/main"):
         # its project every time any other client (e.g. a web browser) connects
         emit("ex", response2, room=flask.request.sid, namespace=namespace)
     else:
-        if message["id"] not in GD.pdata:
-            GD.pdata[message["id"]] = 0
-        response["sel"] = GD.pdata[message["id"]]
-        # assign options for layout/color/link dropdowns, keeping the persisted
-        # selection (GD.pdata) instead of forcing back to 0. init() runs on every
-        # "dropdown"/init message, which fires on *every* socket (re)connect - not
-        # just first project load - including SocketIO's automatic reconnect after
-        # a refresh/network blip/server hiccup. Hardcoding 0 here snapped the
-        # dropdown (and, for whichever client is bridged into a live Unreal Engine
-        # pixel-streaming session, the actual running UE4 instance via the ue4()
-        # broadcast at the end of the "dropdown" case) back to the first layout
-        # every time, discarding whatever layout was actually active.
-        if message["id"] == "layoutsDD":
-            response["opt"] = GD.pfile["layouts"]
-            response["sel"] = GD.safe_pdata_index(message["id"], GD.pfile["layouts"])
-        elif message["id"] == "layoutsRGBDD":
-            response["opt"] = GD.pfile["layoutsRGB"]
-            response["sel"] = GD.safe_pdata_index(message["id"], GD.pfile["layoutsRGB"])
-        elif message["id"] == "linksDD":
-            response["opt"] = GD.pfile["links"]
-            response["sel"] = GD.safe_pdata_index(message["id"], GD.pfile["links"])
-        elif message["id"] == "linksRGBDD":
-            response["opt"] = GD.pfile["linksRGB"]
-            response["sel"] = GD.safe_pdata_index(message["id"], GD.pfile["linksRGB"])
-        elif message["id"] == "selectionsDD":
-            options = []
-            for i in range(len(GD.pfile["selections"])):
-                options.append(GD.pfile["selections"][i]["name"])
-            response["opt"] = options
-            print(options)
+        # serialized against the project-switch critical section and the
+        # pdata write in user_input() below - without this, a request landing
+        # mid-switch could read GD.pfile already swapped to the new project
+        # but GD.pdata still holding the old project's values (or vice versa),
+        # feeding a mismatched index into whatever gets pushed to Unreal (see
+        # project_switch_lock's docstring in GlobalData.py)
+        with GD.project_switch_lock:
+            if message["id"] not in GD.pdata:
+                GD.pdata[message["id"]] = 0
+            response["sel"] = GD.pdata[message["id"]]
+            # assign options for layout/color/link dropdowns, keeping the persisted
+            # selection (GD.pdata) instead of forcing back to 0. init() runs on every
+            # "dropdown"/init message, which fires on *every* socket (re)connect - not
+            # just first project load - including SocketIO's automatic reconnect after
+            # a refresh/network blip/server hiccup. Hardcoding 0 here snapped the
+            # dropdown (and, for whichever client is bridged into a live Unreal Engine
+            # pixel-streaming session, the actual running UE4 instance via the ue4()
+            # broadcast at the end of the "dropdown" case) back to the first layout
+            # every time, discarding whatever layout was actually active.
+            if message["id"] == "layoutsDD":
+                response["opt"] = GD.pfile["layouts"]
+                response["sel"] = GD.safe_pdata_index(message["id"], GD.pfile["layouts"])
+            elif message["id"] == "layoutsRGBDD":
+                response["opt"] = GD.pfile["layoutsRGB"]
+                response["sel"] = GD.safe_pdata_index(message["id"], GD.pfile["layoutsRGB"])
+            elif message["id"] == "linksDD":
+                response["opt"] = GD.pfile["links"]
+                response["sel"] = GD.safe_pdata_index(message["id"], GD.pfile["links"])
+            elif message["id"] == "linksRGBDD":
+                response["opt"] = GD.pfile["linksRGB"]
+                response["sel"] = GD.safe_pdata_index(message["id"], GD.pfile["linksRGB"])
+            elif message["id"] == "selectionsDD":
+                options = []
+                for i in range(len(GD.pfile["selections"])):
+                    options.append(GD.pfile["selections"][i]["name"])
+                response["opt"] = options
+                print(options)
 
-        if "opt" in response.keys() and message["id"] not in ("layoutsDD", "layoutsRGBDD", "linksDD", "linksRGBDD"):
-            response["sel"] = str(min(len(response["opt"]) - 1, int(response["sel"])))
+            if "opt" in response.keys() and message["id"] not in ("layoutsDD", "layoutsRGBDD", "linksDD", "linksRGBDD"):
+                response["sel"] = str(min(len(response["opt"]) - 1, int(response["sel"])))
 
     # dropdown for annotations
     if message["id"] == "annotation-1":
@@ -169,14 +176,17 @@ def user_input(message, response, room=None, namespace="/main"):
 
         print("C_DEBUG - project change in dropdown_events.py: message : ", message)
 
-        GD.data["actPro"] = GD.plist[int(message["val"])]
-        GD.saveGD()
-        GD.loadGD()
-        GD.loadPFile()
-        GD.loadPD()
-        GD.loadColor()
-        GD.loadLinks()
-        GD.load_annotations()
+        # serialized against the pdata write below - see project_switch_lock's
+        # docstring in GlobalData.py for why this matters
+        with GD.project_switch_lock:
+            GD.data["actPro"] = GD.plist[int(message["val"])]
+            GD.saveGD()
+            GD.loadGD()
+            GD.loadPFile()
+            GD.loadPD()
+            GD.loadColor()
+            GD.loadLinks()
+            GD.load_annotations()
 
         projectname = message["msg"]
         projectid = int(message["val"])
@@ -210,27 +220,34 @@ def user_input(message, response, room=None, namespace="/main"):
     else:
         response["sel"] = message["val"]
         response["name"] = message["msg"]
-        if message["id"] not in GD.pdata:
-            GD.pdata[message["id"]] = ""
-            print("newGD Variable created")
 
-        GD.pdata[message["id"]] = message["val"]
+        # serialized against the project-switch critical section above - a
+        # write landing between a switch's data["actPro"] reassignment and its
+        # loadPD() would otherwise persist an old project's dropdown value
+        # into the new project's pdata.json (see project_switch_lock's
+        # docstring in GlobalData.py)
+        with GD.project_switch_lock:
+            if message["id"] not in GD.pdata:
+                GD.pdata[message["id"]] = ""
+                print("newGD Variable created")
 
-        # layout-family dropdowns are used later as list indices into the
-        # matching pfile.json list (e.g. GD.pfile["layoutsRGB"][idx]) - clamp
-        # here so a bad/stale value (out-of-sync forward/backward step, or a
-        # value left over from before a project's layouts were reorganized)
-        # can't get persisted and blow up an IndexError further down the line
-        _pfile_key = {
-            "layoutsDD": "layouts",
-            "layoutsRGBDD": "layoutsRGB",
-            "linksDD": "links",
-            "linksRGBDD": "linksRGB",
-        }.get(message["id"])
-        if _pfile_key is not None:
-            GD.safe_pdata_index(message["id"], GD.pfile.get(_pfile_key, []))
+            GD.pdata[message["id"]] = message["val"]
 
-        GD.savePD()
+            # layout-family dropdowns are used later as list indices into the
+            # matching pfile.json list (e.g. GD.pfile["layoutsRGB"][idx]) - clamp
+            # here so a bad/stale value (out-of-sync forward/backward step, or a
+            # value left over from before a project's layouts were reorganized)
+            # can't get persisted and blow up an IndexError further down the line
+            _pfile_key = {
+                "layoutsDD": "layouts",
+                "layoutsRGBDD": "layoutsRGB",
+                "linksDD": "links",
+                "linksRGBDD": "linksRGB",
+            }.get(message["id"])
+            if _pfile_key is not None:
+                GD.safe_pdata_index(message["id"], GD.pfile.get(_pfile_key, []))
+
+            GD.savePD()
 
     if message["id"] == "selectionsDD":
         # print(GD.pfile["selections"][int(message["val"])]["nodes"])
