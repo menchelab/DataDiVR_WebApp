@@ -54,6 +54,8 @@
 
                 {% include 'mVRrooms.html' %}
 
+                {% include 'mDebug.html' %}
+
 
                 {% for ext in extensions["ext"] %}
                 {% if "column_1" in ext.keys() %}
@@ -130,12 +132,7 @@
                 {% include 'mAnalytics.html' %}
                 {% include 'mAnnotations.html' %}
                 {% include 'mEnrichment.html' %}
-
-
-
-                {% include 'mDebug.html' %}
                 {% include 'mClipboard.html' %}
-
 
                 {% for ext in extensions["ext"] %}
                 {% if "column_4" in ext.keys() %}
