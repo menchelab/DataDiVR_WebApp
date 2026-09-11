@@ -85,9 +85,9 @@ app, extensions = load_extensions.load(app, socketio)
 @app.before_first_request
 def execute_before_first_request():
     uploader.check_ProjectFolder() # checks if GD.json exists
-    
+
     util.create_dynamic_links(app)
-    
+
     GD.checkProjectGDexists() #check if project in GD.json exist / if not exists, using demo project
     GD.loadGD()
     GD.loadPFile()
@@ -455,7 +455,7 @@ def ex(message):
     
     project = GD.data["actPro"]
 
-    print("in main app - Executing function - MESSAGE:", message)
+    #print("in main app - Executing function - MESSAGE:", message)
     event_handler.handle_socket_execute(message, room, project)
     
     # added for jupyter client (or any client not sending http requests)

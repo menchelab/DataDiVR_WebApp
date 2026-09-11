@@ -164,7 +164,7 @@ def project_to_graph(project,bool_links=False):
             links = json.load(links_json)
         
     try:
-        with open(f"./static/projects/{project}/nodes.json") as nodes_json:
+        with open(f"./static/projects/{project}/nodes.json", encoding="utf-8") as nodes_json:
             nodes = json.load(nodes_json)
     except FileNotFoundError:
         # here maybe names.json parsing (even if its deprecated)

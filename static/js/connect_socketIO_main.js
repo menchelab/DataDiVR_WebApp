@@ -44,8 +44,27 @@ function logjs(data, id) {
 var uid = makeid(10);
 console.log("C_DEBUG in connect_sockeIO_main : Logged in as " + uid);
 
+// --- UE4 TEXTURE-LOAD DIAGNOSTICS ---
+// Traces the project-switch -> ue4("project") -> projectLoaded -> per-dropdown
+// ue4("dropdown") pipeline that decides which node/link-color texture UE ends
+// up binding. Added to catch the intermittent "white glow" fallback-material
+// bug (node/link color textures fail to bind after a project switch, fixed
+// only by pressing forward) - next time it happens, this should show whether
+// the dropdown push to UE happened before/after 'projectLoaded', and exactly
+// what id/sel/opt values were sent, without changing any actual behavior.
+var _lastProjectSwitchAt = null;
+function traceUE(label, extra) {
+    var sinceSwitch = _lastProjectSwitchAt !== null ?
+        Math.round(performance.now() - _lastProjectSwitchAt) + "ms since project switch" :
+        "no project switch seen yet";
+    console.log("[UE-TRACE] " + new Date().toISOString() + " uid=" + uid +
+        " isUE4=" + isUE4 + " isPreview=" + isPreview + " isMain=" + isMain +
+        " (" + sinceSwitch + ") " + label, extra !== undefined ? extra : "");
+}
+
 ue.interface.projectLoaded = function(data) {
     console.log(data);
+    traceUE("ue.interface.projectLoaded() - raw callback from UE, notifying server now", data);
     var text = '{"id":"x", "success": "true", "fn": "projectLoaded"}';
     var out = JSON.parse(text);
     out["usr"] = uid;
@@ -259,6 +278,8 @@ $(document).ready(function() {
 
         switch (data.fn) {
             case 'projectLoaded':
+
+                traceUE("received 'projectLoaded' broadcast from server - about to run updateMcElements() (re-requests layoutsDD/layoutsRGBDD/linksRGBDD etc.)");
 
                 // A real readiness signal arrived - the main-only fallback timer (see the
                 // "dropdown"/projDD handling) no longer needs to fire.
@@ -742,22 +763,28 @@ $(document).ready(function() {
                         if (projectLoadFallbackTimer) { clearTimeout(projectLoadFallbackTimer); }
                         projectLoadFallbackTimer = setTimeout(function() {
                             console.log("C_DEBUG: no 'projectLoaded' signal after project switch - running updateMcElements() as a fallback (no preview/Unreal client reported readiness)");
+                            traceUE("fallback timer fired (no 'projectLoaded' arrived within " + PROJECT_LOAD_FALLBACK_DELAY_MS + "ms) - running updateMcElements()");
                             projectLoadFallbackTimer = null;
                             updateMcElements();
                         }, PROJECT_LOAD_FALLBACK_DELAY_MS);
                     }
 
+                if (data.id === "layoutsDD" || data.id === "layoutsRGBDD" || data.id === "linksRGBDD" || data.id === "linksDD") {
+                    traceUE("dropdown case - forwarding '" + data.id + "' to ue4()", {sel: data.sel, name: data.name, optLen: data.opt ? data.opt.length : undefined});
+                }
                 ue4(data["fn"], data);
                 //console.log("C_DEBUG: sending data to UE4 : ", data);
                 }
                 break;
-                
+
 
             case "project":
                 //HAMLO
                 //clearProject();
                 //if (data["usr"]==uid){
                 pfile = data["val"];
+                _lastProjectSwitchAt = performance.now();
+                traceUE("received 'project' broadcast - switching project", {name: pfile.name, sel: data.sel, layoutsLen: (pfile.layouts||[]).length, layoutsRGBLen: (pfile.layoutsRGB||[]).length, linksRGBLen: (pfile.linksRGB||[]).length});
                 //console.log("C_DEBUG: in CASE PROJECT _ project data = ", pfile);
 
                 // init analytics container
@@ -798,6 +825,7 @@ $(document).ready(function() {
                 if (isPreview) {
                     downloadProjectTextures(); // download textures for preview, report when done
                 }
+                traceUE("forwarding 'project' payload to ue4() - UE should now start loading the new project's assets", {sel: data.sel});
                 ue4(data["fn"], data);
 
                 //}
@@ -893,6 +921,7 @@ $(document).ready(function() {
                     // 2. then add an index to it
                     forwardidx = NEWIndexforwardstep(pfile.layouts.length);
                     console.log("C_DEBUG: NEW forwardidx = ", forwardidx);
+                    traceUE("forwardstep pressed - stepping to idx " + forwardidx + " via the 'but' ue4 path (known to fix the white-glow fallback)");
 
                     //let actLinksRGB;
                     //if (pfile.linksRGB.length == 0 || pfile.linksRGB.length <= forwardidx) {
@@ -946,6 +975,7 @@ $(document).ready(function() {
 
                     // 2. then add an index to it
                     backwardidx = NEWIndexbackwardstep(pfile.layouts.length);
+                    traceUE("backwardstep pressed - stepping to idx " + backwardidx + " via the 'but' ue4 path (known to fix the white-glow fallback)");
 
                     //let actLinksRGB;
                     //if (pfile.linksRGB.length == 0 || pfile.links.length <= backwardidx) {
@@ -994,6 +1024,9 @@ $(document).ready(function() {
                     data["val"] = backwardidx;
                     console.log("C_DEBUG: backward - data[val] = ", data["val"]);
 
+                }
+                if (data.id === "forwardstep" || data.id === "backwardstep") {
+                    traceUE("sending 'but' to ue4() for '" + data.id + "'", {val: data.val});
                 }
                 ue4("but", data);
                 break;

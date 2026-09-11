@@ -22,16 +22,16 @@ from .execute_events import (
 
 def handle_socket_execute(message, room, project):
 
-    print("C_DEBUG: handle_socket_execute", message)
+    #print("C_DEBUG: handle_socket_execute", message)
 
     # catch if no message fn
     if "fn" not in message: # or message["fn"] is None:
-        print("C_DEBUG: No function specified in message:", message)
+        #print("C_DEBUG: No function specified in message:", message)
         return None
     
     # catch if no message id
     if "id" not in message: # or message["id"] is None:
-        print("C_DEBUG: No id specified in message:", message)
+        #print("C_DEBUG: No id specified in message:", message)
         return None
 
 
@@ -78,11 +78,8 @@ def handle_socket_execute(message, room, project):
 
     # --- NODEPAINT SAVE SELECTION EVENTS --- 
     elif message["fn"] == "saveNodeSelection":
-        print("C_DEBUG: saveNodeSelection event triggered")
-
-
+        #print("C_DEBUG: saveNodeSelection event triggered")
         sel_name = message["val"]  
-
         ui_events.save_node_selection_event(message, room)
    
 
@@ -198,5 +195,5 @@ def handle_socket_execute(message, room, project):
                 
 
     else:
-        print("C_DEBUG: Unknown function in handle_socket_execute:", message)
+        #print("C_DEBUG: Unknown function in handle_socket_execute:", message)
         emit("ex", message, room=room, namespace = "/main") # quick fix - adding namespace = "/main" to emit
