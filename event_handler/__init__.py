@@ -45,8 +45,13 @@ def handle_socket_execute(message, room, project):
 
 
     # --- SEARCH NODE EVENTS --- 
-    elif message["id"] == "search": 
-        search_events.search_event(message, room) 
+    elif message["id"] == "search":
+        # typed on the VR keyboard (ue.interface.speech) - echo the text into the
+        # node search module's text field on all clients before searching
+        if message["fn"] == "textinput":
+            emit("ex", {"fn": "textinput", "id": "search", "val": message["val"]}, room=room, namespace="/main")
+
+        search_events.search_event(message, room)
 
         # + automatically trigger the graph plotly update after node event
         message_mod = message.copy()

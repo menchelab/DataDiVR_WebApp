@@ -115,12 +115,9 @@ def language_ui_process():
             "user": username
         }), 400
 
-    print(f"C_DEBUG: User input: {user_input}, User: {username}, Room: {room}, Project: {project}")
-
     try:
         # Route the command using the LLM
         command = lang_interface.route_command(user_input)
-        print("C_DEBUG: Routed command:", command)
 
         # Add room and project context to the command arguments
         command.setdefault("args", {})
@@ -132,11 +129,9 @@ def language_ui_process():
             # Handle actions
             func_name = command.get("function")
             args = command.get("args", {})
-            print(f"C_DEBUG: Handling action '{func_name}' with args: {args}")
 
             # Create a structured message for the action
             action_message = lang_interface.create_message(func_name, args, lang_interface.ACTION_REGISTRY[func_name]["file_path"])
-            print("C_DEBUG: Action message:", action_message)
 
             # Add feedback to the memory buffer
             feedback = action_message.get("feedback", "No feedback provided.")
@@ -153,8 +148,6 @@ def language_ui_process():
             })
 
         elif command["type"] == "general_query":
-            print("C_DEBUG: Handling general query")
-
             if "quick_response" in command:
                 response_text = command["quick_response"]
             else:
@@ -168,7 +161,6 @@ def language_ui_process():
 
         else:
             # Unknown command type
-            print("C_DEBUG: Unknown command type")
             return jsonify({
                 "status": "error",
                 "response": "Unknown command type.",
@@ -176,7 +168,6 @@ def language_ui_process():
             }), 400
 
     except Exception as e:
-        print(f"C_DEBUG: Error in language_ui_process: {str(e)}")
         return jsonify({
             "status": "error",
             "response": f"An error occurred while processing the command: {str(e)}",

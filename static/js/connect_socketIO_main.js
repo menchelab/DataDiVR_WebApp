@@ -111,18 +111,46 @@ ue.interface.manLabel = function(data) {
     socket.emit('ex', out);
 };
 
+// UE can hand the clicked label over as a plain id (5 / "5"), a JSON string
+// ('{"id":5}' / '[5]') or an object - normalize to the node id, or return
+// the raw text (e.g. the label name) if no numeric id can be found.
+function parseNodeLabelClick(data) {
+    var val = data;
+    if (typeof val === "string") {
+        var trimmed = val.trim();
+        try { val = JSON.parse(trimmed); } catch (e) { val = trimmed; }
+    }
+    if (Array.isArray(val)) { val = val[0]; }
+    if (val !== null && typeof val === "object") {
+        val = val.hasOwnProperty("id") ? val.id : (val.hasOwnProperty("val") ? val.val : (val.name || val.text || val.n));
+    }
+    if (val === undefined || val === null) { return null; }
+    var str = String(val).trim();
+    return /^\d+$/.test(str) ? { id: str } : { name: str };
+}
+
 ue.interface.nodelabelclicked = function(data) {
-    console.log(data);
-    var text = '{"id":"node", "val": -1, "fn": "node"}';
-    var out = JSON.parse(text);
-    out.val = data;
-    socket.emit('ex', out);
+    console.log("C_DEBUG: nodelabelclicked from UE:", data, typeof data);
+    var parsed = parseNodeLabelClick(data);
+    if (!parsed || (parsed.name !== undefined && parsed.name.length < 2)) {
+        console.log("C_DEBUG: nodelabelclicked - could not resolve node from:", data);
+        return;
+    }
+    if (parsed.id !== undefined) {
+        // same as clicking a node button in the node search results:
+        // node info + link highlight in VR + subnetwork plot
+        socket.emit('ex', { usr: uid, id: "node", val: parsed.id, fn: "node" });
+    } else {
+        // only a label name came through - resolve it like a node search
+        socket.emit('ex', { usr: uid, id: "search", val: parsed.name, fn: "search" });
+    }
 };
 
 ue.interface.speech = function(data) {
     console.log(data);
     var text = '{"id":"node", "val": -1, "fn": "textinput"}';
     var out = JSON.parse(text);
+    out["usr"] = uid;
     x = JSON.parse(data)
     out.id = x.id;
     out.val = x.text;

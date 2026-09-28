@@ -48,6 +48,9 @@ def search_event(message, room):
         None
     """
 
+    if len(message["val"]) <= 1:
+        return
+
     if len(message["val"]) > 1:
         x = '{"id": "search", "val":[], "fn": "makeNodeButton", "parent":"scrollbox2"}'
         results = json.loads(x)
@@ -62,7 +65,7 @@ def search_event(message, room):
         first_node = results["val"][0]  # Get the first node from the results
         node_message = {
             "val": str(first_node["id"]),  # Use the node ID as input for node_event
-            "usr": message["usr"]
+            "usr": message.get("usr")  # not sent by the VR keyboard (ue.interface.speech)
         }
         print(f"C_DEBUG - Triggering node_event for node ID: {first_node['id']}")
         node_event(node_message, room)  # Trigger the node_event function
