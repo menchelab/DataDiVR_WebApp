@@ -83,9 +83,12 @@ def handle_socket_execute(message, room, project):
 
     # --- NODEPAINT SAVE SELECTION EVENTS --- 
     elif message["fn"] == "saveNodeSelection":
-        #print("C_DEBUG: saveNodeSelection event triggered")
-        sel_name = message["val"]  
         ui_events.save_node_selection_event(message, room)
+
+    # selection name typed on the VR keyboard (ue.interface.speech) - echo it into
+    # the node painter's name field on all clients, saving happens on "Save"
+    elif message["id"] == "paintSelName" and message["fn"] == "textinput":
+        emit("ex", {"fn": "textinput", "id": "paintSelName", "val": message["val"]}, room=room, namespace="/main")
    
 
 
@@ -114,11 +117,13 @@ def handle_socket_execute(message, room, project):
             ui_events.colorbox_nodePaint_event(message, room)
         emit("ex", message, room=room)
 
+    # VR paint strokes (ue.interface.paintnodesADD/SUB/CLEAR) + the nodePaint module's Clear button
+    # (paintNodes_renderTexture broadcasts the texture update + a paintnodesStatus count)
     elif message["fn"] == "paintnodes":
         if message["id"] == "paintnodes":
             ui_events.paintNodes_event(message, room)
-
-        emit("ex", message, room=room)
+        elif message["id"] == "paintnodesClear":
+            ui_events.clear_painted_nodes_event(message, room)
 
     elif message["fn"] == "labelSuggest":
         label_events.suggest_label_event(message, room)

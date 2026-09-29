@@ -1,5 +1,5 @@
 <mc-module id="module-nodePaint" name="nodePaint">
-     
+
 
         <!-- heading removed: mc-module already renders the name from its `name` attribute in shadow DOM -->
         <div class="gradient"></div>
@@ -9,7 +9,40 @@
         <br>
         <mc-colorbox id="nodePaintColorInput"></mc-colorbox>
 
+        <p id="paintnodesCount" style="font-size: 15px; color: rgb(255, 255, 255); margin-top:0px; padding-left:10px; margin-bottom: 0px;">
+            [0 nodes painted]</p>
+        <mc-button1 id="paintnodesClear" name="Clear" fn="paintnodes" val="CLEAR"></mc-button1>
+        <br>
+
+        <!-- save the painted nodes as a named selection (shows up in the Selections module) -->
+        <mc-TextInput id="paintSelName" type="textinput" fn="textinput"></mc-TextInput>
+        <button id="paintSelSave" class="swagButton" onclick="savePaintSelection()">SAVE</button>
+        <p id="paintSelStatus" style="font-size: 15px; color: rgb(255, 255, 255); margin-top:0px; padding-left:10px; margin-bottom: 0px;"></p>
+
         <mc-button1 id="labelSuggest" name="Suggest Label" fn="labelSuggest"></mc-button1>
         <mc-scrollbox id="labelSuggestBox"></mc-scrollbox>
 
 </mc-module>
+<script>
+function savePaintSelection() {
+    var text = document.getElementById("paintSelName").shadowRoot.getElementById("text").value.toString().trim();
+    socket.emit('ex', { usr:uid, id: "paintSelSave", fn: "saveNodeSelection", val:text});
+}
+
+(function() {
+    var paintSelText = document.getElementById("paintSelName").shadowRoot.getElementById("text");
+    paintSelText.placeholder = "Selection name";
+
+    // Pressing Enter in the name box triggers the same action as the SAVE button.
+    paintSelText.addEventListener("keydown", function(event) {
+        if (event.key === "Enter") {
+            // do not add a new line in the textarea
+            event.preventDefault();
+            savePaintSelection();
+        }
+    });
+
+    // Hide the microphone/record toggle for the name box (not used here).
+    document.getElementById("paintSelName").shadowRoot.querySelector('label[for="rec"]').style.display = "none";
+})();
+</script>

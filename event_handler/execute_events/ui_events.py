@@ -1,3 +1,4 @@
+import json
 import os
 import uuid
 
@@ -87,8 +88,55 @@ def colorbox_event(message, room):
 
 
 
+# --- NODE PAINTER ---
+# VR paint brush (and the web UI's nodePaint module) -> GD.paintedNodes -> temp1.png
+# node color texture broadcast to all clients via updateTempTex.
+#
+# Messages handled here:
+#   {"fn":"paintnodes", "id":"paintnodes", "op":"ADD"|"SUB"|"CLEAR", "data":[ids]}
+#   {"fn":"colorbox",   "id":"nodePaintColorInput", "r","g","b","a"(0..1)}
+#   {"fn":"saveNodeSelection", "id":"paintSelSave", "val": "<selection name>"}
+
 color_default = (255,0,0,255)
-def paintNodes_renderTexture(message, room):            
+
+
+def _parse_paint_ids(data):
+    # UE hands paint strokes over through ue.interface.paintnodesADD/SUB, which can
+    # arrive as a list, a JSON string ('[1,2,3]'), a comma separated string or a
+    # single id - normalize to a list of ints and drop anything that isn't an id
+    if isinstance(data, str):
+        text = data.strip()
+        try:
+            data = json.loads(text)
+        except ValueError:
+            data = [t for t in text.replace(";", ",").split(",") if t.strip()]
+    if isinstance(data, dict):
+        data = data.get("data", data.get("ids", []))
+    if not isinstance(data, (list, tuple, set)):
+        data = [data]
+
+    ids = []
+    for item in data:
+        try:
+            ids.append(int(item))
+        except (TypeError, ValueError):
+            print("C_DEBUG: nodepaint - ignoring invalid node id:", item)
+    return ids
+
+
+def _paint_status_response(message):
+    # small status message so web UIs can show the painted count and UE can
+    # keep its brush state in sync (the full id list would be too chatty)
+    return {
+        "usr": message.get("usr"),
+        "fn": "paintnodes",
+        "id": "paintnodesStatus",
+        "count": len(GD.paintedNodes),
+        "color": list(GD.paintedNodesColor),
+    }
+
+
+def paintNodes_renderTexture(message, room):
     # copy active color texture
     im1 = PIL.Image.open(
         "static/projects/"
@@ -99,30 +147,22 @@ def paintNodes_renderTexture(message, room):
         "r",
     )
     im2 = im1.copy()
-    # convert rgb to hex string
-    '''
-    color = (
-        int(message["r"]),
-        int(message["g"]),
-        int(message["b"]),
-        int(message["a"] * 255),
-    )'''
+
     if not hasattr(GD, 'paintedNodesColor'):
         GD.paintedNodesColor = color_default
-
-    # notetoself (C): put into pdata instead of GD
     color = GD.paintedNodesColor
-    print("C_DEBUG: painting with color: ", color)
 
     pix_val = list(im1.getdata())
-    print("C_DEBUG: pix_val: ", len(pix_val))
 
-    # colorize clipboard selection
-    if len(GD.paintedNodes) > 0:
-        for id in GD.paintedNodes:
+    # a pixel is either RGB or RGBA depending on how the project's texture was generated
+    if pix_val and not isinstance(pix_val[0], int) and len(pix_val[0]) == 3:
+        color = color[:3]
+
+    # colorize painted nodes
+    for id in GD.paintedNodes:
+        if 0 <= id < len(pix_val):
             pix_val[id] = color
-            #print("C_DEBUG: painted nodes: ", id)
-            
+
     im2.putdata(pix_val)
 
     # save temp texture
@@ -137,48 +177,107 @@ def paintNodes_renderTexture(message, room):
             "path": "static/projects/" + GD.data["actPro"] + "/layoutsRGB/temp1.png",
         }
     ]
-    response = {"usr": message["usr"], "fn": "updateTempTex", "textures": textures}
+    response = {"usr": message.get("usr"), "fn": "updateTempTex", "textures": textures}
 
     emit("ex", response, room=room)
-    emit("ex", message, room=room)
-
+    emit("ex", _paint_status_response(message), room=room)
 
 
 def paintNodes_event(message, room):
-    if message["op"] == "ADD":
-        for id in message["data"]:
-            if id not in GD.paintedNodes:
+    op = str(message.get("op", "ADD")).upper()
+    nodecount = len(GD.nodes.get("nodes", []))
+    ids = [i for i in _parse_paint_ids(message.get("data", [])) if 0 <= i < nodecount]
+
+    if op == "ADD":
+        painted = set(GD.paintedNodes)
+        for id in ids:
+            if id not in painted:
                 GD.paintedNodes.append(id)
-    if message["op"] == "SUB":
-        for id in message["data"]:
-            try: 
-                x = GD.paintedNodes.index(id)
-                GD.paintedNodes.pop(x)
-            except ValueError: found = False
+                painted.add(id)
+    elif op == "SUB":
+        remove = set(ids)
+        GD.paintedNodes[:] = [id for id in GD.paintedNodes if id not in remove]
+    elif op == "CLEAR":
+        GD.paintedNodes.clear()
+    else:
+        print("C_DEBUG: nodepaint - unknown op:", op)
+        return
+
     paintNodes_renderTexture(message, room)
 
+
+def clear_painted_nodes_event(message, room):
+    """
+    Clears the node painter: removes the paint from all nodes painted in VR and
+    restores the original node colors. Use for requests like "clear the painted
+    nodes", "reset the paint", "erase my node painting".
+    """
+    message = dict(message)
+    message["op"] = "CLEAR"
+    paintNodes_event(message, room)
 
 
 def colorbox_nodePaint_event(message, room):
-    GD.paintedNodesColor = (int(message["r"]),int(message["g"]),int(message["b"]),int(message["a"]*255))
+    GD.paintedNodesColor = (int(message["r"]),int(message["g"]),int(message["b"]),int(float(message["a"])*255))
     paintNodes_renderTexture(message, room)
 
 
-
 def save_node_selection_event(message, room):
-    
-    response = {}
-    response["usr"] = message["usr"]
-    response["id"] = message["id"]
-    response["fn"] = message["fn"]
+    """
+    Saves the nodes currently painted in VR as a named node selection in the
+    project, so it shows up in the Selections module and can be copied to the
+    clipboard later. Use for requests like "save the painted nodes as <name>",
+    "store this selection", "keep these painted nodes".
+    """
+    name = str(message.get("val") or "").strip()
+    if not name:
+        name = "painted selection " + str(len(GD.pfile.get("selections", [])) + 1)
 
-    GD.pdata["nodeSelections2"] = {}
-    GD.pdata["nodeSelections2"][message["val"]] = GD.paintedNodes
-        
-    print("C_DEBUG: saved node selection: ", message["val"], GD.pdata["nodeSelections2"][message["val"]])
-                                                                      
-    GD.savePD()
-    emit("ex", response, room=room)
+    status = {"usr": message.get("usr"), "fn": "saveNodeSelection", "id": "paintSelStatus"}
+
+    if not GD.paintedNodes:
+        status["val"] = "Nothing painted - paint some nodes first."
+        emit("ex", status, room=room)
+        return
+
+    selection = {"name": name, "nodes": [int(id) for id in GD.paintedNodes]}
+
+    # serialized against project switches, which swap GD.pfile out wholesale
+    with GD.project_switch_lock:
+        selections = GD.pfile.setdefault("selections", [])
+        # saving under an existing name overwrites that selection
+        for i, sel in enumerate(selections):
+            if sel.get("name") == name:
+                selections[i] = selection
+                sel_index = i
+                break
+        else:
+            selections.append(selection)
+            sel_index = len(selections) - 1
+        GD.savePFile()
+
+        GD.pdata["selectionsDD"] = sel_index
+        GD.savePD()
+
+    print("C_DEBUG: saved painted node selection: ", name, len(selection["nodes"]), "nodes")
+
+    # refresh the selections dropdown on every client (opt rebuilds the list)
+    emit(
+        "ex",
+        {
+            "usr": message.get("usr"),
+            "fn": "dropdown",
+            "id": "selectionsDD",
+            "parent": "selectionsDD",
+            "opt": [sel["name"] for sel in selections],
+            "sel": str(sel_index),
+            "name": name,
+        },
+        room=room,
+    )
+
+    status["val"] = "Saved '" + name + "' (" + str(len(selection["nodes"])) + " nodes)"
+    emit("ex", status, room=room)
 
 
 

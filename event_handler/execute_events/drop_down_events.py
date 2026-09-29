@@ -180,6 +180,8 @@ def user_input(message, response, room=None, namespace="/main"):
         # docstring in GlobalData.py for why this matters
         with GD.project_switch_lock:
             GD.data["actPro"] = GD.plist[int(message["val"])]
+            # painted node ids belong to the previous project's node indices
+            GD.paintedNodes.clear()
             GD.saveGD()
             GD.loadGD()
             GD.loadPFile()

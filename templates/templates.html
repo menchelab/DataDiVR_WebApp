@@ -668,7 +668,9 @@
             let sliderG = this.shadowRoot.querySelector("#green");
             let sliderB = this.shadowRoot.querySelector("#blue");
             let sliderA = this.shadowRoot.querySelector("#alpha");
-            let [r, g, b, a] = [0, 0, 0, 0];
+            // start from the sliders' initial values - clicking the swatch before touching
+            // a slider used to send rgba(0,0,0,0) (invisible nodes)
+            let [r, g, b, a] = [sliderR.value, sliderG.value, sliderB.value, sliderA.value / 255];
 
             sliderR.addEventListener('input', () => {
                 r = sliderR.value;

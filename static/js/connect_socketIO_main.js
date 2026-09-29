@@ -98,6 +98,22 @@ ue.interface.paintnodesSUB = function(data) {
     socket.emit('ex', out);
 };
 
+ue.interface.paintnodesCLEAR = function(data) {
+    socket.emit('ex', { usr: uid, id: "paintnodes", data: [], fn: "paintnodes", op: "CLEAR" });
+};
+
+// save the currently painted nodes as a named selection - data: the name
+// (plain string or '{"name": "..."}'), empty -> server picks a default name
+ue.interface.paintnodesSAVE = function(data) {
+    var name = data;
+    if (typeof name === "string") {
+        try { var parsed = JSON.parse(name); if (parsed && typeof parsed === "object") { name = parsed.name || parsed.text || ""; } } catch (e) {}
+    } else if (name && typeof name === "object") {
+        name = name.name || name.text || "";
+    }
+    socket.emit('ex', { usr: uid, id: "paintSelSave", fn: "saveNodeSelection", val: name ? String(name) : "" });
+};
+
 ue.interface.manLabel = function(data) {
     //console.log(data);
     var text = '{"id":"manLabel", "x": 0, "y":0, "z":0, "fn": "manLabel"}';
@@ -425,7 +441,26 @@ $(document).ready(function() {
                 });
                 break;
             case "colorbox":
-                document.getElementById(data.id).shadowRoot.getElementById("color").style.backgroundColor = 'rgba(' + data.r + ',' + data.g + ',' + data.b + ',' + data.a * 255 + ')';
+                // a is 0..1 (see mcColorBox)
+                document.getElementById(data.id).shadowRoot.getElementById("color").style.backgroundColor = 'rgba(' + data.r + ',' + data.g + ',' + data.b + ',' + data.a + ')';
+                break;
+
+            // node painter state after every paint stroke / clear / color change
+            // (ui_events.paintNodes_renderTexture) - {count, color:[r,g,b,a 0..255]}
+            case "paintnodes":
+                if (data.id == "paintnodesStatus") {
+                    if (document.getElementById("paintnodesCount")) {
+                        document.getElementById("paintnodesCount").innerHTML = "[" + data.count + " nodes painted]";
+                    }
+                    ue4(data["fn"], data);
+                }
+                break;
+
+            case "saveNodeSelection":
+                if (document.getElementById("paintSelStatus")) {
+                    document.getElementById("paintSelStatus").innerHTML = data.val;
+                }
+                ue4(data["fn"], data);
                 break;
 
 
